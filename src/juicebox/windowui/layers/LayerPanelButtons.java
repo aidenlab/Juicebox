@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -132,13 +132,13 @@ class LayerPanelButtons {
     }
 
     public static JButton createCopyButton(final LayersPanel lp, final SuperAdapter superAdapter,
-                                           final JPanel layerBoxGUI, final AnnotationLayerHandler handler) throws IOException {
+                                           final AnnotationLayerHandler handler) throws IOException {
         JButton copyButton = createIconButton(lp, "/images/layer/copy.png");
         copyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //AnnotationLayerHandler handlerDup =
-                lp.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, handler);
+                lp.new2DAnnotationsLayerAction(superAdapter, handler);
             }
         });
         copyButton.setToolTipText("Duplicate this layer");

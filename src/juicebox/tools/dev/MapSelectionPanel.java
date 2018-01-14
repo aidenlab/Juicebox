@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -131,7 +131,8 @@ class MapSelectionPanel extends JPanel {
         for (JCheckBox checkBox : checkBoxes) {
             box.add(checkBox);
         }
-        JScrollPane scrollPane = new JScrollPane(box);
+        JScrollPane scrollPane = new JScrollPane(box, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JPanel pane = new JPanel(new BorderLayout());
         pane.add(label, BorderLayout.PAGE_START);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ public class AssemblyOperationExecutor {
     private static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyScaffoldHandler, refreshMap);
-        if (refreshMap) superAdapter.executeClearAllMZDCache();
+        if (refreshMap) superAdapter.safeClearAllMZDCache();
 
     }
 }

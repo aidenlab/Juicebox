@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
-import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.Load2DAnnotationsDialog;
@@ -69,11 +68,10 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private ArrayList<String> mostRecentPaths = new ArrayList<String>();
 
 
-    public LoadModifiedAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
+    public LoadModifiedAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Modified Assembly annotation file(s) to open");
 
-        final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
-        final MainWindow window = superAdapter.getMainWindow();
+        final LayersPanel layersPanel = superAdapter.getLayersPanel();
 
         //Create the nodes.
         final DefaultMutableTreeNode top =
@@ -99,7 +97,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                             TreePath[] paths = new TreePath[1];
                             paths[0] = selPath;
                             try {
-                                safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                                safeLoadAssemblyFiles(paths, layersPanel, superAdapter);
                             } catch (Exception e) {
                                 SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
@@ -124,7 +122,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             @Override
             public void actionPerformed(ActionEvent e) {
                 mostRecentPaths.clear();
-                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter);
                 LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -156,6 +154,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
+
+        addLocalButtonActionPerformed(superAdapter);
     }
 
     public static TreePath getPath(TreeNode treeNode) {
@@ -183,7 +183,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
     }
 
-    public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+    private void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
         // Get the main window
         final MainWindow window = superAdapter.getMainWindow();
 
@@ -192,7 +192,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 
         Boolean localFilesAdded = Boolean.FALSE;
 
-        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose Assembly files", openAnnotationPath, null);
 
         if (twoDfiles != null && twoDfiles.length > 0) {
             for (File file : twoDfiles) {
@@ -253,19 +253,17 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     }
 
 
-    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
-                                       final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter);
             }
         };
         superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
     }
 
-    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
-                                         JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter) {
         String cpropsPath = null;
         String asmPath = null;
         String assemblyPath = null;
@@ -298,7 +296,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             assemblyFileImporter.importAssembly();
             AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
             superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);
-                superAdapter.clearAllMatrixZoomCache();
+            superAdapter.unsafeClearAllMatrixZoomCache();
             superAdapter.refresh();
 
 //            } catch (Exception ee) {

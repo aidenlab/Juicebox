@@ -60,7 +60,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
-    public Load2DAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
+    public Load2DAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select 2D annotation file(s) to open");
 
         final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
@@ -90,7 +90,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
                             TreePath[] paths = new TreePath[1];
                             paths[0] = selPath;
                             try {
-                                safeLoadAnnotationFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                                safeLoadAnnotationFiles(paths, layersPanel, superAdapter, chromosomeHandler);
                             } catch (Exception e) {
                                 SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
@@ -114,7 +114,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         openButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                safeLoadAnnotationFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                safeLoadAnnotationFiles(tree.getSelectionPaths(), layersPanel, superAdapter, chromosomeHandler);
                 Load2DAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -301,24 +301,24 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     }
 
     private void safeLoadAnnotationFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
-                                         final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+                                         final ChromosomeHandler chromosomeHandler) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                unsafeLoadAnnotationFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                unsafeLoadAnnotationFiles(paths, layersPanel, superAdapter, chromosomeHandler);
             }
         };
         superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
     }
 
     private void unsafeLoadAnnotationFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
-                                           JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+                                           ChromosomeHandler chromosomeHandler) {
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
                 try {
-                    AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
                     handler.setLayerNameAndField(info.itemName);
                     handler.loadLoopList(info.itemURL, chromosomeHandler);
                 } catch (Exception ee) {

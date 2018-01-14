@@ -58,7 +58,7 @@ public class LayersPanel extends JDialog {
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
     private final JPanel layers2DPanel;
     //    private JPanel assemblyAnnotationsPanel;
-    private JPanel layerBoxGUI2DAnnotations;
+    private final JPanel layerBoxGUI2DAnnotations = new JPanel(new GridLayout(0, 1));
     private final JTabbedPane tabbedPane;
 
     public LayersPanel(final SuperAdapter superAdapter) {
@@ -69,7 +69,6 @@ public class LayersPanel extends JDialog {
 
         JPanel annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
         if (annotations1DPanel != null) annotations1DPanel.setBorder(padding);
-
         layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         if (layers2DPanel != null) layers2DPanel.setBorder(padding);
 
@@ -125,7 +124,8 @@ public class LayersPanel extends JDialog {
 
         final JPanel layerBoxGUI = new JPanel();
         layerBoxGUI.setLayout(new GridLayout(0, 1));
-        JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
+        JScrollPane scrollPane = new JScrollPane(layerBoxGUI, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
         JButton loadBasicButton = new JButton("Load Basic Annotations...");
@@ -224,10 +224,6 @@ public class LayersPanel extends JDialog {
      * @return
      */
     private JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
-        layerBoxGUI2DAnnotations = new JPanel();
-        //layerBoxGUI2DAnnotations.setLayout(new BoxLayout(layerBoxGUI2DAnnotations, BoxLayout.PAGE_AXIS));
-        layerBoxGUI2DAnnotations.setLayout(new GridLayout(0, 1));
-        //initialize here
 
         int i = 0;
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
@@ -240,7 +236,8 @@ public class LayersPanel extends JDialog {
                 //e.printStackTrace();
             }
         }
-        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI2DAnnotations);
+        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI2DAnnotations, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JButton refreshButton = new JButton("Refresh View");
         refreshButton.addActionListener(new ActionListener() {
@@ -277,7 +274,7 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (load2DAnnotationsDialog == null) {
-                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI2DAnnotations);
+                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter);
                 }
                 load2DAnnotationsDialog.setVisible(Boolean.TRUE);
             }
@@ -288,7 +285,7 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (load2DAnnotationsDialog == null) {
-                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI2DAnnotations);
+                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter);
                 }
                 load2DAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
             }
@@ -297,14 +294,14 @@ public class LayersPanel extends JDialog {
         newLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new2DAnnotationsLayerAction(superAdapter, layerBoxGUI2DAnnotations, null);
+                new2DAnnotationsLayerAction(superAdapter, null);
             }
         });
 
         mergeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                merge2DAnnotationsAction(superAdapter, layerBoxGUI2DAnnotations);
+                merge2DAnnotationsAction(superAdapter);
             }
         });
 
@@ -329,18 +326,18 @@ public class LayersPanel extends JDialog {
                 //e.printStackTrace();
             }
         }
-        return new JScrollPane(layerBoxGUI);
+        return new JScrollPane(layerBoxGUI, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     }
 
-    public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
-                                                              AnnotationLayerHandler sourceHandler) {
+    public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, AnnotationLayerHandler sourceHandler) {
         AnnotationLayerHandler handler = superAdapter.createNewLayer(null);
         if (sourceHandler != null) handler.duplicateDetailsFrom(sourceHandler);
         try {
-            JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
-            layerBoxGUI.add(panel, 0);
-            layerBoxGUI.revalidate();
-            layerBoxGUI.repaint();
+            JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI2DAnnotations);
+            layerBoxGUI2DAnnotations.add(panel, 0);
+            layerBoxGUI2DAnnotations.revalidate();
+            layerBoxGUI2DAnnotations.repaint();
             superAdapter.setActiveLayerHandler(handler);
             superAdapter.updateLayerDeleteStatus();
             superAdapter.updateMiniAnnotationsLayerPanel();
@@ -351,7 +348,7 @@ public class LayersPanel extends JDialog {
         return handler;
     }
 
-    private void merge2DAnnotationsAction(SuperAdapter superAdapter, JPanel layerBoxGUI) {
+    private void merge2DAnnotationsAction(SuperAdapter superAdapter) {
         List<AnnotationLayerHandler> visibleLayers = new ArrayList<>();
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             if (handler.getLayerVisibility()) {
@@ -362,18 +359,18 @@ public class LayersPanel extends JDialog {
         AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer(null);
         mergedHandler.mergeDetailsFrom(visibleLayers);
         try {
-            JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI);
-            layerBoxGUI.add(panel, 0);
+            JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI2DAnnotations);
+            layerBoxGUI2DAnnotations.add(panel, 0);
 
             for (AnnotationLayerHandler handler : visibleLayers) {
                 int index = superAdapter.removeLayer(handler);
                 if (index > -1) {
-                    layerBoxGUI.remove(index);
+                    layerBoxGUI2DAnnotations.remove(index);
                 }
             }
 
-            layerBoxGUI.revalidate();
-            layerBoxGUI.repaint();
+            layerBoxGUI2DAnnotations.revalidate();
+            layerBoxGUI2DAnnotations.repaint();
             superAdapter.setActiveLayerHandler(mergedHandler);
             superAdapter.updateLayerDeleteStatus();
         } catch (Exception ee) {
@@ -416,7 +413,7 @@ public class LayersPanel extends JDialog {
         JButton deleteButton = LayerPanelButtons.createDeleteButton(this, superAdapter, layerBoxGUI, parentPanel, handler);
         JButton upButton = LayerPanelButtons.createMoveUpButton(this, superAdapter, layerBoxGUI, parentPanel, handler);
         JButton downButton = LayerPanelButtons.createMoveDownButton(this, superAdapter, layerBoxGUI, parentPanel, handler);
-        JButton copyButton = LayerPanelButtons.createCopyButton(this, superAdapter, layerBoxGUI, handler);
+        JButton copyButton = LayerPanelButtons.createCopyButton(this, superAdapter, handler);
 
         parentPanel.add(nameField);
         Component[] allComponents = new Component[]{writeButton, toggleVisibleButton,
@@ -477,9 +474,5 @@ public class LayersPanel extends JDialog {
 
     public LoadAction getTrackLoadAction() {
         return trackLoadAction;
-    }
-
-    public JPanel getLayerBoxGUI2DAnnotations() {
-        return layerBoxGUI2DAnnotations;
     }
 }

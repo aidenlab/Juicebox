@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.AssemblyStateTracker;
-import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.AnnotationLayer;
@@ -71,11 +70,10 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private ArrayList<String> mostRecentPaths = new ArrayList<String>();
 
-    public LoadAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
+    public LoadAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
 
-        final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
-        final MainWindow window = superAdapter.getMainWindow();
+        final LayersPanel layersPanel = superAdapter.getLayersPanel();
 
         //Create the nodes.
         final DefaultMutableTreeNode top =
@@ -101,7 +99,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                             TreePath[] paths = new TreePath[1];
                             paths[0] = selPath;
                             try {
-                                safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                                safeLoadAssemblyFiles(paths, layersPanel, superAdapter);
                             } catch (Exception e) {
                                 SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
@@ -126,7 +124,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             @Override
             public void actionPerformed(ActionEvent e) {
                 mostRecentPaths.clear();
-                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter);
                 LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -158,6 +156,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
+
+        addLocalButtonActionPerformed(superAdapter);
     }
 
     public static TreePath getPath(TreeNode treeNode) {
@@ -255,19 +255,17 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     }
 
 
-    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
-                                       final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter);
             }
         };
         superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
     }
 
-    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
-                                         JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter) {
         // two-file format
         String cpropsPath = null;
         String asmPath = null;
@@ -305,7 +303,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 }
 
                 //temp layer to allow deleting of other layers
-                layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
                 if (superAdapter.getAssemblyLayerHandlers() != null) {
                     for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
                         superAdapter.removeLayer(annotationLayerHandler);
@@ -324,17 +322,17 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 AnnotationLayer superscaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler().getFeatureList());
                 superscaffoldLayer.setLayerType(AnnotationLayer.LayerType.SUPERSCAFFOLD);
 
-                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
                 scaffoldLayerHandler.setLayerNameAndField("Scaf");
                 scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
 
-                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
                 superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
                 superscaffoldLayerHandler.setLayerNameAndField("Chr");
                 superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
-                AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
                 editLayerHandler.setColorOfAllAnnotations(Color.yellow);
                 editLayerHandler.setLayerNameAndField("Edit");
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);

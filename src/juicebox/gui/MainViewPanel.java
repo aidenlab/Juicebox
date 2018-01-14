@@ -105,7 +105,6 @@ public class MainViewPanel {
     private final JPanel toolbarPanel = new JPanel(new GridBagLayout());
     //private final JPanel bottomPanel = new JPanel();
     private final JPanel chrSelectionPanel = new JPanel(new BorderLayout());
-    private final JPanel thumbPanel = new JPanel(new BorderLayout());
     private final JPanel wrapGapPanel = new JPanel();
     private final JPanel topPanel = new JPanel(new BorderLayout());
     private final JPanel leftPanel = new JPanel(new BorderLayout());
@@ -128,8 +127,16 @@ public class MainViewPanel {
         return menuBar;
     }
 
-    public void initializeMainView(final SuperAdapter superAdapter, Container contentPane,
-                                   Dimension bigPanelDim, Dimension panelDim) {
+    public void initializeMainView(final SuperAdapter superAdapter, Container contentPane, Dimension screenSize, int taskBarHeight) {
+
+        Dimension bigPanelDim = new Dimension((int) (screenSize.width * .8),
+                (int) ((screenSize.height - taskBarHeight) * .9));
+
+        Dimension panelDim = new Dimension((int) (screenSize.width * .75),
+                screenSize.height - taskBarHeight);
+
+        Dimension chrBoxDim = new Dimension(95, 70);
+
         contentPane.setLayout(new BorderLayout());
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
@@ -166,7 +173,7 @@ public class MainViewPanel {
                 chrBox1ActionPerformed(e);
             }
         });
-        chrBox1.setPreferredSize(new Dimension(95, 70));
+        chrBox1.setPreferredSize(chrBoxDim);
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
@@ -177,7 +184,7 @@ public class MainViewPanel {
                 chrBox2ActionPerformed(e);
             }
         });
-        chrBox2.setPreferredSize(new Dimension(95, 70));
+        chrBox2.setPreferredSize(chrBoxDim);
         chrButtonPanel.add(chrBox2);
 
         //---- refreshButton ----
@@ -365,27 +372,29 @@ public class MainViewPanel {
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
 
         //======== Right side panel ========
+        int prefRightSideWidth = (int) (screenSize.width * .20);
+
         rightSidePanel.setLayout(new BoxLayout(rightSidePanel, BoxLayout.Y_AXIS));
-        rightSidePanel.setPreferredSize(new Dimension(210, 1000));
-        rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
+        rightSidePanel.setMinimumSize(new Dimension((int) (screenSize.width * .15), screenSize.height));
+        rightSidePanel.setPreferredSize(new Dimension(prefRightSideWidth, screenSize.height));
+        rightSidePanel.setMaximumSize(new Dimension((int) (screenSize.width * .21), screenSize.height));
 
         //======== Bird's view mini map ========
+        Dimension thumbNailDim = new Dimension(prefRightSideWidth, prefRightSideWidth);
         thumbnailPanel = new ThumbnailPanel(superAdapter);
-        thumbnailPanel.setMaximumSize(new Dimension(210, 210));
-        thumbnailPanel.setMinimumSize(new Dimension(210, 210));
-        thumbnailPanel.setPreferredSize(new Dimension(210, 210));
-
-//        JPanel gapPanel = new JPanel();
-//        gapPanel.setMaximumSize(new Dimension(1, 1));
-//        rightSidePanel.add(gapPanel,BorderLayout.WEST);
-        thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
-        thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, thumbPanel.getMinimumSize().height));
-        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
+        thumbnailPanel.setMaximumSize(thumbNailDim);
+        thumbnailPanel.setMinimumSize(thumbNailDim);
+        thumbnailPanel.setPreferredSize(thumbNailDim);
+        // todo eliminate thumbpanel - redundant container?
+        rightSidePanel.add(thumbnailPanel, BorderLayout.NORTH);
 
         //========= mini-annotations panel ======
-        miniAnnotationsLayerPanel = new MiniAnnotationsLayerPanel(superAdapter);
+        int maxMiniAnnotHeight = (screenSize.height - toolbarPanel.getHeight() - taskBarHeight) / 5;
+        miniAnnotationsLayerPanel = new MiniAnnotationsLayerPanel(superAdapter, prefRightSideWidth, maxMiniAnnotHeight);
 
         //========= mouse hover text ======
+        int leftoverHeight = screenSize.height - toolbarPanel.getHeight() - taskBarHeight -
+                miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight();
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
@@ -393,21 +402,19 @@ public class MainViewPanel {
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(210,
-            computeResolutionIndependentJComponentHeight(500) -
-                miniAnnotationsLayerPanel.getDynamicHeight() -
-                annotationsPanelToggleButton.getHeight());
-        mouseHoverTextPanel.setPreferredSize(prefSize);
-        tooltipPanel.setPreferredSize(prefSize);
+        Dimension prefTextPanelSize = new Dimension(prefRightSideWidth, leftoverHeight);
+        mouseHoverTextPanel.setPreferredSize(prefTextPanelSize);
+        tooltipPanel.setPreferredSize(prefTextPanelSize);
 
-        tooltipScroller = new JScrollPane(mouseHoverTextPanel);
+        tooltipScroller = new JScrollPane(mouseHoverTextPanel,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tooltipScroller.setBorder(null);
-        tooltipScroller.setMaximumSize(prefSize);
+        tooltipScroller.setMaximumSize(prefTextPanelSize);
 
         tooltipPanel.add(tooltipScroller);
-        tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
+        tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefTextPanelSize));
         tooltipPanel.setBorder(null);
-        thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, tooltipPanel.getMinimumSize().height));
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 
@@ -442,38 +449,12 @@ public class MainViewPanel {
       rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
         annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // compute preferred size
-        Dimension preferredSize = new Dimension();
-        for (int i = 0; i < rightSidePanel.getComponentCount(); i++) {
-            Rectangle bounds = rightSidePanel.getComponent(i).getBounds();
-            preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
-            preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
-        }
-        Insets insets = rightSidePanel.getInsets();
-        preferredSize.width += insets.right + 20;
-        preferredSize.height += insets.bottom;
-        rightSidePanel.setMinimumSize(preferredSize);
-        rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
 
         resetAllColors();
         initialSetToFalse();
     }
-
-  private int computeResolutionIndependentJComponentHeight(int referenceResolutionJComponentHeight) {
-
-    // Assumes that the max height in the reference resolution is 800
-    float referenceResolutionScreenHeight = 800;
-
-    float
-        currentResolutionScreenHeight =
-        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getHeight();
-
-    return (int) ((currentResolutionScreenHeight / referenceResolutionScreenHeight) *
-        referenceResolutionJComponentHeight);
-
-  }
 
     private void initialSetToFalse() {
         JComponent[] comps = new JComponent[]{chrBox1, chrBox2, refreshButton, displayOptionComboBox,
@@ -507,28 +488,6 @@ public class MainViewPanel {
         displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
 
         heatmapPanel.reset();
-    }
-
-    private void setMiniAnnotationsLayerPanel(MiniAnnotationsLayerPanel miniAnnotationsLayerPanel) {
-        annotationsPanel.remove(this.miniAnnotationsLayerPanel);
-        Dimension
-            prefSize =
-            new Dimension(210,
-                computeResolutionIndependentJComponentHeight(500) -
-                    miniAnnotationsLayerPanel.getDynamicHeight() -
-                    annotationsPanelToggleButton.getHeight());
-
-        mouseHoverTextPanel.setPreferredSize(prefSize);
-        tooltipPanel.setPreferredSize(prefSize);
-        tooltipScroller.setMaximumSize(prefSize);
-        mouseHoverTextPanel.revalidate();
-        mouseHoverTextPanel.repaint();
-        tooltipPanel.revalidate();
-        tooltipPanel.repaint();
-        tooltipScroller.revalidate();
-        tooltipScroller.repaint();
-        this.miniAnnotationsLayerPanel = miniAnnotationsLayerPanel;
-        annotationsPanel.add(this.miniAnnotationsLayerPanel, 0);
     }
 
     public JPanel getHiCPanel() {
@@ -953,9 +912,9 @@ public class MainViewPanel {
     }
 
     public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
-        setMiniAnnotationsLayerPanel(new MiniAnnotationsLayerPanel(superAdapter));
-        miniAnnotationsLayerPanel.revalidate();
-        miniAnnotationsLayerPanel.repaint();
+        miniAnnotationsLayerPanel.updateRows(superAdapter);
+        rightSidePanel.revalidate();
+        rightSidePanel.repaint();
     }
 
     public boolean unsavedEditsExist() {
@@ -970,7 +929,4 @@ public class MainViewPanel {
         menuBar.updatePrevStateNameFromImport(path);
     }
 
-    /*public boolean isPearsonDisplayed() {
-        return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;
-    }*/
 }

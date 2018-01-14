@@ -432,7 +432,7 @@ public class MainMenuBar extends JMenuBar {
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
                 superAdapter.getMainViewPanel().resetAllColors();
-                //superAdapter.executeClearAllMZDCache();
+                //superAdapter.safeClearAllMZDCache();
                 superAdapter.refresh();
             }
         });
@@ -567,18 +567,12 @@ public class MainMenuBar extends JMenuBar {
         devMenu.addSeparator();
         devMenu.add(sparseOptions);
 
-        JMenuItem chrSubset = new JMenuItem("Select genome subset...");
-        chrSubset.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
 
-            }
-        });
-
+        /**    Assembly Menu     **/
         assemblyMenu = new JMenu("Assembly");
         assemblyMenu.setEnabled(false);
 
-        enableAssembly = new JCheckBoxMenuItem("Enable edits");
+        enableAssembly = new JCheckBoxMenuItem("Enable Edits");
         enableAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -590,7 +584,7 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-        resetAssembly = new JMenuItem("Reset assembly");
+        resetAssembly = new JMenuItem("Reset Assembly");
 
         resetAssembly.addActionListener(new ActionListener() {
             @Override
@@ -603,7 +597,7 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-        exitAssembly = new JMenuItem("Exit assembly");
+        exitAssembly = new JMenuItem("Exit Assembly");
         exitAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -614,7 +608,7 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-        exportAssembly = new JMenuItem("Export assembly");
+        exportAssembly = new JMenuItem("Export Assembly");
         exportAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -624,20 +618,18 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-        final JMenuItem importMapAssembly = new JMenuItem("Import Map assembly");
+        final JMenuItem importMapAssembly = new JMenuItem("Import Map Assembly");
         importMapAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.getLayersPanel() == null) {
                     superAdapter.intializeLayersPanel();
                 }
-                LoadAssemblyAnnotationsDialog loadAssemblyDialog;
-                loadAssemblyDialog = new LoadAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
-                loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
+                new LoadAssemblyAnnotationsDialog(superAdapter);
             }
         });
 
-        importModifiedAssembly = new JMenuItem("Import Modified assembly");
+        importModifiedAssembly = new JMenuItem("Import Modified Assembly");
         importModifiedAssembly.addActionListener(new ActionListener() {
 
             //TODO: add warning if changes are present
@@ -647,9 +639,7 @@ public class MainMenuBar extends JMenuBar {
                 if (superAdapter.getLayersPanel() == null) {
                     superAdapter.intializeLayersPanel();
                 }
-                LoadModifiedAssemblyAnnotationsDialog loadModifiedAssemblyAnnotationsDialog;
-                loadModifiedAssemblyAnnotationsDialog = new LoadModifiedAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
-                loadModifiedAssemblyAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
+                new LoadModifiedAssemblyAnnotationsDialog(superAdapter);
             }
         });
 

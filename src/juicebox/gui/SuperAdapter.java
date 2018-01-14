@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
-import juicebox.assembly.UnsavedAssemblyWarning;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
@@ -84,6 +83,10 @@ public class SuperAdapter {
 
     public static String getDatasetTitle() {
         return datasetTitle;
+    }
+
+    public static void setDatasetTitle(String newDatasetTitle) {
+        datasetTitle = newDatasetTitle;
     }
 
     public void setAdapters(MainWindow mainWindow, HiC hic, MainViewPanel mainViewPanel) {
@@ -187,7 +190,6 @@ public class SuperAdapter {
 
     public void loadFromListActionPerformed(boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
-      UnsavedAssemblyWarning unsavedAssembly = new UnsavedAssemblyWarning(this);
         if (unsaved.checkAndDelete(datasetTitle.length() > 0)) {
             HiCFileLoader.loadFromListActionPerformed(this, control);
         }
@@ -225,6 +227,7 @@ public class SuperAdapter {
     }
 
     public void repaint() {
+        mainWindow.revalidate();
         mainWindow.repaint();
     }
 
@@ -312,8 +315,8 @@ public class SuperAdapter {
         return new Point(mainViewPanel.getHeatmapPanel().getWidth(), mainViewPanel.getHeatmapPanel().getHeight());
     }
 
-    public void initializeMainView(Container contentPane, Dimension bigPanelDim, Dimension panelDim) {
-        mainViewPanel.initializeMainView(this, contentPane, bigPanelDim, panelDim);
+    public void initializeMainView(Container contentPane, Dimension screenSize, int taskBarHeight) {
+        mainViewPanel.initializeMainView(this, contentPane, screenSize, taskBarHeight);
     }
 
     private void unsafeSetInitialZoom() {
@@ -361,19 +364,18 @@ public class SuperAdapter {
 
     public void refresh() {
         mainViewPanel.getHeatmapPanel().clearTileCache();
-        mainWindow.repaint();
         mainViewPanel.updateThumbnail(hic);
-        //System.err.println(heatmapPanel.getSize());
+        repaint();
     }
 
-    public void clearAllMatrixZoomCache() {
+    public void unsafeClearAllMatrixZoomCache() {
         //not sure if this is a right place for this
         hic.clearAllMatrixZoomDataCache();
     }
 
     private void refreshMainOnly() {
         mainViewPanel.getHeatmapPanel().clearTileCache();
-        mainWindow.repaint();
+        repaint();
     }
 
     private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
@@ -918,8 +920,8 @@ public class SuperAdapter {
     public void resetAnnotationLayers() {
         annotationLayerHandlers.clear();
         // currently must have at least 1 layer
-        createNewLayer();
         getActiveLayerHandler().getAnnotationLayer().resetCounter();
+        createNewLayer(null);
         updateMiniAnnotationsLayerPanel();
         updateMainLayersPanel();
     }
@@ -1040,10 +1042,10 @@ public class SuperAdapter {
         previousTempSelectedGroup.add(tempSelectedGroup);
     }
 
-    public void executeClearAllMZDCache() {
+    public void safeClearAllMZDCache() {
         Runnable runnable = new Runnable() {
             public void run() {
-                clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
+                unsafeClearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
                 refresh();
             }
         };
@@ -1053,12 +1055,12 @@ public class SuperAdapter {
     public boolean exitAssemblyMode() {
         MainMenuBar.exitAssemblyMode();
         int dialogButton = JOptionPane.YES_NO_OPTION;
-        int dialogResult = JOptionPane.showConfirmDialog(mainWindow, "This action will remove all unsaved assembly changes. Continue?", "Continue", dialogButton);
+        int dialogResult = JOptionPane.showConfirmDialog(mainWindow, "This action will discard all unsaved assembly changes. Continue?", "Continue", dialogButton);
         if (dialogResult == JOptionPane.NO_OPTION) {
             return false;
         } else {
             if (layersPanel != null) {
-                layersPanel.new2DAnnotationsLayerAction(this, layersPanel.getLayerBoxGUI2DAnnotations(), null);
+                layersPanel.new2DAnnotationsLayerAction(this, null);
             }
             if (getAssemblyLayerHandlers() != null) {
                 for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())
@@ -1067,9 +1069,10 @@ public class SuperAdapter {
                     layersPanel.updateBothLayersPanels(this);
                 }
                 assemblyModeCurrentlyActive = false;
-                executeClearAllMZDCache();
+                safeClearAllMZDCache();
                 repaint();
             }
+            resetAnnotationLayers();
             return true;
         }
     }

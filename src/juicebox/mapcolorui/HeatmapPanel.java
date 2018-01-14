@@ -1059,6 +1059,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
         activelyEditingAssembly = false;
         HiCGlobals.splitModeEnabled = false;
+        SuperAdapter.assemblyModeCurrentlyActive = false;
     }
 
     private void addHighlightedFeature(Feature2D feature2D) {

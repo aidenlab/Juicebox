@@ -36,16 +36,9 @@ import org.broad.igv.ui.util.IconFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,7 +98,7 @@ public class MainWindow extends JFrame {
         return theInstance;
     }
 
-    public static void main(String[] args) throws InvocationTargetException, InterruptedException {
+    public static void main(String[] args) {
         initApplication();
 
      //   Runnable runnable = new Runnable() {
@@ -208,15 +201,7 @@ public class MainWindow extends JFrame {
         Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
         int taskBarHeight = scnMax.bottom;
 
-        Container contentPane = getContentPane();
-
-        Dimension bigPanelDim = new Dimension(screenSize.width - getWidth() - 230,
-                screenSize.height - taskBarHeight - getHeight() - 120);
-
-        Dimension panelDim = new Dimension(screenSize.width - getWidth() - 300,
-                screenSize.height - taskBarHeight - getHeight());
-
-        MainWindow.superAdapter.initializeMainView(contentPane, bigPanelDim, panelDim);
+        MainWindow.superAdapter.initializeMainView(getContentPane(), screenSize, taskBarHeight);
 
         initializeGlassPaneListening();
         ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox256.png"));

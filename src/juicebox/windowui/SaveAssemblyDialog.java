@@ -49,6 +49,8 @@ public class SaveAssemblyDialog extends JFileChooser {
         menuOptions();
     }
 
+    // todo see SaveAnnotationsDialog
+    // todo add file extension filter
     private void menuOptions() {
         setSelectedFile(new File(mapName + ".review"));
         if (HiCGlobals.guiIsCurrentlyActive) {

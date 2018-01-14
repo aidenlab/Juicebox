@@ -32,6 +32,7 @@ import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
+import juicebox.windowui.layers.MiniAnnotationsLayerPanel;
 import juicebox.windowui.layers.PlottingStyleButton;
 import juicebox.windowui.layers.SaveAnnotationsDialog;
 import org.broad.igv.ui.color.ColorChooserPanel;
@@ -52,7 +53,7 @@ public class AnnotationLayerHandler {
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
     private Rectangle selectionRegion;
-    private Feature2D.FeatureType featureType;
+    private Feature2D.FeatureType featureType = Feature2D.FeatureType.NONE;
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
@@ -72,15 +73,13 @@ public class AnnotationLayerHandler {
     private JLabel miniNameLabel;
 
     public AnnotationLayerHandler() {
-        featureType = Feature2D.FeatureType.NONE;
-        this.annotationLayer = new AnnotationLayer();
+        annotationLayer = new AnnotationLayer();
         resetSelection();
         layerName = "Layer " + annotationLayer.getId();
     }
 
     public AnnotationLayerHandler(Feature2DList feature2DList) {
-        featureType = Feature2D.FeatureType.NONE;
-        this.annotationLayer = new AnnotationLayer(feature2DList);
+        annotationLayer = new AnnotationLayer(feature2DList);
         resetSelection();
         layerName = "Layer " + annotationLayer.getId();
     }
@@ -579,7 +578,7 @@ public class AnnotationLayerHandler {
     public void setLayerNameAndOtherField(String layerName) {
         this.layerName = layerName;
         if (miniNameLabel != null) {
-            miniNameLabel.setText(layerName);
+            miniNameLabel.setText(MiniAnnotationsLayerPanel.shortenedName(layerName));
             miniNameLabel.setToolTipText(layerName);
         }
     }

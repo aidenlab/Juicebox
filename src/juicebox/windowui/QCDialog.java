@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,7 @@ public class QCDialog extends JDialog {
             description.setEditorKit(kit);
 
             description.setText(textDescription);
-            JScrollPane pane1 = new JScrollPane(description, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            JScrollPane pane1 = new JScrollPane(description);
             tabbedPane.addTab("About Library", pane1);
 
 
@@ -103,7 +103,7 @@ public class QCDialog extends JDialog {
 
             textPane.setEditorKit(kit);
             textPane.setText(textStatistics);
-            JScrollPane pane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            JScrollPane pane = new JScrollPane(textPane);
             tabbedPane.addTab("Statistics", pane);
         }
         boolean success = true;

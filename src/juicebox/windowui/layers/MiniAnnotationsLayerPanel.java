@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,28 +41,71 @@ public class MiniAnnotationsLayerPanel extends JPanel {
 
     public static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final long serialVersionUID = 126735123117L;
+    private static final int MAX_NUM_LETTERS = 8;
     private final int miniButtonSize = 22;
     private final int maximumVisibleLayers = 5;
-    private final int dynamicHeight;
-    private final int width = 210;
+    private final int indivRowSize;
+    private final int width, maxHeight;
+    private int dynamicHeight;
 
 
-    public MiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
+    public MiniAnnotationsLayerPanel(SuperAdapter superAdapter, int width, int height) {
+        this.width = width;
+        this.maxHeight = height;
+        indivRowSize = height / maximumVisibleLayers;
+
         //getRootPane().setGlassPane(disabledGlassPane);
-        dynamicHeight = Math.min(superAdapter.getAllLayers().size(), maximumVisibleLayers) * 40;
-        setPreferredSize(new Dimension(width, dynamicHeight));
+        setMaximumSize(new Dimension(width, maxHeight));
         setLayout(new GridLayout(0, 1));
+        setRows(superAdapter);
+
+    }
+
+    /**
+     * Return a string with a maximum length.
+     * If there are more characters, then string ends with an ellipsis ("...").
+     *
+     * @param text
+     * @return shortened text
+     */
+    public static String shortenedName(final String text) {
+        // The letters [iIl1] are slim enough to only count as half a character.
+        double length = MAX_NUM_LETTERS + Math.ceil(text.replaceAll("[^iIl]", "").length() / 2.0d);
+
+        if (text.length() > length) {
+            return text.substring(0, MAX_NUM_LETTERS - 3) + "...";
+        }
+
+        return text;
+    }
+
+    private void setRows(SuperAdapter superAdapter) {
+
+        dynamicHeight = Math.min(superAdapter.getAllLayers().size(), maximumVisibleLayers) * indivRowSize;
+        setMaximumSize(new Dimension(width, dynamicHeight));
+        setPreferredSize(new Dimension(width, dynamicHeight));
+        setMinimumSize(new Dimension(width, dynamicHeight));
+
+        JPanel jj = new JPanel();
+        jj.setMaximumSize(new Dimension(width, maxHeight));
+        jj.setLayout(new GridLayout(0, 1));
 
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             try {
                 JPanel panel = createMiniLayerPanel(handler, superAdapter);
-                add(panel, 0);
+                jj.add(panel, 0);
             } catch (IOException e) {
                 System.err.println("Unable to generate layer panel " + handler);
             }
         }
+        JScrollPane scrollPane = new JScrollPane(jj,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setMaximumSize(new Dimension(width, dynamicHeight));
+        scrollPane.setPreferredSize(new Dimension(width, dynamicHeight));
+        scrollPane.setMinimumSize(new Dimension(width, dynamicHeight));
+        add(scrollPane);
     }
-
 
     private JPanel createMiniLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter) throws IOException {
         final JPanel parentPanel = new JPanel();
@@ -70,14 +113,10 @@ public class MiniAnnotationsLayerPanel extends JPanel {
         parentPanel.setSize(new Dimension(width, 10));
 
         /* layer name */
-        JLabel nameField = new JLabel(handler.getLayerName());
+        JLabel nameField = new JLabel(shortenedName(handler.getLayerName()));
         handler.setMiniNameLabelField(nameField);
         nameField.setToolTipText(handler.getLayerName());
         parentPanel.add(nameField);
-
-        JToggleButton writeButton = LayerPanelButtons.createWritingButton(this, superAdapter, handler);
-        writeButton.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
-        parentPanel.add(writeButton);
 
         /* show/hide annotations for this layer */
         JToggleButton toggleVisibleButton = LayerPanelButtons.createVisibleButton(this, superAdapter, handler);
@@ -92,10 +131,19 @@ public class MiniAnnotationsLayerPanel extends JPanel {
         togglePlottingStyleButton.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
         parentPanel.add(togglePlottingStyleButton);
 
+        JToggleButton writeButton = LayerPanelButtons.createWritingButton(this, superAdapter, handler);
+        writeButton.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
+        parentPanel.add(writeButton);
+
         return parentPanel;
     }
 
     public int getDynamicHeight() {
         return this.dynamicHeight;
+    }
+
+    public void updateRows(SuperAdapter superAdapter) {
+        removeAll();
+        setRows(superAdapter);
     }
 }

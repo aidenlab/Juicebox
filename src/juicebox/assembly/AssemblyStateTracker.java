@@ -57,7 +57,7 @@ public class AssemblyStateTracker {
     public void resetState() {
         undoStack.clear();
         assemblyActionPerformed(initialAssemblyScaffoldHandler, true);
-        superAdapter.executeClearAllMZDCache();
+        superAdapter.safeClearAllMZDCache();
     }
 
     public AssemblyScaffoldHandler getInitialAssemblyScaffoldHandler() {
@@ -93,7 +93,7 @@ public class AssemblyStateTracker {
 
             undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            superAdapter.executeClearAllMZDCache();
+            superAdapter.safeClearAllMZDCache();
         }
     }
 
@@ -107,7 +107,7 @@ public class AssemblyStateTracker {
 
             undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            superAdapter.executeClearAllMZDCache();
+            superAdapter.safeClearAllMZDCache();
         }
     }
 }
