@@ -23,26 +23,26 @@
   -->
 
 <launch4jConfig>
-  <headerType>gui</headerType>
-  <jar>../out/artifacts/Juicebox_jar/Juicebox.jar</jar>
-  <outfile>../Juicebox.exe</outfile>
-  <errTitle>Juicebox</errTitle>
-  <chdir>.</chdir>
-  <icon>Juicebox.ico</icon>
-  <restartOnCrash>true</restartOnCrash>
-  <jre>
-    <minVersion>1.7.0</minVersion>
-    <runtimeBits>64</runtimeBits>
-    <initialHeapSize>5000</initialHeapSize>
-    <maxHeapSize>10000</maxHeapSize>
-    <opt>-Dswing.aatext=true</opt>
-    <opt>-Dswing.plaf.metal.controlFont=Tahoma</opt>
-    <opt>-Dswing.plaf.metal.userFont=Tahoma</opt>
-  </jre>
-  <splash>
-    <file>juicebox.bmp</file>
-    <waitForWindow>true</waitForWindow>
-    <timeout>60</timeout>
-    <timeoutErr>true</timeoutErr>
-  </splash>
+    <headerType>gui</headerType>
+    <jar>../out/artifacts/Juicebox_jar/Juicebox.jar</jar>
+    <outfile>../Juicebox.exe</outfile>
+    <errTitle>Juicebox</errTitle>
+    <chdir>.</chdir>
+    <icon>Juicebox.ico</icon>
+    <restartOnCrash>true</restartOnCrash>
+    <jre>
+        <minVersion>1.7.0</minVersion>
+        <runtimeBits>64</runtimeBits>
+        <initialHeapSize>5000</initialHeapSize>
+        <maxHeapSize>10000</maxHeapSize>
+        <opt>-Dswing.aatext=true</opt>
+        <opt>-Dswing.plaf.metal.controlFont=Tahoma</opt>
+        <opt>-Dswing.plaf.metal.userFont=Tahoma</opt>
+    </jre>
+    <splash>
+        <file>juicebox.bmp</file>
+        <waitForWindow>true</waitForWindow>
+        <timeout>60</timeout>
+        <timeoutErr>true</timeoutErr>
+    </splash>
 </launch4jConfig>
