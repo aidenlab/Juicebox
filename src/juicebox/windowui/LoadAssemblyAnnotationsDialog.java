@@ -295,6 +295,11 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
 
             try {
+                if (superAdapter.getAssemblyStateTracker() != null) {
+                    superAdapter.getAssemblyStateTracker().resetState();
+                    superAdapter.refresh();
+                }
+
                 AssemblyFileImporter assemblyFileImporter;
                 if (assemblyPath != null) {
                     assemblyFileImporter = new AssemblyFileImporter(assemblyPath, false);
