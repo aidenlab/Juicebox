@@ -280,10 +280,12 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 ItemInfo info = (ItemInfo) node.getUserObject();
                 if (info.itemURL.endsWith("assembly")) {
                     assemblyPath = info.itemURL;
+                    SuperAdapter.setDatasetTitle(assemblyPath);
                 } else if (info.itemURL.endsWith("cprops")) {
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
+                    SuperAdapter.setDatasetTitle(asmPath);
                 } else {
                     JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
                             "Error Message", JOptionPane.ERROR_MESSAGE);
@@ -324,12 +326,12 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Scaffolds");
+                scaffoldLayerHandler.setLayerNameAndField("Scaf");
                 scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
 
                 AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
-                superscaffoldLayerHandler.setLayerNameAndField("Supersaffolds");
+                superscaffoldLayerHandler.setLayerNameAndField("Chr");
                 superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);

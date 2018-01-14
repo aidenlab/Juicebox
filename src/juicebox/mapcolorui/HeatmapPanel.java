@@ -322,7 +322,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //We need to update slider with map range:
                 String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption);
                 renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
-                debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
+                //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
             }
 
 
@@ -1263,7 +1263,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         if (debrisFeature != null) {
             superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chrX.getIndex(), chrY.getIndex(), debrisFeature);
         }
-        debrisFeatureSize = (int) (RESIZE_SNAP * hic.getScaleFactor());
+        currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
+        debrisFeatureSize = RESIZE_SNAP;
         repaint();
     }
 
@@ -1281,7 +1282,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         debrisFeature = null;
         //moveDebrisToEnd();
         removeSelection();
-        debrisFeatureSize = (int) (RESIZE_SNAP * hic.getScaleFactor());
+        debrisFeatureSize = RESIZE_SNAP;
     }
 
     private void moveSelectionToEnd() {
@@ -2261,7 +2262,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             currentDownstreamFeature = temp;
                         }
 
-                        if (!HiCGlobals.splitModeEnabled && (currentUpstreamFeature.getFeature2D().getEnd1() == currentDownstreamFeature.getFeature2D().getStart1())) {
+                        if (!HiCGlobals.splitModeEnabled && (currentUpstreamFeature.getFeature2D().getEnd1() == currentDownstreamFeature.getFeature2D().getStart1()) || (currentDownstreamFeature == null && currentUpstreamFeature == null)) {
+//                            if (currentDownstreamFeature==null && currentUpstreamFeature==null) {
+//                                if ((getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds().get(0).getCurrentFeature2D().getRectangle().getMinX() - mousePoint.getX()>= 0) &&
+//                                        (currentDownstreamFeature.getRectangle().getMinX() - mousePoint.getX() <= minDist) &&
+//                                        (currentDownstreamFeature.getRectangle().getMinY() - mousePoint.getY()>= 0) &&
+//                                        (currentDownstreamFeature.getRectangle().getMinY() - mousePoint.getY() <= minDist)){
+//                                    System.out.println("I am here");
+//                                }
+//                            }else{
                             if ((mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() >= 0) &&
                                     (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() <= minDist) &&
                                     (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
@@ -2286,8 +2295,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     setCursor(MainWindow.pasteNECursor);
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
+                                }
                             }
-                        }
+
+//                        }
                     }
 
                     if (!HiCGlobals.splitModeEnabled && selectedFeatures!=null && !selectedFeatures.isEmpty()){

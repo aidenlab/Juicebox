@@ -295,6 +295,10 @@ public class AnnotationLayer {
         return id;
     }
 
+    public void resetCounter() {
+        i = 0;
+    }
+
     public int getNumberOfFeatures() {
         return customAnnotationRTreeHandler.getNumberOfFeatures();
     }

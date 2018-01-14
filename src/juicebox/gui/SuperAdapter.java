@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
+import juicebox.assembly.UnsavedAssemblyWarning;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
@@ -186,6 +187,7 @@ public class SuperAdapter {
 
     public void loadFromListActionPerformed(boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
+      UnsavedAssemblyWarning unsavedAssembly = new UnsavedAssemblyWarning(this);
         if (unsaved.checkAndDelete(datasetTitle.length() > 0)) {
             HiCFileLoader.loadFromListActionPerformed(this, control);
         }
@@ -507,6 +509,11 @@ public class SuperAdapter {
     public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title, boolean restore) {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
+
+        getHeatmapPanel().disableAssemblyEditing();
+        resetAnnotationLayers();
+        HiCGlobals.hicMapScale = (double) 1;
+//        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
@@ -843,16 +850,6 @@ public class SuperAdapter {
         return null;
     }
 
-    public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
-//        return annotationLayerHandlers.get(0);
-//        List<AnnotationLayerHandler> handlers = new ArrayList<>();
-//        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
-        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD)) {
-            return getActiveLayerHandler();
-        } else
-            return annotationLayerHandlers.get(0);
-    }
-
     public AnnotationLayerHandler getMainLayer() {
         return getAssemblyLayerHandler(AnnotationLayer.LayerType.SCAFFOLD);
     }
@@ -918,6 +915,15 @@ public class SuperAdapter {
         return returnCode;
     }
 
+    public void resetAnnotationLayers() {
+        annotationLayerHandlers.clear();
+        // currently must have at least 1 layer
+        createNewLayer();
+        getActiveLayerHandler().getAnnotationLayer().resetCounter();
+        updateMiniAnnotationsLayerPanel();
+        updateMainLayersPanel();
+    }
+   
     public int moveDownIndex(AnnotationLayerHandler handler) {
         int currIndex = annotationLayerHandlers.indexOf(handler);
         int n = annotationLayerHandlers.size();

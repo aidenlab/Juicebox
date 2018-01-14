@@ -653,8 +653,6 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-// TODO: check total length and have automatic scaling assigned as default based on that
-
         setScale = new JMenuItem("Set scale");
         setScale.addActionListener(new ActionListener() {
             @Override

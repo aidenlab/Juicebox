@@ -76,7 +76,8 @@ public class MainWindow extends JFrame {
 
         initComponents();
         createCursors();
-      setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+
         pack();
         DropTarget target = new DropTarget(this, new FileDropTargetListener(superAdapter));
         setDropTarget(target);
