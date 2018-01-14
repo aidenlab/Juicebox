@@ -300,17 +300,17 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Scaff");
+                scaffoldLayerHandler.setLayerNameAndField("Scaf");
                 scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
 
                 AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
-                superscaffoldLayerHandler.setLayerNameAndField("Chrom");
+                superscaffoldLayerHandler.setLayerNameAndField("Chr");
                 superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 editLayerHandler.setColorOfAllAnnotations(Color.yellow);
-                editLayerHandler.setLayerNameAndField("Edits");
+                editLayerHandler.setLayerNameAndField("Edit");
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
                 editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
