@@ -167,6 +167,9 @@ public class Preprocessor {
                 }
                 fragBinSizes = frags;
             }
+            else {
+                fragBinSizes = new int[0];
+            }
             if (bpResolutions.size() > 0) {
                 resolutionsSet = true;
                 Collections.sort(bpResolutions);
@@ -176,6 +179,9 @@ public class Preprocessor {
                     bps[i] = bpResolutions.get(i);
                 }
                 bpBinSizes = bps;
+            }
+            else {
+                bpBinSizes = new int[0];
             }
             if (!resolutionsSet) {
                 System.err.println("No valid resolutions sent in");
@@ -280,7 +286,8 @@ public class Preprocessor {
             System.out.println("Start preprocess");
 
             System.out.println("Writing header");
-            writeHeader(stats.toString(), graphs.toString());
+
+            writeHeader(stats, graphs);
 
             System.out.println("Writing body");
             writeBody(inputFile);
@@ -299,7 +306,7 @@ public class Preprocessor {
         System.out.println("\nFinished preprocess");
     }
 
-    private void writeHeader(String stats, String graphs) throws IOException {
+    private void writeHeader(StringBuilder stats, StringBuilder graphs) throws IOException {
         // Magic number
         byte[] magicBytes = "HIC".getBytes();
         los.write(magicBytes[0]);
@@ -330,11 +337,11 @@ public class Preprocessor {
         los.writeString("Juicer Tools Version " + HiCGlobals.versionNum);
         if (stats != null) {
             los.writeString("statistics");
-            los.writeString(stats);
+            los.writeString(stats.toString());
         }
         if (graphs != null) {
             los.writeString("graphs");
-            los.writeString(graphs);
+            los.writeString(graphs.toString());
         }
 
         // Sequence dictionary

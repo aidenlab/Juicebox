@@ -25,6 +25,7 @@
 package juicebox.track.feature;
 
 import juicebox.DirectoryManager;
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.Feature2DHandler;
@@ -45,7 +46,7 @@ public class AnnotationLayer {
     private final int id;
     private CustomAnnotationRTree2DHandler customAnnotationRTreeHandler;
     private boolean unsavedEdits;
-    private boolean firstSave;
+    private boolean nothingSavedYet;
     private Feature2D lastItem;
     private int lastChr1Idx;
     private int lastChr2Idx;
@@ -53,9 +54,10 @@ public class AnnotationLayer {
     private File tempFile;
     private ArrayList<String> attributeKeys;
     private LayerType layerType;
+
     public AnnotationLayer() {
         id = i++;
-        firstSave = true;
+        nothingSavedYet = true;
         reset();
         layerType = LayerType.DEFAULT;
     }
@@ -66,7 +68,7 @@ public class AnnotationLayer {
 
     // Clear all annotations
     private void reset() {
-        firstSave = true;
+        nothingSavedYet = true;
         lastChr1Idx = -1;
         lastChr2Idx = -1;
         lastItem = null;
@@ -111,17 +113,16 @@ public class AnnotationLayer {
 
         // Autosave the information
         unsavedEdits = true;
-        if (firstSave) {
+        if (nothingSavedYet) {
             makeTempFile();
-            firstSave = false;
+            nothingSavedYet = false;
         }
         updateAutoSave();
     }
 
     // Requires that lastItem is not null
     private void makeTempFile() {
-        String prefix = "unsaved-hiC-annotations" + id;
-        tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
+        tempFile = getAutosaveFile();
         tempWriter = HiCFileTools.openWriter(tempFile);
 
         Feature2D singleFeature = customAnnotationRTreeHandler.extractSingleFeature();
@@ -137,8 +138,7 @@ public class AnnotationLayer {
             tempWriter.close();
         }
         if (tempFile == null) {
-            String prefix = "unsaved-hiC-annotations" + id;
-            tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
+            tempFile = getAutosaveFile();
         }
         if (tempFile.exists()) {
             tempFile.delete();
@@ -187,9 +187,7 @@ public class AnnotationLayer {
                            double binOriginX, double binOriginY, double scale, Feature2D feature) {
         if (chrIdx1 > 0 && chrIdx2 > 0) {
             List<Feature2D> featureList = getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
-            if (featureList.contains(feature) || featureList.contains(feature.reflectionAcrossDiagonal())) {
-                return true;
-            }
+            return featureList.contains(feature) || featureList.contains(feature.reflectionAcrossDiagonal());
         }
         return false;
     }
@@ -248,29 +246,6 @@ public class AnnotationLayer {
             deleteTempFile();
         }
         return somethingExported;
-    }
-
-    // Note assumes that all attributes are already correctly formatted. Ok to assume
-    // because loaded list must have consistent formatting.
-    public void addVisibleToCustom(Feature2DList newAnnotations) {
-        Feature2D featureZero = newAnnotations.extractSingleFeature();
-        // Add attributes to feature
-        List<String> featureKeys = featureZero.getAttributeKeys();
-        for (String customKey : attributeKeys) {
-            if (!featureKeys.contains(customKey)) {
-                newAnnotations.addAttributeFieldToAll(customKey, "null");
-            }
-        }
-        getAndAddAttributes(featureKeys);
-        customAnnotationRTreeHandler.add(newAnnotations);
-
-        // Autosave the information
-        unsavedEdits = true;
-        if (firstSave) {
-            makeTempFile();
-            firstSave = false;
-        }
-        updateAutoSave();
     }
 
     public boolean exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
@@ -354,8 +329,14 @@ public class AnnotationLayer {
         return customAnnotationRTreeHandler.getFeatureList();
     }
 
+    private String getAutosaveFilename() {
+        return HiCGlobals.BACKUP_FILE_STEM + id + ".bedpe";
+    }
+
+    private File getAutosaveFile() {
+        return new File(DirectoryManager.getHiCDirectory(), getAutosaveFilename());
+    }
+
     public enum LayerType {DEFAULT, EDIT, SCAFFOLD, SUPERSCAFFOLD}
-
-
 
 }

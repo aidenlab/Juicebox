@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ public class MainViewPanel {
     public static boolean preDefMapColor = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
-    private static JideButton refreshButton;
+    private static JideButton refreshButton = new JideButton();
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JColorRangePanel colorRangePanel;
@@ -76,19 +76,21 @@ public class MainViewPanel {
     private static ThumbnailPanel thumbnailPanel;
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
-    private static JPanel hiCPanel;
+    private static JPanel hiCPanel = new JPanel(new HiCLayout());
     private static HiCChromosomeFigPanel chromosomePanelX;
     private static HiCChromosomeFigPanel chromosomePanelY;
-    private static JPanel bottomChromosomeFigPanel;
-    private static JPanel chrSidePanel;
-    private static JPanel chrSidePanel3;
+    private static JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
+    private static JPanel chrSidePanel = new JPanel(new BorderLayout());
+    private static JPanel chrSidePanel3 = new JPanel(new BorderLayout());
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
-    private JPanel tooltipPanel;
+    private static MainMenuBar menuBar;
     private JScrollPane tooltipScroller;
-    private JPanel annotationsPanel;
+    private final JPanel annotationsPanel = new JPanel(new BorderLayout());
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
+    private final JPanel mainPanel = new JPanel(new BorderLayout());
+    private final JPanel bigPanel = new JPanel(new BorderLayout());
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -100,69 +102,60 @@ public class MainViewPanel {
         return chrBox1;
     }
 
+    private final JPanel toolbarPanel = new JPanel(new GridBagLayout());
+    //private final JPanel bottomPanel = new JPanel();
+    private final JPanel chrSelectionPanel = new JPanel(new BorderLayout());
+    private final JPanel thumbPanel = new JPanel(new BorderLayout());
+    private final JPanel wrapGapPanel = new JPanel();
+    private final JPanel topPanel = new JPanel(new BorderLayout());
+    private final JPanel leftPanel = new JPanel(new BorderLayout());
+    private final JPanel chrSidePanel2 = new JPanel();
+    private final JPanel wrapHeatmapPanel = new JPanel(new BorderLayout());
+    private final JPanel rightSidePanel = new JPanel();
+    private final JPanel normalizationPanel = new JPanel(new BorderLayout());
+    private final JPanel normalizationLabelPanel = new JPanel(new BorderLayout());
+    private final JPanel topCenterPanel = new JPanel(new BorderLayout());
+    private final JPanel displayOptionPanel = new JPanel(new BorderLayout());
+    private final JPanel displayOptionLabelPanel = new JPanel(new BorderLayout());
+    private final JPanel chrButtonPanel = new JPanel();
+    private final JPanel chrLabelPanel = new JPanel(new BorderLayout());
+    private final JLabel chrLabel = new JLabel("Chromosomes");
+    private final JLabel normalizationLabel = new JLabel("Normalization");
+    private final JLabel displayOptionLabel = new JLabel("Show");
+    private JPanel tooltipPanel = new JPanel(new BorderLayout());
+
+    public MainMenuBar getMenuBar() {
+        return menuBar;
+    }
+
     public void initializeMainView(final SuperAdapter superAdapter, Container contentPane,
                                    Dimension bigPanelDim, Dimension panelDim) {
         contentPane.setLayout(new BorderLayout());
-
-        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
-
-        final JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
         contentPane.add(mainPanel, BorderLayout.CENTER);
-        mainPanel.setBackground(mainBackgroundColor);
 
-        final JPanel toolbarPanel = new JPanel();
         toolbarPanel.setBorder(null);
-
-        toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
-
-        JPanel bigPanel = new JPanel();
-        bigPanel.setLayout(new BorderLayout());
-        bigPanel.setBackground(mainBackgroundColor);
 
         bigPanel.setPreferredSize(new Dimension(bigPanelDim));
         bigPanel.setMaximumSize(new Dimension(bigPanelDim));
         bigPanel.setMinimumSize(new Dimension(bigPanelDim));
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setBackground(mainBackgroundColor);
-
-
-        JMenuBar menuBar = null;
-        try {
-            menuBar = superAdapter.createMenuBar();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        assert menuBar != null;
+        menuBar = new MainMenuBar(superAdapter);
         contentPane.add(menuBar, BorderLayout.NORTH);
 
-        GridBagConstraints toolbarConstraints = new GridBagConstraints();
-        toolbarConstraints.anchor = GridBagConstraints.LINE_START;
-        toolbarConstraints.fill = GridBagConstraints.HORIZONTAL;
-        toolbarConstraints.gridx = 0;
-        toolbarConstraints.gridy = 0;
-        toolbarConstraints.weightx = 0.1;
+        GridBagConstraints toolbarConstraints = new GridBagConstraints(0, 0, 1, 1,
+                0.1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL,
+                new Insets(0, 0, 0, 0), 0, 0);
 
         // --- Chromosome panel ---
-        JPanel chrSelectionPanel = new JPanel();
+
         toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
 
-        chrSelectionPanel.setLayout(new BorderLayout());
-
-        JPanel chrLabelPanel = new JPanel();
-        JLabel chrLabel = new JLabel("Chromosomes");
         chrLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        chrLabelPanel.setLayout(new BorderLayout());
         chrLabelPanel.add(chrLabel, BorderLayout.CENTER);
         chrSelectionPanel.add(chrLabelPanel, BorderLayout.PAGE_START);
-
-        JPanel chrButtonPanel = new JPanel();
-        chrButtonPanel.setBackground(new Color(238, 238, 238));
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
@@ -187,9 +180,7 @@ public class MainViewPanel {
         chrBox2.setPreferredSize(new Dimension(95, 70));
         chrButtonPanel.add(chrBox2);
 
-
         //---- refreshButton ----
-        refreshButton = new JideButton();
         refreshButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -198,25 +189,11 @@ public class MainViewPanel {
         });
         refreshButton.setPreferredSize(new Dimension(24, 24));
         chrButtonPanel.add(refreshButton);
-
-        chrBox1.setEnabled(false);
-        chrBox2.setEnabled(false);
-        refreshButton.setEnabled(false);
         chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
-
         chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
         chrSelectionPanel.setPreferredSize(new Dimension(210, 70));
 
         //======== Display Option Panel ========
-        JPanel displayOptionPanel = new JPanel();
-        displayOptionPanel.setBackground(new Color(238, 238, 238));
-        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
-        displayOptionPanel.setLayout(new BorderLayout());
-        JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        displayOptionLabelPanel.setLayout(new BorderLayout());
-
-        JLabel displayOptionLabel = new JLabel("Show");
         displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
         displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
@@ -241,19 +218,9 @@ public class MainViewPanel {
         toolbarConstraints.gridx = 1;
         toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(displayOptionPanel, toolbarConstraints);
-        displayOptionComboBox.setEnabled(false);
 
         //======== Normalization Panel ========
-        JPanel normalizationPanel = new JPanel();
-        normalizationPanel.setBackground(new Color(238, 238, 238));
         normalizationPanel.setBorder(LineBorder.createGrayLineBorder());
-        normalizationPanel.setLayout(new BorderLayout());
-
-        JPanel normalizationLabelPanel = new JPanel();
-        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        normalizationLabelPanel.setLayout(new BorderLayout());
-
-        JLabel normalizationLabel = new JLabel("Normalization");
         normalizationLabel.setHorizontalAlignment(SwingConstants.CENTER);
         normalizationLabelPanel.add(normalizationLabel, BorderLayout.CENTER);
         normalizationPanel.add(normalizationLabelPanel, BorderLayout.PAGE_START);
@@ -273,42 +240,21 @@ public class MainViewPanel {
         normalizationPanel.setPreferredSize(new Dimension(180, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
-
         toolbarConstraints.gridx = 2;
         toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
-        normalizationComboBox.setEnabled(false);
 
-        //======== Resolution Panel ========
-        hiCPanel = new JPanel();
-        hiCPanel.setBackground(mainBackgroundColor);
-        hiCPanel.setLayout(new HiCLayout());
         bigPanel.add(hiCPanel, BorderLayout.CENTER);
 
-        JPanel wrapGapPanel = new JPanel();
-        wrapGapPanel.setBackground(mainBackgroundColor);
         wrapGapPanel.setMaximumSize(new Dimension(5, 5));
         wrapGapPanel.setMinimumSize(new Dimension(5, 5));
         wrapGapPanel.setPreferredSize(new Dimension(5, 5));
         wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
         bigPanel.add(wrapGapPanel, BorderLayout.EAST);
 
-
-        // splitPanel.insertPane(hiCPanel, 0);
-        // splitPanel.setBackground(mainBackgroundColor);
-
-        //---- rulerPanel2 ----
-        JPanel topPanel = new JPanel();
-        topPanel.setBackground(mainBackgroundColor);
-        topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(superAdapter.getHiC());
-        trackLabelPanel.setBackground(mainBackgroundColor);
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
-
-        JPanel topCenterPanel = new JPanel();
-        topCenterPanel.setBackground(Color.BLUE);
-        topCenterPanel.setLayout(new BorderLayout());
         topPanel.add(topCenterPanel, BorderLayout.CENTER);
 
         trackPanelX = new TrackPanel(superAdapter, superAdapter.getHiC(), TrackPanel.Orientation.X);
@@ -326,9 +272,6 @@ public class MainViewPanel {
         topCenterPanel.add(rulerPanelX, BorderLayout.SOUTH);
 
         //---- rulerPanel1 ----
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(mainBackgroundColor);
-        leftPanel.setLayout(new BorderLayout());
         hiCPanel.add(leftPanel, BorderLayout.WEST);
 
         trackPanelY = new TrackPanel(superAdapter, superAdapter.getHiC(), TrackPanel.Orientation.Y);
@@ -345,37 +288,20 @@ public class MainViewPanel {
         rulerPanelY.setMinimumSize(new Dimension(50, 1));
         leftPanel.add(rulerPanelY, BorderLayout.EAST);
 
-
-        //==== Chromosome Context Toggled ====
         //---- chromosomeSidePanel ----
-        chrSidePanel = new JPanel();
-        chrSidePanel.setBackground(mainBackgroundColor);
-        chrSidePanel.setLayout(new BorderLayout());
         chrSidePanel.setMaximumSize(new Dimension(4000, 50));
         chrSidePanel.setPreferredSize(new Dimension(50, 50));
         chrSidePanel.setMinimumSize(new Dimension(50, 50));
         chrSidePanel.setVisible(true);
 
-        JPanel chrSidePanel2 = new JPanel();
-        chrSidePanel2.setBackground(mainBackgroundColor);
-        chrSidePanel2.setLayout(new BorderLayout());
         chrSidePanel2.setMaximumSize(new Dimension(50, 50));
         chrSidePanel2.setPreferredSize(new Dimension(50, 50));
         chrSidePanel2.setMinimumSize(new Dimension(50, 50));
 
-        chrSidePanel3 = new JPanel();
-        chrSidePanel3.setBackground(mainBackgroundColor);
-        chrSidePanel3.setLayout(new BorderLayout());
         chrSidePanel3.setMaximumSize(new Dimension(50, 4000));
         chrSidePanel3.setPreferredSize(new Dimension(50, 50));
         chrSidePanel3.setMinimumSize(new Dimension(50, 50));
         chrSidePanel3.setVisible(true);
-
-        //---- chromosomeFigPanel2 ----
-        bottomChromosomeFigPanel = new JPanel();
-        bottomChromosomeFigPanel.setBackground(mainBackgroundColor);
-        bottomChromosomeFigPanel.setLayout(new BorderLayout());
-        //bottomChromosomeFigPanel.setVisible(true);
 
         chromosomePanelX = new HiCChromosomeFigPanel(superAdapter.getHiC());
         chromosomePanelX.setMaximumSize(new Dimension(4000, 50));
@@ -395,44 +321,27 @@ public class MainViewPanel {
         chromosomePanelY.setMinimumSize(new Dimension(50, 1));
         chromosomePanelY.setVisible(true);
 
-
-        //---- heatmapPanel ----
-        //Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
-        //int panelSize = screenDimension.height - 210;
-
-
         int panelWidth = (int) panelDim.getWidth();
         int panelHeight = (int) panelDim.getHeight();
         System.err.println("Window W: " + panelWidth + " H" + panelHeight);
 
-        JPanel wrapHeatmapPanel = new JPanel(new BorderLayout());
         wrapHeatmapPanel.setMaximumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setMinimumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setPreferredSize(new Dimension(panelDim));
-        wrapHeatmapPanel.setBackground(mainBackgroundColor);
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(superAdapter);
         heatmapPanel.setMaximumSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setMinimumSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setPreferredSize(new Dimension(panelWidth - 5, panelHeight - 5));
-        heatmapPanel.setBackground(mainBackgroundColor);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
-
-        //Chromosome Context Toggled
         wrapHeatmapPanel.add(bottomChromosomeFigPanel, BorderLayout.SOUTH);
         wrapHeatmapPanel.add(chromosomePanelY, BorderLayout.EAST);
-
-        //hiCPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
-        //hiCPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
-        //hiCPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
 
         hiCPanel.add(wrapHeatmapPanel, BorderLayout.CENTER);
 
         //======== Resolution Slider Panel ========
-
-        // Resolution  panel
         resolutionSlider = new ResolutionControl(superAdapter);
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
         resolutionSlider.setMinimumSize(new Dimension(150, 70));
@@ -454,25 +363,14 @@ public class MainViewPanel {
         toolbarPanel.add(goPanel, toolbarConstraints);
         // not sure this is working
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
-        toolbarPanel.setEnabled(false);
-
 
         //======== Right side panel ========
-
-        JPanel rightSidePanel = new JPanel();//(new BorderLayout());
         rightSidePanel.setLayout(new BoxLayout(rightSidePanel, BoxLayout.Y_AXIS));
-        rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
 
         //======== Bird's view mini map ========
-
-        JPanel thumbPanel = new JPanel();
-        thumbPanel.setLayout(new BorderLayout());
-
-        //---- thumbnailPanel ----
         thumbnailPanel = new ThumbnailPanel(superAdapter);
-        thumbnailPanel.setBackground(mainBackgroundColor);
         thumbnailPanel.setMaximumSize(new Dimension(210, 210));
         thumbnailPanel.setMinimumSize(new Dimension(210, 210));
         thumbnailPanel.setPreferredSize(new Dimension(210, 210));
@@ -481,41 +379,33 @@ public class MainViewPanel {
 //        gapPanel.setMaximumSize(new Dimension(1, 1));
 //        rightSidePanel.add(gapPanel,BorderLayout.WEST);
         thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
-        thumbPanel.setBackground(mainBackgroundColor);
         thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, thumbPanel.getMinimumSize().height));
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mini-annotations panel ======
         miniAnnotationsLayerPanel = new MiniAnnotationsLayerPanel(superAdapter);
-        miniAnnotationsLayerPanel.setEnabled(false);
 
         //========= mouse hover text ======
-        tooltipPanel = new JPanel(new BorderLayout());
-        tooltipPanel.setBackground(mainBackgroundColor);
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
         mouseHoverTextPanel.setFont(new Font("sans-serif", Font.PLAIN, 20));
-        mouseHoverTextPanel.setBackground(mainBackgroundColor);
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension
-            prefSize =
-            new Dimension(210,
-                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+        Dimension prefSize = new Dimension(210,
+            computeResolutionIndependentJComponentHeight(500) -
+                miniAnnotationsLayerPanel.getDynamicHeight() -
+                annotationsPanelToggleButton.getHeight());
         mouseHoverTextPanel.setPreferredSize(prefSize);
         tooltipPanel.setPreferredSize(prefSize);
 
         tooltipScroller = new JScrollPane(mouseHoverTextPanel);
-        tooltipScroller.setBackground(Color.white);
-
         tooltipScroller.setBorder(null);
         tooltipScroller.setMaximumSize(prefSize);
 
         tooltipPanel.add(tooltipScroller);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
-        tooltipPanel.setBackground(mainBackgroundColor);
         tooltipPanel.setBorder(null);
         thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, tooltipPanel.getMinimumSize().height));
 
@@ -544,16 +434,12 @@ public class MainViewPanel {
             }
         });
         annotationsPanelToggleButton.setSelected(false);
-        annotationsPanelToggleButton.setEnabled(false);
-
-        annotationsPanel = new JPanel(new BorderLayout());
         annotationsPanel.add(miniAnnotationsLayerPanel, BorderLayout.NORTH);
         miniAnnotationsLayerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
         annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        rightSidePanel.add(annotationsPanel);
+      rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
         annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // compute preferred size
@@ -570,6 +456,57 @@ public class MainViewPanel {
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
+
+        resetAllColors();
+        initialSetToFalse();
+    }
+
+  private int computeResolutionIndependentJComponentHeight(int referenceResolutionJComponentHeight) {
+
+    // Assumes that the max height in the reference resolution is 800
+    float referenceResolutionScreenHeight = 800;
+
+    float
+        currentResolutionScreenHeight =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getHeight();
+
+    return (int) ((currentResolutionScreenHeight / referenceResolutionScreenHeight) *
+        referenceResolutionJComponentHeight);
+
+  }
+
+    private void initialSetToFalse() {
+        JComponent[] comps = new JComponent[]{chrBox1, chrBox2, refreshButton, displayOptionComboBox,
+                normalizationComboBox, toolbarPanel, miniAnnotationsLayerPanel, annotationsPanelToggleButton};
+        for (JComponent comp : comps) {
+            comp.setEnabled(false);
+        }
+    }
+
+    public void resetAllColors() {
+        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        JComponent[] components = new JComponent[]{mainPanel, bigPanel, topPanel, trackLabelPanel,
+                leftPanel, chrSidePanel, chrSidePanel2, chrSidePanel3, bottomChromosomeFigPanel, wrapHeatmapPanel,
+                heatmapPanel, wrapGapPanel, hiCPanel, trackPanelX, trackPanelY, rulerPanelX, rulerPanelY,
+                chromosomePanelX, chromosomePanelY, topCenterPanel};
+
+        //annotationsPanelToggleButton
+        for (JComponent component : components) {
+            component.setBackground(mainBackgroundColor);
+        }
+
+        topCenterPanel.setBackground(Color.BLUE);
+        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
+
+        normalizationPanel.setBackground(HiCGlobals.diffGrayColor);
+        displayOptionPanel.setBackground(HiCGlobals.diffGrayColor);
+        chrButtonPanel.setBackground(HiCGlobals.diffGrayColor);
+
+        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
+
+        heatmapPanel.reset();
     }
 
     private void setMiniAnnotationsLayerPanel(MiniAnnotationsLayerPanel miniAnnotationsLayerPanel) {
@@ -577,7 +514,9 @@ public class MainViewPanel {
         Dimension
             prefSize =
             new Dimension(210,
-                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+                computeResolutionIndependentJComponentHeight(500) -
+                    miniAnnotationsLayerPanel.getDynamicHeight() -
+                    annotationsPanelToggleButton.getHeight());
 
         mouseHoverTextPanel.setPreferredSize(prefSize);
         tooltipPanel.setPreferredSize(prefSize);
@@ -908,6 +847,7 @@ public class MainViewPanel {
         goPanel.setEnabled(status);
         annotationsPanelToggleButton.setEnabled(status);
         miniAnnotationsLayerPanel.setEnabled(status);
+        menuBar.setEnableForAllElements(status);
     }
 
     public String getColorRangeValues() {
@@ -1009,12 +949,25 @@ public class MainViewPanel {
 
     public void setAnnotationsPanelToggleButtonSelected(boolean status) {
         annotationsPanelToggleButton.setSelected(status);
+        menuBar.setAnnotationPanelMenuItemSelected(status);
     }
 
     public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
         setMiniAnnotationsLayerPanel(new MiniAnnotationsLayerPanel(superAdapter));
         miniAnnotationsLayerPanel.revalidate();
         miniAnnotationsLayerPanel.repaint();
+    }
+
+    public boolean unsavedEditsExist() {
+        return menuBar.unsavedEditsExist();
+    }
+
+    public void addRecentMapMenuEntry(String title, boolean status) {
+        menuBar.addRecentMapMenuEntry(title, status);
+    }
+
+    public void updatePrevStateNameFromImport(String path) {
+        menuBar.updatePrevStateNameFromImport(path);
     }
 
     /*public boolean isPearsonDisplayed() {

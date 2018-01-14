@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.HiCGlobals;
 import juicebox.assembly.OneDimAssemblyTrackLifter;
 import juicebox.data.censoring.OneDimTrackCensoring;
 import juicebox.gui.SuperAdapter;
@@ -88,7 +87,7 @@ public class HiCDataTrack extends HiCTrack {
             data = OneDimTrackCensoring.getFilteredData(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);
 
-        } else if (HiCGlobals.assemblyModeEnabled) {
+        } else if (SuperAdapter.assemblyModeCurrentlyActive) {
             data = OneDimAssemblyTrackLifter.liftDataArrayFromAsm(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
         } else {
             data = dataSource.getData(context.getChromosome(), (int) startBin, (int) endBin + 1,

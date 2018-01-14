@@ -38,7 +38,6 @@ import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.Load2DAnnotationsDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -46,10 +45,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -73,6 +69,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
+    private ArrayList<String> mostRecentPaths = new ArrayList<String>();
 
     public LoadAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
@@ -106,7 +103,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                             try {
                                 safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                             } catch (Exception e) {
-                                MessageUtils.showErrorMessage("Unable to load file", e);
+                                SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
                             LoadAssemblyAnnotationsDialog.this.setVisible(false);
                         }
@@ -128,18 +125,26 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                mostRecentPaths.clear();
                 safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                 LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
 
 
+        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                closeWindow();
+            }
+        });
+
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAddedFeatures.removeFromParent();
-                LoadAssemblyAnnotationsDialog.this.setVisible(false);
+                closeWindow();
             }
         });
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
@@ -167,6 +172,17 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         }
 
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
+    public void closeWindow() {
+        customAddedFeatures.removeFromParent();
+        for (String path : mostRecentPaths) {
+            customAddedFeatures.remove(loadedAnnotationsMap.get(path));
+            loadedAnnotationsMap.remove(path);
+        }
+        mostRecentPaths.clear();
+        loadedAnnotationsMap.remove(customAddedFeatures);
+        LoadAssemblyAnnotationsDialog.this.setVisible(false);
     }
 
     public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
@@ -215,6 +231,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
                 loadedAnnotationsMap.put(path, treeNode);
                 customAddedFeatures.add(treeNode);
+                mostRecentPaths.add(path);
             }
             model.reload(root);
             expandTree();
@@ -286,6 +303,13 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 } else {
                     assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
                 }
+
+                //temp layer to allow deleting of other layers
+                layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                if (superAdapter.getAssemblyLayerHandlers() != null) {
+                    for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
+                        superAdapter.removeLayer(annotationLayerHandler);
+                }
                 assemblyFileImporter.importAssembly();
                 // Rescale resolution slider labels
                 superAdapter.getMainViewPanel().getResolutionSlider().reset();
@@ -320,7 +344,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
 
                 //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
-                superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
+                superAdapter.getMainMenuBar().enableAssemblyMenuOptions();
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
@@ -331,7 +355,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                SuperAdapter.showMessageDialog("Could not load loop selection: " + ee.getMessage());
                 if (assemblyPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(assemblyPath));
                 if (cpropsPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
                 if (asmPath != null)

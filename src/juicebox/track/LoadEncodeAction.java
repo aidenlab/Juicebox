@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@ import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.encode.EncodeFileRecord;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.track.AttributeManager;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -105,7 +105,7 @@ public class LoadEncodeAction extends AbstractAction {
             EncodeFileBrowser browser = EncodeFileBrowser.getInstance(genome);
 
             if (browser == null) {
-                MessageUtils.showMessage("Encode tracks are not available for " + genome);
+                SuperAdapter.showMessageDialog("Encode tracks are not available for " + genome);
                 return;
             }
 

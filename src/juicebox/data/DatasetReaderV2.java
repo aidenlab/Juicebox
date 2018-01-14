@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,11 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
@@ -98,6 +100,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
             catch (Exception e2){
                 if(HiCGlobals.guiIsCurrentlyActive){
+                    SuperAdapter.showMessageDialog("File could not be found\n(" + path + ")");
+                } else {
                     MessageUtils.showErrorMessage("File could not be found\n("+path+")",e2);
                 }
             }
@@ -489,7 +493,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             try {
                 nExpectedValues = dis.readInt();
-            } catch (EOFException e) {
+            } catch (EOFException|HttpResponseException e) {
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("No normalization vectors");
                 }

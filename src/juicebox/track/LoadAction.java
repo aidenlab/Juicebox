@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
@@ -236,7 +236,7 @@ public class LoadAction extends AbstractAction {
             }
         } catch (Exception e) {
             System.err.println("Could not load from server" + e.getLocalizedMessage());
-            MessageUtils.showMessage("Could not load from server: " + e.getMessage());
+            SuperAdapter.showMessageDialog("Could not load from server: " + e.getMessage());
             return null;
         }
 
@@ -268,7 +268,7 @@ public class LoadAction extends AbstractAction {
 
                 } catch (Exception e) {
                     System.err.println("Could not load selected locator" + e.getLocalizedMessage());
-                    MessageUtils.showMessage("Could not load selection: " + e.getMessage());
+                    SuperAdapter.showMessageDialog("Could not load selection: " + e.getMessage());
                     deselectedLocators.add(locator);
                 }
             }

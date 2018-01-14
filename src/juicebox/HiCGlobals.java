@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ public class HiCGlobals {
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
+    public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;
@@ -67,8 +68,9 @@ public class HiCGlobals {
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.6.11";//"1.8.6"; // 1.6.11 is latest public release
+    // Juicebox version (for display and header purposes only)
+    // Note: please follow "X.X.X" format, where "X" is a single digit; otherwise md5sums for hic files messed up.
+    public static final String versionNum = "1.8.7"; //
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
@@ -81,7 +83,6 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-    public static boolean assemblyModeEnabled = false;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
@@ -91,8 +92,9 @@ public class HiCGlobals {
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
-    public static final boolean isAssemblyToolsAllowed = true;
-    public static final boolean isCustomChromosomesAllowed = true;
+    public static final boolean isDevAssemblyToolsAllowedPublic = true;
+    public static final boolean isDevCustomChromosomesAllowedPublic = true;
+    public static Color diffGrayColor = new Color(238, 238, 238);
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

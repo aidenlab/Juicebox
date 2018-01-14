@@ -43,14 +43,15 @@ import java.io.IOException;
 /**
  * Created by muhammadsaadshamim on 8/4/15.
  */
-public class MainMenuBar {
+public class MainMenuBar extends JMenuBar {
+    private static final long serialVersionUID = 2342324643L;
     private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
 
-    private static JMenuItem loadLastMI;
+    //private static JMenuItem loadOldAnnotationsMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
@@ -60,12 +61,12 @@ public class MainMenuBar {
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static JMenuItem showStats, showControlStats;
-    private static File temp;
-    private static boolean unsavedEdits;
-    private static JMenu annotationsMenu;
+    //private static JMenu annotationsMenu;
+    private static JMenu viewMenu;
     private static JMenu assemblyMenu;
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
+    private static JMenuItem exitAssembly;
     private static JCheckBoxMenuItem enableAssembly;
     private static JMenuItem setScale;
     private static JMenuItem importModifiedAssembly;
@@ -75,12 +76,22 @@ public class MainMenuBar {
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
 
+    public MainMenuBar(SuperAdapter superAdapter) {
+        createMenuBar(superAdapter);
+    }
+
+    public static void exitAssemblyMode() {
+        resetAssembly.setEnabled(false);
+        exportAssembly.setEnabled(false);
+        //  setScale.setEnabled(false);
+
+        importModifiedAssembly.setEnabled(false);
+        exitAssembly.setEnabled(false);
+    }
 
     public boolean unsavedEditsExist() {
-        String tempPath = "/unsaved-hiC-annotations1";
-        temp = new File(DirectoryManager.getHiCDirectory(), tempPath + ".txt");
-        unsavedEdits = temp.exists();
-        return unsavedEdits;
+        File unsavedSampleFile = new File(DirectoryManager.getHiCDirectory(), HiCGlobals.BACKUP_FILE_STEM + "0.bedpe");
+        return unsavedSampleFile.exists();
     }
 
     public void addRecentMapMenuEntry(String title, boolean status) {
@@ -92,12 +103,7 @@ public class MainMenuBar {
         recentLocationMenu.addEntry(title, status);
     }
 
-
-
-    public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
-
-        JMenuBar menuBar = new JMenuBar();
-
+    private void createMenuBar(final SuperAdapter superAdapter) {
         //======== fileMenu ========
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
@@ -267,36 +273,25 @@ public class MainMenuBar {
         fileMenu.add(exit);
 
         // "Annotations" menu items
-        annotationsMenu = new JMenu("Annotations");
-        annotationsMenu.setEnabled(false);
+        //annotationsMenu = new JMenu("Annotations");
+        //annotationsMenu.setEnabled(false);
+        //annotationsMenu.add(layersItem);
 
-        layersItem.addActionListener(new ActionListener() {
+        /*
+        loadOldAnnotationsMI = new JMenuItem("Load Last Session's Hand Annotations ");
+        loadOldAnnotationsMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (layersItem.isSelected()) {
-                    superAdapter.setLayersPanelVisible(true);
-                } else {
-                    superAdapter.setLayersPanelVisible(false);
-                }
-
-            }
-        });
-        annotationsMenu.add(layersItem);
-
-        loadLastMI = new JMenuItem("Load Last Session's Hand Annotations ");
-        loadLastMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.generateNewCustomAnnotation(temp);
-                temp.delete();
-                loadLastMI.setEnabled(false);
+                superAdapter.loadAllOldSavedAnnotations();
+                loadOldAnnotationsMI.setEnabled(false);
                 superAdapter.getActiveLayerHandler().setExportAbility(true);
             }
         });
         if (unsavedEditsExist()) {
-            loadLastMI.setEnabled(true);
-            annotationsMenu.add(loadLastMI);
+            loadOldAnnotationsMI.setEnabled(true);
+            annotationsMenu.add(loadOldAnnotationsMI);
         }
+        */
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
@@ -307,7 +302,7 @@ public class MainMenuBar {
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getDescription("location");
                 if (stateDescription != null && stateDescription.length() > 0) {
-                    superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+                    addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
                     recentLocationMenu.setEnabled(true);
                 }
             }
@@ -415,18 +410,34 @@ public class MainMenuBar {
         bookmarksMenu.add(importMapAsFile);
 
         //---View Menu-----
-        JMenu viewMenu = new JMenu("View");
+        viewMenu = new JMenu("View");
+
+        layersItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (layersItem.isSelected()) {
+                    superAdapter.setLayersPanelVisible(true);
+                } else {
+                    superAdapter.setLayersPanelVisible(false);
+                }
+
+            }
+        });
+        viewMenu.add(layersItem);
+        viewMenu.setEnabled(false);
 
         final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
         darkulaMode.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
-                superAdapter.getHeatmapPanel().repaint();
+                superAdapter.getMainViewPanel().resetAllColors();
+                //superAdapter.executeClearAllMZDCache();
+                superAdapter.refresh();
             }
         });
         darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
-        //viewMenu.add(darkulaMode);
+        viewMenu.add(darkulaMode);
 
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
@@ -434,9 +445,11 @@ public class MainMenuBar {
                 superAdapter.createCustomChromosomesFromBED();
             }
         });
-        if (HiCGlobals.isCustomChromosomesAllowed) {
+        if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
             viewMenu.add(addCustomChromosome);
         }
+
+        viewMenu.addSeparator();
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -507,7 +520,7 @@ public class MainMenuBar {
             }
         });
         displayTiles.setSelected(HiCGlobals.displayTiles);
-        if (HiCGlobals.isAssemblyToolsAllowed) {
+        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
             devMenu.add(displayTiles);
         }
 
@@ -586,6 +599,17 @@ public class MainMenuBar {
                 if (option == 0) { //The ISSUE is here
                     superAdapter.getAssemblyStateTracker().resetState();
                     superAdapter.refresh();
+                }
+            }
+        });
+
+        exitAssembly = new JMenuItem("Exit assembly");
+        exitAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+                if (option == 0) {
+                    superAdapter.exitAssemblyMode();
                 }
             }
         });
@@ -672,26 +696,28 @@ public class MainMenuBar {
         enableAssembly.setEnabled(enabled);
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
+        exitAssembly.setEnabled(enabled);
 
 
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
         assemblyMenu.add(resetAssembly);
+        assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
+        assemblyMenu.add(exitAssembly);
 //        assemblyMenu.add(enableAssembly);
 
 
-        menuBar.add(fileMenu);
-        menuBar.add(annotationsMenu);
-        menuBar.add(bookmarksMenu);
-        menuBar.add(viewMenu);
-        if (HiCGlobals.isAssemblyToolsAllowed) {
-            menuBar.add(assemblyMenu);
+        add(fileMenu);
+        //add(annotationsMenu);
+        add(viewMenu);
+        add(bookmarksMenu);
+        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+            add(assemblyMenu);
         }
-        menuBar.add(devMenu);
-        return menuBar;
+        add(devMenu);
     }
 
     public RecentMenu getRecentLocationMenu() {
@@ -699,19 +725,22 @@ public class MainMenuBar {
     }
 
     public void setEnableForAllElements(boolean status) {
-        annotationsMenu.setEnabled(status);
+        //annotationsMenu.setEnabled(status);
+        viewMenu.setEnabled(status);
         assemblyMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);
     }
 
-    public void enableAssemblyResetAndExport() {
+    public void enableAssemblyMenuOptions() {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
         enableAssembly.setEnabled(true);
         setScale.setEnabled(true);
         importModifiedAssembly.setEnabled(true);
+        exitAssembly.setEnabled(true);
+
     }
 
     public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
