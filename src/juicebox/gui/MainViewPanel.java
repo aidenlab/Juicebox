@@ -82,26 +82,11 @@ public class MainViewPanel {
     private static JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
     private static JPanel chrSidePanel = new JPanel(new BorderLayout());
     private static JPanel chrSidePanel3 = new JPanel(new BorderLayout());
-    private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
-    private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
     private static MainMenuBar menuBar;
-    private JScrollPane tooltipScroller;
+    private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private final JPanel annotationsPanel = new JPanel(new BorderLayout());
-    private boolean tooltipAllowedToUpdated = true;
-    private boolean ignoreUpdateThumbnail = false;
     private final JPanel mainPanel = new JPanel(new BorderLayout());
     private final JPanel bigPanel = new JPanel(new BorderLayout());
-
-    public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
-
-    public JComboBox<Chromosome> getChrBox2() {
-        return chrBox2;
-    }
-
-    public JComboBox<Chromosome> getChrBox1() {
-        return chrBox1;
-    }
-
     private final JPanel toolbarPanel = new JPanel(new GridBagLayout());
     //private final JPanel bottomPanel = new JPanel();
     private final JPanel chrSelectionPanel = new JPanel(new BorderLayout());
@@ -121,7 +106,23 @@ public class MainViewPanel {
     private final JLabel chrLabel = new JLabel("Chromosomes");
     private final JLabel normalizationLabel = new JLabel("Normalization");
     private final JLabel displayOptionLabel = new JLabel("Show");
+    private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
+    private JScrollPane tooltipScroller;
+    private boolean tooltipAllowedToUpdated = true;
+    private boolean ignoreUpdateThumbnail = false;
     private JPanel tooltipPanel = new JPanel(new BorderLayout());
+
+    public void setIgnoreUpdateThumbnail(boolean flag) {
+        ignoreUpdateThumbnail = flag;
+    }
+
+    public JComboBox<Chromosome> getChrBox2() {
+        return chrBox2;
+    }
+
+    public JComboBox<Chromosome> getChrBox1() {
+        return chrBox1;
+    }
 
     public MainMenuBar getMenuBar() {
         return menuBar;
@@ -129,7 +130,7 @@ public class MainViewPanel {
 
     public void initializeMainView(final SuperAdapter superAdapter, Container contentPane, Dimension screenSize, int taskBarHeight) {
 
-        Dimension bigPanelDim = new Dimension((int) (screenSize.width * .8),
+        Dimension bigPanelDim = new Dimension((int) (screenSize.width * .85),
                 (int) ((screenSize.height - taskBarHeight) * .9));
 
         Dimension panelDim = new Dimension((int) (screenSize.width * .75),
@@ -372,7 +373,7 @@ public class MainViewPanel {
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
 
         //======== Right side panel ========
-        int prefRightSideWidth = (int) (screenSize.width * .20);
+        int prefRightSideWidth = (int) (screenSize.width * .15);
 
         rightSidePanel.setLayout(new BoxLayout(rightSidePanel, BoxLayout.Y_AXIS));
         rightSidePanel.setMinimumSize(new Dimension((int) (screenSize.width * .15), screenSize.height));
