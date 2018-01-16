@@ -4,7 +4,7 @@ About Juicebox
 Juicebox is visualization software for Hi-C data.  This distribution includes the source code for Juicebox, <a href="https://github.com/theaidenlab/juicer/wiki/Download">Juicer Tools</a>, and <a href="http://aidenlab.org/assembly/">Assembly Tools</a>.  <a href="https://github.com/theaidenlab/juicebox/wiki/Download">Download Juicebox here</a>, or use <a href="http://aidenlab.org/juicebox">Juicebox on the web</a>.  Detailed documentation is available <a href="https://github.com/theaidenlab/juicebox/wiki">on the wiki</a>. Instructions below pertain primarily to usage of command line tools and the Juicebox jar files.
 
 Juicebox can now be used to visualize and interactively (re)assemble genomes. 
-Check out the Juicebox Assembly Tools Module websiteaidenlab.org/assembly for 
+Check out the Juicebox Assembly Tools Module website http://aidenlab.org/assembly for 
 more details on how to use Juicebox for assembly.
 
 
