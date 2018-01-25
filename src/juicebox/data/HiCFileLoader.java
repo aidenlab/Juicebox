@@ -27,6 +27,7 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
+import org.broad.igv.Globals;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ParsingUtils;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -50,7 +52,8 @@ public class HiCFileLoader {
 
     private static Properties properties;
     private static LoadDialog loadDialog = null;
-    private static String propertiesFileURL = System.getProperty("jnlp.loadMenu");
+    private static String propertiesFileURL = null;
+    private static String RECENT_PROPERTIES_FILE = "recentPropertiesFile";
 
     public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
@@ -125,7 +128,16 @@ public class HiCFileLoader {
     private static void initProperties() {
         try {
             if (propertiesFileURL == null) {
-                propertiesFileURL = HiCGlobals.defaultPropertiesURL;
+                try {
+                    Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+                    String potentialURL = prefs.get(RECENT_PROPERTIES_FILE, null);
+                    if (potentialURL != null && potentialURL.length() > 0 && potentialURL.endsWith(".properties")) {
+                        propertiesFileURL = potentialURL;
+                    }
+                } catch (Exception ignored) {
+                }
+                if (propertiesFileURL == null) propertiesFileURL = System.getProperty("jnlp.loadMenu");
+                if (propertiesFileURL == null) propertiesFileURL = HiCGlobals.defaultPropertiesURL;
             }
             InputStream is = ParsingUtils.openInputStream(propertiesFileURL);
             properties = new Properties();
@@ -174,9 +186,14 @@ public class HiCFileLoader {
 
         // if no exception has been thrown at this point, the url is a valid one
         if (providedURLIsValid) {
-            propertiesFileURL = newURL;
+            setPropertiesFileURL(newURL);
             loadDialog = null;
         }
     }
 
+    public static void setPropertiesFileURL(String propertiesFileURL) {
+        HiCFileLoader.propertiesFileURL = propertiesFileURL;
+        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+        prefs.put(RECENT_PROPERTIES_FILE, propertiesFileURL);
+    }
 }
