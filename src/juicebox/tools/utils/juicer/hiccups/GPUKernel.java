@@ -229,7 +229,7 @@ class GPUKernel {
                 "    e_v = ((Evalue_v*d[diagDist])/Edistvalue_v)*kr1[t_row]*kr2[t_col];\n" +
 
                 "    float lognorm = logf(powf(2.0,.33));\n" +
-                "    if (!isnan(e_bl)) {\n" +
+                "    if (!isnan(e_bl) && !isinf(e_bl)) {\n" +
                 "        if (e_bl<=1) {\n" +
                 "            bvalue_bl = 0;\n" +
                 "        }\n" +
@@ -237,7 +237,7 @@ class GPUKernel {
                 "            bvalue_bl = floorf(logf(e_bl)/lognorm);\n" +
                 "        }\n" +
                 "    }\n" +
-                "    if (!isnan(e_donut)) {\n" +
+                "    if (!isnan(e_donut) && !isinf(e_donut)) {\n" +
                 "        if (e_donut<=1) {\n" +
                 "            bvalue_donut = 0;\n" +
                 "        }\n" +
@@ -245,7 +245,7 @@ class GPUKernel {
                 "            bvalue_donut = floorf(logf(e_donut)/lognorm);\n" +
                 "        }\n" +
                 "    }\n" +
-                "    if (!isnan(e_h)) {\n" +
+                "    if (!isnan(e_h) && !isinf(e_h)) {\n" +
                 "        if (e_h<=1) {\n" +
                 "            bvalue_h = 0;\n" +
                 "        }\n" +
@@ -253,7 +253,7 @@ class GPUKernel {
                 "            bvalue_h = floorf(logf(e_h)/lognorm);\n" +
                 "        }\n" +
                 "    }\n" +
-                "    if (!isnan(e_v)) {\n" +
+                "    if (!isnan(e_v) && !isinf(e_v)) {\n" +
                 "        if (e_v<=1) {\n" +
                 "            bvalue_v = 0;\n" +
                 "        }\n" +
