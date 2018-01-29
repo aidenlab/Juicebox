@@ -56,6 +56,8 @@ public class AsciiPairIterator implements PairIterator {
     private Format format = null;
     private int dcicFragIndex1 = -1;
     private int dcicFragIndex2 = -1;
+    private int dcicMapqIndex1 = -1;
+    private int dcicMapqIndex2 = -1;
     //CharMatcher.anyOf(";,.")
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
@@ -118,6 +120,12 @@ public class AsciiPairIterator implements PairIterator {
                             }
                             if (tokens.get(i).contains("frag2")) {
                                 dcicFragIndex2 = i-1;
+                            }
+                            if (tokens.get(i).contains("mapq1")) {
+                                dcicMapqIndex1 = i-1;
+                            }
+                            if (tokens.get(i).contains("mapq2")) {
+                                dcicMapqIndex2 = i-1;
                             }
                         }
                     }
@@ -182,7 +190,13 @@ public class AsciiPairIterator implements PairIterator {
                                 frag1 = Integer.parseInt(tokens.get(dcicFragIndex1));
                                 frag2 = Integer.parseInt(tokens.get(dcicFragIndex2));
                             }
-                            nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, 1000, strand2, chr2, pos2, frag2, 1000);
+                            int mapq1 = 1000;
+                            int mapq2 = 1000;
+                            if (dcicMapqIndex1 != -1 && dcicMapqIndex2 != -1) {
+                                mapq1 = Integer.parseInt(tokens.get(dcicMapqIndex1));
+                                mapq2 = Integer.parseInt(tokens.get(dcicMapqIndex2));
+                            }
+                            nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
 
                         } else {
                             nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
