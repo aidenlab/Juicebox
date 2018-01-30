@@ -2247,6 +2247,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     currentUpstreamFeature = null;
                     currentDownstreamFeature = null;
 
+                    // not really sure how upstream and downstream fragments are chosen
                     for (Feature2DGuiContainer asmFragment : allMainFeaturePairs) {
                         if (asmFragment.getRectangle().contains(x, x + (binOriginX - binOriginY) * scaleFactor)) {
                             currentUpstreamFeature = asmFragment;
@@ -2256,14 +2257,27 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     }
 
+                    //check that there is an upstream and a downstream feature. At the very top, both features are the same
                     if (currentUpstreamFeature != null && currentDownstreamFeature != null) {
+
+                        // switch the two features. Want the upstream to start before the downstream.
+                        // the very top will not do anything during this check since both upstream and downstream are set to the same
+                        // why does downstream start before upstream ever
+                        // also, what is "getStart" (on the diagonal?)
                         if (currentUpstreamFeature.getFeature2D().getStart1() > currentDownstreamFeature.getFeature2D().getStart1()) {
                             Feature2DGuiContainer temp = currentUpstreamFeature;
                             currentUpstreamFeature = currentDownstreamFeature;
                             currentDownstreamFeature = temp;
                         }
 
-                        if (!HiCGlobals.splitModeEnabled && (currentUpstreamFeature.getFeature2D().getEnd1() == currentDownstreamFeature.getFeature2D().getStart1()) || (currentDownstreamFeature == null && currentUpstreamFeature == null)) {
+                        // what is splitmode? Anyways, don't want split mode enabled.
+
+                        if (!HiCGlobals.splitModeEnabled &&
+                            // this check makes sure upstream end is the same as downstream start
+                            // this check will FAIL the very TOP since start is 0 and end the end of the first segment
+                            (currentUpstreamFeature.getFeature2D().getEnd1() == currentDownstreamFeature.getFeature2D().getStart1())
+                            // isn't this always false since upstream and downstream are checked to be not null?
+                            || (currentDownstreamFeature == null && currentUpstreamFeature == null)) {
 //                            if (currentDownstreamFeature==null && currentUpstreamFeature==null) {
 //                                if ((getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds().get(0).getCurrentFeature2D().getRectangle().getMinX() - mousePoint.getX()>= 0) &&
 //                                        (currentDownstreamFeature.getRectangle().getMinX() - mousePoint.getX() <= minDist) &&
@@ -2272,32 +2286,108 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                                    System.out.println("I am here");
 //                                }
 //                            }else{
+                            // down arrow
+                            // if the mouse is on the right of the lower part of the upstream feature and not inside the feature
                             if ((mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() >= 0) &&
-                                    (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() <= minDist) &&
-                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
-                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
+                                //make sure its within the "minimum distance it can be as well
+                                (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() <= minDist) &&
+                                //make sure mouse is above the bottom of the edge of the upstream feature
+                                (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
+                                //make sure y value is also within the minimum distance
+                                (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
+                                //if nothing is selected, display the arrow w/o the line
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
-                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
-                                        currentUpstreamFeature.getFeature2D().getEnd1() <= selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
+
+                                    //checks for overlap, can't insert into a middle of a segment
+                                    //if one or both of these checks are false then check passes, if both are true there's a problem
+                                    // if the end of the upstream feature is greater than the start of the selected features
+                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >=
+                                    selectedFeatures.get(0).getStart1() &&
+                                    // and the end of the upstream feature is less than the end of the selected features
+                                    currentUpstreamFeature.getFeature2D().getEnd1() <=
+                                        selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
                                     setCursor(MainWindow.pasteSWCursor);
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
+
+
+                                // up arrow
+                                // check if mouse in correct location underneath the diagonal
                             } else if ((currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() >= 0) &&
-                                    (currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() <= minDist) &&
-                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() >= 0) &&
-                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
+                                (currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() <= minDist) &&
+                                (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() >= 0) &&
+                                (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
+                                // if there are no selected features, display the arrow without the line
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
-                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
-                                        currentUpstreamFeature.getFeature2D().getEnd1() <= selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
+
+                                    // check for overlap the same way as before
+                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >=
+                                    selectedFeatures.get(0).getStart1() &&
+                                    currentUpstreamFeature.getFeature2D().getEnd1() <=
+                                        selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
                                     setCursor(MainWindow.pasteNECursor);
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
+                            }
+                            //means mouse is at the very start (0,0)
+                        } else if (currentDownstreamFeature.getFeature2D().getStart1() == 0) {
+                            // for SW arrow:
+                            // check if {START (0,0)}.y - mouse.y is within min distance and positive
+                            // check if mouse.x - {START (0,0)}.x is within min distance and positive
+                            // if the mouse is on the right of the lower part of the upstream feature and not inside the feature
+                            if ((mousePoint.getX() - currentUpstreamFeature.getRectangle().getMinX() >= -5) &&
+                                //make sure its within the "minimum distance it can be as well
+                                (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMinX() <= minDist) &&
+                                //make sure mouse is above the bottom of the edge of the upstream feature
+                                (currentUpstreamFeature.getRectangle().getMinY() - mousePoint.getY() >= -5) &&
+                                //make sure y value is also within the minimum distance
+                                (currentUpstreamFeature.getRectangle().getMinY() - mousePoint.getY() <= minDist)) {
+
+                                //if nothing is selected, display the arrow w/o the line
+                                if (selectedFeatures == null || selectedFeatures.isEmpty()) {
+                                    setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
+
+                                    //checks for overlap, can't insert into a middle of a segment
+                                    //if one or both of these checks are false then check passes, if both are true there's a problem
+                                    // if the end of the upstream feature is greater than the start of the selected features
+                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >=
+                                    selectedFeatures.get(0).getStart1() &&
+                                    // and the end of the upstream feature is less than the end of the selected features
+                                    currentUpstreamFeature.getFeature2D().getEnd1() <=
+                                        selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
+                                    setCursor(MainWindow.pasteSWCursor);
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
                             }
+                            // for NE arrow:
+                            // check if mouse.y - {START (0,0)}.y is within min distance and positive
+                            // check if {START (0,0)}.x - mouse.x  is within min distance and positive
+                            // check if mouse in correct location underneath the diagonal
+                            else if ((currentUpstreamFeature.getRectangle().getMinX() - mousePoint.getX() >= -5) &&
+                                (currentUpstreamFeature.getRectangle().getMinX() - mousePoint.getX() <= minDist) &&
+                                (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMinY() >= -5) &&
+                                (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMinY() <= minDist)) {
+                                // if there are no selected features, display the arrow without the line
+                                if (selectedFeatures == null || selectedFeatures.isEmpty()) {
+                                    setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
+
+                                    // check for overlap the same way as before
+                                } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >=
+                                    selectedFeatures.get(0).getStart1() &&
+                                    currentUpstreamFeature.getFeature2D().getEnd1() <=
+                                        selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
+                                    setCursor(MainWindow.pasteNECursor);
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                                }
+                            }
+
+                        }
 
 //                        }
                     }
