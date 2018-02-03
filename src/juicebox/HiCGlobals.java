@@ -74,6 +74,7 @@ public class HiCGlobals {
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
+    public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static int MAX_PEARSON_ZOOM = 500000;
