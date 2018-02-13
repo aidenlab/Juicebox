@@ -172,7 +172,9 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         }
                         break;
                     case PASTE:
+
                         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
+
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
