@@ -2471,6 +2471,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     currentUpstreamFeature.getFeature2D().getEnd1() <=
                         selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
                   setCursor(MainWindow.pasteSWCursor);
+
                   currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                 }
 
