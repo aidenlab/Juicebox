@@ -443,10 +443,6 @@ public class AssemblyScaffoldHandler {
   //**** Move selection ****//
   // moves it below the current upstream feature.
 
-  public void moveSelectionTop(List<Feature2D> selectedFeatures) {
-
-  }
-
   public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature) {
     // note assumes sorted
     // id 1 and id2 are the range of selected features
@@ -531,7 +527,7 @@ public class AssemblyScaffoldHandler {
 
     if (listOfSuperscaffolds.get(gid3).indexOf(id3) == listOfSuperscaffolds.get(gid3).size() - 1) {
       // added this check
-      if (upstreamFeature.getStart1() == 0) {
+      if (upstreamFeature.getTop()) {
         newSuperscaffolds.addAll(0, tempSuperscaffolds);
       }
       else {

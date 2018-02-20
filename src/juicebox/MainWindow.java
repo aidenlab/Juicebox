@@ -61,6 +61,8 @@ public class MainWindow extends JFrame {
     public static Cursor fistCursor;
     public static Cursor pasteNECursor;
     public static Cursor pasteSWCursor;
+    public static Cursor pasteSECursor;
+    public static Cursor pasteNWCursor;
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
     public static Cursor scissorCursor;
@@ -254,6 +256,29 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         pasteSWCursor = getToolkit().createCustomCursor(pasteSWImage, new Point(8, 6), "PasteSW");
+
+        // Insert (paste) prompts
+        BufferedImage pasteNWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = pasteNWImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = pasteNWImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-nw-paste.png"), "paste");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        pasteNWCursor = getToolkit().createCustomCursor(pasteNWImage, new Point(8, 6), "PasteNW");
+
+        // Insert (paste) prompts
+        BufferedImage pasteSEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = pasteSEImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = pasteSEImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-se-paste.png"), "paste");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        pasteSECursor = getToolkit().createCustomCursor(pasteSEImage, new Point(8, 6), "PasteSE");
+
 
         // Invert prompts
         BufferedImage invertNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
