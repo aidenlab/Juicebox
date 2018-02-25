@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -155,7 +155,7 @@ public class HiCCUPS extends JuicerCLT {
     public static final Color defaultPeakColor = Color.cyan;
     public static final boolean shouldColorBeScaledByFDR = false;
     private static final int totalMargin = 2 * regionMargin;
-    private static final int w1 = 40;      // TODO dimension should be variably set
+    public static final int w1 = 40;      // TODO dimension should be variably set
     private static final int w2 = 10000;   // TODO dimension should be variably set
     private static final boolean dataShouldBePostProcessed = true;
     private static final String MERGED = "merged_loops.bedpe";
@@ -194,6 +194,7 @@ public class HiCCUPS extends JuicerCLT {
     private File outputDirectory;
     private List<HiCCUPSConfiguration> configurations;
     private Dataset ds;
+    private boolean useCPUVersionHiCCUPS = false;
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
@@ -227,6 +228,13 @@ public class HiCCUPS extends JuicerCLT {
 
         determineValidMatrixSize(juicerParser);
         determineValidConfigurations(juicerParser, ds.getBpZooms());
+
+        if (juicerParser.getCPUVersionOfHiCCUPSOptions()) {
+            useCPUVersionHiCCUPS = true;
+            System.out.println("WARNING - You are using the CPU version of HiCCUPS.\n" +
+                    "The GPU version of HiCCUPS is the official version and has been tested extensively.\n" +
+                    "The CPU version only searches for loops within 4MB of the diagonal and is is still experimental.\n");
+        }
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
@@ -412,7 +420,7 @@ public class HiCCUPS extends JuicerCLT {
         GPUController gpuController = null;
         try {
             gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                    conf.getPeakWidth(), conf.divisor());
+                    conf.getPeakWidth(), conf.divisor(), useCPUVersionHiCCUPS);
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
@@ -465,6 +473,10 @@ public class HiCCUPS extends JuicerCLT {
 
                         if (rowBounds[4] < chrMatrixWidth - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
+                                if (useCPUVersionHiCCUPS && (j - i) * regionWidth * conf.getResolution() > 320) {
+                                    continue;
+                                }
+
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWidth);
                                 if (HiCGlobals.printVerboseComments) {
                                     System.out.print(".");

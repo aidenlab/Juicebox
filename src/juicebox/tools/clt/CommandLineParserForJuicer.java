@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option apaSaveAllData = null;
 
     // for HiCCUPS
+    private static Option cpuVersionHiCCUPSOption = null;
     private static Option fdrOption = null;
     private static Option windowOption = null;
     private static Option peakOption = null;
@@ -69,10 +70,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqbvuhg
+        // wmnxcrplafdptkqbvuhgj
 
         // available flags
-        // joyzes
+        // oyzes
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -99,6 +100,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         peakOption = addStringOption('p', "peak_width");
         clusterRadiusOption = addStringOption('d', "centroid_radii");
         thresholdOption = addStringOption('t', "postprocessing_thresholds");
+        cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
 
         // previously for AFA
         relativeLocationOption = addStringOption('l', "location_type");
@@ -250,5 +252,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public List<String> getThresholdOptions() {
         return optionToStringList(thresholdOption);
+    }
+
+    public boolean getCPUVersionOfHiCCUPSOptions() {
+        Object opt = getOptionValue(cpuVersionHiCCUPSOption);
+        return opt != null;
     }
 }
