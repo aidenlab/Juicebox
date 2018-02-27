@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyOperationExecutor;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DGuiContainer;
@@ -160,6 +161,8 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         } else {
             if (!lastMouseEvent.isShiftDown()) {
                 List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
+                AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+
                 switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
                     case REGROUP:
                         AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
@@ -171,10 +174,31 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                             e.printStackTrace();
                         }
                         break;
+
+//                    case PASTETOP:
+//                        final List<Integer>
+//                            firstLine =
+//                            assemblyHandler.getListOfSuperscaffolds().get(0);
+//                        int firstId = Math.abs(firstLine.get(firstLine.size() - 1)) - 1;
+//                        AssemblyOperationExecutor.moveSelection(superAdapter,
+//                            selectedFeatures,
+//                            assemblyHandler.getListOfScaffolds().get(firstId).getCurrentFeature2D());
+//                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+//                        heatmapPanel.repaint();
+
+                    case PASTEBOTTOM:
+                        final List<Integer>
+                            lastLine =
+                            assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
+                        int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
+                        AssemblyOperationExecutor.moveSelection(superAdapter,
+                            selectedFeatures,
+                            assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
+                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint();
+                        break;
                     case PASTE:
-
                         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
-
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
