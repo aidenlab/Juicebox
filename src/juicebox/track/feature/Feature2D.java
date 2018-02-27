@@ -521,13 +521,6 @@ public class Feature2D implements Comparable<Feature2D> {
         isSelected = setIsSelectedColorUpdate;
     }
 
-    public boolean getTop() {
-        return this.top;
-    }
-
-    public void setTop(boolean newTop) {
-        this.top = newTop;
-    }
   public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
     }

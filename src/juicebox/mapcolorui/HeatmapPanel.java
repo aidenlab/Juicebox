@@ -2422,7 +2422,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             else if (mousePoint.getX() <= RESIZE_SNAP && mousePoint.getY() <= RESIZE_SNAP) {
               if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                currentUpstreamFeature.getFeature2D().setTop(true);
                 setCursor(MainWindow.pasteNWCursor);
                 currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
               }

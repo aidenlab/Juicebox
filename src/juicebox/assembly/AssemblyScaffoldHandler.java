@@ -526,13 +526,9 @@ public class AssemblyScaffoldHandler {
     }
 
     if (listOfSuperscaffolds.get(gid3).indexOf(id3) == listOfSuperscaffolds.get(gid3).size() - 1) {
-      // added this check
-      if (upstreamFeature.getTop()) {
-        newSuperscaffolds.addAll(0, tempSuperscaffolds);
-      }
-      else {
+
         newSuperscaffolds.addAll(newgid3 + 1, tempSuperscaffolds);
-      }
+
     } else {
       int pasteIndex = listOfSuperscaffolds.get(gid3).indexOf(id3);
       if (gid1 == gid3 &&
