@@ -440,79 +440,70 @@ public class AssemblyScaffoldHandler {
     }
   }
 
-  //**** Move selection ****//
-  // moves it below the current upstream feature.
 
-  public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature) {
+  //**** Move selection ****//
+
+  void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature) {
     // note assumes sorted
-    // id 1 and id2 are the range of selected features
     int id1 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(0));
     int id2 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(selectedFeatures.size() - 1));
-    // id3 is the id of the upstream feature we're going to insert under
-    int id3 = getSignedIndexFromScaffoldFeature2D(upstreamFeature);
-
     int gid1 = getSuperscaffoldId(id1);
     int gid2 = getSuperscaffoldId(id2);
-    int gid3 = getSuperscaffoldId(id3);
 
-    // check if selectedFeatures span multiple groups paste split at destination
-    if (gid1 != gid2 & listOfSuperscaffolds.get(gid3).indexOf(id3) != listOfSuperscaffolds.get(gid3).size() - 1) {
-      splitSuperscaffold(gid3, id3);
-      gid1 = getSuperscaffoldId(id1);
-      gid2 = getSuperscaffoldId(id2);
+    // initailize id3 and gid3
+    int id3 = 1;
+    int gid3 = 0;
+    if (upstreamFeature != null) {
+      // if it's not inserting to top, set the id3 and gid3 to actual numbers.
+      id3 = getSignedIndexFromScaffoldFeature2D(upstreamFeature);
       gid3 = getSuperscaffoldId(id3);
+      // check if selectedFeatures span multiple groups paste split at destination
+      if (gid1 != gid2 & listOfSuperscaffolds.get(gid3).indexOf(id3) != listOfSuperscaffolds.get(gid3).size() - 1) {
+        // not sure what this does...tried printing in here & nothing printed
+        splitSuperscaffold(gid3, id3);
+        gid1 = getSuperscaffoldId(id1);
+        gid2 = getSuperscaffoldId(id2);
+        gid3 = getSuperscaffoldId(id3);
+      }
     }
 
-    //System.out.println("after id1: "+ gid1 + " id2: " + gid2 + " id3: " + gid3);
-    // when inserting to top, gid3 doesn't exit
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
     List<List<Integer>> tempSuperscaffolds = new ArrayList<>();
     List<Integer> truncatedSuperscaffold = new ArrayList<>();
     int shiftSuperscaffold = 0;
-
-    //iterate through ALL the scaffolds
     for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
+      if (i==gid1 && i==gid2){
 
-      // if there's only one scaffold to move && iteration reaches it
-      if (i == gid1 && i == gid2) {
-        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid1)
-            .subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid2).indexOf(id2) + 1));
+        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid1).subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid2).indexOf(id2) + 1));
 
         if (listOfSuperscaffolds.get(gid1).indexOf(id1) != 0) {
-          truncatedSuperscaffold.addAll(listOfSuperscaffolds.get(gid1)
-              .subList(0, listOfSuperscaffolds.get(gid1).indexOf(id1)));
+          truncatedSuperscaffold.addAll(listOfSuperscaffolds.get(gid1).subList(0, listOfSuperscaffolds.get(gid1).indexOf(id1)));
         }
         if (listOfSuperscaffolds.get(gid2).indexOf(id2) != listOfSuperscaffolds.get(gid2).size() - 1) {
-          truncatedSuperscaffold.addAll(listOfSuperscaffolds.get(gid2)
-              .subList(1 + listOfSuperscaffolds.get(gid2).indexOf(id2), listOfSuperscaffolds.get(gid2).size()));
+          truncatedSuperscaffold.addAll(listOfSuperscaffolds.get(gid2).subList(1 + listOfSuperscaffolds.get(gid2).indexOf(id2), listOfSuperscaffolds.get(gid2).size()));
         }
 
         if (!truncatedSuperscaffold.isEmpty()) {
-          // it is empty
           newSuperscaffolds.add(truncatedSuperscaffold);
         } else {
           shiftSuperscaffold++;
         }
 
-        // different conditions for groups of scaffolds
-      } else if (gid1 != gid2 && i == gid1) {
-        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid1)
-            .subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid1).size()));
+      } else if (gid1!=gid2 && i==gid1){
+        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid1).subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid1).size()));
         if (listOfSuperscaffolds.get(gid1).indexOf(id1) != 0) {
           newSuperscaffolds.add(listOfSuperscaffolds.get(gid1).subList(0, listOfSuperscaffolds.get(gid1).indexOf(id1)));
-        } else {
+        }else{
           shiftSuperscaffold++;
         }
-      } else if (gid1 != gid2 && i > gid1 && i < gid2) {
+      } else if (gid1!=gid2 && i > gid1 && i < gid2){
         tempSuperscaffolds.add(listOfSuperscaffolds.get(i));
         shiftSuperscaffold++;
-      } else if (gid1 != gid2 && i == gid2) {
-        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid2)
-            .subList(0, 1 + listOfSuperscaffolds.get(gid2).indexOf(id2)));
+      } else if (gid1!=gid2 && i==gid2){
+        tempSuperscaffolds.add(listOfSuperscaffolds.get(gid2).subList(0, 1 + listOfSuperscaffolds.get(gid2).indexOf(id2)));
         if (listOfSuperscaffolds.get(gid2).indexOf(id2) != listOfSuperscaffolds.get(gid2).size() - 1) {
-          newSuperscaffolds.add(listOfSuperscaffolds.get(gid2)
-              .subList(1 + listOfSuperscaffolds.get(gid2).indexOf(id2), listOfSuperscaffolds.get(gid2).size()));
-        } else {
+          newSuperscaffolds.add(listOfSuperscaffolds.get(gid2).subList(1 + listOfSuperscaffolds.get(gid2).indexOf(id2), listOfSuperscaffolds.get(gid2).size()));
+        }else{
           shiftSuperscaffold++;
         }
       } else {
@@ -520,28 +511,30 @@ public class AssemblyScaffoldHandler {
       }
     }
 
-    int newgid3 = gid3;
-    if (gid3 > gid2) {
-      newgid3 -= shiftSuperscaffold;
-    }
-
-    if (listOfSuperscaffolds.get(gid3).indexOf(id3) == listOfSuperscaffolds.get(gid3).size() - 1) {
-
-        newSuperscaffolds.addAll(newgid3 + 1, tempSuperscaffolds);
-
-    } else {
-      int pasteIndex = listOfSuperscaffolds.get(gid3).indexOf(id3);
-      if (gid1 == gid3 &&
-          gid2 == gid3 &&
-          listOfSuperscaffolds.get(gid3).indexOf(id3) > listOfSuperscaffolds.get(gid3).indexOf(id2)) {
-        pasteIndex -= listOfSuperscaffolds.get(gid3).size() - truncatedSuperscaffold.size();
+    if (upstreamFeature != null) {
+      // if not inserting to top, proceed as usual
+      int newgid3 = gid3;
+      if (gid3 > gid2){
+        // if moving a superscaffold downstream
+        newgid3 -= shiftSuperscaffold;
       }
-      newSuperscaffolds.get(newgid3).addAll(pasteIndex + 1, tempSuperscaffolds.get(0));
+      if (listOfSuperscaffolds.get(gid3).indexOf(id3) == listOfSuperscaffolds.get(gid3).size() - 1) {
+        newSuperscaffolds.addAll(newgid3 + 1, tempSuperscaffolds);
+      } else {
+        int pasteIndex = listOfSuperscaffolds.get(gid3).indexOf(id3);
+        if (gid1 == gid3 && gid2 == gid3 && listOfSuperscaffolds.get(gid3).indexOf(id3) > listOfSuperscaffolds.get(gid3).indexOf(id2)) {
+          pasteIndex -= listOfSuperscaffolds.get(gid3).size() - truncatedSuperscaffold.size();
+        }
+        newSuperscaffolds.get(newgid3).addAll(pasteIndex + 1, tempSuperscaffolds.get(0));
+      }
     }
+    else
+      // if inserting to top, add all scaffolds to 0
+      newSuperscaffolds.addAll(0, tempSuperscaffolds);
+
     listOfSuperscaffolds.clear();
     listOfSuperscaffolds.addAll(newSuperscaffolds);
   }
-
   //**** Group toggle ****//
 
   public void toggleGroup(Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {

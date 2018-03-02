@@ -173,7 +173,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
       g.setColor(Color.BLACK);
       g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
     }
-
     // Are we ready to draw?
     final MatrixZoomData zd;
     try {
@@ -222,9 +221,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     int tRight = (int) Math.ceil(bRight / imageTileWidth);
     int tTop = (int) (binOriginY / imageTileWidth);
     int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
-
-    //System.out.println("binX "+binOriginX+" "+bRight+" binY "+binOriginY+" "+bBottom);
-    //System.out.println("tileX "+tLeft+" "+tRight+" tileY "+tTop+" "+tBottom);
+//    System.out.println("screenWidth "+screenWidth +" "+" screenHeight "+screenHeight+" ");
+//    System.out.println("binX "+binOriginX+" "+bRight+" binY "+binOriginY+" "+bBottom);
 
     MatrixType displayOption = hic.getDisplayOption();
     NormalizationType normalizationType = hic.getNormalizationType();
@@ -258,8 +256,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
           // Trim off edges that are out of view -- take care if you attempt to simplify or rearrange this,
           // its easy to introduce alias and round-off errors due to the int casts.  I suggest leaving it alone.
           Rectangle bounds = getBounds();
+
           final int screenRight = bounds.x + bounds.width;
           final int screenBottom = bounds.y + bounds.height;
+          //System.out.println("screenRight" + screenRight + "screenBottom" + screenBottom);
           if (xDest0 < 0) {
             int leftExcess = (int) (-xDest0 / scaleFactor);
             xSrc0 += leftExcess;
@@ -280,8 +280,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             ySrc1 -= bottomExcess;
             yDest1 = (int) ((tile.bTop + imageHeight - binOriginY - bottomExcess) * scaleFactor);
           }
-
-
           //if (mainWindow.isRefreshTest()) {
           try {
             if (xDest0 < xDest1 && yDest0 < yDest1 && xSrc0 < xSrc1 && ySrc0 < ySrc1) {
@@ -381,6 +379,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         } else {
           g.setColor(Color.white);
         }
+
         g.fillRect(getGridLineHeightLimit(zd, maxDimension), 0, getHeight(), getWidth());
         g.fillRect(0, getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
         g.fillRect(getGridLineHeightLimit(zd, maxDimension),
@@ -389,6 +388,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             getWidth());
       } else {
         if (showGridLines) {
+
           Color color = g.getColor();
           if (HiCGlobals.isDarkulaModeEnabled) {
             g.setColor(Color.LIGHT_GRAY);
@@ -400,6 +400,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
               List<Integer> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
               //int maxSize = xBins.get(xBins.size() - 1);
               int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
+
               for (int xBin : xBins) {
                 int x = (int) ((xBin - binOriginX) * scaleFactor);
                 g.drawLine(x, 0, x, maxSize);
@@ -2353,7 +2354,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
           Point mousePoint = e.getPoint();
           double x = mousePoint.getX();
           double y = mousePoint.getY();
-
           currentUpstreamFeature = null;
           currentDownstreamFeature = null;
 
@@ -2365,9 +2365,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
               currentDownstreamFeature = asmFragment;
             }
           }
-//          System.out.println("currentupstream: " + currentUpstreamFeature + "x: " +mousePoint.getX());
-//
-//          System.out.println("currentdownstream: " + currentDownstreamFeature + "y: " + mousePoint.getY());
+
+          System.out.println("x: " + mousePoint.getX() + "y: "+ mousePoint.getY());
           if (currentUpstreamFeature == null || currentDownstreamFeature == null) {
             if (mousePoint.getX() >= 470 && mousePoint.getY() >= 470) {
               if (selectedFeatures == null || selectedFeatures.isEmpty()) {
@@ -2423,7 +2422,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             else if (mousePoint.getX() <= RESIZE_SNAP && mousePoint.getY() <= RESIZE_SNAP) {
               if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
                 setCursor(MainWindow.pasteNWCursor);
-                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
               }
             }
 

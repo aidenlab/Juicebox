@@ -175,17 +175,6 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         }
                         break;
 
-//                    case PASTETOP:
-//                        final List<Integer>
-//                            firstLine =
-//                            assemblyHandler.getListOfSuperscaffolds().get(0);
-//                        int firstId = Math.abs(firstLine.get(firstLine.size() - 1)) - 1;
-//                        AssemblyOperationExecutor.moveSelection(superAdapter,
-//                            selectedFeatures,
-//                            assemblyHandler.getListOfScaffolds().get(firstId).getCurrentFeature2D());
-//                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
-//                        heatmapPanel.repaint();
-
                     case PASTEBOTTOM:
                         final List<Integer>
                             lastLine =
@@ -197,6 +186,16 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
+
+                    case PASTETOP:
+
+                        AssemblyOperationExecutor.moveSelection(superAdapter,
+                            selectedFeatures,
+                            null);
+                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint();
+                        break;
+
                     case PASTE:
                         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
