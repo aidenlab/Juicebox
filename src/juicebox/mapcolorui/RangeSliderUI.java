@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.mapcolorui;
 
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.gui.MainViewPanel;
 
 import javax.swing.*;
@@ -52,7 +51,7 @@ class RangeSliderUI extends BasicSliderUI {
     private final float[] fractionsBlank = {0.0f, 1.0f};
 
     private final Color rangeColor = Color.RED;
-    //private final Color[] gradientColors = {Color.WHITE, MainWindow.hicMapColor};
+    //private final Color[] gradientColors = {Color.WHITE, HICGlobals.HIC_MAP_COLOR};
     private final float[] fractions = {0.0f, 1.0f};
 
     private final Color[] gradientColorsOE = HiCGlobals.isDarkulaModeEnabled ?
@@ -337,8 +336,8 @@ class RangeSliderUI extends BasicSliderUI {
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length - 1], rightSide);
             } else {
                 Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, MainWindow.hicMapColor});
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, MainWindow.hicMapColor, rightSide);
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, HiCGlobals.HIC_MAP_COLOR});
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, HiCGlobals.HIC_MAP_COLOR, rightSide);
             }
 
 

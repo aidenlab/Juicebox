@@ -29,7 +29,6 @@ import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Range;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunction;
@@ -506,9 +505,9 @@ class HeatmapRenderer {
 
                     //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                     if (HiCGlobals.isDarkulaModeEnabled) {
-                        observedColorScale = new ContinuousColorScale(0, max, Color.black, MainWindow.hicMapColor);
+                        observedColorScale = new ContinuousColorScale(0, max, Color.black, HiCGlobals.HIC_MAP_COLOR);
                     } else {
-                        observedColorScale = new ContinuousColorScale(0, max, Color.white, MainWindow.hicMapColor);
+                        observedColorScale = new ContinuousColorScale(0, max, Color.white, HiCGlobals.HIC_MAP_COLOR);
                     }
                     observedColorScaleMap.put(key, observedColorScale);
                     //mainWindow.updateColorSlider(0, 2 * max, max);
@@ -659,9 +658,9 @@ class HeatmapRenderer {
             ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
                 if (HiCGlobals.isDarkulaModeEnabled) {
-                    observedColorScale = new ContinuousColorScale(min, max, Color.black, MainWindow.hicMapColor);
+                    observedColorScale = new ContinuousColorScale(min, max, Color.black, HiCGlobals.HIC_MAP_COLOR);
                 } else {
-                    observedColorScale = new ContinuousColorScale(min, max, Color.white, MainWindow.hicMapColor);
+                    observedColorScale = new ContinuousColorScale(min, max, Color.white, HiCGlobals.HIC_MAP_COLOR);
                 }
                 observedColorScaleMap.put(key, observedColorScale);
             }

@@ -70,10 +70,11 @@ public class HiCGlobals {
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display and header purposes only)
     // Note: please follow "X.X.X" format, where "X" is a single digit; otherwise md5sums for hic files messed up.
-    public static final String versionNum = "1.8.8"; //
+    public static final String versionNum = "1.8.9"; //
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
+    public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static int MAX_PEARSON_ZOOM = 500000;

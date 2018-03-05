@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JideButton;
-import juicebox.MainWindow;
+import juicebox.HiCGlobals;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.MatrixType;
@@ -184,14 +184,14 @@ class ColorRangeDialog extends JDialog {
 
         final JButton colorChooserButton = new JButton("Map color");
         colorChooserButton.setSize(50, 50);
-        colorChooserButton.setForeground(MainWindow.hicMapColor);
+        colorChooserButton.setForeground(HiCGlobals.HIC_MAP_COLOR);
 
         colorChooserButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Color color = JColorChooser.showDialog(panel5, "Map color", colorChooserButton.getForeground());
                 colorChooserButton.setForeground(color);
-                MainWindow.hicMapColor = color;
+                HiCGlobals.HIC_MAP_COLOR = color;
                 //System.out.println("The selected color was:" + color);
             }
         });
@@ -201,7 +201,7 @@ class ColorRangeDialog extends JDialog {
 
         final JButton paletteChooserButton = new JButton("Create gradient");
         paletteChooserButton.setSize(50, 50);
-        paletteChooserButton.setForeground(MainWindow.hicMapColor);
+        paletteChooserButton.setForeground(HiCGlobals.HIC_MAP_COLOR);
 
         paletteChooserButton.addActionListener(new ActionListener() {
             @Override
