@@ -221,7 +221,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     int tRight = (int) Math.ceil(bRight / imageTileWidth);
     int tTop = (int) (binOriginY / imageTileWidth);
     int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
-//    System.out.println("screenWidth "+screenWidth +" "+" screenHeight "+screenHeight+" ");
+
+    System.out.println("screenWidth "+screenWidth +" "+" screenHeight "+screenHeight+" ");
 //    System.out.println("binX "+binOriginX+" "+bRight+" binY "+binOriginY+" "+bBottom);
 
     MatrixType displayOption = hic.getDisplayOption();
@@ -1329,12 +1330,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     superAdapter.getEditLayer().clearAnnotations();
     superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
     debrisFeature = null;
-    //moveDebrisToEnd();
     removeSelection();
     debrisFeatureSize = RESIZE_SNAP;
   }
 
-  private void moveSelectionToEnd() {
+  public void moveSelectionToEnd() {
     AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
     final List<Integer>
         lastLine =
@@ -2307,6 +2307,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       } catch (Exception ex) {
         return;
       }
+
       if (hic.getXContext() != null) {
         adjustAnnotation = AdjustAnnotation.NONE;
         currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
@@ -2365,18 +2366,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
               currentDownstreamFeature = asmFragment;
             }
           }
-
-          System.out.println("x: " + mousePoint.getX() + "y: "+ mousePoint.getY());
-          if (currentUpstreamFeature == null || currentDownstreamFeature == null) {
-            if (mousePoint.getX() >= 470 && mousePoint.getY() >= 470) {
-              if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                System.out.println("no selected features");
-              } else {
-                setCursor(MainWindow.pasteSECursor);
-                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
-              }
+          System.out.println("mouse x: " + x + "mouse y:" + y);
+          // inserting to bottom
+          if ((mousePoint.getX() <= getBounds().width) &&
+              (mousePoint.getX() >= getBounds().width - RESIZE_SNAP) &&
+              (mousePoint.getY() <= getBounds().height) &&
+                  (mousePoint.getY() >= getBounds().height - RESIZE_SNAP)) {
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+              setCursor(MainWindow.pasteSECursor);
+              currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
             }
-          } else if (currentUpstreamFeature != null && currentDownstreamFeature != null) {
+          }
+
+           if (currentUpstreamFeature != null && currentDownstreamFeature != null) {
 
             if (currentUpstreamFeature.getFeature2D().getStart1() >
                 currentDownstreamFeature.getFeature2D().getStart1()) {
@@ -2418,7 +2420,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
               }
             }
-
+            //inserting to top
             else if (mousePoint.getX() <= RESIZE_SNAP && mousePoint.getY() <= RESIZE_SNAP) {
               if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
                 setCursor(MainWindow.pasteNWCursor);

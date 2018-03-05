@@ -450,7 +450,7 @@ public class AssemblyScaffoldHandler {
     int gid1 = getSuperscaffoldId(id1);
     int gid2 = getSuperscaffoldId(id2);
 
-    // initailize id3 and gid3
+    // initialize id3 and gid3
     int id3 = 1;
     int gid3 = 0;
     if (upstreamFeature != null) {

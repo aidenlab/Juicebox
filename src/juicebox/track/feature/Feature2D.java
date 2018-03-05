@@ -66,7 +66,6 @@ public class Feature2D implements Comparable<Feature2D> {
     private Feature2D reflection = null;
     private Color color, translucentColor;
     private boolean test = false;
-    private boolean top;
 
     public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -80,7 +79,6 @@ public class Feature2D implements Comparable<Feature2D> {
         this.color = (c == null ? Color.black : c);
         setTranslucentColor();
         this.attributes = attributes;
-        this.top = false;
     }
 
     public static String getDefaultOutputFileHeader() {
