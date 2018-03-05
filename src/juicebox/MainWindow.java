@@ -64,7 +64,6 @@ public class MainWindow extends JFrame {
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
     public static Cursor scissorCursor;
-    public static Color hicMapColor = Color.red;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
@@ -87,9 +86,6 @@ public class MainWindow extends JFrame {
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(superAdapter.getNewHiCKeyDispatcher());
-
-        hicMapColor = Color.red;
-
     }
 
     private static MainWindow createMainWindow() {

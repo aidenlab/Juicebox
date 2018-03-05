@@ -271,27 +271,6 @@ public class MainMenuBar extends JMenuBar {
         });
         fileMenu.add(exit);
 
-        // "Annotations" menu items
-        //annotationsMenu = new JMenu("Annotations");
-        //annotationsMenu.setEnabled(false);
-        //annotationsMenu.add(layersItem);
-
-        /*
-        loadOldAnnotationsMI = new JMenuItem("Load Last Session's Hand Annotations ");
-        loadOldAnnotationsMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadAllOldSavedAnnotations();
-                loadOldAnnotationsMI.setEnabled(false);
-                superAdapter.getActiveLayerHandler().setExportAbility(true);
-            }
-        });
-        if (unsavedEditsExist()) {
-            loadOldAnnotationsMI.setEnabled(true);
-            annotationsMenu.add(loadOldAnnotationsMI);
-        }
-        */
-
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
         saveLocationList = new JMenuItem("Save Current Location");
@@ -424,6 +403,24 @@ public class MainMenuBar extends JMenuBar {
         });
         viewMenu.add(layersItem);
         viewMenu.setEnabled(false);
+
+        final JMenuItem colorItem = new JMenuItem("Change Heatmap Color");
+        colorItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
+                JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
+                        true, colorChooser, null, null);
+                dialog.setVisible(true);
+                Color color = colorChooser.getColor();
+                if (color != null) {
+                    HiCGlobals.HIC_MAP_COLOR = color;
+                    superAdapter.getMainViewPanel().resetAllColors();
+                    superAdapter.refresh();
+                }
+            }
+        });
+        viewMenu.add(colorItem);
 
         final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
         darkulaMode.addActionListener(new ActionListener() {
