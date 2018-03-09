@@ -194,7 +194,7 @@ public class HiCCUPS extends JuicerCLT {
     private File outputDirectory;
     private List<HiCCUPSConfiguration> configurations;
     private Dataset ds;
-    private boolean useCPUVersionHiCCUPS = false;
+    private boolean useCPUVersionHiCCUPS = false, restrictSearchRegions = false;
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
@@ -229,8 +229,14 @@ public class HiCCUPS extends JuicerCLT {
         determineValidMatrixSize(juicerParser);
         determineValidConfigurations(juicerParser, ds.getBpZooms());
 
+        if (juicerParser.restrictSearchRegionsOptions()) {
+            restrictSearchRegions = true;
+            System.out.println("WARNING - You are restricting the regions the HiCCUPS will explore.");
+        }
+
         if (juicerParser.getCPUVersionOfHiCCUPSOptions()) {
             useCPUVersionHiCCUPS = true;
+            restrictSearchRegions = true;
             System.out.println("WARNING - You are using the CPU version of HiCCUPS.\n" +
                     "The GPU version of HiCCUPS is the official version and has been tested extensively.\n" +
                     "The CPU version only searches for loops within 4MB of the diagonal and is is still experimental.\n");
@@ -473,7 +479,7 @@ public class HiCCUPS extends JuicerCLT {
 
                         if (rowBounds[4] < chrMatrixWidth - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
-                                if (useCPUVersionHiCCUPS && (j - i) * regionWidth * conf.getResolution() > 320) {
+                                if (restrictSearchRegions && (j - i) * regionWidth * conf.getResolution() > 400) {
                                     continue;
                                 }
 

@@ -1515,27 +1515,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             double minDistance = Double.POSITIVE_INFINITY;
             //mouseIsOverFeature = false;
             currentFeature = null;
-            if (!activelyEditingAssembly) {
-                int numLayers = superAdapter.getAllLayers().size();
-                int priority = numLayers;
-                for (Feature2DGuiContainer loop : allFeaturePairs) {
-                    if (loop.getRectangle().contains(x, y)) {
-                        // TODO - why is this code duplicated in this file?
-                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append(loop.getFeature2D().tooltipText());
-                        txt.append("</span>");
-                        int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
-                        double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-                        if (distance < minDistance && numLayers - layerNum <= priority) {
-                            minDistance = distance;
-                            currentFeature = loop;
-                            priority = numLayers - layerNum;
-                        }
-                        //mouseIsOverFeature = true;
-                    }
-                }
-
-            } else {
+            if (activelyEditingAssembly) {
                 // current feature is populated only from all main feature pairs, contains does not work
                 for (Feature2DGuiContainer loop : allMainFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
@@ -1560,6 +1540,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     }
                 }
+            } else {
+                int numLayers = superAdapter.getAllLayers().size();
+                int priority = numLayers;
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(loop.getFeature2D().tooltipText());
+                        txt.append("</span>");
+                        int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
+                        double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
+                        if (distance < minDistance && numLayers - layerNum <= priority) {
+                            minDistance = distance;
+                            currentFeature = loop;
+                            priority = numLayers - layerNum;
+                        }
+                        //mouseIsOverFeature = true;
+                    }
+                }
+
             }
 
             txt.append("<br>");

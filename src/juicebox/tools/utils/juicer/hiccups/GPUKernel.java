@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -261,7 +261,12 @@ class GPUKernel {
                 "            bvalue_v = floorf(logf(e_v)/lognorm);\n" +
                 "        }\n" +
                 "    }\n" +
-
+                "" +
+                "    bvalue_bl = Math.min(bvalue_bl, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_donut = Math.min(bvalue_donut, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_h = Math.min(bvalue_h, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_v = Math.min(bvalue_v, " + HiCCUPS.w1 + " - 1);\n" +
+                "" +
                 "    // Write the matrix to device memory;\n" +
                 "    // each thread writes one element\n" +
                 "    int val_index = t_row * msize + t_col;\n" +

@@ -58,6 +58,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     // for HiCCUPS
     private static Option cpuVersionHiCCUPSOption = null;
+    private static Option restrictSearchRegionsOption = null;
     private static Option fdrOption = null;
     private static Option windowOption = null;
     private static Option peakOption = null;
@@ -70,10 +71,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqbvuhgj
+        // wmnxcrplafdptkqbvuhgjy
 
         // available flags
-        // oyzes
+        // ozes
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -101,6 +102,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         clusterRadiusOption = addStringOption('d', "centroid_radii");
         thresholdOption = addStringOption('t', "postprocessing_thresholds");
         cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
+        restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
         // previously for AFA
         relativeLocationOption = addStringOption('l', "location_type");
@@ -256,6 +258,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getCPUVersionOfHiCCUPSOptions() {
         Object opt = getOptionValue(cpuVersionHiCCUPSOption);
+        return opt != null;
+    }
+
+    public boolean restrictSearchRegionsOptions() {
+        Object opt = getOptionValue(restrictSearchRegionsOption);
         return opt != null;
     }
 }
