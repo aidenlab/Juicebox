@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -356,7 +356,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
         GPUController gpuController = null;
         try {
             gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                    conf.getPeakWidth(), conf.divisor());
+                    conf.getPeakWidth(), conf.divisor(), false);
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
@@ -367,7 +367,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
         Feature2DList requestedList = new Feature2DList();
-        
+
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run

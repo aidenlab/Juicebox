@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +60,7 @@ class GPUHelper {
 
     public static float[][] GPUArraytoCPUMatrix(float[] result, int n, int x1, int x2, int y1, int y2) {
         return MatrixTools.extractLocalMatrixRegion(
-                MatrixTools.reshapeFlatMatrix(result, n)
-                , x1, x2, y1, y2);
+                MatrixTools.reshapeFlatMatrix(result, n), x1, x2, y1, y2);
     }
 }
 
