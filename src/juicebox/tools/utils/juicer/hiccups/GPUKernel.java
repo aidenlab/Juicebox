@@ -262,10 +262,10 @@ class GPUKernel {
                 "        }\n" +
                 "    }\n" +
                 "" +
-                "    bvalue_bl = Math.min(bvalue_bl, " + HiCCUPS.w1 + " - 1);\n" +
-                "    bvalue_donut = Math.min(bvalue_donut, " + HiCCUPS.w1 + " - 1);\n" +
-                "    bvalue_h = Math.min(bvalue_h, " + HiCCUPS.w1 + " - 1);\n" +
-                "    bvalue_v = Math.min(bvalue_v, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_bl = min(bvalue_bl, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_donut = min(bvalue_donut, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_h = min(bvalue_h, " + HiCCUPS.w1 + " - 1);\n" +
+                "    bvalue_v = min(bvalue_v, " + HiCCUPS.w1 + " - 1);\n" +
                 "" +
                 "    // Write the matrix to device memory;\n" +
                 "    // each thread writes one element\n" +
