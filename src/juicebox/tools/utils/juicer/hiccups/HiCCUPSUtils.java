@@ -530,7 +530,7 @@ public class HiCCUPSUtils {
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
-                                                int[][] rcsHist, float[] threshold, float[][] fdrLog) {
+                                                long[][] rcsHist, float[] threshold, float[][] fdrLog) {
         if (rcsHist[index][0] > 0) {
             float[] expected = ArrayTools.scalarMultiplyArray(rcsHist[index][0], poissonPMF);
             float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
@@ -554,6 +554,8 @@ public class HiCCUPSUtils {
                     break;
                 }
             }
+        } else if (HiCGlobals.printVerboseComments) {
+            System.out.println("poss err index: " + index + " rcsHist " + rcsHist[index][0]);
         }
     }
 }

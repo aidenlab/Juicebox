@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,7 @@ public class GPUOutputContainer {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numColumns; j++) {
 
-                if (Float.isNaN(observed[i][j]))
+                if (Float.isNaN(observed[i][j]) || Float.isInfinite(observed[i][j]))
                     continue;
 
                 int val = (int) observed[i][j];

@@ -559,10 +559,10 @@ public class HiCCUPS extends JuicerCLT {
 
                 long thresh_time0 = System.currentTimeMillis();
 
-                int[][] rcsHistBL = ArrayTools.makeReverse2DCumulativeArray(histBL);
-                int[][] rcsHistDonut = ArrayTools.makeReverse2DCumulativeArray(histDonut);
-                int[][] rcsHistH = ArrayTools.makeReverse2DCumulativeArray(histH);
-                int[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
+                long[][] rcsHistBL = ArrayTools.makeReverse2DCumulativeArray(histBL);
+                long[][] rcsHistDonut = ArrayTools.makeReverse2DCumulativeArray(histDonut);
+                long[][] rcsHistH = ArrayTools.makeReverse2DCumulativeArray(histH);
+                long[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
 
                 for (int i = 0; i < w1; i++) {
                     float[] unitPoissonPMF = Floats.toArray(Doubles.asList(ArrayTools.generatePoissonPMF(i, w2)));

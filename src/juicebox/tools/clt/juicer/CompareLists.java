@@ -155,9 +155,11 @@ public class CompareLists extends JuicerCLT {
 
         Feature2DList uniqueToA = Feature2DTools.subtract(listA, exactMatches);
         uniqueToA = Feature2DTools.subtract(uniqueToA, matchesWithinToleranceUniqueToA);
+        uniqueToA = Feature2DTools.subtract(uniqueToA, listB);
 
         Feature2DList uniqueToB = Feature2DTools.subtract(listB, exactMatches);
         uniqueToB = Feature2DTools.subtract(uniqueToB, matchesWithinToleranceUniqueToB);
+        uniqueToB = Feature2DTools.subtract(uniqueToB, listA);
 
         int numUniqueToA = uniqueToA.getNumTotalFeatures();
         int numUniqueToB = uniqueToB.getNumTotalFeatures();
