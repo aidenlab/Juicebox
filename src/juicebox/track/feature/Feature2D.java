@@ -402,7 +402,7 @@ public class Feature2D implements Comparable<Feature2D> {
             if (val < 0) return -1;
         }
         int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
-                start2 - o.start2, end1 - o.end1, end2 - o.end2, color.getRGB() - o.color.getRGB()};
+                start2 - o.start2, end1 - o.end1, end2 - o.end2};
         for (int i : comparisons) {
             if (i != 0)
                 return i;

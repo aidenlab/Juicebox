@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -134,25 +134,31 @@ public class CompareLists extends JuicerCLT {
 
         Feature2D.tolerance = this.threshold;
         Feature2DWithMotif.lenientEqualityEnabled = true;
-        Feature2DList matchesWithinToleranceFromA = Feature2DList.getIntersection(listA, listB);
-        Feature2DList matchesWithinToleranceFromB = Feature2DList.getIntersection(listB, listA);
+        //Feature2DList matchesWithinToleranceFromA = Feature2DList.getIntersection(listA, listB);
+        //Feature2DList matchesWithinToleranceFromB = Feature2DList.getIntersection(listB, listA);
 
-        if (compareTypeID == 0) {
-            Feature2D.tolerance = 0;
-        } else if (compareTypeID == 1) {
+        if (compareTypeID == 0 || compareTypeID == 1) {
             Feature2D.tolerance = threshold;
         }
         Feature2DWithMotif.lenientEqualityEnabled = false;
 
-        Feature2DList matchesWithinToleranceUniqueToA = Feature2DTools.subtract(matchesWithinToleranceFromA, exactMatches);
-        Feature2DList matchesWithinToleranceUniqueToB = Feature2DTools.subtract(matchesWithinToleranceFromB, exactMatches);
+        Feature2DList matchesWithinToleranceUniqueToA = Feature2DTools.subtract(listA, exactMatches);
+        matchesWithinToleranceUniqueToA = Feature2DList.getIntersection(matchesWithinToleranceUniqueToA, listB);
+
+        Feature2DList matchesWithinToleranceUniqueToB = Feature2DTools.subtract(listB, exactMatches);
+        matchesWithinToleranceUniqueToB = Feature2DList.getIntersection(matchesWithinToleranceUniqueToB, listA);
+
         int numMatchesWithinTolA = matchesWithinToleranceUniqueToA.getNumTotalFeatures();
         int numMatchesWithinTolB = matchesWithinToleranceUniqueToB.getNumTotalFeatures();
 
         System.out.println("Number of matches within tolerance: " + numMatchesWithinTolA + "(A) " + numMatchesWithinTolB + "(B)");
 
-        Feature2DList uniqueToA = Feature2DTools.subtract(listA, matchesWithinToleranceFromA);
-        Feature2DList uniqueToB = Feature2DTools.subtract(listB, matchesWithinToleranceFromB);
+        Feature2DList uniqueToA = Feature2DTools.subtract(listA, exactMatches);
+        uniqueToA = Feature2DTools.subtract(uniqueToA, matchesWithinToleranceUniqueToA);
+
+        Feature2DList uniqueToB = Feature2DTools.subtract(listB, exactMatches);
+        uniqueToB = Feature2DTools.subtract(uniqueToB, matchesWithinToleranceUniqueToB);
+
         int numUniqueToA = uniqueToA.getNumTotalFeatures();
         int numUniqueToB = uniqueToB.getNumTotalFeatures();
 
@@ -178,6 +184,8 @@ public class CompareLists extends JuicerCLT {
         finalResults.add(uniqueToA);
         finalResults.add(uniqueToB);
 
+        uniqueToA.exportFeatureList(new File(outputPath + "_AAA.bedpe"), false, Feature2DList.ListFormat.NA);
+        uniqueToB.exportFeatureList(new File(outputPath + "_BBB.bedpe"), false, Feature2DList.ListFormat.NA);
         finalResults.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.NA);
 
         int percentMatch = (int) Math.round(100 * ((double) (sizeB - numUniqueToB)) / ((double) sizeB));

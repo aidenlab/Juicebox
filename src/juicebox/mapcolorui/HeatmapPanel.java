@@ -508,7 +508,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 for (AnnotationLayerHandler handler : handlers) {
 
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor, true);
+                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                     List<Feature2D> cLoopsReflected = new ArrayList<>();
                     for (Feature2D feature2D : loops) {
                         if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
@@ -517,14 +517,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
 
 
-                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                    allFeaturePairs.addAll(handler.convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
                     loops.addAll(cLoopsReflected);
 
                     if (activelyEditingAssembly) {
                         if (handler == superAdapter.getMainLayer()) {
-                            allMainFeaturePairs.addAll(superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                            allMainFeaturePairs.addAll(superAdapter.getMainLayer().convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
                         } else if (handler == superAdapter.getEditLayer() && selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                            allEditFeaturePairs.addAll(superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                            allEditFeaturePairs.addAll(superAdapter.getEditLayer().convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
                         }
                     }
 
@@ -1542,7 +1542,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             } else {
                 int numLayers = superAdapter.getAllLayers().size();
-                int priority = numLayers;
+                int globalPriority = numLayers;
                 for (Feature2DGuiContainer loop : allFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
                         // TODO - why is this code duplicated in this file?
@@ -1550,11 +1550,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
                         int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
+                        int loopPriority = numLayers - layerNum;
                         double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-                        if (distance < minDistance && numLayers - layerNum <= priority) {
+                        if (distance < minDistance && loopPriority <= globalPriority) {
                             minDistance = distance;
                             currentFeature = loop;
-                            priority = numLayers - layerNum;
+                            globalPriority = loopPriority;
                         }
                         //mouseIsOverFeature = true;
                     }

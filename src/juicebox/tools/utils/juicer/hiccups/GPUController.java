@@ -248,24 +248,24 @@ public class GPUController {
 
 
                 // that is computed by the thread
-                double Evalue_bl = 0;
-                double Edistvalue_bl = 0;
-                double Evalue_donut = 0;
-                double Edistvalue_donut = 0;
-                double Evalue_h = 0;
-                double Edistvalue_h = 0;
-                double Evalue_v = 0;
-                double Edistvalue_v = 0;
-                double e_bl = 0;
-                double e_donut = 0;
-                double e_h = 0;
-                double e_v = 0;
-                double o = 0;
-                double sbtrkt = 0;
-                double bvalue_bl = 0;
-                double bvalue_donut = 0;
-                double bvalue_h = 0;
-                double bvalue_v = 0;
+                float Evalue_bl = 0;
+                float Edistvalue_bl = 0;
+                float Evalue_donut = 0;
+                float Edistvalue_donut = 0;
+                float Evalue_h = 0;
+                float Edistvalue_h = 0;
+                float Evalue_v = 0;
+                float Edistvalue_v = 0;
+                float e_bl = 0;
+                float e_donut = 0;
+                float e_h = 0;
+                float e_v = 0;
+                float o = 0;
+                float sbtrkt = 0;
+                float bvalue_bl = 0;
+                float bvalue_donut = 0;
+                float bvalue_h = 0;
+                float bvalue_v = 0;
 
                 int wsize = windowCPU;
                 int msize = matrixSizeCPU;
@@ -416,33 +416,33 @@ public class GPUController {
                 e_h = ((Evalue_h * d[diagDist]) / Edistvalue_h) * kr1[t_row] * kr2[t_col];
                 e_v = ((Evalue_v * d[diagDist]) / Edistvalue_v) * kr1[t_row] * kr2[t_col];
 
-                double lognorm = Math.log(Math.pow(2.0, .33));
-                if (!Double.isNaN(e_bl) && !Double.isInfinite(e_bl)) {
+                float lognorm = (float) Math.log(Math.pow(2.0, .33));
+                if (!Float.isNaN(e_bl) && !Float.isInfinite(e_bl)) {
                     if (e_bl <= 1) {
                         bvalue_bl = 0;
                     } else {
-                        bvalue_bl = Math.floor(Math.log(e_bl) / lognorm);
+                        bvalue_bl = (float) Math.floor(Math.log(e_bl) / lognorm);
                     }
                 }
-                if (!Double.isNaN(e_donut) && !Double.isInfinite(e_donut)) {
+                if (!Float.isNaN(e_donut) && !Float.isInfinite(e_donut)) {
                     if (e_donut <= 1) {
                         bvalue_donut = 0;
                     } else {
-                        bvalue_donut = Math.floor(Math.log(e_donut) / lognorm);
+                        bvalue_donut = (float) Math.floor(Math.log(e_donut) / lognorm);
                     }
                 }
-                if (!Double.isNaN(e_h) && !Double.isInfinite(e_h)) {
+                if (!Float.isNaN(e_h) && !Float.isInfinite(e_h)) {
                     if (e_h <= 1) {
                         bvalue_h = 0;
                     } else {
-                        bvalue_h = Math.floor(Math.log(e_h) / lognorm);
+                        bvalue_h = (float) Math.floor(Math.log(e_h) / lognorm);
                     }
                 }
-                if (!Double.isNaN(e_v) && !Double.isInfinite(e_v)) {
+                if (!Float.isNaN(e_v) && !Float.isInfinite(e_v)) {
                     if (e_v <= 1) {
                         bvalue_v = 0;
                     } else {
-                        bvalue_v = Math.floor(Math.log(e_v) / lognorm);
+                        bvalue_v = (float) Math.floor(Math.log(e_v) / lognorm);
                     }
                 }
 
@@ -455,23 +455,23 @@ public class GPUController {
 
                 // Write the matrix to device memory;
                 // each thread writes one element
-                expectedBLDenseCPU[t_row][t_col] = (float) e_bl;
-                expectedDonutDenseCPU[t_row][t_col] = (float) e_donut;
-                expectedHDenseCPU[t_row][t_col] = (float) e_h;
-                expectedVDenseCPU[t_row][t_col] = (float) e_v;
+                expectedBLDenseCPU[t_row][t_col] = e_bl;
+                expectedDonutDenseCPU[t_row][t_col] = e_donut;
+                expectedHDenseCPU[t_row][t_col] = e_h;
+                expectedVDenseCPU[t_row][t_col] = e_v;
                 o = Math.round(c[t_row][t_col] * kr1[t_row] * kr2[t_col]);
-                observedDenseCPU[t_row][t_col] = (float) o;
-                binBLDenseCPU[t_row][t_col] = (float) bvalue_bl;
-                binDonutDenseCPU[t_row][t_col] = (float) bvalue_donut;
-                binHDenseCPU[t_row][t_col] = (float) bvalue_h;
-                binVDenseCPU[t_row][t_col] = (float) bvalue_v;
+                observedDenseCPU[t_row][t_col] = o;
+                binBLDenseCPU[t_row][t_col] = bvalue_bl;
+                binDonutDenseCPU[t_row][t_col] = bvalue_donut;
+                binHDenseCPU[t_row][t_col] = bvalue_h;
+                binVDenseCPU[t_row][t_col] = bvalue_v;
                 //System.out.println("thresholdBL "+thresholdBL.length+" thresholdDonut "+thresholdDonut.length);
                 //System.out.println("a "+bvalue_bl+" b "+bvalue_donut);
 
                 sbtrkt = Math.max(thresholdBL[(int) bvalue_bl], thresholdDonut[(int) bvalue_donut]);
                 sbtrkt = Math.max(sbtrkt, thresholdH[(int) bvalue_h]);
                 sbtrkt = Math.max(sbtrkt, thresholdV[(int) bvalue_v]);
-                peakDenseCPU[t_row][t_col] = (float) (o - sbtrkt);
+                peakDenseCPU[t_row][t_col] = o - sbtrkt;
             }
         }
 

@@ -446,9 +446,9 @@ public class AnnotationLayerHandler {
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
                                              int numberOfLoopsToFind, double binOriginX,
-                                             double binOriginY, double scaleFactor, boolean largeOnly) {
+                                             double binOriginY, double scaleFactor) {
         return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
-                binOriginX, binOriginY, scaleFactor, largeOnly);
+                binOriginX, binOriginY, scaleFactor);
     }
 
     private List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
@@ -802,5 +802,10 @@ public class AnnotationLayerHandler {
         setAnnotationLayer(scaffoldLayer);
         setLayerNameAndField(name);
         setColorOfAllAnnotations(color);
+    }
+
+    public List<Feature2DGuiContainer> convertToFeaturePairs(AnnotationLayerHandler handler,
+                                                             List<Feature2D> loops, MatrixZoomData zd, double binOriginX, double binOriginY, double scaleFactor) {
+        return annotationLayer.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor);
     }
 }
