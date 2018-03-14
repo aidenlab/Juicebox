@@ -88,7 +88,7 @@ public class ArrayTools {
         return outputArray;
     }
 
-    private static long[] makeReverseCumulativeArray(int[] inputArray) {
+    private static long[] makeReverseCumulativeArray(long[] inputArray) {
         long[] outputArray = new long[inputArray.length];
         int total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {
@@ -98,10 +98,13 @@ public class ArrayTools {
         return outputArray;
     }
 
-    public static long[][] makeReverse2DCumulativeArray(int[][] data) {
+    public static long[][] makeReverse2DCumulativeArray(long[][] data) {
         long[][] rcsData = new long[data.length][data[0].length];
         for (int i = 0; i < data.length; i++) {
             rcsData[i] = ArrayTools.makeReverseCumulativeArray(data[i]);
+            if (data[i][0] < 0) {
+                System.out.println("poss source2: i " + i + "  " + data[i][0]);
+            }
         }
         return rcsData;
     }

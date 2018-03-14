@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <option name="DEFAULT_COMPILER" value="Javac" />
-    <resourceExtensions />
     <wildcardResourcePatterns>
       <entry name="?*.properties" />
       <entry name="?*.xml" />
@@ -16,16 +14,10 @@
       <entry name="?*.ftl" />
       <entry name="?*.txt" />
       <entry name="?*.sizes" />
-      <entry name="?*.motifs" />
+      <entry name="?*.cu" />
     </wildcardResourcePatterns>
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="false">
-        <processorPath useClasspath="true" />
-      </profile>
-    </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.7" />
   </component>
 </project>
-

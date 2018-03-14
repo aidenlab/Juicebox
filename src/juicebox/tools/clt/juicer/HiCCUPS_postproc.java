@@ -340,10 +340,10 @@ public class HiCCUPS_postproc extends JuicerCLT {
         PrintWriter outputFDR = HiCFileTools.openWriter(
                 new File(outputDirectory, FDR_THRESHOLDS + "_" + conf.getResolution()));
 
-        int[][] histBL = new int[w1][w2];
-        int[][] histDonut = new int[w1][w2];
-        int[][] histH = new int[w1][w2];
-        int[][] histV = new int[w1][w2];
+        long[][] histBL = new long[w1][w2];
+        long[][] histDonut = new long[w1][w2];
+        long[][] histH = new long[w1][w2];
+        long[][] histV = new long[w1][w2];
         float[][] fdrLogBL = new float[w1][w2];
         float[][] fdrLogDonut = new float[w1][w2];
         float[][] fdrLogH = new float[w1][w2];
@@ -356,7 +356,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
         GPUController gpuController = null;
         try {
             gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                    conf.getPeakWidth(), conf.divisor(), false);
+                    conf.getPeakWidth(), false);
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
