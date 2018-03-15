@@ -178,35 +178,36 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 
 		//Subtract off the cross hairs bottom side
 		process_masks_tb(t_col+pwidth+1, t_col+wsize+1, msize, t_row, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_h, &Edistvalue_h);
+
+
+		e_bl = ((Evalue_bl*d[diagDist])/Edistvalue_bl)*kr1[t_row]*kr2[t_col];
+		e_donut = ((Evalue_donut*d[diagDist])/Edistvalue_donut)*kr1[t_row]*kr2[t_col];
+		e_h = ((Evalue_h*d[diagDist])/Edistvalue_h)*kr1[t_row]*kr2[t_col];
+		e_v = ((Evalue_v*d[diagDist])/Edistvalue_v)*kr1[t_row]*kr2[t_col];
+
+		float lognorm = logf(powf(2.0,.33));
+
+		ensure_appropriate_values(e_bl, lognorm, &bvalue_bl);
+		ensure_appropriate_values(e_donut, lognorm, &bvalue_donut);
+		ensure_appropriate_values(e_h, lognorm, &bvalue_h);
+		ensure_appropriate_values(e_v, lognorm, &bvalue_v);
+
+  		// Write the matrix to device memory;
+  		// each thread writes one element
+		int val_index = t_row * msize + t_col;
+		expectedbl[val_index] = e_bl;
+		expecteddonut[val_index] = e_donut;
+		expectedh[val_index] = e_h;
+		expectedv[val_index] = e_v;
+		o = roundf(c[val_index]*kr1[t_row]*kr2[t_col]);
+		observed[val_index] = o;
+		b_bl[val_index] = bvalue_bl;
+		b_donut[val_index] = bvalue_donut;
+		b_h[val_index] = bvalue_h;
+		b_v[val_index] = bvalue_v;
+		sbtrkt = fmaxf(tbl[(int) bvalue_bl],td[(int) bvalue_donut]);
+		sbtrkt = fmaxf(sbtrkt, th[(int) bvalue_h]);
+		sbtrkt = fmaxf(sbtrkt, tv[(int) bvalue_v]);
+		p[val_index] = o-sbtrkt;
 	}
-
-	e_bl = ((Evalue_bl*d[diagDist])/Edistvalue_bl)*kr1[t_row]*kr2[t_col];
-	e_donut = ((Evalue_donut*d[diagDist])/Edistvalue_donut)*kr1[t_row]*kr2[t_col];
-	e_h = ((Evalue_h*d[diagDist])/Edistvalue_h)*kr1[t_row]*kr2[t_col];
-	e_v = ((Evalue_v*d[diagDist])/Edistvalue_v)*kr1[t_row]*kr2[t_col];
-
-	float lognorm = logf(powf(2.0,.33));
-
-	ensure_appropriate_values(e_bl, lognorm, &bvalue_bl);
-	ensure_appropriate_values(e_donut, lognorm, &bvalue_donut);
-	ensure_appropriate_values(e_h, lognorm, &bvalue_h);
-	ensure_appropriate_values(e_v, lognorm, &bvalue_v);
-
-  // Write the matrix to device memory;
-  // each thread writes one element
-	int val_index = t_row * msize + t_col;
-	expectedbl[val_index] = e_bl;
-	expecteddonut[val_index] = e_donut;
-	expectedh[val_index] = e_h;
-	expectedv[val_index] = e_v;
-	o = roundf(c[val_index]*kr1[t_row]*kr2[t_col]);
-  observed[val_index] = o; //roundf(c[t_row * msize + t_col]*kr1[t_row]*kr2[t_col]);
-  b_bl[val_index] = bvalue_bl;
-  b_donut[val_index] = bvalue_donut;
-  b_h[val_index] = bvalue_h;
-  b_v[val_index] = bvalue_v;
-  sbtrkt = fmaxf(tbl[(int) bvalue_bl],td[(int) bvalue_donut]);
-  sbtrkt = fmaxf(sbtrkt, th[(int) bvalue_h]);
-  sbtrkt = fmaxf(sbtrkt, tv[(int) bvalue_v]);
-  p[val_index] = o-sbtrkt;
 }
