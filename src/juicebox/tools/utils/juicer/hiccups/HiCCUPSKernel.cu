@@ -11,7 +11,8 @@ __device__ void ensure_appropriate_values(float e_value, float lognormval, float
 	*bvalue = (float) min((int) *bvalue,  HiCCUPS_W1_MAX_INDX );
 }
 
-__device__ void process_masks_lr(int i_start, int i_max_p1, int msize, int t_col, float *c,float *d, int diff, float* evalue_d, float* evalue_dist_d, float* evalue_v, float* evalue_dist_v){
+__device__ void process_masks_lr(int i_start, int i_max_p1, int msize, int t_col, float *c,float *d, int diff,
+	float* evalue_d, float* evalue_dist_d, float* evalue_v, float* evalue_dist_v){
 
 	for (int i = i_start; i < i_max_p1; i++) {
 		int index = i * msize + t_col;
@@ -26,8 +27,26 @@ __device__ void process_masks_lr(int i_start, int i_max_p1, int msize, int t_col
 	}
 }
 
+__device__ void process_masks_tb(int j_start, int j_max_p1, int msize, int t_row, float *c,float *d, int diff,
+	float* evalue_d, float* evalue_dist_d, float* evalue_h, float* evalue_dist_h){
+
+	for (int j = j_start; j < j_max_p1; j++) {
+		int index = t_row * msize + j;
+		if (!isnan(c[index])) {
+			*evalue_d -= c[index];
+			*evalue_dist_d -= d[abs(t_row+diff-j)];
+		}
+		for (int i = -1; i < 2; i++) {
+			*evalue_h += c[(t_row+i) * msize + j];
+			*evalue_dist_h += d[abs(t_row+i+diff-j)];
+		}
+	}
+}
+
 extern "C"
-__global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expecteddonut, float *expectedh, float *expectedv, float *observed, float *b_bl, float *b_donut, float *b_h, float *b_v, float *p, float *tbl, float *td, float *th, float *tv, float *d, float *kr1, float *kr2, float *bound1, float *bound3)
+__global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expecteddonut, float *expectedh,
+	float *expectedv, float *observed, float *b_bl, float *b_donut, float *b_h, float *b_v, float *p,
+	float *tbl, float *td, float *th, float *tv, float *d, float *kr1, float *kr2, float *bound1, float *bound3)
 {
     // 2D Thread ID
 	int t_col = threadIdx.x + blockIdx.x * blockDim.x;
@@ -101,24 +120,15 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 			Evalue_bl =0;
 			Edistvalue_bl =0;
 			wsize+=1;
-	    //dvisor = powf(wsize,2.0) - powf(pwidth,2.0);
 			for (int i = t_row+1; i <= t_row+wsize; i++) {
 				for (int j = t_col-wsize; j < t_col; j++) {
 					int index = i * msize + j;
-					if (!isnan(c[index])) {
-						if (i+diff-j<0) {
-							Evalue_bl += c[index];
-							Edistvalue_bl += d[abs(i+diff-j)];
-							if (i>= t_row+1) {
-								if (i<t_row+pwidth+1) {
-									if (j>= t_col-pwidth) {
-										if (j<t_col) {
-											Evalue_bl -= c[index];
-											Edistvalue_bl -= d[abs(i+diff-j)];
-										}
-									}
-								}
-							}
+					if (!isnan(c[index]) && i+diff-j<0) {
+						Evalue_bl += c[index];
+						Edistvalue_bl += d[abs(i+diff-j)];
+						if (i > t_row && i < t_row+pwidth+1 && j > t_col-pwidth-1 && j < t_col) {
+							Evalue_bl -= c[index];
+							Edistvalue_bl -= d[abs(i+diff-j)];
 						}
 					}
 				}
@@ -158,35 +168,16 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 		}
 
 		//Subtract off the cross hairs left side
-        process_masks_lr(t_row-wsize, t_row-pwidth, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
+		process_masks_lr(t_row-wsize, t_row-pwidth, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
 
 		//Subtract off the cross hairs right side
-        process_masks_lr(t_row+pwidth+1, t_row+wsize+1, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
+		process_masks_lr(t_row+pwidth+1, t_row+wsize+1, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
 
 		//Subtract off the cross hairs top side
-		for (int j = t_col-wsize; j < t_col-pwidth; ++j) {
-			int index = t_row * msize + j;
-			if (!isnan(c[index])) {
-				Evalue_donut -= c[index];
-				Edistvalue_donut -= d[abs(t_row+diff-j)];
-			}
-			for (int i = -1; i <=1 ; ++i) {
-				Evalue_h += c[(t_row+i) * msize + j];
-				Edistvalue_h += d[abs(t_row+i+diff-j)];
-			}
-		}
+		process_masks_tb(t_col-wsize, t_col-pwidth, msize, t_row, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_h, &Edistvalue_h);
+
 		//Subtract off the cross hairs bottom side
-		for (int j = t_col+pwidth+1; j <= t_col+wsize; ++j) {
-			int index = t_row * msize + j;
-			if (!isnan(c[index])) {
-				Evalue_donut -= c[index];
-				Edistvalue_donut -= d[abs(t_row+diff-j)];
-			}
-			for (int i = -1; i <=1 ; ++i) {
-				Evalue_h += c[(t_row+i) * msize + j];
-				Edistvalue_h += d[abs(t_row+i+diff-j)];
-			}
-		}
+		process_masks_tb(t_col+pwidth+1, t_col+wsize+1, msize, t_row, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_h, &Edistvalue_h);
 	}
 
 	e_bl = ((Evalue_bl*d[diagDist])/Edistvalue_bl)*kr1[t_row]*kr2[t_col];
