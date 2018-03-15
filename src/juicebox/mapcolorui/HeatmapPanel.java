@@ -516,9 +516,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     }
 
-
-                    allFeaturePairs.addAll(handler.convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
                     loops.addAll(cLoopsReflected);
+                    allFeaturePairs.addAll(handler.convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
 
                     if (activelyEditingAssembly) {
                         if (handler == superAdapter.getMainLayer()) {
