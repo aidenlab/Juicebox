@@ -1,3 +1,31 @@
+__device__ void ensure_appropriate_values(float e_value, float lognormval, float* bvalue){
+	if (!isnan(e_value) && !isinf(e_value)) {
+		if (e_value<=1) {
+			*bvalue = 0;
+		}
+		else {
+			*bvalue = floorf(logf(e_value)/lognormval);
+		}
+	}
+
+	*bvalue = (float) min((int) *bvalue,  HiCCUPS_W1_MAX_INDX );
+}
+
+__device__ void process_masks_lr(int i_start, int i_max_p1, int msize, int t_col, float *c,float *d, int diff, float* evalue_d, float* evalue_dist_d, float* evalue_v, float* evalue_dist_v){
+
+	for (int i = i_start; i < i_max_p1; i++) {
+		int index = i * msize + t_col;
+		if (!isnan(c[index])) {
+			*evalue_d -= c[index];
+			*evalue_dist_d -= d[abs(i+diff-t_col)];
+		}
+		for (int j = -1; j < 2; j++) {
+			*evalue_v += c[index + j];
+			*evalue_dist_v += d[abs(i+diff-t_col-j)];
+		}
+	}
+}
+
 extern "C"
 __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expecteddonut, float *expectedh, float *expectedv, float *observed, float *b_bl, float *b_donut, float *b_h, float *b_v, float *p, float *tbl, float *td, float *th, float *tv, float *d, float *kr1, float *kr2, float *bound1, float *bound3)
 {
@@ -54,6 +82,7 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 				}
 			}
 		}
+
 		//Subtract off the middle peak
 		for (int i = t_row+1; i <= t_row+pwidth; i++) {
 			for (int j = t_col-pwidth; j < t_col; j++) {
@@ -127,30 +156,13 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 				}
 			}
 		}
+
 		//Subtract off the cross hairs left side
-		for (int i = t_row-wsize; i < t_row-pwidth; i++) {
-			int index = i * msize + t_col;
-			if (!isnan(c[index])) {
-				Evalue_donut -= c[index];
-				Edistvalue_donut -= d[abs(i+diff-t_col)];
-			}
-			for (int j = -1; j <=1; j++) {
-				Evalue_v += c[index + j];
-				Edistvalue_v += d[abs(i+diff-t_col-j)];
-			}
-		}
+        process_masks_lr(t_row-wsize, t_row-pwidth, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
+
 		//Subtract off the cross hairs right side
-		for (int i = t_row+pwidth+1; i <= t_row+wsize; ++i) {
-			int index = i * msize + t_col;
-			if (!isnan(c[index])) {
-				Evalue_donut -= c[index];
-				Edistvalue_donut -= d[abs(i+diff-t_col)];
-			}
-			for (int j = -1; j <=1 ; ++j) {
-				Evalue_v += c[index + j];
-				Edistvalue_v += d[abs(i+diff-t_col-j)];
-			}
-		}
+        process_masks_lr(t_row+pwidth+1, t_row+wsize+1, msize, t_col, c, d, diff, &Evalue_donut, &Edistvalue_donut, &Evalue_v, &Edistvalue_v);
+
 		//Subtract off the cross hairs top side
 		for (int j = t_col-wsize; j < t_col-pwidth; ++j) {
 			int index = t_row * msize + j;
@@ -164,7 +176,7 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 			}
 		}
 		//Subtract off the cross hairs bottom side
-  	for (int j = t_col+pwidth+1; j <= t_col+wsize; ++j) {
+		for (int j = t_col+pwidth+1; j <= t_col+wsize; ++j) {
 			int index = t_row * msize + j;
 			if (!isnan(c[index])) {
 				Evalue_donut -= c[index];
@@ -183,43 +195,11 @@ __global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expec
 	e_v = ((Evalue_v*d[diagDist])/Edistvalue_v)*kr1[t_row]*kr2[t_col];
 
 	float lognorm = logf(powf(2.0,.33));
-	if (!isnan(e_bl) && !isinf(e_bl)) {
-		if (e_bl<=1) {
-			bvalue_bl = 0;
-		}
-		else {
-			bvalue_bl = floorf(logf(e_bl)/lognorm);
-		}
-	}
-	if (!isnan(e_donut) && !isinf(e_donut)) {
-		if (e_donut<=1) {
-			bvalue_donut = 0;
-		}
-		else {
-			bvalue_donut = floorf(logf(e_donut)/lognorm);
-		}
-	}
-	if (!isnan(e_h) && !isinf(e_h)) {
-		if (e_h<=1) {
-			bvalue_h = 0;
-		}
-		else {
-			bvalue_h = floorf(logf(e_h)/lognorm);
-		}
-	}
-	if (!isnan(e_v) && !isinf(e_v)) {
-		if (e_v<=1) {
-			bvalue_v = 0;
-		}
-		else {
-			bvalue_v = floorf(logf(e_v)/lognorm);
-		}
-	}
 
-	bvalue_bl = min((int)bvalue_bl,  HiCCUPS_W1_MAX_INDX );
-	bvalue_donut = min((int)bvalue_donut,  HiCCUPS_W1_MAX_INDX );
-	bvalue_h = min((int)bvalue_h,  HiCCUPS_W1_MAX_INDX );
-	bvalue_v = min((int)bvalue_v,  HiCCUPS_W1_MAX_INDX );
+	ensure_appropriate_values(e_bl, lognorm, &bvalue_bl);
+	ensure_appropriate_values(e_donut, lognorm, &bvalue_donut);
+	ensure_appropriate_values(e_h, lognorm, &bvalue_h);
+	ensure_appropriate_values(e_v, lognorm, &bvalue_v);
 
   // Write the matrix to device memory;
   // each thread writes one element

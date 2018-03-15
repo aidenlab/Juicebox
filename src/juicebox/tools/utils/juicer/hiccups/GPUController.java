@@ -65,7 +65,7 @@ public class GPUController {
             kernelLauncher = null;
         } else {
             String kernelCode = readCuFile("HiCCUPSKernel.cu", window, matrixSize, peakWidth);
-            kernelLauncher = KernelLauncher.compile(kernelCode, GPUKernel.kernelName);
+            kernelLauncher = KernelLauncher.compile(kernelCode, "BasicPeakCallingKernel");
 
             //threads per block = block_size*block_size
             kernelLauncher.setBlockSize(blockSize, blockSize, 1);
