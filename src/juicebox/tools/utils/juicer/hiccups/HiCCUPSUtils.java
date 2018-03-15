@@ -554,7 +554,7 @@ public class HiCCUPSUtils {
                     break;
                 }
             }
-        } else if (HiCGlobals.printVerboseComments) {
+        } else {
             System.out.println("poss err index: " + index + " rcsHist " + rcsHist[index][0]);
         }
     }

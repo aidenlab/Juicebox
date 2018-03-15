@@ -39,7 +39,9 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
@@ -49,10 +51,10 @@ public class GPUController {
     private static final int blockSize = 16;  //number of threads in block
 
     private final KernelLauncher kernelLauncher;
-    private boolean useCPUVersionHiCCUPS = false;
+    private final boolean useCPUVersionHiCCUPS;
     private int windowCPU, matrixSizeCPU, peakWidthCPU;
 
-    public GPUController(int window, int matrixSize, int peakWidth, int divisor, boolean useCPUVersionHiCCUPS) {
+    public GPUController(int window, int matrixSize, int peakWidth, boolean useCPUVersionHiCCUPS) {
 
         windowCPU = window;
         matrixSizeCPU = matrixSize;
@@ -62,8 +64,8 @@ public class GPUController {
         if (useCPUVersionHiCCUPS) {
             kernelLauncher = null;
         } else {
-            String kernelCode = GPUKernel.kernelCode(window, matrixSize, peakWidth, divisor);
-            kernelLauncher = KernelLauncher.compile(kernelCode, GPUKernel.kernelName);
+            String kernelCode = readCuFile("HiCCUPSKernel.cu", window, matrixSize, peakWidth);
+            kernelLauncher = KernelLauncher.compile(kernelCode, "BasicPeakCallingKernel");
 
             //threads per block = block_size*block_size
             kernelLauncher.setBlockSize(blockSize, blockSize, 1);
@@ -73,6 +75,27 @@ public class GPUController {
             kernelLauncher.setGridSize(gridSize, gridSize);
         }
 
+    }
+
+    private static String readCuFile(String fileName, int window, int matrixSize, int peakWidth) {
+        StringBuilder contentBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(GPUController.class.getResourceAsStream(fileName)))) {
+            String sCurrentLine;
+            while ((sCurrentLine = br.readLine()) != null) {
+                contentBuilder.append(sCurrentLine).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String cuFileText = contentBuilder.toString();
+
+        cuFileText = cuFileText.replaceAll("HiCCUPS_WINDOW", "" + window);
+        cuFileText = cuFileText.replaceAll("HiCCUPS_MATRIX_SIZE", "" + matrixSize);
+        cuFileText = cuFileText.replaceAll("HiCCUPS_PEAK_WIDTH", "" + peakWidth);
+        cuFileText = cuFileText.replaceAll("HiCCUPS_REGION_MARGIN", "" + (HiCCUPS.regionMargin));
+        cuFileText = cuFileText.replaceAll("HiCCUPS_W1_MAX_INDX", "" + (HiCCUPS.w1 - 1));
+
+        return cuFileText;
     }
 
     public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,

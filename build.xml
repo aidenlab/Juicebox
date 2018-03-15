@@ -82,7 +82,7 @@
         <include name="**/?*.ftl"/>
         <include name="**/?*.txt"/>
         <include name="**/?*.sizes"/>
-        <include name="**/?*.motifs"/>
+        <include name="**/?*.cu"/>
     </patternset>
 
     <!-- JDK definitions -->
