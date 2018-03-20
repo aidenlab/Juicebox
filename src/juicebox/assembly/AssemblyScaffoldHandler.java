@@ -451,8 +451,8 @@ public class AssemblyScaffoldHandler {
     int gid2 = getSuperscaffoldId(id2);
 
     // initialize id3 and gid3
-    int id3 = 1;
-    int gid3 = 0;
+    int id3 = 0;
+    int gid3 = -1;
     if (upstreamFeature != null) {
       // if it's not inserting to top, set the id3 and gid3 to actual numbers.
       id3 = getSignedIndexFromScaffoldFeature2D(upstreamFeature);
@@ -460,6 +460,7 @@ public class AssemblyScaffoldHandler {
       // check if selectedFeatures span multiple groups paste split at destination
       if (gid1 != gid2 & listOfSuperscaffolds.get(gid3).indexOf(id3) != listOfSuperscaffolds.get(gid3).size() - 1) {
         // not sure what this does...tried printing in here & nothing printed
+        // handles pasting scaffolds from multiple groups into another group
         splitSuperscaffold(gid3, id3);
         gid1 = getSuperscaffoldId(id1);
         gid2 = getSuperscaffoldId(id2);

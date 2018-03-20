@@ -175,16 +175,7 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         break;
 
                     case PASTEBOTTOM:
-
-//                        AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-//                        final List<Integer>
-//                            lastLine =
-//                            assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
-//                        int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-//                        AssemblyOperationExecutor.moveSelection(superAdapter,
-//                            selectedFeatures,
-//                            assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
-//                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.moveSelectionToEnd();
                         heatmapPanel.repaint();
                         break;
