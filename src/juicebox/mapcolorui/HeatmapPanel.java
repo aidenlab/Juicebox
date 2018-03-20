@@ -31,6 +31,7 @@ import juicebox.MainWindow;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.assembly.AssemblyScaffoldHandler;
+import juicebox.assembly.Scaffold;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
@@ -42,6 +43,7 @@ import juicebox.track.feature.Feature2DGuiContainer;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
+import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -2353,18 +2355,37 @@ public class HeatmapPanel extends JComponent implements Serializable {
           double x = mousePoint.getX();
           double y = mousePoint.getY();
 
-          // this is the place to handle inserts to top and bottom as it should be done even if individual feautures at the beginning of the assembly are not visible
-          if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            int topLeftCorner = (int) ((0 - binOriginX) * scaleFactor);
-            if (mousePoint.getX() - topLeftCorner >= 0 &&
-                    mousePoint.getX() - topLeftCorner <= RESIZE_SNAP &&
-                    mousePoint.getY() - topLeftCorner >= 0 &&
-                    mousePoint.getY() - topLeftCorner <= RESIZE_SNAP) {
-              setCursor(MainWindow.pasteNWCursor);
-              currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
+          // this is a good place to handle inserts to top and bottom as it should be done even if individual feautures at the beginning of the assembly are not visible
+          List<Scaffold> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds();
+
+          try {
+            int topLeftCornerX = (int) ((0 - binOriginX) * scaleFactor);
+            int topLeftCornerY = (int) ((0 - binOriginY) * scaleFactor);
+
+            int lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() / hic.getZd().getBinSize();
+            int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
+            int bottomRightCornerY = (int) ((lastGenomicBin - binOriginY) * scaleFactor);
+
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+              if (mousePoint.getX() - topLeftCornerX >= 0 &&
+                      mousePoint.getX() - topLeftCornerX <= minDist &&
+                      mousePoint.getY() - topLeftCornerY >= 0 &&
+                      mousePoint.getY() - topLeftCornerY <= minDist) {
+                setCursor(MainWindow.pasteNWCursor);
+                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
+              }
+              if (bottomRightCornerX - mousePoint.getX() >= 0 &&
+                      bottomRightCornerX - mousePoint.getX() <= minDist &&
+                      bottomRightCornerY - mousePoint.getY() >= 0 &&
+                      bottomRightCornerY - mousePoint.getY() <= minDist) {
+                setCursor(MainWindow.pasteSECursor);
+                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
+              }
             }
+          } catch (UninitializedObjectException e1) {
+            e1.printStackTrace();
           }
-          //I am here
+
 
           currentUpstreamFeature = null;
           currentDownstreamFeature = null;
@@ -2378,18 +2399,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
           }
 
-          //inserting to bottom
-          // from top -- want it to go against right side
-          //THE PASTING DOESN'T WORK
-          AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-
-          final List<Integer>
-              lastLine =
-              assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
-          int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-
-          final List<Integer> firstLine = assemblyHandler.getListOfSuperscaffolds().get(0);
-          int firstId = Math.abs(firstLine.get(firstLine.size() - 1)) - 1;
+//          //inserting to bottom
+//          // from top -- want it to go against right side
+//          //THE PASTING DOESN'T WORK
+//          AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+//
+//          final List<Integer>
+//              lastLine =
+//              assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
+//          int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
+//
+//          final List<Integer> firstLine = assemblyHandler.getListOfSuperscaffolds().get(0);
+//          int firstId = Math.abs(firstLine.get(firstLine.size() - 1)) - 1;
 
           if (currentUpstreamFeature != null && currentDownstreamFeature != null) {
 
