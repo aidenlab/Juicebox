@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,20 +43,16 @@ public class AssemblyScaffoldHandler {
   private final String signedScaffoldIdAttributeKey = "Signed scaffold #";
   private final String scaffoldNameAttributeKey = "Scaffold name";
   private final String superScaffoldIdAttributeKey = "Superscaffold #";
-
-  //scaffolds and superscaffolds
-  private List<Scaffold> listOfScaffolds = new ArrayList<>();
-  private List<List<Integer>> listOfSuperscaffolds = new ArrayList<>();
-
-  // aggregates
-  private List<Scaffold> listOfAggregateScaffolds = new ArrayList<>();
-
-  private Feature2DHandler scaffoldFeature2DHandler;
-  private Feature2DHandler superscaffoldFeature2DHandler;
-
   // formalities
   private final int chrIndex = 1;
   private final String chrName = "assembly";
+  //scaffolds and superscaffolds
+  private List<Scaffold> listOfScaffolds = new ArrayList<>();
+  private List<List<Integer>> listOfSuperscaffolds = new ArrayList<>();
+  // aggregates
+  private List<Scaffold> listOfAggregateScaffolds = new ArrayList<>();
+  private Feature2DHandler scaffoldFeature2DHandler;
+  private Feature2DHandler superscaffoldFeature2DHandler;
 
 
   public AssemblyScaffoldHandler(List<Scaffold> listOfScaffolds, List<List<Integer>> listOfSuperscaffolds) {
@@ -620,7 +616,7 @@ public class AssemblyScaffoldHandler {
     return superscaffoldFeature2DHandler;
   }
 
-  private List<Scaffold> getListOfAggregateScaffolds() {
+  public List<Scaffold> getListOfAggregateScaffolds() {
     return listOfAggregateScaffolds;
   }
 

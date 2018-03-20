@@ -2356,12 +2356,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
           double y = mousePoint.getY();
 
           // this is a good place to handle inserts to top and bottom as it should be done even if individual feautures at the beginning of the assembly are not visible
-          List<Scaffold> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds();
-
           try {
             int topLeftCornerX = (int) ((0 - binOriginX) * scaleFactor);
             int topLeftCornerY = (int) ((0 - binOriginY) * scaleFactor);
 
+            List<Scaffold> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfAggregateScaffolds();
             int lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() / hic.getZd().getBinSize();
             int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
             int bottomRightCornerY = (int) ((lastGenomicBin - binOriginY) * scaleFactor);
