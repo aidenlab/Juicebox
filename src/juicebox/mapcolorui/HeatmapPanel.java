@@ -2353,6 +2353,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
           double x = mousePoint.getX();
           double y = mousePoint.getY();
 
+          // this is the place to handle inserts to top and bottom as it should be done even if individual feautures at the beginning of the assembly are not visible
+          if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            int topLeftCorner = (int) ((0 - binOriginX) * scaleFactor);
+            if (mousePoint.getX() - topLeftCorner >= 0 &&
+                    mousePoint.getX() - topLeftCorner <= RESIZE_SNAP &&
+                    mousePoint.getY() - topLeftCorner >= 0 &&
+                    mousePoint.getY() - topLeftCorner <= RESIZE_SNAP) {
+              setCursor(MainWindow.pasteNWCursor);
+              currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
+            }
+          }
+          //I am here
+
           currentUpstreamFeature = null;
           currentDownstreamFeature = null;
 
@@ -2369,6 +2382,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
           // from top -- want it to go against right side
           //THE PASTING DOESN'T WORK
           AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+
           final List<Integer>
               lastLine =
               assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
@@ -2387,36 +2401,36 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
 
-            // inserting to top ------------------------------------------------------
-            if (mousePoint.getX() > allFeaturePairs.get(0).getRectangle().getX() &&
-                mousePoint.getX() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP &&
-                mousePoint.getY() > allFeaturePairs.get(0).getRectangle().getY() &&
-                mousePoint.getY() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP)
-
-            {
-              if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                setCursor(MainWindow.pasteNWCursor);
-                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
-              }
-
-            }
-            System.out.println("size of feature pairs"+ allFeaturePairs.size());
-            //inserting to bottom ----------------------------------
-            if (mousePoint.getX() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
-                mousePoint.getX() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() - 7*RESIZE_SNAP + allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
-                mousePoint.getY() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getHeight() &&
-                mousePoint.getY() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() - 7*RESIZE_SNAP)
-
-            {
-              if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                System.out.println("no selected features");
-
-              } else {
-                setCursor(MainWindow.pasteSECursor);
-                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
-              }
-
-            }
+//            // inserting to top ------------------------------------------------------
+//            if (mousePoint.getX() > allFeaturePairs.get(0).getRectangle().getX() &&
+//                mousePoint.getX() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP &&
+//                mousePoint.getY() > allFeaturePairs.get(0).getRectangle().getY() &&
+//                mousePoint.getY() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP)
+//
+//            {
+//              if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+//                setCursor(MainWindow.pasteNWCursor);
+//                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
+//              }
+//
+//            }
+//            System.out.println("size of feature pairs"+ allFeaturePairs.size());
+//            //inserting to bottom ----------------------------------
+//            if (mousePoint.getX() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
+//                mousePoint.getX() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() - 7*RESIZE_SNAP + allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
+//                mousePoint.getY() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getHeight() &&
+//                mousePoint.getY() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() - 7*RESIZE_SNAP)
+//
+//            {
+//              if (selectedFeatures == null || selectedFeatures.isEmpty()) {
+//                System.out.println("no selected features");
+//
+//              } else {
+//                setCursor(MainWindow.pasteSECursor);
+//                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
+//              }
+//
+//            }
 
             else if (!HiCGlobals.splitModeEnabled &&
                 // this check makes sure upstream end is the same as downstream start
