@@ -28,12 +28,17 @@ import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by nathanielmusial on 7/10/17.
  */
 public class AssemblyOperationExecutor {
+    private static String assemblyTrackingSaveLocation;
+    private static boolean assemblyTrackingEnabled = false;
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic, boolean moveTo) {
         AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
@@ -69,7 +74,55 @@ public class AssemblyOperationExecutor {
     private static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyScaffoldHandler, refreshMap);
+        if (assemblyTrackingEnabled) {
+            AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, assemblyTrackingSaveLocation + "/" + "test_" + System.currentTimeMillis());
+            assemblyFileExporter.exportCpropsAndAsm();
+        }
         if (refreshMap) superAdapter.safeClearAllMZDCache();
 
+    }
+
+    public static void enableAssemblyTracking(String saveLocation) {
+        assemblyTrackingSaveLocation = saveLocation;
+        assemblyTrackingEnabled = true;
+    }
+
+    public static void playAssemblyTracking(SuperAdapter superAdapter, String directory) {
+        File[] files = new File(directory).listFiles();
+//If this pathname does not denote a directory, then listFiles() returns null.
+        List<String> results = new ArrayList<String>();
+        for (File file : files) {
+            if (file.isFile()) {
+                if (file.getName().contains(".assembly"))
+                    results.add(file.getPath());
+            }
+        }
+
+        Collections.sort(results);
+
+
+        for (String assemblyPath : results) {
+            AssemblyFileImporter assemblyFileImporter;
+            assemblyFileImporter = new AssemblyFileImporter(assemblyPath, true);
+            assemblyFileImporter.importAssembly();
+
+            AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
+            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);
+            superAdapter.safeClearAllMZDCache();
+            superAdapter.refresh();
+        }
+
+        while (superAdapter.getAssemblyStateTracker().checkUndo()) {
+            superAdapter.getAssemblyStateTracker().undo();
+        }
+//        while (superAdapter.getAssemblyStateTracker().checkRedo()){
+//            superAdapter.getAssemblyStateTracker().redo();
+//                            wait x seconds
+//            try{
+//                Thread.sleep(500); //sleep for 3 seconds
+//            }
+//            catch(InterruptedException e){    System.out.println("got interrupted!");
+//            }
+//        }
     }
 }
