@@ -225,9 +225,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     int tTop = (int) (binOriginY / imageTileWidth);
     int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
-    //System.out.println("binX "+binOriginX+" "+bRight+" binY "+binOriginY+" "+bBottom);
-    //System.out.println("tileX "+tLeft+" "+tRight+" tileY "+tTop+" "+tBottom);
-
     MatrixType displayOption = hic.getDisplayOption();
     NormalizationType normalizationType = hic.getNormalizationType();
 
@@ -1341,7 +1338,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         lastLine =
         assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
     int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-     AssemblyOperationExecutor.moveSelection(superAdapter,
+    AssemblyOperationExecutor.moveSelection(superAdapter,
         selectedFeatures,
         assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
     removeSelection();
@@ -1760,7 +1757,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
   private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
-  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
+  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM, PASTEBEFORE}
 
   static class ImageTile {
     final int bLeft;
@@ -2356,27 +2353,34 @@ public class HeatmapPanel extends JComponent implements Serializable {
           double y = mousePoint.getY();
 
           // this is a good place to handle inserts to top and bottom as it should be done even if individual feautures at the beginning of the assembly are not visible
+
           try {
+            // find the x and y in relation to the displayed screen
             int topLeftCornerX = (int) ((0 - binOriginX) * scaleFactor);
             int topLeftCornerY = (int) ((0 - binOriginY) * scaleFactor);
 
-            List<Scaffold> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfAggregateScaffolds();
-            int lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() / hic.getZd().getBinSize();
+            List<Scaffold>
+                listOfScaffolds =
+                superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfAggregateScaffolds();
+            int
+                lastGenomicBin =
+                listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() /
+                    hic.getZd().getBinSize();
             int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
             int bottomRightCornerY = (int) ((lastGenomicBin - binOriginY) * scaleFactor);
 
             if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
               if (mousePoint.getX() - topLeftCornerX >= 0 &&
-                      mousePoint.getX() - topLeftCornerX <= minDist &&
-                      mousePoint.getY() - topLeftCornerY >= 0 &&
-                      mousePoint.getY() - topLeftCornerY <= minDist) {
+                  mousePoint.getX() - topLeftCornerX <= minDist &&
+                  mousePoint.getY() - topLeftCornerY >= 0 &&
+                  mousePoint.getY() - topLeftCornerY <= minDist) {
                 setCursor(MainWindow.pasteNWCursor);
                 currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
               }
               if (bottomRightCornerX - mousePoint.getX() >= 0 &&
-                      bottomRightCornerX - mousePoint.getX() <= minDist &&
-                      bottomRightCornerY - mousePoint.getY() >= 0 &&
-                      bottomRightCornerY - mousePoint.getY() <= minDist) {
+                  bottomRightCornerX - mousePoint.getX() <= minDist &&
+                  bottomRightCornerY - mousePoint.getY() >= 0 &&
+                  bottomRightCornerY - mousePoint.getY() <= minDist) {
                 setCursor(MainWindow.pasteSECursor);
                 currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
               }
@@ -2385,34 +2389,29 @@ public class HeatmapPanel extends JComponent implements Serializable {
             e1.printStackTrace();
           }
 
-
           currentUpstreamFeature = null;
           currentDownstreamFeature = null;
-
+          int count = 0;
+          int numUp = -1;
+          int numDown = -1;
+          // set current upstream and current downstream fragment
           for (Feature2DGuiContainer asmFragment : allMainFeaturePairs) {
+            // check if this is sorted and index
+            // if not sorted, get the coordinate of the current feature and use start/end
             if (asmFragment.getRectangle().contains(x, x + (binOriginX - binOriginY) * scaleFactor)) {
               currentUpstreamFeature = asmFragment;
+              numUp = count;
             }
             if (asmFragment.getRectangle().contains(y + (binOriginY - binOriginX) * scaleFactor, y)) {
               currentDownstreamFeature = asmFragment;
+              numDown = count;
             }
+            count++;
           }
-
-//          //inserting to bottom
-//          // from top -- want it to go against right side
-//          //THE PASTING DOESN'T WORK
-//          AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-//
-//          final List<Integer>
-//              lastLine =
-//              assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
-//          int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-//
-//          final List<Integer> firstLine = assemblyHandler.getListOfSuperscaffolds().get(0);
-//          int firstId = Math.abs(firstLine.get(firstLine.size() - 1)) - 1;
-
+          //System.out.println("numUP " + numUp + "numDown " + numDown);
+          
           if (currentUpstreamFeature != null && currentDownstreamFeature != null) {
-
+            // numUp and numDown should've been initialized
             if (currentUpstreamFeature.getFeature2D().getStart1() >
                 currentDownstreamFeature.getFeature2D().getStart1()) {
               Feature2DGuiContainer temp = currentUpstreamFeature;
@@ -2420,65 +2419,100 @@ public class HeatmapPanel extends JComponent implements Serializable {
               currentDownstreamFeature = temp;
             }
 
+            // inserting within columns and rows
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
 
-//            // inserting to top ------------------------------------------------------
-//            if (mousePoint.getX() > allFeaturePairs.get(0).getRectangle().getX() &&
-//                mousePoint.getX() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP &&
-//                mousePoint.getY() > allFeaturePairs.get(0).getRectangle().getY() &&
-//                mousePoint.getY() < allFeaturePairs.get(0).getRectangle().getX() + 5*RESIZE_SNAP)
-//
-//            {
-//              if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-//                setCursor(MainWindow.pasteNWCursor);
-//                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTETOP;
-//              }
-//
-//            }
-//            System.out.println("size of feature pairs"+ allFeaturePairs.size());
-//            //inserting to bottom ----------------------------------
-//            if (mousePoint.getX() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
-//                mousePoint.getX() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getX() - 7*RESIZE_SNAP + allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getWidth() &&
-//                mousePoint.getY() < allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() +  allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getHeight() &&
-//                mousePoint.getY() > allFeaturePairs.get(allFeaturePairs.size() - 1).getRectangle().getY() - 7*RESIZE_SNAP)
-//
-//            {
-//              if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-//                System.out.println("no selected features");
-//
-//              } else {
-//                setCursor(MainWindow.pasteSECursor);
-//                currentPromptedAssemblyAction = PromptedAssemblyAction.PASTEBOTTOM;
-//              }
-//
-//            }
+              // upstream feature is the same
+              if (currentUpstreamFeature.getFeature2D().getStart1() >= selectedFeatures.get(0).getStart1() &&
+                  currentUpstreamFeature.getFeature2D().getEnd1() <=
+                      selectedFeatures.get(selectedFeatures.size() - 1).getEnd1()) {
 
-            else if (!HiCGlobals.splitModeEnabled &&
-                // this check makes sure upstream end is the same as downstream start
-                ((currentDownstreamFeature == null && currentUpstreamFeature == null)
+                int topYright = currentUpstreamFeature.getRectangle().y;
+                int
+                    bottomYright =
+                    currentUpstreamFeature.getRectangle().y + (int) currentUpstreamFeature.getRectangle().getHeight();
+                int leftXbottom = currentUpstreamFeature.getRectangle().x;
+                int
+                    rightXbottom =
+                    currentUpstreamFeature.getRectangle().x + (int) currentUpstreamFeature.getRectangle().getWidth();
+                // horizontal
+                if (mousePoint.getY() >= topYright && mousePoint.getY() <= bottomYright) {
+                  // x axis
+                  if ((mousePoint.getX() >= currentDownstreamFeature.getRectangle().getMinX() &&
+                      mousePoint.getX() <= currentDownstreamFeature.getRectangle().getMinX() + minDist)) {
 
-                // isn't this always false since upstream and downstream are checked to be not null?
-                || currentUpstreamFeature.getFeature2D().getEnd1() ==
-                currentDownstreamFeature.getFeature2D().getStart1())) {
-              // this code below is checking for inserting to the top
-//                            if (currentDownstreamFeature==null && currentUpstreamFeature==null) {
-//                                if ((getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds().get(0).getCurrentFeature2D().getRectangle().getMinX() - mousePoint.getX()>= 0) &&
-//                                        (currentDownstreamFeature.getRectangle().getMinX() - mousePoint.getX() <= minDist) &&
-//                                        (currentDownstreamFeature.getRectangle().getMinY() - mousePoint.getY()>= 0) &&
-//                                        (currentDownstreamFeature.getRectangle().getMinY() - mousePoint.getY() <= minDist)){
-//                                    System.out.println("I am here");
-//                                }
-//                            }else{
+                    // if the start doesn't match the end of the previous one, there's a gap, do not insert
+                    if (currentDownstreamFeature.getFeature2D().getStart1() ==
+                        allMainFeaturePairs.get(numUp - 1).getFeature2D().getEnd1()) {
+                      setCursor(MainWindow.pasteSWCursor);
+                      currentUpstreamFeature = allMainFeaturePairs.get(numUp - 1);
+                      currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                    }
+                  }
+                }
+
+                if (mousePoint.getX() >= leftXbottom && mousePoint.getX() <= rightXbottom) {
+                  // -y axis
+                  if ((mousePoint.getY() >= currentDownstreamFeature.getRectangle().getMinY() &&
+                      mousePoint.getY() <= currentDownstreamFeature.getRectangle().getMinY() + minDist)) {
+                    //currentUpstreamFeature = allMainFeaturePairs.get(numUp + 1);
+                    if (currentDownstreamFeature.getFeature2D().getStart1() ==
+                        allMainFeaturePairs.get(numDown - 1).getFeature2D().getEnd1()) {
+                      setCursor(MainWindow.pasteNECursor);
+                      currentUpstreamFeature = allMainFeaturePairs.get(numDown - 1);
+                      currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                    }
+                  }
+                }
+              }
+
+              // downstream feature the same
+              if ((currentDownstreamFeature.getFeature2D().getStart1() >= selectedFeatures.get(0).getStart1() &&
+                  currentDownstreamFeature.getFeature2D().getEnd1() <=
+                      selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())
+                  ) {
+
+                int topYleft = currentDownstreamFeature.getRectangle().y;
+                int
+                    bottomYleft =
+                    currentDownstreamFeature.getRectangle().y +
+                        (int) currentDownstreamFeature.getRectangle().getHeight();
+                int leftXtop = currentDownstreamFeature.getRectangle().x;
+                int
+                    rightXtop =
+                    currentDownstreamFeature.getRectangle().x +
+                        (int) currentDownstreamFeature.getRectangle().getWidth();
+
+                // y axis
+                if (mousePoint.getX() >= leftXtop && mousePoint.getX() <= rightXtop) {
+                  if ((mousePoint.getY() >= currentUpstreamFeature.getRectangle().getMaxY() - minDist &&
+                      mousePoint.getY() <= currentUpstreamFeature.getRectangle().getMaxY())) {
+                    setCursor(MainWindow.pasteSWCursor);
+                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                  }
+                }
+                // -x axis
+                else if (mousePoint.getY() >= topYleft && mousePoint.getY() <= bottomYleft) {
+                  if ((mousePoint.getX() >= currentUpstreamFeature.getRectangle().getMaxX() - minDist &&
+                      mousePoint.getX() <= (currentUpstreamFeature.getRectangle().getMaxX()))) {
+                    setCursor(MainWindow.pasteNECursor);
+                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                  }
+                }
+              }
+            }
+
+            // inserts between two features
+            if (!HiCGlobals.splitModeEnabled &&
+                (currentUpstreamFeature.getFeature2D().getEnd1() ==
+                    currentDownstreamFeature.getFeature2D().getStart1())) {
+
               // down arrow
-              // if the mouse is on the right of the lower part of the upstream feature and not inside the feature
-
               if ((mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() >= 0) &&
-                  //make sure its within the "minimum distance it can be as well
                   (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() <= minDist) &&
-                  //make sure mouse is above the bottom of the edge of the upstream feature
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
-                  //make sure y value is also within the minimum distance
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
-                //if nothing is selected, display the arrow w/o the line
+
                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                   setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
                   currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
@@ -2512,6 +2546,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                   currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                 }
               }
+
+
             }
           }
 
