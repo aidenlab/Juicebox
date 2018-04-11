@@ -23,7 +23,7 @@ printHelpAndExit() {
 
 while getopts "v:bh" opt; do
     case $opt in
-    v) VERSION=$OPTARG ;;
+	v) VERSION=$OPTARG ;;
 	h) printHelpAndExit 0;;
 	b) BCM=1 ;;
 	[?]) printHelpAndExit 1;;
@@ -52,18 +52,18 @@ DMG_BACKGROUND_IMG="Juicebox_bg.png"
 cd "${BASE_DIR}"
 rm -r out
 ant
-ant sign
+#ant sign -- don't sign for DMG, problem with slowness 
 if [ -z "${BCM}" ]
 then
-    ant bundle
+    ant bundle -Dversion="$VERSION"
 else
-    ant bundlebcm
+    ant bundlebcm # this is deprecated
 fi
 
 cd "${ARTIFACT_DIR}"
 
 APP_EXE="${APP_NAME}.app/Contents/MacOS/JavaAppLauncher" 
-VOL_NAME="${APP_NAME} ${VERSION}"  
+VOL_NAME="${APP_NAME}_${VERSION}"  
 DMG_TMP="${VOL_NAME}-temp.dmg"
 DMG_FINAL="${VOL_NAME}.dmg"        
 STAGING_DIR="./Install"            
@@ -135,7 +135,7 @@ echo '
            set current view of container window to icon view
            set toolbar visible of container window to false
            set statusbar visible of container window to false
-           set the bounds of container window to {400, 100, 920, 440}
+           set the bounds of container window to {400, 100, 920, 460}
            set viewOptions to the icon view options of container window
            set arrangement of viewOptions to not arranged
            set icon size of viewOptions to 72
@@ -169,6 +169,8 @@ echo 'Done creating DMG'
 ### BUNDLE EXE
 ###
 
+cd "${BASE_DIR}"
+ant sign
 cd "${BASE_DIR}"/l4j
 
 # clean up any old versions
