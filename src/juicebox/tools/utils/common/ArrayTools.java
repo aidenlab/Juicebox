@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,8 +88,8 @@ public class ArrayTools {
         return outputArray;
     }
 
-    private static int[] makeReverseCumulativeArray(int[] inputArray) {
-        int[] outputArray = new int[inputArray.length];
+    private static long[] makeReverseCumulativeArray(long[] inputArray) {
+        long[] outputArray = new long[inputArray.length];
         int total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {
             total += inputArray[i];
@@ -98,10 +98,13 @@ public class ArrayTools {
         return outputArray;
     }
 
-    public static int[][] makeReverse2DCumulativeArray(int[][] data) {
-        int[][] rcsData = new int[data.length][data[0].length];
+    public static long[][] makeReverse2DCumulativeArray(long[][] data) {
+        long[][] rcsData = new long[data.length][data[0].length];
         for (int i = 0; i < data.length; i++) {
             rcsData[i] = ArrayTools.makeReverseCumulativeArray(data[i]);
+            if (data[i][0] < 0) {
+                System.out.println("poss source2: i " + i + "  " + data[i][0]);
+            }
         }
         return rcsData;
     }
@@ -112,7 +115,7 @@ public class ArrayTools {
         return array;
     }
 
-    public static float[] scalarMultiplyArray(int scaleFactor, float[] array) {
+    public static float[] scalarMultiplyArray(long scaleFactor, float[] array) {
         float[] scaledArray = newValueInitializedFloatArray(array.length, scaleFactor);
         for (int i = 0; i < array.length; i++) {
             scaledArray[i] *= array[i];

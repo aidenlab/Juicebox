@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -340,10 +340,10 @@ public class HiCCUPS_postproc extends JuicerCLT {
         PrintWriter outputFDR = HiCFileTools.openWriter(
                 new File(outputDirectory, FDR_THRESHOLDS + "_" + conf.getResolution()));
 
-        int[][] histBL = new int[w1][w2];
-        int[][] histDonut = new int[w1][w2];
-        int[][] histH = new int[w1][w2];
-        int[][] histV = new int[w1][w2];
+        long[][] histBL = new long[w1][w2];
+        long[][] histDonut = new long[w1][w2];
+        long[][] histH = new long[w1][w2];
+        long[][] histV = new long[w1][w2];
         float[][] fdrLogBL = new float[w1][w2];
         float[][] fdrLogDonut = new float[w1][w2];
         float[][] fdrLogH = new float[w1][w2];
@@ -356,7 +356,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
         GPUController gpuController = null;
         try {
             gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                    conf.getPeakWidth(), conf.divisor());
+                    conf.getPeakWidth(), false);
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
@@ -367,7 +367,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
         Feature2DList requestedList = new Feature2DList();
-        
+
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run
@@ -485,10 +485,10 @@ public class HiCCUPS_postproc extends JuicerCLT {
 
                 long thresh_time0 = System.currentTimeMillis();
 
-                int[][] rcsHistBL = ArrayTools.makeReverse2DCumulativeArray(histBL);
-                int[][] rcsHistDonut = ArrayTools.makeReverse2DCumulativeArray(histDonut);
-                int[][] rcsHistH = ArrayTools.makeReverse2DCumulativeArray(histH);
-                int[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
+                long[][] rcsHistBL = ArrayTools.makeReverse2DCumulativeArray(histBL);
+                long[][] rcsHistDonut = ArrayTools.makeReverse2DCumulativeArray(histDonut);
+                long[][] rcsHistH = ArrayTools.makeReverse2DCumulativeArray(histH);
+                long[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
 
                 for (int i = 0; i < w1; i++) {
                     float[] unitPoissonPMF = Floats.toArray(Doubles.asList(ArrayTools.generatePoissonPMF(i, w2)));

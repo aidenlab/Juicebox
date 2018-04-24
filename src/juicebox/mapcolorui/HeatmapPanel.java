@@ -397,23 +397,81 @@ public class HeatmapPanel extends JComponent implements Serializable {
           if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr1())) {
             if (zd instanceof CustomMatrixZoomData) {
               List<Integer> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
-              //int maxSize = xBins.get(xBins.size() - 1);
+              //int 
+              = xBins.get(xBins.size() - 1);
               int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
               for (int xBin : xBins) {
                 int x = (int) ((xBin - binOriginX) * scaleFactor);
                 g.drawLine(x, 0, x, maxSize);
               }
             }
-          }
-          if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr2())) {
-            if (zd instanceof CustomMatrixZoomData) {
-              List<Integer> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
-              //int maxSize = yBins.get(yBins.size() - 1);
-              int maxSize = (int) ((zd.getXGridAxis().getBinCount() - binOriginX) * scaleFactor);
-              for (int yBin : yBins) {
-                int y = (int) ((yBin - binOriginY) * scaleFactor);
-                g.drawLine(0, y, maxSize, y);
-              }
+
+            if (allTilesNull) {
+                g.setFont(FontManager.getFont(12));
+                GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
+
+            } else {
+                // Render loops
+                int centerX = (int) (screenWidth / scaleFactor) / 2;
+                int centerY = (int) (screenHeight / scaleFactor) / 2;
+                float x1 = (float) binOriginX * zd.getBinSize();
+                float y1 = (float) binOriginY * zd.getBinSize();
+                float x2 = x1 + (float) (screenWidth / scaleFactor) * zd.getBinSize();
+                float y2 = y1 + (float) (screenHeight / scaleFactor) * zd.getBinSize();
+                net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(x1, y1, x2, y2);
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                allFeaturePairs.clear();
+                if (activelyEditingAssembly) {
+                    allMainFeaturePairs.clear();
+                    allEditFeaturePairs.clear();
+                }
+
+                // Only look at assembly layers if we're in assembly mode
+                List<AnnotationLayerHandler> handlers;
+                if (activelyEditingAssembly) {
+                    handlers = superAdapter.getAssemblyLayerHandlers();
+                } else {
+                    handlers = superAdapter.getAllLayers();
+                }
+
+
+                for (AnnotationLayerHandler handler : handlers) {
+
+                    List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
+                    List<Feature2D> cLoopsReflected = new ArrayList<>();
+                    for (Feature2D feature2D : loops) {
+                        if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
+                            cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                        }
+                    }
+
+                    loops.addAll(cLoopsReflected);
+                    allFeaturePairs.addAll(handler.convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+
+                    if (activelyEditingAssembly) {
+                        if (handler == superAdapter.getMainLayer()) {
+                            allMainFeaturePairs.addAll(superAdapter.getMainLayer().convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                        } else if (handler == superAdapter.getEditLayer() && selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                            allEditFeaturePairs.addAll(superAdapter.getEditLayer().convertToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                        }
+                    }
+
+                    FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
+                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+
+                }
+                g2.dispose();
+
+                if (zoomRectangle != null) {
+                    ((Graphics2D) g).draw(zoomRectangle);
+                }
+
+                if (annotateRectangle != null) {
+                    ((Graphics2D) g).draw(annotateRectangle);
+                }
+
             }
           }
           g.setColor(color);
@@ -1524,93 +1582,55 @@ public class HeatmapPanel extends JComponent implements Serializable {
           txt.append("</span>");
         }
 
-        int c1 = hic.getXContext().getChromosome().getIndex();
-        int c2 = hic.getYContext().getChromosome().getIndex();
+            Point currMouse = new Point(x, y);
+            double minDistance = Double.POSITIVE_INFINITY;
+            //mouseIsOverFeature = false;
+            currentFeature = null;
+            if (activelyEditingAssembly) {
+                // current feature is populated only from all main feature pairs, contains does not work
+                for (Feature2DGuiContainer loop : allMainFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        currentFeature = loop;
+                    }
+                }
 
-        double ev = getExpectedValue(c1, c2, binX, binY, zd, hic.getExpectedValues());
-        String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected value (E) = " +
-            evString +
-            "</span>");
-        if (ev > 0 && !Float.isNaN(value)) {
-          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = ");
-          txt.append(formatter.format(value / ev) + "</span>");
-        } else {
-          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = NaN</span>");
-        }
-
-        MatrixZoomData controlZD = hic.getControlZd();
-        if (controlZD != null) {
-          float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
-          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("control value (C) = ");
-          txt.append(getFloatString(controlValue));
-          txt.append("</span>");
-
-          double evCtrl = getExpectedValue(c1, c2, binX, binY, controlZD, hic.getExpectedControlValues());
-          String
-              evStringCtrl =
-              evCtrl < 0.001 || Double.isNaN(evCtrl) ? String.valueOf(evCtrl) : formatter.format(evCtrl);
-          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected control value (EC) = " +
-              evStringCtrl +
-              "</span>");
-          if (evCtrl > 0 && !Float.isNaN(controlValue)) {
-            txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = ");
-            txt.append(formatter.format(controlValue / evCtrl) + "</span>");
-          } else {
-            txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = NaN</span>");
-          }
-
-          double obsAvg = zd.getAverageCount();
-          double obsValue = (value / obsAvg);
-          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("average observed value (AVG) = " + getFloatString((float) obsAvg));
-          txt.append("<br>O' = O/AVG = " + getFloatString((float) obsValue));
-          txt.append("</span>");
-
-          double ctrlAvg = controlZD.getAverageCount();
-          double ctlValue = (float) (controlValue / ctrlAvg);
-          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("average control value (AVGC) = " + getFloatString((float) ctrlAvg));
-          txt.append("<br>C' = C/AVGC = " + getFloatString((float) ctlValue));
-          txt.append("</span>");
-
-          if (value > 0 && controlValue > 0) {
-            double ratio = obsValue / ctlValue;
-            txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-            txt.append("O'/C' = " + getFloatString((float) ratio));
-            txt.append("</span>");
-
-            double diff = (obsValue - ctlValue) * (obsAvg / 2. + ctrlAvg / 2.);
-            txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-            txt.append("(O'-C')*(AVG/2 + AVGC/2) = ");
-            txt.append(getFloatString((float) diff));
-            txt.append("</span>");
-          }
-        }
-
-        txt.append(superAdapter.getTrackPanelPrintouts(x, y));
-      }
-
-      Point currMouse = new Point(x, y);
-      double minDistance = Double.POSITIVE_INFINITY;
-      //mouseIsOverFeature = false;
-      currentFeature = null;
-      if (!activelyEditingAssembly) {
-        int numLayers = superAdapter.getAllLayers().size();
-        int priority = numLayers;
-        for (Feature2DGuiContainer loop : allFeaturePairs) {
-          if (loop.getRectangle().contains(x, y)) {
-            // TODO - why is this code duplicated in this file?
-            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-            txt.append(loop.getFeature2D().tooltipText());
-            txt.append("</span>");
-            int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
-            double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-            if (distance < minDistance && numLayers - layerNum <= priority) {
-              minDistance = distance;
-              currentFeature = loop;
-              priority = numLayers - layerNum;
+                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                    Collections.sort(selectedFeatures);
+                    for (Feature2D feature2D : selectedFeatures) {
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(feature2D.tooltipText());
+                        txt.append("</span>");
+                    }
+                } else {
+                    for (Feature2DGuiContainer loop : allFeaturePairs) {
+                        if (loop.getRectangle().contains(x, y)) {
+                            // TODO - why is this code duplicated in this file?
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(loop.getFeature2D().tooltipText());
+                            txt.append("</span>");
+                        }
+                    }
+                }
+            } else {
+                int numLayers = superAdapter.getAllLayers().size();
+                int globalPriority = numLayers;
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(loop.getFeature2D().tooltipText());
+                        txt.append("</span>");
+                        int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
+                        int loopPriority = numLayers - layerNum;
+                        double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
+                        if (distance < minDistance && loopPriority <= globalPriority) {
+                            minDistance = distance;
+                            currentFeature = loop;
+                            globalPriority = loopPriority;
+                        }
+                        //mouseIsOverFeature = true;
+                    }
+                }
             }
             //mouseIsOverFeature = true;
           }

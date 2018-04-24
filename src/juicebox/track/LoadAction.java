@@ -50,6 +50,7 @@ import java.util.List;
 public class LoadAction extends AbstractAction {
 
     private static final long serialVersionUID = -1122795124141741145L;
+    private final JFrame parentFrame;
     private final MainWindow mainWindow;
     private final HiC hic;
     private Runnable repaint1DLayersPanel = null;
@@ -57,12 +58,13 @@ public class LoadAction extends AbstractAction {
 
     public LoadAction(String s, MainWindow mainWindow, HiC hic, Runnable repaint1DLayersPanel) {
         super(s);
+        this.parentFrame = mainWindow;
         this.mainWindow = mainWindow;
         this.hic = hic;
         this.repaint1DLayersPanel = repaint1DLayersPanel;
     }
 
-    private static Document createMasterDocument(String xmlUrl, MainWindow mainWindow) throws ParserConfigurationException {
+    private static Document createMasterDocument(String xmlUrl, JFrame parentFrame) throws ParserConfigurationException {
 
         StringBuffer buffer = new StringBuffer();
 
@@ -84,7 +86,7 @@ public class LoadAction extends AbstractAction {
 
         if (buffer.length() > 0) {
             String message = "<html>The following urls could not be processed due to load failures:<br>" + buffer.toString();
-            JOptionPane.showMessageDialog(mainWindow, message);
+            JOptionPane.showMessageDialog(parentFrame, message);
         }
 
         return masterDocument;
@@ -179,7 +181,7 @@ public class LoadAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to load annotations",
+            JOptionPane.showMessageDialog(parentFrame, "File must be loaded to load annotations",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -214,7 +216,7 @@ public class LoadAction extends AbstractAction {
         ResourceTree resourceTree = hic.getResourceTree();
         try {
             if (resourceTree == null) {
-                Document tempDoc = createMasterDocument(getXmlUrl(), mainWindow);
+                Document tempDoc = createMasterDocument(getXmlUrl(), parentFrame);
                 resourceTree = new ResourceTree(hic, tempDoc);
                 resourceTree.checkTrackBoxesForReloadState(track.trim());
             }
@@ -231,7 +233,7 @@ public class LoadAction extends AbstractAction {
 
         try {
             if (resourceTree == null) {
-                Document masterDocument = createMasterDocument(xmlFile, mainWindow);
+                Document masterDocument = createMasterDocument(xmlFile, parentFrame);
                 resourceTree = new ResourceTree(hic, masterDocument);
             }
         } catch (Exception e) {
@@ -240,7 +242,7 @@ public class LoadAction extends AbstractAction {
             return null;
         }
 
-        resourceTree.showResourceTreeDialog(mainWindow);
+        resourceTree.showResourceTreeDialog(parentFrame);
 
         LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
         LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();

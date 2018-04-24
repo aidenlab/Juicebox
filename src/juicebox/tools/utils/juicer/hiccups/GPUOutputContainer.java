@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,11 +102,11 @@ public class GPUOutputContainer {
         }
     }
 
-    public void updateHistograms(int[][] histBL, int[][] histDonut, int[][] histH, int[][] histV, int maxRows, int maxColumns) {
+    public void updateHistograms(long[][] histBL, long[][] histDonut, long[][] histH, long[][] histV, int maxRows, int maxColumns) {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numColumns; j++) {
 
-                if (Float.isNaN(observed[i][j]))
+                if (Float.isNaN(observed[i][j]) || Float.isInfinite(observed[i][j]))
                     continue;
 
                 int val = (int) observed[i][j];
@@ -118,7 +118,7 @@ public class GPUOutputContainer {
         }
     }
 
-    private void processHistogramValue(float potentialRowIndex, int columnIndex, int[][] histogram, int maxRows, int maxColumns) {
+    private void processHistogramValue(float potentialRowIndex, int columnIndex, long[][] histogram, int maxRows, int maxColumns) {
         if (Float.isNaN(potentialRowIndex))
             return;
 
@@ -126,6 +126,9 @@ public class GPUOutputContainer {
         if (rowIndex >= 0 && rowIndex < maxRows) {
             if (columnIndex >= 0 && columnIndex < maxColumns) {
                 histogram[rowIndex][columnIndex] += 1;
+                if (histogram[rowIndex][columnIndex] < 0) {
+                    System.out.println("earlier source row " + rowIndex + " col " + columnIndex + " -- " + histogram[rowIndex][columnIndex]);
+                }
             }
         }
     }

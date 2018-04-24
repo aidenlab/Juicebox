@@ -61,7 +61,8 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
     public Load2DAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter) {
-        super(superAdapter.getMainWindow(), "Select 2D annotation file(s) to open");
+        super(layersPanel, "Select 2D annotation file(s) to open");
+        setModal(true);
 
         final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
         final MainWindow window = superAdapter.getMainWindow();
@@ -232,9 +233,8 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
-    public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+    public void addLocalButtonActionPerformed(final Component parentComponent) {
         // Get the main window
-        final MainWindow window = superAdapter.getMainWindow();
 
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
@@ -261,7 +261,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
 
                 if (loadedAnnotationsMap.containsKey(path)) {
                     if (HiCGlobals.guiIsCurrentlyActive) {
-                        int dialogResult = JOptionPane.showConfirmDialog(window,
+                        int dialogResult = JOptionPane.showConfirmDialog(parentComponent,
                                 file.getName() + " is already loaded. Would you like to overwrite it?", "Warning",
                                 JOptionPane.YES_NO_OPTION);
                         if (dialogResult == JOptionPane.YES_OPTION) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.mapcolorui;
 import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
@@ -84,7 +85,6 @@ public class Feature2DHandler {
         int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1)) + offsetDoubled;
         int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2)) + offsetDoubled;
 
-
         return new Rectangle(x, y, w, h);
     }
 
@@ -97,7 +97,8 @@ public class Feature2DHandler {
 
         for (Feature2D feature : features) {
             featurePairs.add(new Feature2DGuiContainer(
-                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature, handler));
+                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale),
+                    feature, handler));
         }
 
         return featurePairs;
@@ -192,7 +193,7 @@ public class Feature2DHandler {
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                             final double binOriginX, final double binOriginY, final double scale, final boolean largeOnly) {
+                                             final double binOriginX, final double binOriginY, final double scale) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
         final HiCGridAxis xAxis = zd.getXGridAxis();
@@ -209,7 +210,7 @@ public class Feature2DHandler {
                                 public boolean execute(int i) {
                                     Feature2D feature = loopList.get(key).get(i);
                                     Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
-                                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                                    if (!SuperAdapter.assemblyModeCurrentlyActive || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
                                         foundFeatures.add(feature);
                                     }
                                     return true;              // return true here to continue receiving results
@@ -225,7 +226,7 @@ public class Feature2DHandler {
 
                 for (Feature2D feature : loopList.get(key)) {
                     Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
-                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                    if (!SuperAdapter.assemblyModeCurrentlyActive || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
                         foundFeatures.add(feature);
                     }
                 }
