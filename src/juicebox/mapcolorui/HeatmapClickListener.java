@@ -54,7 +54,7 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
     private Feature2DGuiContainer currentUpstreamFeature = null;
     private Feature2DGuiContainer currentDownstreamFeature = null;
 
-    public HeatmapClickListener(HeatmapPanel heatmapPanel) {
+    HeatmapClickListener(HeatmapPanel heatmapPanel) {
         clickTimer = new Timer(clickDelay, this);
         this.heatmapPanel = heatmapPanel;
     }
@@ -175,9 +175,8 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         break;
 
                     case PASTEBOTTOM:
-                        // TODO fix this so that highlight moves with translated selection
-                        heatmapPanel.moveSelectionToEnd();
-                        heatmapPanel.repaint();
+                        heatmapPanel.moveSelectionToEnd(); // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint(); // moveSelectionToEnd already handles removeSelection
                         break;
 
                     case PASTETOP:
@@ -189,11 +188,11 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                         break;
 
                     case PASTE:
-                        //System.out.println("currentUPstream 2: " + currentUpstreamFeature.getFeature2D().toString());
                         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
+
                     case INVERT:
                         AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
