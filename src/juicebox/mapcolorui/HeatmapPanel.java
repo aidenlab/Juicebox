@@ -2415,7 +2415,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
               currentDownstreamFeature = temp;
             }
 
-            // inserting within columns and rows
+            // inserting from highlight: keeping for future development
 //            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
 //
 //              // upstream feature is the same
