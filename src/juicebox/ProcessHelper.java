@@ -67,9 +67,9 @@ public class ProcessHelper {
             command.add("-Djnlp.loadMenu=" + url);
             //     String[] options = {"-Xmx2000m", "-Djnlp.loadMenu=" + url};
             //     command.addAll(Arrays.asList(options));
-        } else {
-            command.add("-Xmx2000m");
         }
+        command.add("-Xmx5000m");
+
         // command.addAll(Arrays.asList(options));
         command.add(MainWindow.class.getCanonicalName());
         //  command.addAll(Arrays.asList(arguments));
