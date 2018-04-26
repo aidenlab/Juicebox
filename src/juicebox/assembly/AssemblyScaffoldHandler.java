@@ -345,24 +345,25 @@ public class AssemblyScaffoldHandler {
             ":::fragment_" +
             (startingFragmentNumber + 2), scaffoldProperty.getIndexId() + 2, scaffoldProperty.getLength() - endCut));
         // set their initial properties
+        int lastIndexScaffolds = newListOfScaffolds.size();
         if (!targetScaffold.getOriginallyInverted()) {
-          newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginalStart(targetScaffold.getOriginalStart());
-          newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginallyInverted(false);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 2)
+          newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginalStart(targetScaffold.getOriginalStart());
+          newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginallyInverted(false);
+          newListOfScaffolds.get(lastIndexScaffolds - 2)
               .setOriginalStart(targetScaffold.getOriginalStart() + startCut);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 2).setOriginallyInverted(false);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 1)
+          newListOfScaffolds.get(lastIndexScaffolds - 2).setOriginallyInverted(false);
+          newListOfScaffolds.get(lastIndexScaffolds - 1)
               .setOriginalStart(targetScaffold.getOriginalStart() + endCut);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 1).setOriginallyInverted(false);
+          newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginallyInverted(false);
         } else {
-          newListOfScaffolds.get(newListOfScaffolds.size() - 1).setOriginalStart(targetScaffold.getOriginalStart());
-          newListOfScaffolds.get(newListOfScaffolds.size() - 1).setOriginallyInverted(true);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 2)
+          newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginalStart(targetScaffold.getOriginalStart());
+          newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginallyInverted(true);
+          newListOfScaffolds.get(lastIndexScaffolds - 2)
               .setOriginalStart(targetScaffold.getOriginalEnd() - endCut - 1);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 2).setOriginallyInverted(true);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 3)
+          newListOfScaffolds.get(lastIndexScaffolds - 2).setOriginallyInverted(true);
+          newListOfScaffolds.get(lastIndexScaffolds - 3)
               .setOriginalStart(targetScaffold.getOriginalEnd() - startCut - 1);
-          newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginallyInverted(true);
+          newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginallyInverted(true);
         }
       } else {
         if (scaffoldProperty.getOriginalScaffoldName().equals(targetScaffold.getOriginalScaffoldName())) {
