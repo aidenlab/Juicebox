@@ -70,8 +70,6 @@ public class HiCDataTrack extends HiCTrack {
 
     @Override
     public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
-
-
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
 
@@ -83,10 +81,11 @@ public class HiCDataTrack extends HiCTrack {
         double startBin = context.getBinOrigin();
         double endBin = startBin + (width / hic.getScaleFactor());
 
+        // only show parts of things
         if (hic.getChromosomeHandler().isCustomChromosome(context.getChromosome())) {
             data = OneDimTrackCensoring.getFilteredData(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);
-
+            // fix this case w ordering modifications
         } else if (SuperAdapter.assemblyModeCurrentlyActive) {
             data = OneDimAssemblyTrackLifter.liftDataArrayFromAsm(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
         } else {
@@ -177,7 +176,6 @@ public class HiCDataTrack extends HiCTrack {
             }
         }
 
-        // If min is < 0 draw a line
         if (minValue < 0) {
             g.setColor(dashColor);
             g2d.setStroke(dashedStroke);

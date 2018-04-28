@@ -36,11 +36,14 @@ public class Feature2DGuiContainer {
     private final Feature2D feature2D;
     private final AnnotationLayerHandler annotationLayerHandler;
 
+
     public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler) {
         this.rectangle = rectangle;
         this.feature2D = feature2D;
         this.annotationLayerHandler = annotationLayerHandler;
     }
+
+
 
     public Rectangle getRectangle() {
         return rectangle;

@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyOperationExecutor;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DGuiContainer;
@@ -53,7 +54,7 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
     private Feature2DGuiContainer currentUpstreamFeature = null;
     private Feature2DGuiContainer currentDownstreamFeature = null;
 
-    public HeatmapClickListener(HeatmapPanel heatmapPanel) {
+    HeatmapClickListener(HeatmapPanel heatmapPanel) {
         clickTimer = new Timer(clickDelay, this);
         this.heatmapPanel = heatmapPanel;
     }
@@ -160,6 +161,7 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         } else {
             if (!lastMouseEvent.isShiftDown()) {
                 List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
+
                 switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
                     case REGROUP:
                         AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
@@ -171,11 +173,26 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                             e.printStackTrace();
                         }
                         break;
+
+                    case PASTEBOTTOM:
+                        heatmapPanel.moveSelectionToEnd(); // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint(); // moveSelectionToEnd already handles removeSelection
+                        break;
+
+                    case PASTETOP:
+                        AssemblyOperationExecutor.moveSelection(superAdapter,
+                            selectedFeatures,
+                            null);
+                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint();
+                        break;
+
                     case PASTE:
                         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
+
                     case INVERT:
                         AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection

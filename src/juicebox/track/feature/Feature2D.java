@@ -519,7 +519,7 @@ public class Feature2D implements Comparable<Feature2D> {
         isSelected = setIsSelectedColorUpdate;
     }
 
-    public enum FeatureType {
+  public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
     }
 }
