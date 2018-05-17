@@ -25,6 +25,7 @@
 package juicebox.assembly;
 
 import juicebox.HiC;
+import juicebox.data.feature.Feature;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 
@@ -65,6 +66,13 @@ public class AssemblyOperationExecutor {
         }
     }
 
+    public static void mergeMultiGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        if (selectedFeatures != null && selectedFeatures.size() > 1) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.mergeMultiGroup(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+        }
+    }
 
     private static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 

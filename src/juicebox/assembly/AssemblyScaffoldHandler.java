@@ -25,6 +25,7 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
+import juicebox.data.feature.Feature;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -552,17 +553,45 @@ public class AssemblyScaffoldHandler {
     if (super1 == super2) {
       splitSuperscaffold(super1, id1);
     } else {
-      mergeSuperscaffolds(super1, super2);
+      List<Integer> superscaffolds = Collections.singletonList(super2);
+      mergeSuperscaffolds(super1, superscaffolds);
     }
 
   }
 
+  // Multi-Group Toggles
+  public void mergeMultiGroup(List<Feature2D> selectedFeatures) {
+    // Assume order
 
-  private void mergeSuperscaffolds(int superscaffoldId1, int superscaffoldId2) {
+    // Get superscaffold indices
+    int id1 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(0));
+    int super1 = getSuperscaffoldId(id1);
+
+    List<Integer> superscaffolds = new ArrayList<>();
+
+    for (int i = 1; i < selectedFeatures.size(); i++) {
+      int curId = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(i));
+      int curSuperscaffoldId = getSuperscaffoldId(curId);
+
+      if (curSuperscaffoldId != super1 && !superscaffolds.contains(curSuperscaffoldId)) {
+        superscaffolds.add(curSuperscaffoldId);
+      }
+    }
+
+    mergeSuperscaffolds(super1, superscaffolds);
+
+  }
+
+  public void splitMultiGroup(List<Feature2D> selectedFeatures) {
+
+  }
+
+  // SuperScaffold manipulations
+  private void mergeSuperscaffolds(int superscaffoldId1, List<Integer> superList) {
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
     for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
-      if (i == superscaffoldId2) {
-        newSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(superscaffoldId2));
+      if (superList.contains(i)) {
+        newSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(i));
       } else {
         newSuperscaffolds.add(listOfSuperscaffolds.get(i));
       }

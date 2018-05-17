@@ -1125,6 +1125,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
+    final JMenuItem groupItems = new JCheckBoxMenuItem("Group selected items");
+    groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
+    groupItems.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AssemblyOperationExecutor.mergeMultiGroup(superAdapter, selectedFeatures);
+      }
+    });
+    menu.add(groupItems);
+
+    final JMenuItem ungroupItems = new JCheckBoxMenuItem("Ungroup selected items");
+    ungroupItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+    ungroupItems.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
+        repaint();
+      }
+    });
+    menu.add(ungroupItems);
 
     final JMenuItem miUndo = new JCheckBoxMenuItem("Undo");
     miUndo.addActionListener(new ActionListener() {
@@ -1294,7 +1314,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
     removeSelection();
   }
-
 
   private String toolTipText(int x, int y) {
     // Update popup text
