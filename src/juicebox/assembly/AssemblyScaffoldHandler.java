@@ -553,52 +553,40 @@ public class AssemblyScaffoldHandler {
     if (super1 == super2) {
       splitSuperscaffold(super1, id1);
     } else {
-      List<Integer> superscaffolds = Collections.singletonList(super2);
-      mergeSuperscaffolds(super1, superscaffolds);
+      mergeSuperScaffolds(super1, super2);
     }
-
   }
 
-  // Multi-Group Toggles
-  public void mergeMultiGroup(List<Feature2D> selectedFeatures) {
-    // Assume order
+  public void multiMerge(Feature2D firstFeature, Feature2D lastFeature) {
+    int super1 = getSuperscaffoldId(getSignedIndexFromScaffoldFeature2D(firstFeature));
+    int super2 = getSuperscaffoldId(getSignedIndexFromScaffoldFeature2D(lastFeature));
 
-    // Get superscaffold indices
+    mergeSuperScaffolds(super1, super2);
+  }
+
+  public void multiSplit(List<Feature2D> selectedFeatures) {
     int id1 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(0));
+    int id2 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(selectedFeatures.size() - 1));
     int super1 = getSuperscaffoldId(id1);
+    int super2 = getSuperscaffoldId(id2);
 
-    List<Integer> superscaffolds = new ArrayList<>();
-
-    for (int i = 1; i < selectedFeatures.size(); i++) {
-      int curId = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(i));
-      int curSuperscaffoldId = getSuperscaffoldId(curId);
-
-      if (curSuperscaffoldId != super1 && !superscaffolds.contains(curSuperscaffoldId)) {
-        superscaffolds.add(curSuperscaffoldId);
-      }
-    }
-
-    mergeSuperscaffolds(super1, superscaffolds);
-
-  }
-
-  public void splitMultiGroup(List<Feature2D> selectedFeatures) {
-
+    multiSplitSuperscaffolds(id1, id2, super1, super2);
   }
 
   // SuperScaffold manipulations
-  private void mergeSuperscaffolds(int superscaffoldId1, List<Integer> superList) {
+  private void mergeSuperScaffolds (int super1, int super2){
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
     for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
-      if (superList.contains(i)) {
-        newSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(i));
-      } else {
+      if(i>super1 && i<=super2){
+        newSuperscaffolds.get(super1).addAll(listOfSuperscaffolds.get(i));
+      }else{
         newSuperscaffolds.add(listOfSuperscaffolds.get(i));
       }
     }
     listOfSuperscaffolds.clear();
     listOfSuperscaffolds.addAll(newSuperscaffolds);
   }
+
 
   private void splitSuperscaffold(int superscaffoldId, int scaffoldId) {
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
@@ -609,10 +597,57 @@ public class AssemblyScaffoldHandler {
         newSuperscaffolds.add(listOfSuperscaffolds.get(superscaffoldId)
             .subList(1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId),
                 listOfSuperscaffolds.get(superscaffoldId).size()));
-      } else {
+        }
+      else {
         newSuperscaffolds.add(listOfSuperscaffolds.get(i));
       }
     }
+    listOfSuperscaffolds.clear();
+    listOfSuperscaffolds.addAll(newSuperscaffolds);
+  }
+
+
+  private void multiSplitSuperscaffolds(int id1, int id2, int super1, int super2) {
+    List<List<Integer>> newSuperscaffolds = new ArrayList<>();
+    int startPoint = listOfSuperscaffolds.get(super1).indexOf(id1);
+    int endPoint = listOfSuperscaffolds.get(super2).indexOf(id2) + 1;
+    int jstart, jend;
+    boolean addEndScaff = false;
+
+    for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+      if (i >= super1 && i <= super2) {
+        jstart = 0;
+        jend = listOfSuperscaffolds.get(i).size();
+
+        // If at first superscaffold and selected start scaffold not at beginning of current superscaffold
+        if (i == super1 && startPoint != 0) {
+          jstart = startPoint;
+
+          // Add rest of superscaffold to its own superscaffold
+          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(0, jstart));
+        }
+        // If at last superscaffold and selected end scaffold not at end of current superscaffold
+        else if (i == super2 && endPoint != jend) {
+          jend = endPoint;
+          addEndScaff = true;
+        }
+
+        // Add each inner scaffold to its own superscaffold group
+        for (int j = jstart; j < jend; j++) {
+          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(j, j + 1));
+        }
+
+        // If did not end at last scaffold in last superscaffold selected
+        if (addEndScaff) {
+          // Add rest of superscaffold to its own superscaffold
+          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(jend, listOfSuperscaffolds.get(i).size()));
+        }
+      }
+      else{
+        newSuperscaffolds.add(listOfSuperscaffolds.get(i));
+      }
+    }
+
     listOfSuperscaffolds.clear();
     listOfSuperscaffolds.addAll(newSuperscaffolds);
   }

@@ -1130,21 +1130,27 @@ public class HeatmapPanel extends JComponent implements Serializable {
     groupItems.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        AssemblyOperationExecutor.mergeMultiGroup(superAdapter, selectedFeatures);
+        AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
+
+        // Cleanup
+        removeSelection();
       }
     });
     menu.add(groupItems);
 
-    final JMenuItem ungroupItems = new JCheckBoxMenuItem("Ungroup selected items");
-    ungroupItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-    ungroupItems.addActionListener(new ActionListener() {
+    final JMenuItem splitItems = new JCheckBoxMenuItem("Split selected items");
+    splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+    splitItems.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
+        AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
         repaint();
+
+        // Cleanup
+        removeSelection();
       }
     });
-    menu.add(ungroupItems);
+    menu.add(splitItems);
 
     final JMenuItem miUndo = new JCheckBoxMenuItem("Undo");
     miUndo.addActionListener(new ActionListener() {
@@ -1644,7 +1650,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
   }
 
-//    public Feature2D generateDebrisFeature(int xMousePos, int yMousePos) {
+  //  public Feature2D generateDebrisFeature(int xMousePos, int yMousePos) {
 //        final double scaleFactor = hic.getScaleFactor();
 //        double binOriginX = hic.getXContext().getBinOrigin();
 //        double binOriginY = hic.getYContext().getBinOrigin();

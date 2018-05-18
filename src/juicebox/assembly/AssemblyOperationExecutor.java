@@ -28,7 +28,9 @@ import juicebox.HiC;
 import juicebox.data.feature.Feature;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
+import sun.awt.dnd.SunDragSourceContextPeer;
 
+import javax.annotation.processing.SupportedOptions;
 import java.util.List;
 
 /**
@@ -66,11 +68,19 @@ public class AssemblyOperationExecutor {
         }
     }
 
-    public static void mergeMultiGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
-        if (selectedFeatures != null && selectedFeatures.size() > 1) {
+    public static void multiMerge(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-            assemblyScaffoldHandler.mergeMultiGroup(selectedFeatures);
-            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+            assemblyScaffoldHandler.multiMerge(selectedFeatures.get(0), selectedFeatures.get(selectedFeatures.size() - 1));
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
+        }
+    }
+
+    public static void multiSplit(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.multiSplit(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
         }
     }
 
