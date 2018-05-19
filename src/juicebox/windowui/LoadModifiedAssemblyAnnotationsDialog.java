@@ -64,8 +64,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private final JTree tree;
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
-    private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private final ArrayList<String> mostRecentPaths = new ArrayList<>();
+    private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
 
     public LoadModifiedAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {

@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyPlaybackPanel;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
@@ -64,11 +65,12 @@ import java.util.Properties;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class SuperAdapter {
+    private static final List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
+    public static boolean assemblyModeCurrentlyActive = false;
     private static String datasetTitle = "";
     private static String controlTitle;
-    private static final List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
@@ -78,8 +80,9 @@ public class SuperAdapter {
     private AssemblyStateTracker assemblyStateTracker;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
+    private AssemblyPlaybackPanel assemblyPanel;
+    private boolean assemblyPanelIsVisible = false;
     private boolean layerPanelIsVisible = false;
-    public static boolean assemblyModeCurrentlyActive = false;
 
     public static String getDatasetTitle() {
         return datasetTitle;
@@ -87,6 +90,10 @@ public class SuperAdapter {
 
     public static void setDatasetTitle(String newDatasetTitle) {
         datasetTitle = newDatasetTitle;
+    }
+
+    public static void showMessageDialog(String message) {
+        JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
     }
 
     public void setAdapters(MainWindow mainWindow, HiC hic, MainViewPanel mainViewPanel) {
@@ -102,7 +109,6 @@ public class SuperAdapter {
     public void addRecentMapMenuEntry(String title, boolean status) {
         mainViewPanel.addRecentMapMenuEntry(title, status);
     }
-
 
     public void showDataSetMetrics(boolean isControl) {
         if (hic.getDataset() == null) {
@@ -121,6 +127,8 @@ public class SuperAdapter {
         }
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void exportDataLauncher() {
         if (hic.getDataset() == null) {
             JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info",
@@ -129,8 +137,6 @@ public class SuperAdapter {
             new DumpDialog(mainWindow, hic);
         }
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
@@ -182,10 +188,6 @@ public class SuperAdapter {
 
     public void updatePrevStateNameFromImport(String path) {
         mainViewPanel.updatePrevStateNameFromImport(path);
-    }
-
-    public static void showMessageDialog(String message) {
-        JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
     }
 
     public void loadFromListActionPerformed(boolean control) {
@@ -955,8 +957,23 @@ public class SuperAdapter {
         setLayersPanelGUIControllersSelected(status);
     }
 
+    public void setAssemblyPanelVisible(boolean status) {
+        this.assemblyPanelIsVisible = status;
+        if (assemblyPanel != null) {
+            assemblyPanel.setVisible(status);
+        } else {
+            if (status) assemblyPanel = new AssemblyPlaybackPanel(this);
+            layersPanel.setVisible(status);
+        }
+        //setAssemblyPanelGUIControllersSelected(status);
+    }
+
     public void intializeLayersPanel() {
         layersPanel = new LayersPanel(this);
+    }
+
+    public void intializeAssemblyPanel() {
+        assemblyPanel = new AssemblyPlaybackPanel(this);
     }
 
     public void setLayersPanelGUIControllersSelected(boolean status) {
@@ -1061,5 +1078,9 @@ public class SuperAdapter {
             resetAnnotationLayers();
             return true;
         }
+    }
+
+    public AssemblyPlaybackPanel getAssemblyPanel() {
+        return assemblyPanel;
     }
 }

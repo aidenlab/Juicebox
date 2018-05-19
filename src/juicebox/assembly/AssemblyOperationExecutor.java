@@ -87,7 +87,7 @@ public class AssemblyOperationExecutor {
         assemblyTrackingEnabled = true;
     }
 
-    public static void playAssemblyTracking(SuperAdapter superAdapter, String directory) {
+    public static void loadAssemblyTracking(SuperAdapter superAdapter, String directory) {
         File[] files = new File(directory).listFiles();
 //If this pathname does not denote a directory, then listFiles() returns null.
         List<String> results = new ArrayList<String>();
@@ -115,14 +115,5 @@ public class AssemblyOperationExecutor {
         while (superAdapter.getAssemblyStateTracker().checkUndo()) {
             superAdapter.getAssemblyStateTracker().undo();
         }
-//        while (superAdapter.getAssemblyStateTracker().checkRedo()){
-//            superAdapter.getAssemblyStateTracker().redo();
-//                            wait x seconds
-//            try{
-//                Thread.sleep(500); //sleep for 3 seconds
-//            }
-//            catch(InterruptedException e){    System.out.println("got interrupted!");
-//            }
-//        }
     }
 }

@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
+import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -34,6 +35,7 @@ import juicebox.windowui.*;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -61,6 +63,7 @@ public class MainMenuBar extends JMenuBar {
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static JMenuItem showStats, showControlStats;
+    private static JMenuItem showAssemblyTrackingPanel;
     //private static JMenu annotationsMenu;
     private static JMenu viewMenu;
     private static JMenu assemblyMenu;
@@ -70,6 +73,9 @@ public class MainMenuBar extends JMenuBar {
     private static JCheckBoxMenuItem enableAssembly;
     private static JMenuItem setScale;
     private static JMenuItem importModifiedAssembly;
+    private static JMenuItem enableAssemblyTracking;
+    private static JMenuItem playAssemblyTracking;
+
 
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
@@ -86,6 +92,8 @@ public class MainMenuBar extends JMenuBar {
 
         importModifiedAssembly.setEnabled(false);
         exitAssembly.setEnabled(false);
+        enableAssemblyTracking.setEnabled(false);
+        playAssemblyTracking.setEnabled(false);
     }
 
     public boolean unsavedEditsExist() {
@@ -675,6 +683,53 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
+        enableAssemblyTracking = new JMenuItem("Enable Assembly Tracking");
+        enableAssemblyTracking.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                setSaveLocationForAssemblyTracking();
+                //creatfolder based on genome name _ snapo shots if one already exsistes name this one snapshopts 2
+                //do stuff to dave snap shopts
+//
+            }
+        });
+
+        playAssemblyTracking = new JMenuItem("Play Assembly Tracking");
+        playAssemblyTracking.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+
+            }
+        });
+
+        showAssemblyTrackingPanel = new JMenuItem("show Assembly Tracking Panel");
+        showAssemblyTrackingPanel.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getAssemblyPanel() == null) {
+                    superAdapter.intializeAssemblyPanel();
+                }
+                superAdapter.getAssemblyPanel().setVisible(true);
+                //toggle visibiilty of assembly tracking panel
+
+            }
+        });
+
         boolean enabled = superAdapter.getAssemblyStateTracker() != null && superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
 
         exportAssembly.setEnabled(enabled);
@@ -682,17 +737,22 @@ public class MainMenuBar extends JMenuBar {
         enableAssembly.setEnabled(enabled);
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
+        enableAssemblyTracking.setEnabled(enabled);
+        playAssemblyTracking.setEnabled(enabled);
         exitAssembly.setEnabled(enabled);
 
 
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
+        assemblyMenu.add(enableAssemblyTracking);
+        assemblyMenu.add(playAssemblyTracking);
         assemblyMenu.add(exportAssembly);
         assemblyMenu.add(resetAssembly);
         assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
         assemblyMenu.add(exitAssembly);
+        assemblyMenu.add(showAssemblyTrackingPanel);
 //        assemblyMenu.add(enableAssembly);
 
 
@@ -725,6 +785,8 @@ public class MainMenuBar extends JMenuBar {
         enableAssembly.setEnabled(true);
         setScale.setEnabled(true);
         importModifiedAssembly.setEnabled(true);
+        enableAssemblyTracking.setEnabled(true);
+        playAssemblyTracking.setEnabled(true);
         exitAssembly.setEnabled(true);
 
     }
@@ -752,4 +814,20 @@ public class MainMenuBar extends JMenuBar {
     public void setAnnotationPanelMenuItemSelected(boolean status) {
         layersItem.setSelected(status);
     }
+
+    public void setSaveLocationForAssemblyTracking() {
+
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        jfc.setDialogTitle("Choose a directory to save your file: ");
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        int returnValue = jfc.showSaveDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            if (jfc.getSelectedFile().isDirectory()) {
+                System.out.println("You selected the directory: " + jfc.getSelectedFile());
+                AssemblyOperationExecutor.enableAssemblyTracking(jfc.getSelectedFile().getPath());
+            }
+        }
+    }
+
 }
