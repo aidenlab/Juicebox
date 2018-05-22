@@ -610,14 +610,14 @@ public class AssemblyScaffoldHandler {
   private void multiSplitSuperscaffolds(int id1, int id2, int super1, int super2) {
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
     int startPoint = listOfSuperscaffolds.get(super1).indexOf(id1);
-    int endPoint = listOfSuperscaffolds.get(super2).indexOf(id2) + 1;
+    int endPoint = listOfSuperscaffolds.get(super2).indexOf(id2);
     int jstart, jend;
     boolean addEndScaff = false;
 
     for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
       if (i >= super1 && i <= super2) {
         jstart = 0;
-        jend = listOfSuperscaffolds.get(i).size();
+        jend = listOfSuperscaffolds.get(i).size() - 1;
 
         // If at first superscaffold and selected start scaffold not at beginning of current superscaffold
         if (i == super1 && startPoint != 0) {
@@ -627,20 +627,20 @@ public class AssemblyScaffoldHandler {
           newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(0, jstart));
         }
         // If at last superscaffold and selected end scaffold not at end of current superscaffold
-        else if (i == super2 && endPoint != jend) {
+        if (i == super2 && endPoint != jend) {
           jend = endPoint;
           addEndScaff = true;
         }
 
         // Add each inner scaffold to its own superscaffold group
-        for (int j = jstart; j < jend; j++) {
-          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(j, j + 1));
+        for (int j = jstart; j <= jend; j++) {
+          newSuperscaffolds.add(Arrays.asList(listOfSuperscaffolds.get(i).get(j)));
         }
 
         // If did not end at last scaffold in last superscaffold selected
         if (addEndScaff) {
           // Add rest of superscaffold to its own superscaffold
-          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(jend, listOfSuperscaffolds.get(i).size()));
+          newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(jend + 1, listOfSuperscaffolds.get(i).size()));
         }
       }
       else{
