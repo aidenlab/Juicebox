@@ -1127,7 +1127,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
       final JMenuItem selectGroup = new JCheckBoxMenuItem("Select group");
       final Feature2DGuiContainer curSuperscaffold = getMouseHoverSuperscaffold();
-      selectGroup.setEnabled(curSuperscaffold != null);
+      selectGroup.setEnabled(curSuperscaffold != null && (selectedFeatures == null || selectedFeatures.isEmpty()));
       selectGroup.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
