@@ -190,7 +190,7 @@ public class Arrowhead extends JuicerCLT {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
+            System.err.println("Unable to assess map sparsity; continuing with Arrowhead");
             if (!configurationsSetByUser) {
                 matrixSize = 2000;
                 resolution = 10000;
