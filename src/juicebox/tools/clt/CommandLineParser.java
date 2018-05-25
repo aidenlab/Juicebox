@@ -49,6 +49,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option tmpDirOption = null;
     private static Option statsOption = null;
     private static Option graphOption = null;
+    private static Option expectedVectorOption = null;
 
     // ints
     private static Option countThresholdOption = null;
@@ -83,6 +84,8 @@ public class CommandLineParser extends CmdLineParser {
 
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         resolutionOption = addStringOption('r', "resolutions");
+
+        expectedVectorOption = addStringOption('e', "expected_vector_file");
     }
 
     /**
@@ -137,6 +140,10 @@ public class CommandLineParser extends CmdLineParser {
 
     public String getTmpdirOption() {
         return optionToString(tmpDirOption);
+    }
+
+    public String getExpectedVectorOption() {
+        return optionToString(expectedVectorOption);
     }
 
     /**

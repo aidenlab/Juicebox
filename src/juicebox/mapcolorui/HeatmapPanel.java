@@ -172,7 +172,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     g.clearRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
 
     if (HiCGlobals.isDarkulaModeEnabled) {
-      g.setColor(Color.BLACK);
+      g.setColor(Color.darkGray);
       g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
     }
 
@@ -377,7 +377,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         //Cover gray background for the empty parts of the matrix:
         if (HiCGlobals.isDarkulaModeEnabled) {
-          g.setColor(Color.black);
+          g.setColor(Color.darkGray);
         } else {
           g.setColor(Color.white);
         }
@@ -629,7 +629,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     BufferedImage image = (BufferedImage) createImage(wh, wh);
     Graphics2D g = image.createGraphics();
     if (HiCGlobals.isDarkulaModeEnabled) {
-      g.setColor(Color.BLACK);
+      g.setColor(Color.darkGray);
       g.fillRect(0, 0, wh, wh);
     }
 
@@ -681,7 +681,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       BufferedImage image = (BufferedImage) createImage(imageWidth, imageHeight);
       Graphics2D g2D = (Graphics2D) image.getGraphics();
       if (HiCGlobals.isDarkulaModeEnabled) {
-        g2D.setColor(Color.BLACK);
+        g2D.setColor(Color.darkGray);
         g2D.fillRect(0, 0, imageWidth, imageHeight);
       }
 

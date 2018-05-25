@@ -222,12 +222,17 @@ public class CombinedDatasetReader implements DatasetReader {
             }
         }
 
+        //Set<HiCZoom> zoomSet = new HashSet<>(firstDataset.getBpZooms());
         // only retain resolutions in common between all datasets
         dataset.bpZooms = firstDataset.getBpZooms();
         for (Dataset ds : datasetList) {
-            dataset.bpZooms.retainAll(ds.getBpZooms());
+            for (HiCZoom zoom: ds.getBpZooms()) {
+               if (!(dataset.bpZooms.contains(zoom))) {
+                   dataset.bpZooms.add(zoom);
+               }
+            }
+//            dataset.bpZooms.retainAll(ds.getBpZooms());
         }
-
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
             for (Dataset ds : datasetList) {
@@ -265,7 +270,7 @@ public class CombinedDatasetReader implements DatasetReader {
         }
         dataset.expectedValueFunctionMap = dfMap;
 
-        if (zoomsToRemove.size() > 0) {
+        /*if (zoomsToRemove.size() > 0) {
             List<HiCZoom> trimmedBpZooms = new ArrayList<>(dataset.bpZooms.size());
             for (HiCZoom zoom : dataset.bpZooms) {
                 if (!zoomsToRemove.contains(zoom.getKey())) {
@@ -283,7 +288,7 @@ public class CombinedDatasetReader implements DatasetReader {
                 dataset.fragZooms = trimmedFragZooms;
 
             }
-        }
+        }           */
 
 
         ArrayList<String> statisticsList = new ArrayList<>();
@@ -485,6 +490,7 @@ public class CombinedDatasetReader implements DatasetReader {
     private Matrix mergeMatrices(List<Matrix> matrixList) {
 
         Map<String, Double> averageCount = new HashMap<>();
+        List<MatrixZoomData> newMatrixZoomData = new ArrayList<>();
         for (Matrix matrix : matrixList) {
             for (MatrixZoomData zd : matrix.bpZoomData) {
                 String key = zd.getKey();
@@ -494,6 +500,7 @@ public class CombinedDatasetReader implements DatasetReader {
                 } else if (avg >= 0) {
                     averageCount.put(key, avg + zd.getAverageCount());
                 }
+                newMatrixZoomData.add(zd);
             }
             if (hasFrags) {
                 for (MatrixZoomData zd : matrix.fragZoomData) {
@@ -510,13 +517,21 @@ public class CombinedDatasetReader implements DatasetReader {
 
         Matrix mergedMatrix = matrixList.get(0);
 
-        for (MatrixZoomData zd : mergedMatrix.bpZoomData) {
+        for (MatrixZoomData zd : newMatrixZoomData)       {
             zd.reader = this;
             String key = zd.getKey();
             if (averageCount.containsKey(key)) {
                 zd.setAverageCount(averageCount.get(key));
             }
         }
+        mergedMatrix.bpZoomData = newMatrixZoomData;
+       /* for (MatrixZoomData zd : mergedMatrix.bpZoomData) {
+            zd.reader = this;
+            String key = zd.getKey();
+            if (averageCount.containsKey(key)) {
+                zd.setAverageCount(averageCount.get(key));
+            }
+        }*/
         if (hasFrags) {
             for (MatrixZoomData zd : mergedMatrix.fragZoomData) {
                 zd.reader = this;

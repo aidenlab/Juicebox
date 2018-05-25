@@ -68,6 +68,7 @@ public class Preprocessor {
     private String fragmentFileName = null;
     private String statsFileName = null;
     private String graphFileName = null;
+    private String expectedVectorFile = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
 
@@ -126,6 +127,10 @@ public class Preprocessor {
 
     public void setFragmentFile(String fragmentFileName) {
         this.fragmentFileName = fragmentFileName;
+    }
+
+    public void setExpectedVectorFile(String expectedVectorFile) {
+        this.expectedVectorFile = expectedVectorFile;
     }
 
     public void setGraphFile(String graphFileName) {
@@ -251,11 +256,13 @@ public class Preprocessor {
                 }
             }
 
-            expectedValueCalculations = new LinkedHashMap<>();
-            for (int bBinSize : bpBinSizes) {
-                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
-                String key = "BP_" + bBinSize;
-                expectedValueCalculations.put(key, calc);
+            if (expectedVectorFile == null) {
+                expectedValueCalculations = new LinkedHashMap<>();
+                for (int bBinSize : bpBinSizes) {
+                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
+                    String key = "BP_" + bBinSize;
+                    expectedValueCalculations.put(key, calc);
+                }
             }
             if (fragmentCalculation != null) {
 
@@ -268,11 +275,12 @@ public class Preprocessor {
                     fragmentCountMap.put(chr, fragCount);
                 }
 
-
-                for (int fBinSize : fragBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationType.NONE);
-                    String key = "FRAG_" + fBinSize;
-                    expectedValueCalculations.put(key, calc);
+                if (expectedVectorFile == null) {
+                    for (int fBinSize : fragBinSizes) {
+                        ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationType.NONE);
+                        String key = "FRAG_" + fBinSize;
+                        expectedValueCalculations.put(key, calc);
+                    }
                 }
             }
 
@@ -600,32 +608,72 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
 
         // Vectors  (Expected values,  other).
-        buffer.putInt(expectedValueCalculations.size());
-        for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
-            ExpectedValueCalculation ev = entry.getValue();
+        /***  NEVA ***/
+        if (expectedVectorFile == null) {
+            buffer.putInt(expectedValueCalculations.size());
+            for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
+                ExpectedValueCalculation ev = entry.getValue();
 
-            ev.computeDensity();
+                ev.computeDensity();
 
-            int binSize = ev.getGridSize();
-            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
+                int binSize = ev.getGridSize();
+                HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
-            buffer.putNullTerminatedString(unit.toString());
-            buffer.putInt(binSize);
+                buffer.putNullTerminatedString(unit.toString());
+                buffer.putInt(binSize);
 
-            // The density values
-            double[] expectedValues = ev.getDensityAvg();
-            buffer.putInt(expectedValues.length);
-            for (double expectedValue : expectedValues) {
-                buffer.putDouble(expectedValue);
+                // The density values
+                double[] expectedValues = ev.getDensityAvg();
+                buffer.putInt(expectedValues.length);
+                for (double expectedValue : expectedValues) {
+                    buffer.putDouble(expectedValue);
+                }
+
+                // Map of chromosome index -> normalization factor
+                Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
+                buffer.putInt(normalizationFactors.size());
+                for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
+                    buffer.putInt(normFactor.getKey());
+                    buffer.putDouble(normFactor.getValue());
+                    //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
+                }
             }
+        }
+        else {
+            // read in expected vector file. to get # of resolutions, might have to read twice.
 
-            // Map of chromosome index -> normalization factor
-            Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-            buffer.putInt(normalizationFactors.size());
-            for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                buffer.putInt(normFactor.getKey());
-                buffer.putDouble(normFactor.getValue());
-                //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
+            int count=0;
+            try (Reader reader = new FileReader(expectedVectorFile);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.startsWith("fixedStep"))
+                        count++;
+                    if (line.startsWith("variableStep")) {
+                        System.err.println("Expected vector file must be in wiggle fixedStep format");
+                        System.exit(19);
+                    }
+                }
+            }
+            buffer.putInt(count);
+            try (Reader reader = new FileReader(expectedVectorFile);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.startsWith("fixedStep")) {
+                        String[] words = line.split("\\s+");
+                        for (String str:words){
+                            if (str.contains("chrom")){
+                                String chrs[] = str.split("=");
+                                
+                            }
+                        }
+                    }
+                        // parse linef ixedStep  chrom=chrN
+                    //start=position  step=stepInterval
+                }
             }
         }
 
@@ -1372,10 +1420,12 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                     sum += score;  // <= count for mirror cell.
                 }
 
-                String evKey = (isFrag ? "FRAG_" : "BP_") + binSize;
-                ExpectedValueCalculation ev = expectedValueCalculations.get(evKey);
-                if (ev != null) {
-                    ev.addDistance(chr1.getIndex(), xBin, yBin, score);
+                if (expectedValueCalculations != null) {
+                    String evKey = (isFrag ? "FRAG_" : "BP_") + binSize;
+                    ExpectedValueCalculation ev = expectedValueCalculations.get(evKey);
+                    if (ev != null) {
+                        ev.addDistance(chr1.getIndex(), xBin, yBin, score);
+                    }
                 }
             }
 

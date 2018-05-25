@@ -89,6 +89,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
         preprocessor.setFragmentFile(parser1.getFragmentOption());
+        preprocessor.setExpectedVectorFile(parser1.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());

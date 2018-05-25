@@ -465,7 +465,7 @@ public class MainViewPanel {
     }
 
     public void resetAllColors() {
-        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.darkGray : Color.WHITE;
         JComponent[] components = new JComponent[]{mainPanel, bigPanel, topPanel, trackLabelPanel,
                 leftPanel, chrSidePanel, chrSidePanel2, chrSidePanel3, bottomChromosomeFigPanel, wrapHeatmapPanel,
                 heatmapPanel, wrapGapPanel, hiCPanel, trackPanelX, trackPanelY, rulerPanelX, rulerPanelY,
