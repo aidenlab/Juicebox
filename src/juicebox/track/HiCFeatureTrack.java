@@ -27,6 +27,8 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.assembly.OneDimAssemblyTrackLifter;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
 import org.broad.igv.feature.IGVFeature;
@@ -63,7 +65,7 @@ public class HiCFeatureTrack extends HiCTrack {
         font = FontManager.getFont(6);
     }
 
-    private static double getFractionalBin(int position, double scaleFactor, HiCGridAxis gridAxis) {
+    public static double getFractionalBin(int position, double scaleFactor, HiCGridAxis gridAxis) {
         double bin1 = gridAxis.getBinNumberForGenomicPosition(position);
         // Fractional bin (important for "super-zoom")
         if (scaleFactor > 1) {
@@ -75,7 +77,6 @@ public class HiCFeatureTrack extends HiCTrack {
 
     @Override
     public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
-
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
@@ -111,24 +112,47 @@ public class HiCFeatureTrack extends HiCTrack {
             System.err.println("Error getting feature source " + error);
             return;
         }
-        while (iter.hasNext()) {
 
+        HashMap<IGVFeature, ArrayList<Integer>> assemblyMap = new HashMap<>();
+        if (SuperAdapter.assemblyModeCurrentlyActive) {
+            // Update features according to current assembly status
+            ArrayList<IGVFeature> iterItems = new ArrayList<>();
+            while (iter.hasNext()) {
+                IGVFeature feature = (IGVFeature) iter.next();
+                iterItems.add(feature);
+            }
+
+            assemblyMap = OneDimAssemblyTrackLifter.liftFeatureIterFromAsm(
+                    hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
+
+            iter = assemblyMap.keySet().iterator();
+        }
+
+        while (iter.hasNext()) {
             IGVFeature feature = (IGVFeature) iter.next();
             final Color featureColor = feature.getColor();
             if (featureColor != null) {
                 g.setColor(featureColor);
             }
 
-            double bin1 = getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
-            double bin2 = getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
+            int startPoint, endPoint;
+            if (SuperAdapter.assemblyModeCurrentlyActive) {
+                startPoint = assemblyMap.get(feature).get(0);
+                endPoint = assemblyMap.get(feature).get(1);
+            }
+            else {
+                startPoint = feature.getStart();
+                endPoint = feature.getEnd();
+            }
 
+            double bin1 = getFractionalBin(startPoint, scaleFactor, gridAxis);
+            double bin2 = getFractionalBin(endPoint, scaleFactor, gridAxis);
 
             if (bin2 < startBin) {
                 continue;
             } else if (bin1 > endBin) {
                 break;
             }
-
 
             int xPixelLeft = x + (int) ((bin1 - startBin) * scaleFactor);
             int xPixelRight = x + (int) ((bin2 - startBin) * scaleFactor);
