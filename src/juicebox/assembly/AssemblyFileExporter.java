@@ -73,10 +73,10 @@ public class AssemblyFileExporter {
     private void exportAssembly() throws IOException {
         PrintWriter assemblyWriter = new PrintWriter(buildAssemblyOutputPath(), "UTF-8");
         for (Scaffold scaffold : listOfScaffolds) {
-            assemblyWriter.println(">" + scaffold.toString());
+            assemblyWriter.print(">" + scaffold.toString() + "\n"); // Use print to account for OS difference in control characters
         }
         for (List<Integer> row : listOfSuperscaffolds) {
-            assemblyWriter.println(superscaffoldToString(row));
+            assemblyWriter.print(superscaffoldToString(row) + "\n");
         }
         assemblyWriter.close();
     }
