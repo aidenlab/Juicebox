@@ -25,7 +25,6 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
-import juicebox.mapcolorui.HeatmapPanel;
 
 import java.io.File;
 import java.io.IOException;
