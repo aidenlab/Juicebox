@@ -41,185 +41,180 @@ import java.util.List;
  */
 public class OneDimAssemblyTrackLifter {
 
-  public static HiCDataPoint[] liftDataArrayFromAsm(HiCDataSource dataSource,
-                                                    HiC hic,
-                                                    Chromosome chromosome,
-                                                    int binX1,
-                                                    int binX2,
-                                                    HiCGridAxis gridAxis,
-                                                    double scaleFactor,
-                                                    WindowFunction windowFunction) {
-    HiCZoom zoom = hic.getZoom();
-    // get aggregate scaffold handler
-    AssemblyScaffoldHandler
-        aFragHandler =
-        AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
+    public static HiCDataPoint[] liftDataArrayFromAsm(HiCDataSource dataSource,
+                                                      HiC hic,
+                                                      Chromosome chromosome,
+                                                      int binX1,
+                                                      int binX2,
+                                                      HiCGridAxis gridAxis,
+                                                      double scaleFactor,
+                                                      WindowFunction windowFunction) {
+        HiCZoom zoom = hic.getZoom();
+        // get aggregate scaffold handler
+        AssemblyScaffoldHandler
+                aFragHandler =
+                AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
-    final int binSize = zoom.getBinSize();
-    long actualBinSize = (long) binSize;
-    if (chromosome.getIndex() == 0) {
-      actualBinSize = 1000 * actualBinSize;
-    }
-
-    List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
-        (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale),
-        (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
-
-    List<HiCDataPoint> modifiedDataPoints = new ArrayList<>();
-
-    int x1pos, x2pos;
-    for (Scaffold xScaffold : xAxisAggregateScaffolds) {
-      x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
-      x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
-
-      // have to case long because of thumbnail, maybe fix thumbnail instead
-      if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
-        if (!xScaffold.getInvertedVsInitial()) {
-          x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
-        } else {
-          x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
-        }
-      }
-
-      if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
-        if (!xScaffold.getInvertedVsInitial()) {
-          x2pos =
-              (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
-        } else {
-          x1pos =
-              (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
-        }
-      }
-
-      HiCDataPoint[]
-          dataArray =
-          dataSource.getData(chromosome,
-              (int) (x1pos / actualBinSize),
-              (int) (x2pos / actualBinSize),
-              gridAxis,
-              scaleFactor,
-              windowFunction);
-
-      for (HiCDataPoint point : dataArray) {
-        // disregard points outside of the bin positions for this aggregate scaffold
-        if (point.getBinNumber() < (int) (x1pos / actualBinSize) || point.getBinNumber() > (int) (x2pos / actualBinSize) )
-          continue;
-
-        int newStart;
-        int newEnd;
-        int newBin;
-
-        if (!xScaffold.getInvertedVsInitial()) {
-          newStart = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-          newBin = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
-        } else {
-          newStart = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-          newBin = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart(  )) / HiCGlobals.hicMapScale / binSize - 1);
+        final int binSize = zoom.getBinSize();
+        long actualBinSize = (long) binSize;
+        if (chromosome.getIndex() == 0) {
+            actualBinSize = 1000 * actualBinSize;
         }
 
-        newEnd = newStart + point.getGenomicEnd() - point.getGenomicStart();
+        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale),
+                (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
 
-        if (point instanceof HiCCoverageDataSource.CoverageDataPoint) {
+        List<HiCDataPoint> modifiedDataPoints = new ArrayList<>();
 
-          HiCCoverageDataSource.CoverageDataPoint covPoint = (HiCCoverageDataSource.CoverageDataPoint) point;
-          modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint(newStart / binSize,
-              newStart,
-              newEnd,
-              covPoint.value));
-        }
+        int x1pos, x2pos;
+        for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+            x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
+            x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
 
-        else if (point instanceof HiCDataAdapter.DataAccumulator) {
-          HiCDataAdapter.DataAccumulator accumPoint = (HiCDataAdapter.DataAccumulator) point;
-          HiCDataAdapter.DataAccumulator
-              newAccumPoint =
-              new HiCDataAdapter.DataAccumulator((double) newBin, accumPoint.width, newStart, newEnd);
-          newAccumPoint.nPts = accumPoint.nPts;
-          newAccumPoint.weightedSum = accumPoint.weightedSum;
-          newAccumPoint.max = accumPoint.max;
-          modifiedDataPoints.add(newAccumPoint);
+            // have to case long because of thumbnail, maybe fix thumbnail instead
+            if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
+                if (!xScaffold.getInvertedVsInitial()) {
+                    x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                } else {
+                    x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                }
+            }
+
+            if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
+                if (!xScaffold.getInvertedVsInitial()) {
+                    x2pos =
+                            (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                } else {
+                    x1pos =
+                            (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                }
+            }
+
+            HiCDataPoint[]
+                    dataArray =
+                    dataSource.getData(chromosome,
+                            (int) (x1pos / actualBinSize),
+                            (int) (x2pos / actualBinSize),
+                            gridAxis,
+                            scaleFactor,
+                            windowFunction);
+
+            for (HiCDataPoint point : dataArray) {
+                // disregard points outside of the bin positions for this aggregate scaffold
+                if (point.getBinNumber() < (int) (x1pos / actualBinSize) || point.getBinNumber() > (int) (x2pos / actualBinSize))
+                    continue;
+
+                int newStart;
+                int newEnd;
+                int newBin;
+
+                if (!xScaffold.getInvertedVsInitial()) {
+                    newStart = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
+                } else {
+                    newStart = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize - 1);
+                }
+
+                newEnd = newStart + point.getGenomicEnd() - point.getGenomicStart();
+
+                if (point instanceof HiCCoverageDataSource.CoverageDataPoint) {
+
+                    HiCCoverageDataSource.CoverageDataPoint covPoint = (HiCCoverageDataSource.CoverageDataPoint) point;
+                    modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint(newStart / binSize,
+                            newStart,
+                            newEnd,
+                            covPoint.value));
+                } else if (point instanceof HiCDataAdapter.DataAccumulator) {
+                    HiCDataAdapter.DataAccumulator accumPoint = (HiCDataAdapter.DataAccumulator) point;
+                    HiCDataAdapter.DataAccumulator
+                            newAccumPoint =
+                            new HiCDataAdapter.DataAccumulator((double) newBin, accumPoint.width, newStart, newEnd);
+                    newAccumPoint.nPts = accumPoint.nPts;
+                    newAccumPoint.weightedSum = accumPoint.weightedSum;
+                    newAccumPoint.max = accumPoint.max;
+                    modifiedDataPoints.add(newAccumPoint);
 //          if(accumPoint.getBinNumber()!=(double)newBin)
 //            System.out.println(accumPoint.getBinNumber()+" "+(double)newBin); // why do these not match?
+                }
+
+            }
         }
-
-      }
-    }
-    HiCDataPoint[] points = new HiCDataPoint[modifiedDataPoints.size()];
-    for (int i = 0; i < points.length; i++) {
-      points[i] = modifiedDataPoints.get(i);
-    }
-    return points;
-  }
-
-  public static HashMap<IGVFeature, ArrayList<Integer>> liftFeatureIterFromAsm(
-          HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> iterItems) {
-    // Implements track lifter and assembly review for "feature" files
-
-    // Initialization and gathering of useful items
-    HashMap<IGVFeature, ArrayList<Integer>> assemMap = new HashMap<>();
-
-    HiCZoom zoom = hic.getZoom();
-    final double scaleFactor = hic.getScaleFactor();
-
-    AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
-
-    final int binSize = zoom.getBinSize();
-    long actualBinSize = (long) binSize;
-    if (chromosome.getIndex() == 0) {
-      actualBinSize *= 1000;
+        HiCDataPoint[] points = new HiCDataPoint[modifiedDataPoints.size()];
+        for (int i = 0; i < points.length; i++) {
+            points[i] = modifiedDataPoints.get(i);
+        }
+        return points;
     }
 
-    List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
-            (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
+    public static HashMap<IGVFeature, HashMap<String, Integer>> liftFeatureIterFromAsm(
+            HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> iterItems) {
+        // Implements track lifter and assembly review for "feature" files
 
-    int x1pos, x2pos;
-    for (Scaffold xScaffold : xAxisAggregateScaffolds) {
-      x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
-      x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
+        // Initialization and gathering of useful items
+        HashMap<IGVFeature, HashMap<String, Integer>> assemMap = new HashMap<>();
 
-      // Have to case long because of thumbnail, maybe fix thumbnail instead
-      if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
-        if (!xScaffold.getInvertedVsInitial()) {
-          x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
-        }
-        else {
-          x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
-        }
-      }
+        HiCZoom zoom = hic.getZoom();
+        final double scaleFactor = hic.getScaleFactor();
 
-      if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
-        if (!xScaffold.getInvertedVsInitial()) {
-          x2pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
-        }
-        else {
-          x1pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
-        }
-      }
-      for (IGVFeature feature : iterItems) {
-        ArrayList<Integer> resultList = new ArrayList<>();
+        AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
-        double bin1 = HiCFeatureTrack.getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
-        double bin2 = HiCFeatureTrack.getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
-
-        if (bin2 < (int) (x1pos / actualBinSize) || bin1 > (int) (x2pos / actualBinSize)) {
-          continue;
+        final int binSize = zoom.getBinSize();
+        long actualBinSize = (long) binSize;
+        if (chromosome.getIndex() == 0) {
+            actualBinSize *= 1000;
         }
 
-        int newStart, newEnd;
+        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
 
-        if (!xScaffold.getInvertedVsInitial()) {
-          newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * feature.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+        int x1pos, x2pos;
+        for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+            x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
+            x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
+
+            // Have to case long because of thumbnail, maybe fix thumbnail instead
+            if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
+                if (!xScaffold.getInvertedVsInitial()) {
+                    x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                } else {
+                    x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                }
+            }
+
+            if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
+                if (!xScaffold.getInvertedVsInitial()) {
+                    x2pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                } else {
+                    x1pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                }
+            }
+            for (IGVFeature feature : iterItems) {
+                HashMap<String, Integer> posPoints = new HashMap<>();
+
+                double bin1 = HiCFeatureTrack.getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
+                double bin2 = HiCFeatureTrack.getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
+
+                if (bin2 < (int) (x1pos / actualBinSize) || bin1 > (int) (x2pos / actualBinSize)) {
+                    continue;
+                }
+
+                int newStart, newEnd;
+
+                if (!xScaffold.getInvertedVsInitial()) {
+                    newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * feature.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                } else {
+                    newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * feature.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                }
+
+                newEnd = newStart + feature.getEnd() - feature.getStart();
+
+                posPoints.put("Start", newStart);
+                posPoints.put("End", newEnd);
+                assemMap.put(feature, posPoints);
+            }
         }
-        else {
-          newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * feature.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-        }
-
-        newEnd = newStart + feature.getEnd() - feature.getStart();
-
-        resultList.add(0, newStart);
-        resultList.add(1, newEnd);
-        assemMap.put(feature, resultList);
-      }
+        return assemMap;
     }
-    return assemMap;
-  }
 }

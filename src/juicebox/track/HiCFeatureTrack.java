@@ -113,7 +113,7 @@ public class HiCFeatureTrack extends HiCTrack {
             return;
         }
 
-        HashMap<IGVFeature, ArrayList<Integer>> assemblyMap = new HashMap<>();
+        HashMap<IGVFeature, HashMap<String, Integer>> assemblyMap = new HashMap<>();
         if (SuperAdapter.assemblyModeCurrentlyActive) {
             // Update features according to current assembly status
             ArrayList<IGVFeature> iterItems = new ArrayList<>();
@@ -137,8 +137,8 @@ public class HiCFeatureTrack extends HiCTrack {
 
             int startPoint, endPoint;
             if (SuperAdapter.assemblyModeCurrentlyActive) {
-                startPoint = assemblyMap.get(feature).get(0);
-                endPoint = assemblyMap.get(feature).get(1);
+                startPoint = assemblyMap.get(feature).get("Start");
+                endPoint = assemblyMap.get(feature).get("End");
             }
             else {
                 startPoint = feature.getStart();
