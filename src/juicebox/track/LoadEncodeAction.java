@@ -104,10 +104,16 @@ public class LoadEncodeAction extends AbstractAction {
         try {
             EncodeFileBrowser browser = EncodeFileBrowser.getInstance(genome);
 
-            if (browser == null) {
-                SuperAdapter.showMessageDialog("Encode tracks are not available for " + genome);
-                return;
+            String response = genome;
+            while ((browser == null) && (response != null))  {
+                response = JOptionPane.showInputDialog("Encode tracks are not available for " + response +
+                        " enter another genome or press cancel to exit");
+                if (response != null) {
+                    browser = EncodeFileBrowser.getInstance(response);
+                }
             }
+
+            if (browser == null) return;
 
             browser.setVisible(true);
             if (browser.isCanceled()) return;

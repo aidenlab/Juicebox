@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.io.FilenameUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
@@ -37,11 +38,17 @@ import javax.swing.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 
 /**
@@ -226,6 +233,48 @@ public class LoadAction extends AbstractAction {
         resourceTree.checkTrackBoxesForReloadState(track);
     }
 
+    private ArrayList<String> getAvaliableXmlResourses() throws Exception {
+
+        String resourses_path = "juicebox/track";
+        ArrayList<String> resourses = new ArrayList<String>();
+        File jarFile = new File(LoadAction.class.getProtectionDomain().getCodeSource()
+                .getLocation().getPath());
+        if(jarFile.isFile()) {  // Run with JAR file
+            System.out.println("Within JAR");
+            final JarFile jar = new JarFile(jarFile);
+            final Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+            while(entries.hasMoreElements()) {
+                String name = entries.nextElement().getName();
+                if (name.startsWith(resourses_path + "/tracksMenu") &&
+                        name.endsWith(".xml")) { //filter according to the path
+                    File f = new File(name);
+                    resourses.add(f.getName());
+                }
+            }
+            jar.close();
+        } else { // Run with IDE
+            System.out.println("Within IDE");
+            URL url = MainWindow.class.getResource("/" + resourses_path);
+            if (url != null) {
+                try {
+                    final File apps = new File(url.toURI());
+                    for (File app : apps.listFiles()) {
+                        System.out.println(app.toString());
+                        if (app.toString().endsWith(".xml")) {
+                            resourses.add(FilenameUtils.getName(app.getPath()));
+                        }
+                    }
+                } catch (URISyntaxException ex) {
+                    // never happens
+                    ex.fillInStackTrace();
+                }
+            }
+        }
+        return resourses;
+    }
+
+
+
     private List<ResourceLocator> unsafeLoadNodes(String xmlFile) {
 
         // TODO MSS
@@ -234,6 +283,30 @@ public class LoadAction extends AbstractAction {
         try {
             if (resourceTree == null) {
                 Document masterDocument = createMasterDocument(xmlFile, parentFrame);
+                if (masterDocument == null){
+                    ArrayList<String> avaliable_resourses = getAvaliableXmlResourses();
+                    if (avaliable_resourses.size()>0) {
+                        String[] options = new String[avaliable_resourses.size()];
+                        options = avaliable_resourses.toArray(options);
+                        String selected_option = (String) JOptionPane.showInputDialog(
+                                null,
+                                "No tracks found for the genome \n " +
+                                        "Would you like to use one of avaliable tracks below?" +
+                                        hic.getDataset().getGenomeId(),
+                                "Please select genome",
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                options,
+                                options[0]
+                        );
+                        if (selected_option != null) {
+                            System.out.println("Using genome data from " +
+                                    selected_option);
+                            masterDocument = createMasterDocument(selected_option,
+                                    parentFrame);
+                        }
+                    }
+                }
                 resourceTree = new ResourceTree(hic, masterDocument);
             }
         } catch (Exception e) {
