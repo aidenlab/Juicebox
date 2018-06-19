@@ -1125,7 +1125,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
-      final JMenuItem selectGroup = new JCheckBoxMenuItem("Select group");
+      final JMenuItem selectGroup = new JCheckBoxMenuItem("Select superscaffold");
       final Feature2DGuiContainer curSuperscaffold = getMouseHoverSuperscaffold();
       selectGroup.setEnabled(curSuperscaffold != null && (selectedFeatures == null || selectedFeatures.isEmpty()));
       selectGroup.addActionListener(new ActionListener() {
@@ -1169,7 +1169,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(selectGroup);
 
-    final JMenuItem groupItems = new JCheckBoxMenuItem("Group selected items");
+    final JMenuItem groupItems = new JCheckBoxMenuItem("Group scaffolds");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
     groupItems.addActionListener(new ActionListener() {
       @Override
@@ -1182,7 +1182,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(groupItems);
 
-    final JMenuItem splitItems = new JCheckBoxMenuItem("Split selected items");
+    final JMenuItem splitItems = new JCheckBoxMenuItem("Split scaffolds");
     splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     splitItems.addActionListener(new ActionListener() {
       @Override

@@ -101,22 +101,20 @@ public class HiCFeatureTrack extends HiCTrack {
         g.setColor(new Color(0, 150, 0));
 
         Iterator<?> iter;
-        try {
-            iter = featureSource.getFeatures(chr, gStart, gEnd);
-            if (!iter.hasNext()) {
-                // if empty, probably because "chr" missing at start of chromosome
-                // TODO mitochondrial genes may be an issue here?
-                iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
-            }
-        } catch (IOException error) {
-            System.err.println("Error getting feature source " + error);
-            return;
-        }
-
         HashMap<IGVFeature, HashMap<String, Integer>> assemblyMap = new HashMap<>();
+
         if (SuperAdapter.assemblyModeCurrentlyActive) {
             // Update features according to current assembly status
+
+            try{
+                iter = featureSource.getFeatures(chr, 0, context.getChrLength());
+            } catch(IOException error) {
+                System.err.println("Error getting feature source " + error);
+                return;
+            }
+
             ArrayList<IGVFeature> iterItems = new ArrayList<>();
+
             while (iter.hasNext()) {
                 IGVFeature feature = (IGVFeature) iter.next();
                 iterItems.add(feature);
@@ -126,6 +124,19 @@ public class HiCFeatureTrack extends HiCTrack {
                     hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
 
             iter = assemblyMap.keySet().iterator();
+        }
+        else {
+            try {
+                iter = featureSource.getFeatures(chr, gStart, gEnd);
+                if (!iter.hasNext()) {
+                    // if empty, probably because "chr" missing at start of chromosome
+                    // TODO mitochondrial genes may be an issue here?
+                    iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
+                }
+            } catch (IOException error) {
+                System.err.println("Error getting feature source " + error);
+                return;
+            }
         }
 
         while (iter.hasNext()) {
@@ -161,6 +172,7 @@ public class HiCFeatureTrack extends HiCTrack {
 
             if (fw < 5 || feature.getExons() == null || feature.getExons().size() == 0) {
                 g.fillRect(xPixelLeft, fy, fw, fh);
+
             } else {
 
                 // intron
@@ -182,6 +194,9 @@ public class HiCFeatureTrack extends HiCTrack {
                 }
 
                 for (Exon exon : feature.getExons()) {
+                    // Possible fix for assembly tracking
+//                    bin2 = getFractionalBin(startPoint + (exon.getStart() - feature.getStart()) + (exon.getEnd() - exon.getStart()), scaleFactor, gridAxis);
+//                    bin1 = getFractionalBin(startPoint + (exon.getStart() - feature.getStart()), scaleFactor, gridAxis);
 
                     bin1 = getFractionalBin(exon.getStart(), scaleFactor, gridAxis);
                     bin2 = getFractionalBin(exon.getEnd(), scaleFactor, gridAxis);
