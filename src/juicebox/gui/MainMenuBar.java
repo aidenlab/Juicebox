@@ -61,6 +61,7 @@ public class MainMenuBar extends JMenuBar {
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static JMenuItem showStats, showControlStats;
+    private static JMenuItem renameGenome;
     //private static JMenu annotationsMenu;
     private static JMenu viewMenu;
     private static JMenu assemblyMenu;
@@ -197,6 +198,21 @@ public class MainMenuBar extends JMenuBar {
         fileMenu.add(showControlStats);
         fileMenu.addSeparator();
 
+        renameGenome = new JMenuItem("Rename genome...");
+        renameGenome.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String curr_genome = superAdapter.getHiC().getDataset().getGenomeId();
+                String response = JOptionPane.showInputDialog("Current genome is " + curr_genome +
+                        "\nEnter another genome name or press cancel to exit");
+                if (response != null) {
+                    superAdapter.getHiC().getDataset().setGenomeId(response);
+                }
+            }
+        });
+        renameGenome.setEnabled(false);
+        fileMenu.add(renameGenome);
+        fileMenu.addSeparator();
 
         // TODO: make this an export of the data on screen instead of a GUI for CLT
         if (!HiCGlobals.isRestricted) {
@@ -717,6 +733,7 @@ public class MainMenuBar extends JMenuBar {
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);
+
     }
 
     public void enableAssemblyMenuOptions() {
@@ -743,6 +760,7 @@ public class MainMenuBar extends JMenuBar {
         recentControlMapMenu.setEnabled(status);
         // if a control map can be loaded, that means main is loaded and its stats can be viewed
         showStats.setEnabled(status);
+        renameGenome.setEnabled(status);
     }
 
     public void updateControlMapHasBeenLoaded(boolean status) {
