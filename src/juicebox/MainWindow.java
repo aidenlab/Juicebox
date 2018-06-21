@@ -66,6 +66,8 @@ public class MainWindow extends JFrame {
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
     public static Cursor scissorCursor;
+    public static Cursor groupNECursor;
+    public static Cursor groupSWCursor;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
@@ -280,6 +282,9 @@ public class MainWindow extends JFrame {
         BufferedImage invertNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         g = invertNEImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR));
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
         g = invertNEImage.createGraphics();
@@ -305,9 +310,32 @@ public class MainWindow extends JFrame {
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
         g = scissorImage.createGraphics();
-        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "invert");
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "cut");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         scissorCursor = getToolkit().createCustomCursor(scissorImage, new Point(8, 6), "Scissors");
+
+        // Group prompts
+        BufferedImage groupNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = groupNEImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = groupNEImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/layer/ur_clicked.png"), "grouptoggle");
+        g.drawImage(imageIcon.getImage(), 0, 0, 20, 20, null);
+        groupNECursor = getToolkit().createCustomCursor(groupNEImage, new Point(8, 6), "GroupNE");
+
+        BufferedImage groupSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = groupSWImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = groupSWImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/layer/ll_clicked.png"), "grouptoggle");
+        g.drawImage(imageIcon.getImage(), 0, 0, 20, 20, null);
+        groupSWCursor = getToolkit().createCustomCursor(groupSWImage, new Point(8, 6), "GroupSW");
     }
 
     public void exitActionPerformed() {

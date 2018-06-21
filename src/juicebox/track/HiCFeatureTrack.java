@@ -108,6 +108,11 @@ public class HiCFeatureTrack extends HiCTrack {
 
             try{
                 iter = featureSource.getFeatures(chr, 0, context.getChrLength());
+                if (!iter.hasNext()) {
+                    // if empty, probably because "chr" missing at start of chromosome
+                    // TODO mitochondrial genes may be an issue here?
+                    iter = featureSource.getFeatures("chr" + chr, 0, context.getChrLength());
+                }
             } catch(IOException error) {
                 System.err.println("Error getting feature source " + error);
                 return;

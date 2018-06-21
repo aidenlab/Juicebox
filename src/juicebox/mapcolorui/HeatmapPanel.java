@@ -863,7 +863,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi6 = new JCheckBoxMenuItem("Copy hover text to clipboard");
+    final JMenuItem mi6 = new JMenuItem("Copy hover text to clipboard");
     mi6.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -873,7 +873,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi7 = new JCheckBoxMenuItem("Copy top position to clipboard");
+    final JMenuItem mi7 = new JMenuItem("Copy top position to clipboard");
     mi7.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -886,7 +886,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
 
     // TODO - can we remove this second option and just have a copy position to clipboard? Is this used?
-    final JCheckBoxMenuItem mi8 = new JCheckBoxMenuItem("Copy left position to clipboard");
+    final JMenuItem mi8 = new JMenuItem("Copy left position to clipboard");
     mi8.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -919,7 +919,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi87Remove = new JCheckBoxMenuItem("Remove Highlight");
+    final JMenuItem mi87Remove = new JMenuItem("Remove Highlight");
     mi87Remove.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -1115,7 +1115,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
 //        menu.add(miRepeatSelection);
 
-    final JMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
+    final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
     miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     miMoveToDebris.addActionListener(new ActionListener() {
       @Override
@@ -1125,7 +1125,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
-      final JMenuItem selectGroup = new JCheckBoxMenuItem("Select superscaffold");
+      final JMenuItem selectGroup = new JMenuItem("Select superscaffold");
       final Feature2DGuiContainer curSuperscaffold = getMouseHoverSuperscaffold();
       selectGroup.setEnabled(curSuperscaffold != null && (selectedFeatures == null || selectedFeatures.isEmpty()));
       selectGroup.addActionListener(new ActionListener() {
@@ -1169,7 +1169,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(selectGroup);
 
-    final JMenuItem groupItems = new JCheckBoxMenuItem("Group scaffolds");
+    final JMenuItem groupItems = new JMenuItem("Group scaffolds");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
     groupItems.addActionListener(new ActionListener() {
       @Override
@@ -1182,7 +1182,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(groupItems);
 
-    final JMenuItem splitItems = new JCheckBoxMenuItem("Split scaffolds");
+    final JMenuItem splitItems = new JMenuItem("Split scaffolds");
     splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     splitItems.addActionListener(new ActionListener() {
       @Override
@@ -1195,7 +1195,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(splitItems);
 
-    final JMenuItem miUndo = new JCheckBoxMenuItem("Undo");
+    final JMenuItem miUndo = new JMenuItem("Undo");
     miUndo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -1208,7 +1208,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     menu.add(miUndo);
 
 
-    final JMenuItem miRedo = new JCheckBoxMenuItem("Redo");
+    final JMenuItem miRedo = new JMenuItem("Redo");
     miRedo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -2471,7 +2471,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                  setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
+                  setCursor(MainWindow.groupSWCursor);
                   currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                     currentUpstreamFeature.getFeature2D().getEnd1() <=
@@ -2484,7 +2484,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                   (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() >= 0) &&
                   (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                  setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
+                  setCursor(MainWindow.groupNECursor);
                   currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                     currentUpstreamFeature.getFeature2D().getEnd1() <=
