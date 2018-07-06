@@ -2297,7 +2297,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
           superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
         }
         // Set check if hovering over feature corner
-        setCursor(Cursor.getDefaultCursor());
+
+        // Following was commented out since it was causing flickering of the cursor on windows machines, don't know if it was necessary
+//        setCursor(Cursor.getDefaultCursor());
         int minDist = 20;
         if (currentFeature != null) {
 

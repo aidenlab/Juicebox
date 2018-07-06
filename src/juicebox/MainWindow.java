@@ -416,7 +416,8 @@ public class MainWindow extends JFrame {
         int option = 0;
         if (SuperAdapter.assemblyModeCurrentlyActive) {
             setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-            option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit? Make sure you have saved any important assembly changes.", "warning", JOptionPane.YES_NO_OPTION);
+            option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit? Make sure you have saved any important assembly changes.",
+                    "Warning", JOptionPane.YES_NO_OPTION);
         }
         if (option == 0) {
             setVisible(false);
