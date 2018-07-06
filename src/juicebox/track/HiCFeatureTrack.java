@@ -27,6 +27,7 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.assembly.IGVFeatureCopy;
 import juicebox.assembly.OneDimAssemblyTrackLifter;
 import juicebox.gui.SuperAdapter;
 import org.broad.igv.feature.Exon;
@@ -101,9 +102,9 @@ public class HiCFeatureTrack extends HiCTrack {
         g.setColor(new Color(0, 150, 0));
 
         Iterator<?> iter;
-        HashMap<IGVFeature, HashMap<String, Integer>> assemblyMap = new HashMap<>();
+        List<IGVFeatureCopy> newFeatureList;
 
-        if (SuperAdapter.assemblyModeCurrentlyActive) {
+        if (SuperAdapter.assemblyModeCurrentlyActive && getLocator().getPath().toLowerCase().endsWith(".bed")) {
             // Update features according to current assembly status
 
             try{
@@ -125,10 +126,8 @@ public class HiCFeatureTrack extends HiCTrack {
                 iterItems.add(feature);
             }
 
-            assemblyMap = OneDimAssemblyTrackLifter.liftFeatureIterFromAsm(
-                    hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
-
-            iter = assemblyMap.keySet().iterator();
+            newFeatureList = OneDimAssemblyTrackLifter.liftFeaturesFromAssem(hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
+            iter = newFeatureList.iterator();
         }
         else {
             try {
@@ -146,20 +145,14 @@ public class HiCFeatureTrack extends HiCTrack {
 
         while (iter.hasNext()) {
             IGVFeature feature = (IGVFeature) iter.next();
+
             final Color featureColor = feature.getColor();
             if (featureColor != null) {
                 g.setColor(featureColor);
             }
 
-            int startPoint, endPoint;
-            if (SuperAdapter.assemblyModeCurrentlyActive) {
-                startPoint = assemblyMap.get(feature).get("Start");
-                endPoint = assemblyMap.get(feature).get("End");
-            }
-            else {
-                startPoint = feature.getStart();
-                endPoint = feature.getEnd();
-            }
+            int startPoint = feature.getStart();
+            int endPoint = feature.getEnd();
 
             double bin1 = getFractionalBin(startPoint, scaleFactor, gridAxis);
             double bin2 = getFractionalBin(endPoint, scaleFactor, gridAxis);
@@ -200,8 +193,8 @@ public class HiCFeatureTrack extends HiCTrack {
 
                 for (Exon exon : feature.getExons()) {
                     // Possible fix for assembly tracking
-//                    bin2 = getFractionalBin(startPoint + (exon.getStart() - feature.getStart()) + (exon.getEnd() - exon.getStart()), scaleFactor, gridAxis);
-//                    bin1 = getFractionalBin(startPoint + (exon.getStart() - feature.getStart()), scaleFactor, gridAxis);
+//                    bin2 = getFractionalBin(startPoints.get(i) + (exon.getStart() - feature.getStart()) + (exon.getEnd() - exon.getStart()), scaleFactor, gridAxis);
+//                    bin1 = getFractionalBin(startPoints.get(i) + (exon.getStart() - feature.getStart()), scaleFactor, gridAxis);
 
                     bin1 = getFractionalBin(exon.getStart(), scaleFactor, gridAxis);
                     bin2 = getFractionalBin(exon.getEnd(), scaleFactor, gridAxis);

@@ -148,16 +148,13 @@ public class OneDimAssemblyTrackLifter {
         return points;
     }
 
-    public static HashMap<IGVFeature, HashMap<String, Integer>> liftFeatureIterFromAsm(
-            HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> iterItems) {
-        // Implements track lifter and assembly review for "feature" files
+    public static List<IGVFeatureCopy> liftFeaturesFromAssem(
+            HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> featureList) {
+        List<IGVFeatureCopy> newFeatureList = new ArrayList<>();
 
-        // Initialization and gathering of useful items
-        HashMap<IGVFeature, HashMap<String, Integer>> assemMap = new HashMap<>();
-
+        // Initialize
         HiCZoom zoom = hic.getZoom();
         final double scaleFactor = hic.getScaleFactor();
-
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
@@ -169,12 +166,17 @@ public class OneDimAssemblyTrackLifter {
         List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
                 (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
 
+        // Determine positions of all aggregate scaffolds
         int x1pos, x2pos;
+        HashMap<Scaffold, ArrayList<Integer>> scaffoldOriginalPositions = new HashMap<>();
         for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+            ArrayList<Integer> originalPositions = new ArrayList<>(2);
             x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
             x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
 
             // Have to case long because of thumbnail, maybe fix thumbnail instead
+            // Following results in "fragmentation" when feature is outside of window which may not be ideal if fragments are labeled in some matter
+            // could fix by extending window boundaries to include intersecting feature boundaries
             if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
                 if (!xScaffold.getInvertedVsInitial()) {
                     x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
@@ -190,31 +192,52 @@ public class OneDimAssemblyTrackLifter {
                     x1pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                 }
             }
-            for (IGVFeature feature : iterItems) {
-                HashMap<String, Integer> posPoints = new HashMap<>();
 
-                double bin1 = HiCFeatureTrack.getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
-                double bin2 = HiCFeatureTrack.getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
+            originalPositions.add(x1pos);
+            originalPositions.add(x2pos);
+            scaffoldOriginalPositions.put(xScaffold, originalPositions);
+        }
+
+        // Iterate over features and over the aggregate scaffolds the feature spans
+        for (IGVFeature feature : featureList) {
+            double bin1 = HiCFeatureTrack.getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
+            double bin2 = HiCFeatureTrack.getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
+            int curPos = 0;
+
+            IGVFeatureCopy featureFraction;
+            for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+                x1pos = scaffoldOriginalPositions.get(xScaffold).get(0);
+                x2pos = scaffoldOriginalPositions.get(xScaffold).get(1);
 
                 if (bin2 < (int) (x1pos / actualBinSize) || bin1 > (int) (x2pos / actualBinSize)) {
                     continue;
                 }
 
+                //narrow down here
+                featureFraction = new IGVFeatureCopy(feature);
+
+                if (feature.getStart()<x1pos){featureFraction.setStart(x1pos);}
+                if (feature.getEnd()>x2pos){featureFraction.setEnd(x2pos);}
+
                 int newStart, newEnd;
 
                 if (!xScaffold.getInvertedVsInitial()) {
-                    newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * feature.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * featureFraction.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
                 } else {
-                    newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * feature.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * featureFraction.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
                 }
 
-                newEnd = newStart + feature.getEnd() - feature.getStart();
+                newEnd = newStart + featureFraction.getEnd() - featureFraction.getStart();
 
-                posPoints.put("Start", newStart);
-                posPoints.put("End", newEnd);
-                assemMap.put(feature, posPoints);
+                featureFraction.setStart(newStart);
+                featureFraction.setEnd(newEnd);
+                featureFraction.updateExons(newStart, curPos);
+                featureFraction.updateStrand(feature.getStrand(), xScaffold.getInvertedVsInitial());
+                newFeatureList.add(featureFraction);
+
+                curPos += (Math.abs(newEnd - newStart));
             }
         }
-        return assemMap;
+        return newFeatureList;
     }
 }

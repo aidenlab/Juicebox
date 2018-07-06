@@ -1169,7 +1169,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(selectGroup);
 
-    final JMenuItem groupItems = new JMenuItem("Group scaffolds");
+    final JMenuItem groupItems = new JMenuItem("Merge superscaffolds");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
     groupItems.addActionListener(new ActionListener() {
       @Override
@@ -1182,7 +1182,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(groupItems);
 
-    final JMenuItem splitItems = new JMenuItem("Split scaffolds");
+    final JMenuItem splitItems = new JMenuItem("Break superscaffold");
     splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     splitItems.addActionListener(new ActionListener() {
       @Override
