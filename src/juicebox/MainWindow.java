@@ -243,7 +243,6 @@ public class MainWindow extends JFrame {
         g = pasteNEImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
-        g.dispose();
         if (isWindows) {
             pasteNEImage = windowsCreateCursor(pasteNEImage);
         }
@@ -380,6 +379,7 @@ public class MainWindow extends JFrame {
             g.setStroke(new BasicStroke(4.0f)); // 4-pixel lines
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
             g.setColor(new Color(0.5f, 0f, 0f));
             g.drawImage(img, 0, 0, null, null);
@@ -397,14 +397,13 @@ public class MainWindow extends JFrame {
                     int red = (rgb & 0xff0000) >> 16;
                     //int alpha = (rgb & 0xff000000) >> 24;
 
-                    if (red >= 169 && green >= 169 && blue >= 169) {
+                    if (red >= 240 && green >= 240 && blue >= 240) {
                         // make white transparent
                         image2.setRGB(x, y, 0);
                     }
 
                 }
             }
-
             return image2;
         }
         catch (Exception exp) {
@@ -414,10 +413,17 @@ public class MainWindow extends JFrame {
     }
 
     public void exitActionPerformed() {
-        setVisible(false);
-        dispose();
-        System.out.println("Exiting Main Window");
-        System.exit(0);
+        int option = 0;
+        if (SuperAdapter.assemblyModeCurrentlyActive) {
+            setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit? Make sure you have saved any important assembly changes.", "warning", JOptionPane.YES_NO_OPTION);
+        }
+        if (option == 0) {
+            setVisible(false);
+            dispose();
+            System.out.println("Exiting Main Window");
+            System.exit(0);
+        }
     }
 
     /**
