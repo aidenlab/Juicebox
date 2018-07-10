@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,23 +102,22 @@ public class HiCFeatureTrack extends HiCTrack {
         g.setColor(new Color(0, 150, 0));
 
         Iterator<?> iter;
-        List<IGVFeatureCopy> newFeatureList;
 
+        try {
+            iter = featureSource.getFeatures(chr, gStart, gEnd);
+            if (!iter.hasNext()) {
+                // if empty, probably because "chr" missing at start of chromosome
+                // TODO mitochondrial genes may be an issue here?
+                iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
+            }
+        } catch (IOException error) {
+            System.err.println("Error getting feature source " + error);
+            return;
+        }
+
+        //handles bed files only for now
         if (SuperAdapter.assemblyModeCurrentlyActive && getLocator().getPath().toLowerCase().endsWith(".bed")) {
             // Update features according to current assembly status
-
-            try{
-                iter = featureSource.getFeatures(chr, 0, context.getChrLength());
-                if (!iter.hasNext()) {
-                    // if empty, probably because "chr" missing at start of chromosome
-                    // TODO mitochondrial genes may be an issue here?
-                    iter = featureSource.getFeatures("chr" + chr, 0, context.getChrLength());
-                }
-            } catch(IOException error) {
-                System.err.println("Error getting feature source " + error);
-                return;
-            }
-
             ArrayList<IGVFeature> iterItems = new ArrayList<>();
 
             while (iter.hasNext()) {
@@ -126,21 +125,8 @@ public class HiCFeatureTrack extends HiCTrack {
                 iterItems.add(feature);
             }
 
-            newFeatureList = OneDimAssemblyTrackLifter.liftFeaturesFromAssem(hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
+            List<IGVFeatureCopy> newFeatureList = OneDimAssemblyTrackLifter.liftIGVFeatures(hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
             iter = newFeatureList.iterator();
-        }
-        else {
-            try {
-                iter = featureSource.getFeatures(chr, gStart, gEnd);
-                if (!iter.hasNext()) {
-                    // if empty, probably because "chr" missing at start of chromosome
-                    // TODO mitochondrial genes may be an issue here?
-                    iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
-                }
-            } catch (IOException error) {
-                System.err.println("Error getting feature source " + error);
-                return;
-            }
         }
 
         while (iter.hasNext()) {

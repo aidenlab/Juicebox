@@ -86,7 +86,7 @@ public class HiCDataTrack extends HiCTrack {
                     gridAxis, hic.getScaleFactor(), windowFunction);
             // fix this case w ordering modifications
         } else if (SuperAdapter.assemblyModeCurrentlyActive) {
-            data = OneDimAssemblyTrackLifter.liftDataArrayFromAsm(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
+            data = OneDimAssemblyTrackLifter.liftDataArray(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
         } else {
             data = dataSource.getData(context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);
