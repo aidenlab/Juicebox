@@ -103,10 +103,16 @@ public class HiCFeatureTrack extends HiCTrack {
 
         Iterator<?> iter;
 
+        if (SuperAdapter.assemblyModeCurrentlyActive) {
+            // Update features according to current assembly status
+            gStart = 0;
+            gEnd = context.getChrLength();
+        }
+
         try {
             iter = featureSource.getFeatures(chr, gStart, gEnd);
             if (!iter.hasNext()) {
-                // if empty, probably because "chr" missing at start of chromosome
+                // if empty probably because "chr" missing at start of chromosome
                 // TODO mitochondrial genes may be an issue here?
                 iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
             }
@@ -117,7 +123,7 @@ public class HiCFeatureTrack extends HiCTrack {
 
         //handles bed files only for now
         if (SuperAdapter.assemblyModeCurrentlyActive && getLocator().getPath().toLowerCase().endsWith(".bed")) {
-            // Update features according to current assembly status
+            // update features according to assembly status
             ArrayList<IGVFeature> iterItems = new ArrayList<>();
 
             while (iter.hasNext()) {
