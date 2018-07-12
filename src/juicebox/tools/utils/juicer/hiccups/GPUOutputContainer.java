@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -126,7 +127,7 @@ public class GPUOutputContainer {
         if (rowIndex >= 0 && rowIndex < maxRows) {
             if (columnIndex >= 0 && columnIndex < maxColumns) {
                 histogram[rowIndex][columnIndex] += 1;
-                if (histogram[rowIndex][columnIndex] < 0) {
+                if (HiCGlobals.printVerboseComments && histogram[rowIndex][columnIndex] < 0) {
                     System.out.println("earlier source row " + rowIndex + " col " + columnIndex + " -- " + histogram[rowIndex][columnIndex]);
                 }
             }

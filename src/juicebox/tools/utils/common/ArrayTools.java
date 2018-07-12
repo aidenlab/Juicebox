@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.common;
 
+import juicebox.HiCGlobals;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.io.PrintWriter;
@@ -102,7 +103,7 @@ public class ArrayTools {
         long[][] rcsData = new long[data.length][data[0].length];
         for (int i = 0; i < data.length; i++) {
             rcsData[i] = ArrayTools.makeReverseCumulativeArray(data[i]);
-            if (data[i][0] < 0) {
+            if (HiCGlobals.printVerboseComments && data[i][0] < 0) {
                 System.out.println("poss source2: i " + i + "  " + data[i][0]);
             }
         }
