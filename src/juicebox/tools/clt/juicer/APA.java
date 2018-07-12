@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -214,12 +214,12 @@ public class APA extends JuicerCLT {
         int L = 2 * window + 1;
         List<String> summedHiCFiles = Arrays.asList(hicFilePaths.split("\\+"));
 
-        Integer[] gwPeakNumbers = new Integer[3];
-        for (int i = 0; i < gwPeakNumbers.length; i++)
-            gwPeakNumbers[i] = 0;
-
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
+
+            Integer[] gwPeakNumbers = new Integer[3];
+            for (int i = 0; i < gwPeakNumbers.length; i++)
+                gwPeakNumbers[i] = 0;
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;
