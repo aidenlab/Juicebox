@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -156,6 +156,14 @@ public class HiCCUPSDiff extends JuicerCLT {
             int matrixSize = juicerParser.getMatrixSizeOption();
             if (matrixSize <= 0) matrixSize = 1024;
 
+            boolean usingCPUVersion = false;
+            if (juicerParser.getCPUVersionOfHiCCUPSOptions()) {
+                usingCPUVersion = true;
+                System.out.println("WARNING - You are using the CPU version of HiCCUPS.\n" +
+                        "The GPU version of HiCCUPS is the official version and has been tested extensively.\n" +
+                        "The CPU version only searches for loops within 4MB of the diagonal and is still experimental.\n");
+            }
+
             double[] thresholds = null;
             List<String> t = juicerParser.getThresholdOptions();
             if (t != null && t.size() == 4) {
@@ -166,9 +174,9 @@ public class HiCCUPSDiff extends JuicerCLT {
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
             hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4],
-                    norm, matrixSize, commonChromosomesHandler, configs, thresholds);
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
             hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3],
-                    norm, matrixSize, commonChromosomesHandler, configs, thresholds);
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
         }
     }
 

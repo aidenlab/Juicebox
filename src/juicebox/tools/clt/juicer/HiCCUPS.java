@@ -239,7 +239,7 @@ public class HiCCUPS extends JuicerCLT {
             restrictSearchRegions = true;
             System.out.println("WARNING - You are using the CPU version of HiCCUPS.\n" +
                     "The GPU version of HiCCUPS is the official version and has been tested extensively.\n" +
-                    "The CPU version only searches for loops within 4MB of the diagonal and is is still experimental.\n");
+                    "The CPU version only searches for loops within 4MB of the diagonal and is still experimental.\n");
         }
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
@@ -278,7 +278,7 @@ public class HiCCUPS extends JuicerCLT {
     public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath,
                                    String featureListPath, NormalizationType preferredNorm, int matrixSize,
                                    ChromosomeHandler providedCommonChromosomeHandler,
-                                   List<HiCCUPSConfiguration> configurations, double[] thresholds) {
+                                   List<HiCCUPSConfiguration> configurations, double[] thresholds, boolean usingCPUVersion) {
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -305,6 +305,11 @@ public class HiCCUPS extends JuicerCLT {
 
         // force hiccups to run
         checkMapDensityThreshold = false;
+
+        if (usingCPUVersion) {
+            useCPUVersionHiCCUPS = true;
+            restrictSearchRegions = true;
+        }
     }
 
     @Override
