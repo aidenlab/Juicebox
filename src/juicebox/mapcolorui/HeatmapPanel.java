@@ -1125,50 +1125,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
-      final JMenuItem selectGroup = new JMenuItem("Select superscaffold");
-      final Feature2DGuiContainer curSuperscaffold = getMouseHoverSuperscaffold();
-      selectGroup.setEnabled(curSuperscaffold != null && (selectedFeatures == null || selectedFeatures.isEmpty()));
-      selectGroup.addActionListener(new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-              updateSelectedFeatures(false);
-              final List<Feature2D> newSelectedFeatures = new ArrayList<>();
-              final AssemblyScaffoldHandler curHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-
-              // Obtain scaffolds from superscaffold
-              final int curSuperId = Integer.parseInt(curSuperscaffold.getFeature2D().getAttribute("Superscaffold #"));
-              final List<Integer> curScaffolds = curHandler.getListOfSuperscaffolds().get(curSuperId - 1);
-
-              for (int scaffold : curScaffolds) {
-                final int scaffoldId = Math.abs(scaffold) - 1;
-                newSelectedFeatures.add(curHandler.getListOfScaffolds().get(scaffoldId).getCurrentFeature2D());
-              }
-
-              selectedFeatures = newSelectedFeatures;
-              updateSelectedFeatures(true);
-
-              Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-              Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-              superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-              repaint();
-
-              if (superAdapter.getMainLayer().getLayerVisibility()) {
-                  tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-                  addHighlightedFeature(tempSelectedGroup);
-              }
-              else {
-                  removeHighlightedFeature();
-              }
-
-              superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-              superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-
-              currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
-
-          }
-      });
-      menu.add(selectGroup);
-
     final JMenuItem groupItems = new JMenuItem("Merge superscaffolds");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
     groupItems.addActionListener(new ActionListener() {
@@ -1221,24 +1177,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     menu.add(miRedo);
 
     return menu;
-  }
-
-  private Feature2DGuiContainer getMouseHoverSuperscaffold() {
-      Feature2DGuiContainer curSuper = null;
-      final Point a = MouseInfo.getPointerInfo().getLocation();
-
-      if (activelyEditingAssembly) {
-        for (Feature2DGuiContainer loop : allFeaturePairs) {
-          if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
-            if (loop.getRectangle().contains(a.x - getLocationOnScreen().x, a.y - getLocationOnScreen().y)) {
-              curSuper = loop;
-              break;
-            }
-          }
-        }
-      }
-
-      return curSuper;
   }
 
   private void addJumpToDiagonalMenuItems(JidePopupMenu menu, int xMousePos, int yMousePos) {
@@ -1778,6 +1716,43 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
   }
 
+  private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
+    final Point mousePoint = calculateSelectionPoint(x, y);
+
+    if (activelyEditingAssembly) {
+      for (Feature2DGuiContainer loop : allFeaturePairs) {
+        if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
+          if (new Rectangle(
+                  loop.getFeature2D().getStart1(), loop.getFeature2D().getStart2(),
+                  loop.getFeature2D().getWidth1(), loop.getFeature2D().getWidth2()).contains(mousePoint)) {
+            return loop;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private Point calculateSelectionPoint(int unscaledX, int unscaledY) {
+    final MatrixZoomData zd;
+    try {
+      zd = hic.getZd();
+    } catch (Exception err) {
+      return null;
+    }
+
+    final HiCGridAxis xAxis = zd.getXGridAxis();
+    final HiCGridAxis yAxis = zd.getYGridAxis();
+    final double binOriginX = hic.getXContext().getBinOrigin();
+    final double binOriginY = hic.getYContext().getBinOrigin();
+    final double scale = hic.getScaleFactor();
+
+    float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
+    float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
+    return new Point((int) x, (int) y);
+  }
+
   class HeatmapMouseHandler extends MouseAdapter {
 
     private static final int clickLong = 400;
@@ -1982,6 +1957,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
           updateSelectedFeatures(false);
           List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
+          Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
+
+          if (newSelectedSuperscaffold != null) {
+            final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+                    Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
+            List<Feature2D> updatedNewSelectedFeatures = new ArrayList<>();
+
+            for (int scaffold : curScaffolds) {
+              final int scaffoldId = Math.abs(scaffold) - 1;
+              Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(scaffoldId).getCurrentFeature2D();
+              Rectangle curScaffoldRectangle = new Rectangle(curScaffold.getStart1(), curScaffold.getStart2(), curScaffold.getWidth1(), curScaffold.getWidth2());
+              Point mouseScaled = calculateSelectionPoint(e.getX(), e.getY());
+
+              if (mouseScaled == null || curScaffoldRectangle.contains(mouseScaled)) {
+                updatedNewSelectedFeatures.clear();
+                break;
+              }
+
+              updatedNewSelectedFeatures.add(curScaffold);
+            }
+
+            if (updatedNewSelectedFeatures != null && updatedNewSelectedFeatures.size() > 0) {
+              newSelectedFeatures = updatedNewSelectedFeatures;
+            }
+          }
 
           Collections.sort(newSelectedFeatures);
 
@@ -2298,7 +2298,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         // Set check if hovering over feature corner
 
-        // Following was commented out since it was causing flickering of the cursor on windows machines, don't know if it was necessary
+        // Following was commented out since it was causing flickering of the cursor on windows machines, don't know if was necessary
 //        setCursor(Cursor.getDefaultCursor());
         int minDist = 20;
         if (currentFeature != null) {
