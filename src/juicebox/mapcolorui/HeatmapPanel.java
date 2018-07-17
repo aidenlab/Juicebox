@@ -1957,29 +1957,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
           updateSelectedFeatures(false);
           List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
-          Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
 
-          if (newSelectedSuperscaffold != null) {
-            final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
-                    Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
-            List<Feature2D> updatedNewSelectedFeatures = new ArrayList<>();
+          // selects superscaffold
+          if ((newSelectedFeatures == null || newSelectedFeatures.size() == 0) && (selectedFeatures == null || selectedFeatures.size() == 0)) {
+            Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
 
-            for (int scaffold : curScaffolds) {
-              final int scaffoldId = Math.abs(scaffold) - 1;
-              Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(scaffoldId).getCurrentFeature2D();
-              Rectangle curScaffoldRectangle = new Rectangle(curScaffold.getStart1(), curScaffold.getStart2(), curScaffold.getWidth1(), curScaffold.getWidth2());
-              Point mouseScaled = calculateSelectionPoint(e.getX(), e.getY());
+            if (newSelectedSuperscaffold != null) {
+              final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
 
-              if (mouseScaled == null || curScaffoldRectangle.contains(mouseScaled)) {
-                updatedNewSelectedFeatures.clear();
-                break;
+              newSelectedFeatures.clear();
+              for (int scaffold : curScaffolds) {
+                Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
+                newSelectedFeatures.add(curScaffold);
               }
-
-              updatedNewSelectedFeatures.add(curScaffold);
-            }
-
-            if (updatedNewSelectedFeatures != null && updatedNewSelectedFeatures.size() > 0) {
-              newSelectedFeatures = updatedNewSelectedFeatures;
             }
           }
 
@@ -2036,7 +2027,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
           currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
 
           restoreDefaultVariables();
-
         } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
           Runnable runnable = new Runnable() {
             @Override
