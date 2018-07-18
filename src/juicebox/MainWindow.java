@@ -244,7 +244,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            pasteNEImage = windowsCreateCursor(pasteNEImage);
+            pasteNEImage = windowsCreateCursor(pasteNEImage, 240);
         }
         pasteNECursor = getToolkit().createCustomCursor(pasteNEImage, new Point(8, 6), "PasteNE");
 
@@ -258,7 +258,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            pasteSWImage = windowsCreateCursor(pasteSWImage);
+            pasteSWImage = windowsCreateCursor(pasteSWImage, 240);
         }
         pasteSWCursor = getToolkit().createCustomCursor(pasteSWImage, new Point(8, 6), "PasteSW");
 
@@ -272,7 +272,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-nw-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            pasteNWImage = windowsCreateCursor(pasteNWImage);
+            pasteNWImage = windowsCreateCursor(pasteNWImage, 240);
         }
         pasteNWCursor = getToolkit().createCustomCursor(pasteNWImage, new Point(8, 6), "PasteNW");
 
@@ -286,7 +286,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-se-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            pasteSEImage = windowsCreateCursor(pasteSEImage);
+            pasteSEImage = windowsCreateCursor(pasteSEImage, 240);
         }
         pasteSECursor = getToolkit().createCustomCursor(pasteSEImage, new Point(8, 6), "PasteSE");
 
@@ -301,7 +301,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-invert.png"), "invert");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            invertNEImage = windowsCreateCursor(invertNEImage);
+            invertNEImage = windowsCreateCursor(invertNEImage, 240);
         }
         invertNECursor = getToolkit().createCustomCursor(invertNEImage, new Point(8, 6), "InvertNE");
 
@@ -315,7 +315,7 @@ public class MainWindow extends JFrame {
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-invert.png"), "invert");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         if (isWindows) {
-            invertSWImage = windowsCreateCursor(invertSWImage);
+            invertSWImage = windowsCreateCursor(invertSWImage, 240);
         }
         invertSWCursor = getToolkit().createCustomCursor(invertSWImage, new Point(8, 6), "InvertSW");
 
@@ -326,13 +326,11 @@ public class MainWindow extends JFrame {
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
         g = scissorImage.createGraphics();
-        if (isWindows) {
-            imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/windows/small-scissors.png"), "cut");
-        }
-        else {
-            imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "cut");
-        }
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "cut");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            scissorImage = windowsCreateCursor(scissorImage, 141);
+        }
         scissorCursor = getToolkit().createCustomCursor(scissorImage, new Point(8, 6), "Scissors");
 
         // Group prompts
@@ -359,7 +357,7 @@ public class MainWindow extends JFrame {
         groupSWCursor = getToolkit().createCustomCursor(groupSWImage, new Point(8, 6), "GroupSW");
     }
 
-    private BufferedImage windowsCreateCursor(BufferedImage img) {
+    private BufferedImage windowsCreateCursor(BufferedImage img, int thresholdVal) {
         try {
             int size = 32;
 
@@ -395,9 +393,8 @@ public class MainWindow extends JFrame {
                     int blue = rgb & 0xff;
                     int green = (rgb & 0xff00) >> 8;
                     int red = (rgb & 0xff0000) >> 16;
-                    //int alpha = (rgb & 0xff000000) >> 24;
 
-                    if (red >= 240 && green >= 240 && blue >= 240) {
+                    if (red >= thresholdVal && green >= thresholdVal && blue >= thresholdVal) {
                         // make white transparent
                         image2.setRGB(x, y, 0);
                     }

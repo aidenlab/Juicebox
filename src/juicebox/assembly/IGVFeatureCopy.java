@@ -45,6 +45,7 @@ public class IGVFeatureCopy implements IGVFeature {
     private Color color;
     private MultiMap<String, String> attributes;
     private float score;
+    public static boolean colorFeaturesChk = false;
 
     public IGVFeatureCopy(IGVFeature feature) {
         this.origFeat = feature;
@@ -89,23 +90,36 @@ public class IGVFeatureCopy implements IGVFeature {
     }
 
     public void updateStrand(Strand curStrand, boolean inversionState) {
-        Strand newStrand;
+      Strand newStrand;
 
-        if (!inversionState) {
-            newStrand = curStrand;
+      if (!inversionState) {
+          newStrand = curStrand;
+      }
+      else {
+        if (colorFeaturesChk) {
+          // Update color to complement color
+          int r = color.getRed();
+          int g = color.getGreen();
+          int b = color.getBlue();
+          color = new Color(~r & 0xff, ~g & 0xff, ~b & 0xff);
+        }
+
+        // Update strand orientation
+        if (curStrand == Strand.POSITIVE) {
+            newStrand = Strand.NEGATIVE;
+        }
+        else if (curStrand == Strand.NEGATIVE) {
+            newStrand = Strand.POSITIVE;
         }
         else {
-            if (curStrand == Strand.POSITIVE) {
-                newStrand = Strand.NEGATIVE;
-            }
-            else if (curStrand == Strand.NEGATIVE) {
-                newStrand = Strand.POSITIVE;
-            }
-            else {
-                newStrand = strand;
-            }
+            newStrand = strand;
         }
-        this.strand = newStrand;
+      }
+      this.strand = newStrand;
+    }
+
+    public static void invertColorFeaturesChk() {
+      colorFeaturesChk = !colorFeaturesChk;
     }
 
     public void setStart(int newStart) {

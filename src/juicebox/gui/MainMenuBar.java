@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
+import juicebox.assembly.IGVFeatureCopy;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -520,7 +521,20 @@ public class MainMenuBar extends JMenuBar {
             devMenu.add(displayTiles);
         }
 
-        JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
+        final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Enable 1D Annotation Colors");
+        colorFeatures.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            IGVFeatureCopy.invertColorFeaturesChk();
+          }
+        });
+        colorFeatures.setSelected(IGVFeatureCopy.colorFeaturesChk);
+        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+          devMenu.add(colorFeatures);
+        }
+
+
+      JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
