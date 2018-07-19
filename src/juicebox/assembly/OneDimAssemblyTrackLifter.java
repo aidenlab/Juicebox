@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.IGVFeature;
 import org.broad.igv.track.WindowFunction;
 
@@ -202,40 +203,71 @@ public class OneDimAssemblyTrackLifter {
         for (IGVFeature feature : featureList) {
             double bin1 = HiCFeatureTrack.getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
             double bin2 = HiCFeatureTrack.getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
-            int curPos = 0;
 
             IGVFeatureCopy featureFraction;
             for (Scaffold xScaffold : xAxisAggregateScaffolds) {
-                x1pos = scaffoldOriginalPositions.get(xScaffold).get(0);
-                x2pos = scaffoldOriginalPositions.get(xScaffold).get(1);
+              x1pos = scaffoldOriginalPositions.get(xScaffold).get(0);
+              x2pos = scaffoldOriginalPositions.get(xScaffold).get(1);
 
-                if (bin2 < (int) (x1pos / actualBinSize) || bin1 > (int) (x2pos / actualBinSize)) {
+              if (bin2 < (int) (x1pos / actualBinSize) || bin1 > (int) (x2pos / actualBinSize)) {
+                  continue;
+              }
+
+              featureFraction = new IGVFeatureCopy(feature);
+
+              if (feature.getStart()<x1pos){featureFraction.setStart(x1pos);}
+              if (feature.getEnd()>x2pos){featureFraction.setEnd(x2pos);}
+
+              int newStart, newEnd;
+
+              if (!xScaffold.getInvertedVsInitial()) {
+                  newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * featureFraction.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+              } else {
+                  newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * featureFraction.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+              }
+
+              newEnd = newStart + featureFraction.getEnd() - featureFraction.getStart();
+
+              featureFraction.setStart(newStart);
+              featureFraction.setEnd(newEnd);
+              featureFraction.updateStrand(feature.getStrand(), xScaffold.getInvertedVsInitial());
+
+              // Update exons
+              if (feature.getExons() != null) {
+                List<Exon> newExons = new ArrayList<>();
+
+                for (Exon exon : feature.getExons()) {
+
+                  double exonBin1 = HiCFeatureTrack.getFractionalBin(exon.getStart(), scaleFactor, gridAxis);
+                  double exonBin2 = HiCFeatureTrack.getFractionalBin(exon.getEnd(), scaleFactor, gridAxis);
+                  if (exonBin2 < (int) (x1pos / actualBinSize) || exonBin1 > (x2pos / actualBinSize)) {
                     continue;
+                  }
+
+                  Exon newExon = new Exon(featureFraction.getChr(), exon.getStart(), exon.getEnd(), featureFraction.getStrand());
+
+                  if (exon.getStart()<x1pos){newExon.setStart(x1pos);}
+                  if (exon.getEnd()>x2pos){newExon.setEnd(x2pos);}
+
+                  int newExonStart, newExonEnd;
+
+                  if (!xScaffold.getInvertedVsInitial()) {
+                    newExonStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * newExon.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                  } else {
+                    newExonStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * newExon.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                  }
+
+                  newExonEnd = newExonStart + newExon.getEnd() - newExon.getStart();
+                  newExon.setStart(newExonStart);
+                  newExon.setEnd(newExonEnd);
+
+                  newExons.add(newExon);
                 }
 
-                //narrow down here
-                featureFraction = new IGVFeatureCopy(feature);
+                featureFraction.updateExons(newExons);
+              }
 
-                if (feature.getStart()<x1pos){featureFraction.setStart(x1pos);}
-                if (feature.getEnd()>x2pos){featureFraction.setEnd(x2pos);}
-
-                int newStart, newEnd;
-
-                if (!xScaffold.getInvertedVsInitial()) {
-                    newStart = (int) ((xScaffold.getCurrentStart() + (HiCGlobals.hicMapScale * featureFraction.getStart()) - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                } else {
-                    newStart = (int) ((xScaffold.getCurrentEnd() - (HiCGlobals.hicMapScale * featureFraction.getEnd()) + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                }
-
-                newEnd = newStart + featureFraction.getEnd() - featureFraction.getStart();
-
-                featureFraction.setStart(newStart);
-                featureFraction.setEnd(newEnd);
-                featureFraction.updateExons(newStart, curPos);
-                featureFraction.updateStrand(feature.getStrand(), xScaffold.getInvertedVsInitial());
-                newFeatureList.add(featureFraction);
-
-                curPos += (Math.abs(newEnd - newStart));
+              newFeatureList.add(featureFraction);
             }
         }
         return newFeatureList;

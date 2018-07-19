@@ -121,8 +121,8 @@ public class HiCFeatureTrack extends HiCTrack {
             return;
         }
 
-        //handles bed files only for now
-        if (SuperAdapter.assemblyModeCurrentlyActive && getLocator().getPath().toLowerCase().endsWith(".bed")) {
+        //handles bed and gff files only for now
+        if (SuperAdapter.assemblyModeCurrentlyActive && (getLocator().getPath().toLowerCase().endsWith(".bed") || getLocator().getPath().toLowerCase().endsWith(".gff"))) {
             // update features according to assembly status
             ArrayList<IGVFeature> iterItems = new ArrayList<>();
 

@@ -33,7 +33,6 @@ import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.collections.MultiMap;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class IGVFeatureCopy implements IGVFeature {
@@ -66,27 +65,8 @@ public class IGVFeatureCopy implements IGVFeature {
         this.exons = feature.getExons();
     }
 
-    public void updateExons(int newStart, int currentStartPos) {
-        List<Exon> originalExons = origFeat.getExons();
-        if (originalExons == null) {
-            this.exons = null;
-        } else {
-            int origStart = origFeat.getStart();
-            int currentEndPos = currentStartPos + length;
-            List<Exon> newList = new ArrayList<>();
-
-            for (Exon exon : originalExons) {
-                int exonPos = exon.getStart() - origStart;
-
-                if (exonPos > currentEndPos || exonPos < currentStartPos) {
-                    continue;
-                }
-                int exonLength = exon.getEnd() - exon.getStart();
-                newList.add(new Exon(chr, exonPos + newStart, exonPos + newStart + exonLength, strand));
-            }
-
-            this.exons = newList;
-        }
+    public void updateExons(List<Exon> newExons) {
+      exons = newExons;
     }
 
     public void updateStrand(Strand curStrand, boolean inversionState) {
