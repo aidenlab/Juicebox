@@ -1125,7 +1125,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
-    final JMenuItem groupItems = new JMenuItem("Merge superscaffolds");
+    final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
     groupItems.addActionListener(new ActionListener() {
       @Override
@@ -1138,7 +1138,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(groupItems);
 
-    final JMenuItem splitItems = new JMenuItem("Break superscaffold");
+    final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
     splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     splitItems.addActionListener(new ActionListener() {
       @Override

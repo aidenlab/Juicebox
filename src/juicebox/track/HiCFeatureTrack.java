@@ -131,7 +131,7 @@ public class HiCFeatureTrack extends HiCTrack {
                 iterItems.add(feature);
             }
 
-            List<IGVFeatureCopy> newFeatureList = OneDimAssemblyTrackLifter.liftIGVFeatures(hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems);
+            List<IGVFeatureCopy> newFeatureList = OneDimAssemblyTrackLifter.liftIGVFeatures(hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, iterItems, getLocator().getPath().toLowerCase().endsWith(".bed"));
             iter = newFeatureList.iterator();
         }
 
@@ -184,10 +184,6 @@ public class HiCFeatureTrack extends HiCTrack {
                 }
 
                 for (Exon exon : feature.getExons()) {
-                    // Possible fix for assembly tracking
-//                    bin2 = getFractionalBin(startPoints.get(i) + (exon.getStart() - feature.getStart()) + (exon.getEnd() - exon.getStart()), scaleFactor, gridAxis);
-//                    bin1 = getFractionalBin(startPoints.get(i) + (exon.getStart() - feature.getStart()), scaleFactor, gridAxis);
-
                     bin1 = getFractionalBin(exon.getStart(), scaleFactor, gridAxis);
                     bin2 = getFractionalBin(exon.getEnd(), scaleFactor, gridAxis);
 

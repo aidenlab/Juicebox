@@ -150,7 +150,7 @@ public class OneDimAssemblyTrackLifter {
     }
 
     public static List<IGVFeatureCopy> liftIGVFeatures(
-            HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> featureList) {
+            HiC hic, Chromosome chromosome, int binX1, int binX2, HiCGridAxis gridAxis, ArrayList<IGVFeature> featureList, boolean isBed) {
         List<IGVFeatureCopy> newFeatureList = new ArrayList<>();
 
         // Initialize
@@ -230,7 +230,7 @@ public class OneDimAssemblyTrackLifter {
 
               featureFraction.setStart(newStart);
               featureFraction.setEnd(newEnd);
-              featureFraction.updateStrand(feature.getStrand(), xScaffold.getInvertedVsInitial());
+              featureFraction.updateStrand(feature.getStrand(), xScaffold.getInvertedVsInitial(), isBed);
 
               // Update exons
               if (feature.getExons() != null) {

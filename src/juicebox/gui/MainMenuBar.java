@@ -526,6 +526,7 @@ public class MainMenuBar extends JMenuBar {
           @Override
           public void actionPerformed(ActionEvent e) {
             IGVFeatureCopy.invertColorFeaturesChk();
+            repaint();
           }
         });
         colorFeatures.setSelected(IGVFeatureCopy.colorFeaturesChk);
