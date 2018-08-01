@@ -25,6 +25,7 @@
 package juicebox.gui;
 
 import juicebox.DirectoryManager;
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.assembly.IGVFeatureCopy;
@@ -104,435 +105,448 @@ public class MainMenuBar extends JMenuBar {
     }
 
     private void createMenuBar(final SuperAdapter superAdapter) {
-        //======== fileMenu ========
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setMnemonic('F');
+      //======== fileMenu ========
+      JMenu fileMenu = new JMenu("File");
+      fileMenu.setMnemonic('F');
 
-        JMenuItem newWindow = new JMenuItem("New Window");
-        newWindow.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                ProcessHelper p = new ProcessHelper();
-                try {
-                    p.startNewJavaProcess();
-                } catch (IOException error) {
-                    superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
+      JMenuItem newWindow = new JMenuItem("New Window");
+      newWindow.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              ProcessHelper p = new ProcessHelper();
+              try {
+                  p.startNewJavaProcess();
+              } catch (IOException error) {
+                  superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+              }
+          }
+      });
 
-        fileMenu.add(newWindow);
+      fileMenu.add(newWindow);
 
-        //---- openMenuItem ----
+      //---- openMenuItem ----
 
-        // create control first because it is enabled by regular open
-        loadControlFromList.setText("Open as Control...");
-        loadControlFromList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadFromListActionPerformed(true);
-            }
-        });
-        loadControlFromList.setEnabled(false);
+      // create control first because it is enabled by regular open
+      loadControlFromList.setText("Open as Control...");
+      loadControlFromList.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.loadFromListActionPerformed(true);
+          }
+      });
+      loadControlFromList.setEnabled(false);
 
-        JMenuItem openItem = new JMenuItem("Open...");
-        openItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadFromListActionPerformed(false);
-            }
-        });
-        fileMenu.add(openItem);
-        fileMenu.add(loadControlFromList);
+      JMenuItem openItem = new JMenuItem("Open...");
+      openItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.loadFromListActionPerformed(false);
+          }
+      });
+      fileMenu.add(openItem);
+      fileMenu.add(loadControlFromList);
 
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
+      recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-            private static final long serialVersionUID = 4202L;
+          private static final long serialVersionUID = 4202L;
 
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
+          public void onSelectPosition(String mapPath) {
+              String delimiter = "@@";
+              String[] temp;
+              temp = mapPath.split(delimiter);
 //                initProperties();         // don't know why we're doing this here
-                superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-            }
-        };
-        recentMapMenu.setMnemonic('R');
+              superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
+          }
+      };
+      recentMapMenu.setMnemonic('R');
 
-        fileMenu.add(recentMapMenu);
+      fileMenu.add(recentMapMenu);
 
-        recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
+      recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-            private static final long serialVersionUID = 42012L;
+          private static final long serialVersionUID = 42012L;
 
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
-                //initProperties();         // don't know why we're doing this here
-                superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
-            }
-        };
-        //recentControlMapMenu.setMnemonic('r');
-        recentControlMapMenu.setEnabled(false);
-        fileMenu.add(recentControlMapMenu);
-        fileMenu.addSeparator();
+          public void onSelectPosition(String mapPath) {
+              String delimiter = "@@";
+              String[] temp;
+              temp = mapPath.split(delimiter);
+              //initProperties();         // don't know why we're doing this here
+              superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
+          }
+      };
+      //recentControlMapMenu.setMnemonic('r');
+      recentControlMapMenu.setEnabled(false);
+      fileMenu.add(recentControlMapMenu);
+      fileMenu.addSeparator();
 
-        showStats = new JMenuItem("Show Dataset Metrics");
-        showStats.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                superAdapter.showDataSetMetrics(false);
-            }
-        });
-        showStats.setEnabled(false);
+      showStats = new JMenuItem("Show Dataset Metrics");
+      showStats.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+              superAdapter.showDataSetMetrics(false);
+          }
+      });
+      showStats.setEnabled(false);
 
-        showControlStats = new JMenuItem("Show Control Dataset Metrics");
-        showControlStats.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                superAdapter.showDataSetMetrics(true);
-            }
-        });
-        showControlStats.setEnabled(false);
-
-
-        fileMenu.add(showStats);
-        fileMenu.add(showControlStats);
-        fileMenu.addSeparator();
+      showControlStats = new JMenuItem("Show Control Dataset Metrics");
+      showControlStats.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+              superAdapter.showDataSetMetrics(true);
+          }
+      });
+      showControlStats.setEnabled(false);
 
 
-        // TODO: make this an export of the data on screen instead of a GUI for CLT
-        if (!HiCGlobals.isRestricted) {
-            JMenuItem dump = new JMenuItem("Export Data...");
-            dump.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    superAdapter.exportDataLauncher();
-                }
-            });
-            fileMenu.add(dump);
-        }
-
-        JMenuItem creditsMenu = new JMenuItem();
-        creditsMenu.setText("About");
-        creditsMenu.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
-                JLabel iconLabel = new JLabel(icon);
-                JPanel iconPanel = new JPanel(new GridBagLayout());
-                iconPanel.add(iconLabel);
-
-                JPanel textPanel = new JPanel(new GridLayout(0, 1));
-                textPanel.add(new JLabel("<html><center>" +
-                        "<h3 style=\"margin-bottom:30px;\" class=\"header\">" +
-                        "Juicebox: Visualization software for Hi-C data" +
-                        "</h3>" +
-                        "</center>" +
-                        "<p>" +
-                        "Juicebox is the Aiden Lab's software for visualizing data<br>" +
-                        "from proximity ligation experiments, such as Hi-C.<br>" +
-                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
-                        "and Erez Aiden. Ongoing development work is carried<br>" +
-                        "out by " +
-                        "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
-                        "and Marie Hoeger.<br><br>" +
-                        "Current version: " + HiCGlobals.versionNum + "<br>" +
-                        "Copyright © 2014. Broad Institute and Aiden Lab" +
-                        "<br><br>" +
-                        "" +
-                        "If you use Juicebox in your research, please cite:<br><br>" +
-                        "" +
-                        "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S.<br>Shamim, " +
-                        "Ido Machol, Jill P. Mesirov, Eric S. Lander, and<br>Erez Lieberman Aiden.<br>" +
-                        " \"Juicebox provides a visualization system for Hi-C<br>contact maps " +
-                        "with unlimited zoom.\" <em>Cell Systems</em><br>July 2016.</strong>" +
-                        "<br><br>" +
-                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
-                        "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
-                        "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
-                        "* contributed equally" +
-                        "</p></html>"));
-
-                JPanel mainPanel = new JPanel(new BorderLayout());
-                mainPanel.add(textPanel);
-                mainPanel.add(iconPanel, BorderLayout.WEST);
-
-                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
-            }
-        });
-        fileMenu.add(creditsMenu);
-
-        //---- exit ----
-        JMenuItem exit = new JMenuItem();
-        exit.setText("Exit");
-        exit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.exitActionPerformed();
-            }
-        });
-        fileMenu.add(exit);
-
-        JMenu bookmarksMenu = new JMenu("Bookmarks");
-        //---- Save location ----
-        saveLocationList = new JMenuItem("Save Current Location");
-        saveLocationList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //code to add a recent location to the menu
-                String stateString = superAdapter.getLocationDescription();
-                String stateDescription = superAdapter.getDescription("location");
-                if (stateDescription != null && stateDescription.length() > 0) {
-                    addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
-                    recentLocationMenu.setEnabled(true);
-                }
-            }
-        });
-        bookmarksMenu.add(saveLocationList);
-        saveLocationList.setEnabled(false);
-        //---Save State test-----
-        saveStateForReload = new JMenuItem();
-        saveStateForReload.setText("Save Current State");
-        saveStateForReload.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                //code to add a recent location to the menu
-                try {
-                    String stateDescription = superAdapter.getDescription("state");
-                    if (stateDescription != null && stateDescription.length() > 0) {
-                        stateDescription = previousStates.checkForDuplicateNames(stateDescription);
-                        if (stateDescription == null || stateDescription.length() < 0) {
-                            return;
-                        }
-                        previousStates.addEntry(stateDescription, true);
-                        superAdapter.addNewStateToXML(stateDescription);
-                        previousStates.setEnabled(true);
-                    }
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
-
-        saveStateForReload.setEnabled(false);
-        bookmarksMenu.add(saveStateForReload);
-
-        recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
-
-            private static final long serialVersionUID = 4204L;
-
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
-                superAdapter.restoreLocation(temp[1]);
-                superAdapter.setNormalizationDisplayState();
-
-            }
-        };
-        recentLocationMenu.setMnemonic('S');
-        recentLocationMenu.setEnabled(false);
-        bookmarksMenu.add(recentLocationMenu);
-
-        //---Export States----
-        exportSavedStateMenuItem = new JMenuItem();
-        exportSavedStateMenuItem.setText("Export Saved States");
-        exportSavedStateMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
-            }
-        });
-
-        // restore recent saved states
-        previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
-
-            private static final long serialVersionUID = 4205L;
-
-            public void onSelectPosition(String mapPath) {
-                superAdapter.launchLoadStateFromXML(mapPath);
-            }
-
-            @Override
-            public void setEnabled(boolean b) {
-                super.setEnabled(b);
-                exportSavedStateMenuItem.setEnabled(b);
-            }
-        };
-
-        bookmarksMenu.add(previousStates);
-
-        //---Import States----
-        importMapAsFile = new JMenuItem();
-        importMapAsFile.setText("Import State From File");
-        importMapAsFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchImportState(HiCGlobals.xmlSavedStatesFile);
-                importMapAsFile.setSelected(true);
-            }
-        });
+      fileMenu.add(showStats);
+      fileMenu.add(showControlStats);
+      fileMenu.addSeparator();
 
 
-        //---Slideshow----
-        slideShow = new JMenuItem();
-        slideShow.setText("View Slideshow");
-        slideShow.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchSlideShow();
-                HiCGlobals.slideshowEnabled = true;
-            }
-        });
-        //bookmarksMenu.add(slideShow);
+      // TODO: make this an export of the data on screen instead of a GUI for CLT
+      if (!HiCGlobals.isRestricted) {
+          JMenuItem dump = new JMenuItem("Export Data...");
+          dump.addActionListener(new ActionListener() {
+              @Override
+              public void actionPerformed(ActionEvent actionEvent) {
+                  superAdapter.exportDataLauncher();
+              }
+          });
+          fileMenu.add(dump);
+      }
 
-        bookmarksMenu.addSeparator();
-        bookmarksMenu.add(exportSavedStateMenuItem);
-        bookmarksMenu.add(importMapAsFile);
+      JMenuItem creditsMenu = new JMenuItem();
+      creditsMenu.setText("About");
+      creditsMenu.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
+              JLabel iconLabel = new JLabel(icon);
+              JPanel iconPanel = new JPanel(new GridBagLayout());
+              iconPanel.add(iconLabel);
 
-        //---View Menu-----
-        viewMenu = new JMenu("View");
+              JPanel textPanel = new JPanel(new GridLayout(0, 1));
+              textPanel.add(new JLabel("<html><center>" +
+                      "<h3 style=\"margin-bottom:30px;\" class=\"header\">" +
+                      "Juicebox: Visualization software for Hi-C data" +
+                      "</h3>" +
+                      "</center>" +
+                      "<p>" +
+                      "Juicebox is the Aiden Lab's software for visualizing data<br>" +
+                      "from proximity ligation experiments, such as Hi-C.<br>" +
+                      "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
+                      "and Erez Aiden. Ongoing development work is carried<br>" +
+                      "out by " +
+                      "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
+                      "and Marie Hoeger.<br><br>" +
+                      "Current version: " + HiCGlobals.versionNum + "<br>" +
+                      "Copyright © 2014. Broad Institute and Aiden Lab" +
+                      "<br><br>" +
+                      "" +
+                      "If you use Juicebox in your research, please cite:<br><br>" +
+                      "" +
+                      "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S.<br>Shamim, " +
+                      "Ido Machol, Jill P. Mesirov, Eric S. Lander, and<br>Erez Lieberman Aiden.<br>" +
+                      " \"Juicebox provides a visualization system for Hi-C<br>contact maps " +
+                      "with unlimited zoom.\" <em>Cell Systems</em><br>July 2016.</strong>" +
+                      "<br><br>" +
+                      "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
+                      "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
+                      "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
+                      "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
+                      "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                      "* contributed equally" +
+                      "</p></html>"));
 
-        layersItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (layersItem.isSelected()) {
-                    superAdapter.setLayersPanelVisible(true);
-                } else {
-                    superAdapter.setLayersPanelVisible(false);
-                }
+              JPanel mainPanel = new JPanel(new BorderLayout());
+              mainPanel.add(textPanel);
+              mainPanel.add(iconPanel, BorderLayout.WEST);
 
-            }
-        });
-        viewMenu.add(layersItem);
-        viewMenu.setEnabled(false);
+              JOptionPane.showMessageDialog(superAdapter.getMainWindow(), mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
+          }
+      });
+      fileMenu.add(creditsMenu);
 
-        final JMenuItem colorItem = new JMenuItem("Change Heatmap Color");
-        colorItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
-                JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
-                        true, colorChooser, null, null);
-                dialog.setVisible(true);
-                Color color = colorChooser.getColor();
-                if (color != null) {
-                    HiCGlobals.HIC_MAP_COLOR = color;
-                    superAdapter.getMainViewPanel().resetAllColors();
-                    superAdapter.refresh();
-                }
-            }
-        });
-        viewMenu.add(colorItem);
+      //---- exit ----
+      JMenuItem exit = new JMenuItem();
+      exit.setText("Exit");
+      exit.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.exitActionPerformed();
+          }
+      });
+      fileMenu.add(exit);
 
-        final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
-        darkulaMode.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
-                superAdapter.getMainViewPanel().resetAllColors();
-                //superAdapter.safeClearAllMZDCache();
-                superAdapter.refresh();
-            }
-        });
-        darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
-        viewMenu.add(darkulaMode);
+      JMenu bookmarksMenu = new JMenu("Bookmarks");
+      //---- Save location ----
+      saveLocationList = new JMenuItem("Save Current Location");
+      saveLocationList.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              //code to add a recent location to the menu
+              String stateString = superAdapter.getLocationDescription();
+              String stateDescription = superAdapter.getDescription("location");
+              if (stateDescription != null && stateDescription.length() > 0) {
+                  addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+                  recentLocationMenu.setEnabled(true);
+              }
+          }
+      });
+      bookmarksMenu.add(saveLocationList);
+      saveLocationList.setEnabled(false);
+      //---Save State test-----
+      saveStateForReload = new JMenuItem();
+      saveStateForReload.setText("Save Current State");
+      saveStateForReload.addActionListener(new ActionListener() {
 
-        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome (from .bed)...");
-        addCustomChromosome.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.createCustomChromosomesFromBED();
-            }
-        });
-        if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
-            viewMenu.add(addCustomChromosome);
-        }
+          public void actionPerformed(ActionEvent e) {
+              //code to add a recent location to the menu
+              try {
+                  String stateDescription = superAdapter.getDescription("state");
+                  if (stateDescription != null && stateDescription.length() > 0) {
+                      stateDescription = previousStates.checkForDuplicateNames(stateDescription);
+                      if (stateDescription == null || stateDescription.length() < 0) {
+                          return;
+                      }
+                      previousStates.addEntry(stateDescription, true);
+                      superAdapter.addNewStateToXML(stateDescription);
+                      previousStates.setEnabled(true);
+                  }
+              } catch (Exception e1) {
+                  e1.printStackTrace();
+              }
+          }
+      });
 
-        viewMenu.addSeparator();
+      saveStateForReload.setEnabled(false);
+      bookmarksMenu.add(saveStateForReload);
 
-        //---Axis Layout mode-----
-        final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
-        axisEndpoint.setSelected(HiCRulerPanel.getShowOnlyEndPts());
-        axisEndpoint.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HiCRulerPanel.setShowOnlyEndPts(axisEndpoint.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        viewMenu.add(axisEndpoint);
+      recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
-        //---ShowChromosomeFig mode-----
-        //drawLine, drawArc or draw polygon// draw round rect
-        // fill Rect according to the chormsome location.
-        final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Chromosome Context");
-        showChromosomeFig.setSelected(HiCRulerPanel.getShowChromosomeFigure());
-        showChromosomeFig.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setShowChromosomeFig(showChromosomeFig.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        viewMenu.add(showChromosomeFig);
+          private static final long serialVersionUID = 4204L;
 
-        //---Grids mode-----
-        // turn grids on/off
-        final JCheckBoxMenuItem showGrids = new JCheckBoxMenuItem("Gridlines");
-        showGrids.setSelected(superAdapter.getShowGridLines());
-        showGrids.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setShowGridLines(showGrids.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        viewMenu.add(showGrids);
+          public void onSelectPosition(String mapPath) {
+              String delimiter = "@@";
+              String[] temp;
+              temp = mapPath.split(delimiter);
+              superAdapter.restoreLocation(temp[1]);
+              superAdapter.setNormalizationDisplayState();
 
-        viewMenu.addSeparator();
+          }
+      };
+      recentLocationMenu.setMnemonic('S');
+      recentLocationMenu.setEnabled(false);
+      bookmarksMenu.add(recentLocationMenu);
 
-        //---Export Image Menu-----
-        JMenuItem saveToPDF = new JMenuItem("Export PDF Figure...");
-        saveToPDF.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchExportPDF();
-            }
-        });
-        viewMenu.add(saveToPDF);
-
-        JMenuItem saveToSVG = new JMenuItem("Export SVG Figure...");
-        saveToSVG.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchExportSVG();
-            }
-        });
-        viewMenu.add(saveToSVG);
-
-        final JMenu devMenu = new JMenu("Dev");
-
-        final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
-        displayTiles.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HiCGlobals.displayTiles = !HiCGlobals.displayTiles;
-                superAdapter.getHeatmapPanel().repaint();
-            }
-        });
-        displayTiles.setSelected(HiCGlobals.displayTiles);
-        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-            devMenu.add(displayTiles);
-        }
-
-        final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Enable 1D Annotation Colors");
-        colorFeatures.addActionListener(new ActionListener() {
+      //---Export States----
+      exportSavedStateMenuItem = new JMenuItem();
+      exportSavedStateMenuItem.setText("Export Saved States");
+      exportSavedStateMenuItem.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            IGVFeatureCopy.invertColorFeaturesChk();
-            repaint();
+              new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
           }
-        });
-        colorFeatures.setSelected(IGVFeatureCopy.colorFeaturesChk);
-        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-          devMenu.add(colorFeatures);
+      });
+
+      // restore recent saved states
+      previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
+
+          private static final long serialVersionUID = 4205L;
+
+          public void onSelectPosition(String mapPath) {
+              superAdapter.launchLoadStateFromXML(mapPath);
+          }
+
+          @Override
+          public void setEnabled(boolean b) {
+              super.setEnabled(b);
+              exportSavedStateMenuItem.setEnabled(b);
+          }
+      };
+
+      bookmarksMenu.add(previousStates);
+
+      //---Import States----
+      importMapAsFile = new JMenuItem();
+      importMapAsFile.setText("Import State From File");
+      importMapAsFile.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.launchImportState(HiCGlobals.xmlSavedStatesFile);
+              importMapAsFile.setSelected(true);
+          }
+      });
+
+
+      //---Slideshow----
+      slideShow = new JMenuItem();
+      slideShow.setText("View Slideshow");
+      slideShow.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.launchSlideShow();
+              HiCGlobals.slideshowEnabled = true;
+          }
+      });
+      //bookmarksMenu.add(slideShow);
+
+      bookmarksMenu.addSeparator();
+      bookmarksMenu.add(exportSavedStateMenuItem);
+      bookmarksMenu.add(importMapAsFile);
+
+      //---View Menu-----
+      viewMenu = new JMenu("View");
+
+      layersItem.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              if (layersItem.isSelected()) {
+                  superAdapter.setLayersPanelVisible(true);
+              } else {
+                  superAdapter.setLayersPanelVisible(false);
+              }
+
+          }
+      });
+      viewMenu.add(layersItem);
+      viewMenu.setEnabled(false);
+
+      final JMenuItem colorItem = new JMenuItem("Change Heatmap Color");
+      colorItem.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
+              JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
+                      true, colorChooser, null, null);
+              dialog.setVisible(true);
+              Color color = colorChooser.getColor();
+              if (color != null) {
+                  HiCGlobals.HIC_MAP_COLOR = color;
+                  superAdapter.getMainViewPanel().resetAllColors();
+                  superAdapter.refresh();
+              }
+          }
+      });
+      viewMenu.add(colorItem);
+
+      final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
+      darkulaMode.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
+              superAdapter.getMainViewPanel().resetAllColors();
+              //superAdapter.safeClearAllMZDCache();
+              superAdapter.refresh();
+          }
+      });
+      darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
+      viewMenu.add(darkulaMode);
+
+      JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome (from .bed)...");
+      addCustomChromosome.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.createCustomChromosomesFromBED();
+          }
+      });
+      if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
+          viewMenu.add(addCustomChromosome);
+      }
+
+      viewMenu.addSeparator();
+
+      //---Axis Layout mode-----
+      final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
+      axisEndpoint.setSelected(HiCRulerPanel.getShowOnlyEndPts());
+      axisEndpoint.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              HiCRulerPanel.setShowOnlyEndPts(axisEndpoint.isSelected());
+              superAdapter.repaint();
+          }
+      });
+      viewMenu.add(axisEndpoint);
+
+      //---ShowChromosomeFig mode-----
+      //drawLine, drawArc or draw polygon// draw round rect
+      // fill Rect according to the chormsome location.
+      final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Chromosome Context");
+      showChromosomeFig.setSelected(HiCRulerPanel.getShowChromosomeFigure());
+      showChromosomeFig.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.setShowChromosomeFig(showChromosomeFig.isSelected());
+              superAdapter.repaint();
+          }
+      });
+      viewMenu.add(showChromosomeFig);
+
+      //---Grids mode-----
+      // turn grids on/off
+      final JCheckBoxMenuItem showGrids = new JCheckBoxMenuItem("Gridlines");
+      showGrids.setSelected(superAdapter.getShowGridLines());
+      showGrids.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.setShowGridLines(showGrids.isSelected());
+              superAdapter.repaint();
+          }
+      });
+      viewMenu.add(showGrids);
+
+      viewMenu.addSeparator();
+
+      //---Export Image Menu-----
+      JMenuItem saveToPDF = new JMenuItem("Export PDF Figure...");
+      saveToPDF.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.launchExportPDF();
+          }
+      });
+      viewMenu.add(saveToPDF);
+
+      JMenuItem saveToSVG = new JMenuItem("Export SVG Figure...");
+      saveToSVG.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.launchExportSVG();
+          }
+      });
+      viewMenu.add(saveToSVG);
+
+      final JMenu devMenu = new JMenu("Dev");
+
+      final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
+      displayTiles.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              HiCGlobals.displayTiles = !HiCGlobals.displayTiles;
+              superAdapter.getHeatmapPanel().repaint();
+          }
+      });
+      displayTiles.setSelected(HiCGlobals.displayTiles);
+      if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+          devMenu.add(displayTiles);
+      }
+
+      final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Enable 1D Annotation Colors");
+      colorFeatures.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          IGVFeatureCopy.invertColorFeaturesChk();
+          repaint();
         }
+      });
+      colorFeatures.setSelected(IGVFeatureCopy.colorFeaturesChk);
+      if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+        devMenu.add(colorFeatures);
+      }
+
+      final JCheckBoxMenuItem useAssemblyMatrix = new JCheckBoxMenuItem("Use Assembly Chromosome Matrix");
+      useAssemblyMatrix.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          HiC.invertAssemblyMatCheck();
+          repaint();
+        }
+      });
+      useAssemblyMatrix.setSelected(HiC.assemblyMatCheck);
+      if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+        devMenu.add(useAssemblyMatrix);
+      }
 
 
       JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
