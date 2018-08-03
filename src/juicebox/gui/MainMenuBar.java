@@ -25,9 +25,9 @@
 package juicebox.gui;
 
 import juicebox.DirectoryManager;
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
+import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
@@ -522,7 +522,7 @@ public class MainMenuBar extends JMenuBar {
       devMenu.add(displayTiles);
     }
 
-    final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Enable 1D Annotation Colors");
+    final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Recolor 1D Annotations in Assembly Mode");
     colorFeatures.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -536,14 +536,21 @@ public class MainMenuBar extends JMenuBar {
     }
 
     final JCheckBoxMenuItem useAssemblyMatrix = new JCheckBoxMenuItem("Use Assembly Chromosome Matrix");
+    useAssemblyMatrix.setEnabled(!SuperAdapter.assemblyModeCurrentlyActive);
     useAssemblyMatrix.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        HiC.invertAssemblyMatCheck();
-        repaint();
+        MainViewPanel.invertAssemblyMatCheck();
+        superAdapter.createAssemblyChromosome();
+        AssemblyFileImporter assemblyFileImporter;
+        assemblyFileImporter = new AssemblyFileImporter(superAdapter);
+        assemblyFileImporter.importAssembly();
+//        superAdapter.assemblyModeCurrentlyActive = true;
+        System.out.println(assemblyFileImporter.getAssemblyScaffoldHandler().toString());
       }
     });
-    useAssemblyMatrix.setSelected(HiC.assemblyMatCheck);
+
+    useAssemblyMatrix.setSelected(MainViewPanel.assemblyMatCheck);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(useAssemblyMatrix);
     }
