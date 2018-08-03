@@ -2608,6 +2608,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
           return;
         }
         int scroll = e.getWheelRotation();
+
+        if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+          double precScroll = e.getPreciseWheelRotation();
+
+          if (precScroll >= 0) {
+            scroll = (int) Math.ceil(precScroll);
+          } else {
+            scroll = (int) Math.floor(precScroll);
+          }
+        }
+
         hic.moveBy(scroll, scroll);
         superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
       } catch (Exception e2) {
