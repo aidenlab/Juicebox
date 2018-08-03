@@ -998,6 +998,11 @@ public class SuperAdapter {
         }
     }
 
+    public void createAssemblyChromosome() {
+        Chromosome assembly = hic.getChromosomeHandler().generateAssemblyChromosome();
+        updateChrHandlerAndMVP(assembly);
+    }
+
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
 

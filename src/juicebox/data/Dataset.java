@@ -26,6 +26,7 @@ package juicebox.data;
 
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
+import juicebox.gui.MainViewPanel;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -90,9 +91,12 @@ public class Dataset {
                 if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
                     System.err.println("Index key is " + key);
                     m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
+                } else if (MainViewPanel.assemblyMatCheck) {
+                    m = Matrix.createAssemblyChromosomeMatrix(chromosomeHandler, matrices, reader);
                 } else {
                     m = reader.readMatrix(key);
                 }
+
                 matrices.put(key, m);
 
             } catch (Exception e) {
@@ -102,7 +106,10 @@ public class Dataset {
         }
 
         return m;
+    }
 
+    public Matrix createAssemblyChromosomeMatrix(Chromosome chr1, Chromosome chr2) {
+        return null;
     }
 
     public ResourceLocator getSubcompartments() {

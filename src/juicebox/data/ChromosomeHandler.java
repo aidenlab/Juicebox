@@ -61,6 +61,9 @@ public class ChromosomeHandler {
         if (name.equals("assembly")) {
             return "assembly";
         }
+        if (name.equals("pseudoassembly")) {
+            return "pseudoassembly";
+        }
         return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
     }
 
@@ -88,6 +91,22 @@ public class ChromosomeHandler {
 
     public static boolean isAllByAll(String name) {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    }
+
+    public Chromosome generateAssemblyChromosome() {
+//        long genomeLength = 0;
+//        for (Chromosome c : chromosomes) {
+//            if (c != null) genomeLength += c.getLength();
+//        }
+//        return genomeLength;
+        //TODO: handle scaling
+        int size = (int) getTotalLengthOfAllChromosomes(Arrays.asList(this.chromosomeArrayWithoutAllByAll));
+
+        int newIndex = cleanedChromosomes.size();
+        Chromosome newChr = new Chromosome(newIndex, "pseudoassembly", size);
+        cleanedChromosomes.add(newChr);
+        chromosomeMap.put(newChr.getName(), newChr);
+        return newChr;
     }
 
     public Chromosome generateCustomChromosomeFromBED(File file, int minSize) {
