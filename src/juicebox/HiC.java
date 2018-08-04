@@ -398,17 +398,7 @@ public class HiC {
     public Matrix getMatrix() {
         if (dataset == null || xContext == null || yContext == null) return null;
 
-        if (assemblyMatCheck) {
-            dataset.createAssemblyChromosomeMatrix(xContext.getChromosome(), yContext.getChromosome());
-        } else {
-            return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
-        }
-
-        return null;
-    }
-
-    public static void invertAssemblyMatCheck() {
-        assemblyMatCheck = !assemblyMatCheck;
+        return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
     }
 
     public void setSelectedBin(Point point) {
