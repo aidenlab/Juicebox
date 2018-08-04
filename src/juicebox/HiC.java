@@ -57,6 +57,7 @@ import java.util.List;
  */
 public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    public static boolean assemblyMatCheck = false;
 
     //private final MainWindow mainWindow;
     //private final Feature2DHandler feature2DHandler;
@@ -396,7 +397,18 @@ public class HiC {
 
     public Matrix getMatrix() {
         if (dataset == null || xContext == null || yContext == null) return null;
-        return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
+
+        if (assemblyMatCheck) {
+            dataset.createAssemblyChromosomeMatrix(xContext.getChromosome(), yContext.getChromosome());
+        } else {
+            return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
+        }
+
+        return null;
+    }
+
+    public static void invertAssemblyMatCheck() {
+        assemblyMatCheck = !assemblyMatCheck;
     }
 
     public void setSelectedBin(Point point) {
