@@ -25,6 +25,7 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.data.NormalizationVector;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
@@ -33,6 +34,8 @@ import juicebox.tools.utils.original.NormalizationVectorUpdater;
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
+
+    private String inputVectorFile = null;
 
     private int genomeWideResolution = -100;
 
@@ -43,11 +46,12 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -d use intra chromosome (diagonal) [false]\n"
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
+                + " Above options ignored if input_vector_file present\n"
         );
     }
 
     public static String getBasicUsage() {
-        return "addNorm <input_HiC_file>";
+        return "addNorm <input_HiC_file> [input_vector_file]";
     }
 
     @Override
@@ -57,8 +61,10 @@ public class AddNorm extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-        //setUsage("juicebox addNorm hicFile");
-        if (args.length != 2) {
+        if (args.length == 3) {
+            inputVectorFile = args[2];
+        }
+        else if (args.length != 2) {
             printUsageAndExit();
         }
         noFragNorm = parser1.getNoFragNormOption();
@@ -70,11 +76,16 @@ public class AddNorm extends JuiceboxCLT {
     @Override
     public void run() {
         try {
-            boolean useGenomeWideResolution = false;
-            if (useGenomeWideResolution)
-                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
-            else
-                NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm);
+            if (inputVectorFile != null) {
+                NormalizationVectorUpdater.updateHicFile(file, inputVectorFile);
+            }
+            else {
+                boolean useGenomeWideResolution = genomeWideResolution != -100;
+                if (useGenomeWideResolution)
+                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
+                else
+                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

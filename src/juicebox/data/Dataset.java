@@ -840,17 +840,16 @@ public class Dataset {
         String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
         if (type == NormalizationType.NONE) {
             return null;
-        } else if (type == NormalizationType.LOADED) {
-            return loadedNormalizationVectors == null ? null : loadedNormalizationVectors.get(key);
-
-        } else if (!normalizationVectorCache.containsKey(key)) {
-
+        }  else if (!normalizationVectorCache.containsKey(key)) {
             try {
                 NormalizationVector nv = reader.readNormalizationVector(type, chrIdx, zoom.getUnit(), zoom.getBinSize());
                 normalizationVectorCache.put(key, nv);
             } catch (IOException e) {
                 normalizationVectorCache.put(key, null);
             }
+        }
+        if (normalizationVectorCache.get(key) == null && type == NormalizationType.LOADED) {
+            return loadedNormalizationVectors == null ? null : loadedNormalizationVectors.get(key);
         }
 
         return normalizationVectorCache.get(key);
