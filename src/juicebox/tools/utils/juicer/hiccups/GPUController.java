@@ -52,7 +52,9 @@ public class GPUController {
 
     private final KernelLauncher kernelLauncher;
     private final boolean useCPUVersionHiCCUPS;
-    private int windowCPU, matrixSizeCPU, peakWidthCPU;
+    private final int windowCPU;
+    private final int matrixSizeCPU;
+    private final int peakWidthCPU;
 
     public GPUController(int window, int matrixSize, int peakWidth, boolean useCPUVersionHiCCUPS) {
 

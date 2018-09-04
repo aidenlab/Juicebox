@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,9 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
-import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
@@ -382,7 +382,7 @@ public class NormalizationVectorUpdater {
         if (fname.endsWith(".gz")) {
             InputStream fileStream = new FileInputStream(fname);
             InputStream gzipStream = new GZIPInputStream(fileStream);
-            Reader decoder = new InputStreamReader(gzipStream, "UTF8");
+            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
             vectorReader = new BufferedReader(decoder, 4194304);
         } else {
             //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);

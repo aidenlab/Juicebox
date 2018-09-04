@@ -146,6 +146,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         this.currentStart = currentStart;
     }
 
+    // todo refactor ; always inverted; rename var; what exactly does invertedVsInitial mean?
     public boolean getInvertedVsInitial() {
         return isInvertedVsInitial;
     }

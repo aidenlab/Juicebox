@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -185,8 +185,8 @@ public class ChromosomeHandler {
         return chromosomeMap.get(cleanUpName(name));
     }
 
-    public boolean containsChromosome(String name) {
-        return chromosomeMap.containsKey(cleanUpName(name));
+    public boolean doesNotContainChromosome(String name) {
+        return !chromosomeMap.containsKey(cleanUpName(name));
     }
 
     public int size() {

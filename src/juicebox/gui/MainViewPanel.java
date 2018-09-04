@@ -107,7 +107,7 @@ public class MainViewPanel {
     private final JLabel normalizationLabel = new JLabel("Normalization");
     private final JLabel displayOptionLabel = new JLabel("Show");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
-    private boolean tooltipAllowedToUpdated = true;
+    private boolean tooltipAllowedToUpdate = true;
     private boolean ignoreUpdateThumbnail = false;
     private final JPanel tooltipPanel = new JPanel(new BorderLayout());
 
@@ -495,7 +495,7 @@ public class MainViewPanel {
     }
 
     public void updateToolTipText(String s) {
-        if (tooltipAllowedToUpdated)
+        if (tooltipAllowedToUpdate)
             mouseHoverTextPanel.setText(s);
         mouseHoverTextPanel.setCaretPosition(0);
     }
@@ -878,12 +878,12 @@ public class MainViewPanel {
         return colorRangePanel;
     }
 
-    public boolean isTooltipAllowedToUpdated() {
-        return tooltipAllowedToUpdated;
+    public boolean isTooltipAllowedToUpdate() {
+        return tooltipAllowedToUpdate;
     }
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
-        this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
+        this.tooltipAllowedToUpdate = tooltipAllowedToUpdated;
     }
 
     public JComboBox<String> getNormalizationComboBox() {
