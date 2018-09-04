@@ -338,13 +338,8 @@ public class HiCCUPS extends JuicerCLT {
                 configurations = new ArrayList<>();
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-                // TODO: this should be changed to the sum of Hi-C contacts, which we can read from dataset
-                if (firstExpected < 300000) {
-                    configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
-                    System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
-                } else {
-                    System.out.println("Default settings for 5kb and 10kb being used");
-                }
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+                System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
             }
         } catch (Exception e) {
             System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
@@ -496,7 +491,7 @@ public class HiCCUPS extends JuicerCLT {
                                 if (columnBounds[4] < chrMatrixWidth - regionMargin) {
                                     try {
                                         if (HiCGlobals.printVerboseComments) {
-                                            System.out.println("");
+                                            System.out.println();
                                             System.out.println("GPU Run Details");
                                             System.out.println("Row bounds " + Arrays.toString(rowBounds));
                                             System.out.println("Col bounds " + Arrays.toString(columnBounds));
