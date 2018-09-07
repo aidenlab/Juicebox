@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HiC Computational Unbiased Peak Search
@@ -446,9 +447,9 @@ public class HiCCUPS extends JuicerCLT {
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run
-        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler) * 2;
+        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler) * 2;
 
-        int currentProgressStatus = 0;
+        final AtomicInteger currentProgressStatus = new AtomicInteger(0);
         for (final int runNum : new int[]{0, 1}) {
 
             ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
@@ -548,6 +549,8 @@ public class HiCCUPS extends JuicerCLT {
                                                     }
                                                 }
 
+                                                int currProg = currentProgressStatus.incrementAndGet();
+                                                System.out.println(((int) Math.floor((100.0 * currProg) / maxProgressStatus)) + "% ");
 
                                             } catch (IOException e) {
                                                 System.err.println("No data in map region");
@@ -559,21 +562,10 @@ public class HiCCUPS extends JuicerCLT {
                             }
                         }
                     }
-
-                    if (HiCGlobals.printVerboseComments) {
-                        long segmentTime = System.currentTimeMillis();
-
-                        if (runNum == 0) {
-                            System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "ms");
-                        } else { // runNum = 1
-                            System.out.println("Time to print chr " + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
-                        }
-                    }
                 } else {
                     System.err.println("Data not available for " + chromosome + " at " + conf.getResolution() + " resolution");
+                    currentProgressStatus.incrementAndGet();
                 }
-
-                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
             }
 
             executor.shutdown();
