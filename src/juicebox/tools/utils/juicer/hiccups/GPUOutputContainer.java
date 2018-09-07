@@ -103,7 +103,7 @@ public class GPUOutputContainer {
         }
     }
 
-    public void updateHistograms(long[][] histBL, long[][] histDonut, long[][] histH, long[][] histV, int maxRows, int maxColumns) {
+    public synchronized void updateHistograms(long[][] histBL, long[][] histDonut, long[][] histH, long[][] histV, int maxRows, int maxColumns) {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numColumns; j++) {
 

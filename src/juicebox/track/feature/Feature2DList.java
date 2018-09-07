@@ -390,7 +390,7 @@ public class Feature2DList {
      * @param inputList
      * @return
      */
-    public void add(Feature2DList inputList) {
+    public synchronized void add(Feature2DList inputList) {
 
         Set<String> inputKeySet = inputList.getKeySet();
 
