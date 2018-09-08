@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +45,12 @@ public class ArrowheadScoreList {
         this.resolution = resolution;
     }
 
-    public ArrowheadScoreList(List<Feature2D> features, int resolution) {
+    public ArrowheadScoreList(Feature2DList features, Chromosome chr, int resolution) {
         this.resolution = resolution;
-        for (Feature2D feature : features) {
-            arrowheadScores.add(feature.toArrowheadScore());
+        if (features.getNumTotalFeatures() > 0) {
+            for (Feature2D feature : features.get(chr.getIndex(), chr.getIndex())) {
+                arrowheadScores.add(feature.toArrowheadScore());
+            }
         }
     }
 
