@@ -93,6 +93,7 @@ public class Dataset {
                 } else {
                     m = reader.readMatrix(key);
                 }
+
                 matrices.put(key, m);
 
             } catch (Exception e) {
@@ -102,8 +103,8 @@ public class Dataset {
         }
 
         return m;
-
     }
+
 
     public ResourceLocator getSubcompartments() {
         ResourceLocator locator = null;

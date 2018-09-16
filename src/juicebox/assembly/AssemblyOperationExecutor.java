@@ -65,6 +65,21 @@ public class AssemblyOperationExecutor {
         }
     }
 
+    public static void multiMerge(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.multiMerge(selectedFeatures.get(0), selectedFeatures.get(selectedFeatures.size() - 1));
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+        }
+    }
+
+    public static void multiSplit(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.multiSplit(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+        }
+    }
 
     private static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 

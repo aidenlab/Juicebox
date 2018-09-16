@@ -72,7 +72,6 @@ public class HiCDataTrack extends HiCTrack {
     public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
-
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
 
@@ -87,7 +86,7 @@ public class HiCDataTrack extends HiCTrack {
                     gridAxis, hic.getScaleFactor(), windowFunction);
             // fix this case w ordering modifications
         } else if (SuperAdapter.assemblyModeCurrentlyActive) {
-            data = OneDimAssemblyTrackLifter.liftDataArrayFromAsm(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
+            data = OneDimAssemblyTrackLifter.liftDataArray(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
         } else {
             data = dataSource.getData(context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);
@@ -172,7 +171,6 @@ public class HiCDataTrack extends HiCTrack {
                         g.fillRect(xPixelLeft, pY, dx, baseY - pY);
                     }
                 }
-
             }
         }
 
@@ -205,7 +203,6 @@ public class HiCDataTrack extends HiCTrack {
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
         StringBuilder txt = new StringBuilder();
-
 
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(getName());

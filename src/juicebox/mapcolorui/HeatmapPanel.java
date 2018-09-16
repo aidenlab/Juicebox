@@ -863,7 +863,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi6 = new JCheckBoxMenuItem("Copy hover text to clipboard");
+    final JMenuItem mi6 = new JMenuItem("Copy hover text to clipboard");
     mi6.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -873,7 +873,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi7 = new JCheckBoxMenuItem("Copy top position to clipboard");
+    final JMenuItem mi7 = new JMenuItem("Copy top position to clipboard");
     mi7.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -886,7 +886,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
 
     // TODO - can we remove this second option and just have a copy position to clipboard? Is this used?
-    final JCheckBoxMenuItem mi8 = new JCheckBoxMenuItem("Copy left position to clipboard");
+    final JMenuItem mi8 = new JMenuItem("Copy left position to clipboard");
     mi8.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -919,7 +919,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
-    final JCheckBoxMenuItem mi87Remove = new JCheckBoxMenuItem("Remove Highlight");
+    final JMenuItem mi87Remove = new JMenuItem("Remove Highlight");
     mi87Remove.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -1115,7 +1115,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
 //        menu.add(miRepeatSelection);
 
-    final JMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
+    final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
     miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     miMoveToDebris.addActionListener(new ActionListener() {
       @Override
@@ -1125,8 +1125,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
     });
     menu.add(miMoveToDebris);
 
+    final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
+    groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
+    groupItems.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
 
-    final JMenuItem miUndo = new JCheckBoxMenuItem("Undo");
+        // Cleanup
+        removeSelection();
+      }
+    });
+    menu.add(groupItems);
+
+    final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
+    splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+    splitItems.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
+
+        // Cleanup
+        removeSelection();
+      }
+    });
+    menu.add(splitItems);
+
+    final JMenuItem miUndo = new JMenuItem("Undo");
     miUndo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -1139,7 +1164,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     menu.add(miUndo);
 
 
-    final JMenuItem miRedo = new JCheckBoxMenuItem("Redo");
+    final JMenuItem miRedo = new JMenuItem("Redo");
     miRedo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -1294,7 +1319,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
     removeSelection();
   }
-
 
   private String toolTipText(int x, int y) {
     // Update popup text
@@ -1625,7 +1649,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
   }
 
-//    public Feature2D generateDebrisFeature(int xMousePos, int yMousePos) {
+  //  public Feature2D generateDebrisFeature(int xMousePos, int yMousePos) {
 //        final double scaleFactor = hic.getScaleFactor();
 //        double binOriginX = hic.getXContext().getBinOrigin();
 //        double binOriginY = hic.getYContext().getBinOrigin();
@@ -1690,6 +1714,43 @@ public class HeatmapPanel extends JComponent implements Serializable {
       this.bTop = py0;
       this.image = image;
     }
+  }
+
+  private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
+    final Point mousePoint = calculateSelectionPoint(x, y);
+
+    if (activelyEditingAssembly) {
+      for (Feature2DGuiContainer loop : allFeaturePairs) {
+        if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
+          if (new Rectangle(
+                  loop.getFeature2D().getStart1(), loop.getFeature2D().getStart2(),
+                  loop.getFeature2D().getWidth1(), loop.getFeature2D().getWidth2()).contains(mousePoint)) {
+            return loop;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private Point calculateSelectionPoint(int unscaledX, int unscaledY) {
+    final MatrixZoomData zd;
+    try {
+      zd = hic.getZd();
+    } catch (Exception err) {
+      return null;
+    }
+
+    final HiCGridAxis xAxis = zd.getXGridAxis();
+    final HiCGridAxis yAxis = zd.getYGridAxis();
+    final double binOriginX = hic.getXContext().getBinOrigin();
+    final double binOriginY = hic.getYContext().getBinOrigin();
+    final double scale = hic.getScaleFactor();
+
+    float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
+    float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
+    return new Point((int) x, (int) y);
   }
 
   class HeatmapMouseHandler extends MouseAdapter {
@@ -1897,6 +1958,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
           updateSelectedFeatures(false);
           List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
+          // selects superscaffold
+          if ((newSelectedFeatures == null || newSelectedFeatures.size() == 0) && (selectedFeatures == null || selectedFeatures.size() == 0)) {
+            Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
+
+            if (newSelectedSuperscaffold != null) {
+              final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
+
+              newSelectedFeatures.clear();
+              for (int scaffold : curScaffolds) {
+                Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
+                newSelectedFeatures.add(curScaffold);
+              }
+            }
+          }
+
           Collections.sort(newSelectedFeatures);
 
           // Damage rectangle is not precise, adjust boundaries...
@@ -1950,7 +2027,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
           currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
 
           restoreDefaultVariables();
-
         } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
           Runnable runnable = new Runnable() {
             @Override
@@ -2211,7 +2287,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
           superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
         }
         // Set check if hovering over feature corner
-        setCursor(Cursor.getDefaultCursor());
+
+        // Following was commented out since it was causing flickering of the cursor on windows machines, don't know if was necessary
+//        setCursor(Cursor.getDefaultCursor());
         int minDist = 20;
         if (currentFeature != null) {
 
@@ -2385,7 +2463,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
                   (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                  setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
+                  setCursor(MainWindow.groupSWCursor);
                   currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                     currentUpstreamFeature.getFeature2D().getEnd1() <=
@@ -2398,7 +2476,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                   (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() >= 0) &&
                   (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
-                  setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
+                  setCursor(MainWindow.groupNECursor);
                   currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                     currentUpstreamFeature.getFeature2D().getEnd1() <=
@@ -2530,6 +2608,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
           return;
         }
         int scroll = e.getWheelRotation();
+
+        if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+          double precScroll = e.getPreciseWheelRotation();
+
+          if (precScroll >= 0) {
+            scroll = (int) Math.ceil(precScroll);
+          } else {
+            scroll = (int) Math.floor(precScroll);
+          }
+        }
+
         hic.moveBy(scroll, scroll);
         superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
       } catch (Exception e2) {
