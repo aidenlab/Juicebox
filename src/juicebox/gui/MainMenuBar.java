@@ -662,11 +662,6 @@ public class MainMenuBar extends JMenuBar {
                     // Rescale and redraw assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
                         superAdapter.getAssemblyStateTracker().resetState();
-//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-////                        assemblyHandler.updateAssembly(true);
-//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
-//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
-////                        //superAdapter.repaint();
                     }
 
                 } catch (NumberFormatException t) {

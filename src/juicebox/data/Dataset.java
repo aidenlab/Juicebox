@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.data;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.tools.dev.Private;
+import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -289,29 +290,28 @@ public class Dataset {
     }
 
     private String getSoftware() {
-        if (attributes != null) return attributes.get("software");
+        if (attributes != null) return attributes.get(Preprocessor.SOFTWARE);
+        else return null;
+    }
+
+    public String getHiCFileScalingFactor() {
+        if (attributes != null) return attributes.get(Preprocessor.HIC_FILE_SCALING);
         else return null;
     }
 
     public String getStatistics() {
         String stats = null;
-        if (attributes != null) stats = attributes.get("statistics");
+        if (attributes != null) stats = attributes.get(Preprocessor.STATISTICS);
         if ((stats == null) || !stats.contains("<table>")) {
             try {
-                attributes.put("statistics", reader.readStats());
+                attributes.put(Preprocessor.STATISTICS, reader.readStats());
             } catch (IOException error) {
                 if (stats != null) {
-                    attributes.put("statistics", convertStats(stats));
+                    attributes.put(Preprocessor.STATISTICS, convertStats(stats));
                 } else return null;
             }
         }
-       /*
-        if (attributes.get("graphs") == null && FileUtils.resourceExists(location + "_hists.m")) {
-            attributes.put("graphs", readGraphs(location + "_hists.m"));
-        }
-        String graphs = checkGraphs(attributes.get("graphs"));
-        attributes.put("graphs", graphs);*/
-        return attributes.get("statistics");
+        return attributes.get(Preprocessor.STATISTICS);
     }
 
     private String convertStats(String oldStats) {
@@ -354,6 +354,9 @@ public class Dataset {
         }
         if (getSoftware() != null)  {
             newStats += "<tr> <td> Software: </td><td>" + getSoftware() + "</td></tr>";
+        }
+        if (getHiCFileScalingFactor() != null) {
+            newStats += "<tr> <td> File Scaling: </td><td>" + getHiCFileScalingFactor() + "</td></tr>";
         }
 
         newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
@@ -736,7 +739,7 @@ public class Dataset {
 
     public String getGraphs() {
         if (attributes == null) return null;
-        return attributes.get("graphs");
+        return attributes.get(Preprocessor.GRAPHS);
     }
 
     public List<HiCZoom> getBpZooms() {
