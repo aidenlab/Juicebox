@@ -68,6 +68,7 @@ public class GPUController {
         } else {
             String kernelCode = readCuFile("HiCCUPSKernel.cu", window, matrixSize, peakWidth);
             kernelLauncher = KernelLauncher.compile(kernelCode, "BasicPeakCallingKernel");
+            //KernelLauncher.create()
 
             //threads per block = block_size*block_size
             kernelLauncher.setBlockSize(blockSize, blockSize, 1);
@@ -228,13 +229,6 @@ public class GPUController {
         float[][] expectedDonutDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedDonutResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedHDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedHResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedVDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedVResult, matrixSize, x1, x2, y1, y2);
-
-        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedDistanceVectorGPU,
-                kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
-                thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU,
-                expectedBLGPU, expectedDonutGPU, expectedHGPU, expectedVGPU,
-                binBLGPU, binDonutGPU, binHGPU, binVGPU,
-                observedGPU, peakGPU});
 
         return new GPUOutputContainer(observedDenseCPU, peakDenseCPU,
                 binBLDenseCPU, binDonutDenseCPU, binHDenseCPU, binVDenseCPU,
