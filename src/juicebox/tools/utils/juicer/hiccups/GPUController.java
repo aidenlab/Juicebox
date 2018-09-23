@@ -101,11 +101,16 @@ public class GPUController {
         return cuFileText;
     }
 
-    public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
-                                      int[] rowBounds, int[] columnBounds, int matrixSize,
+    public GPUOutputContainer process(HiCCUPSRegionContainer regionContainer, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
                                       NormalizationType normalizationType)
             throws NegativeArraySizeException, IOException {
+
+        MatrixZoomData zd = regionContainer.getZd();
+        double[] normalizationVector = regionContainer.getNormalizationVector();
+        double[] expectedVector = regionContainer.getExpectedVector();
+        int[] rowBounds = regionContainer.getRowBounds();
+        int[] columnBounds = regionContainer.getColumnBounds();
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
