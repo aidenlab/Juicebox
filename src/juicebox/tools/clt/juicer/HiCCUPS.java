@@ -498,73 +498,79 @@ public class HiCCUPS extends JuicerCLT {
 
             ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
             for (int l = 0; l < numCPUThreads; l++) {
+                final int l2 = l;
                 Runnable worker = new Runnable() {
                     @Override
                     public void run() {
-                        int indexOfRegionForThread = indexOfHiCCUPSRegion.getAndIncrement();
+                        synchronized (HiCCUPS.this) {
+                            int indexOfRegionForThread = indexOfHiCCUPSRegion.getAndIncrement();
 
-                        GPUController gpuController = buildGPUController(conf);
-                        while (indexOfRegionForThread < allRegionContainers.size()) {
+                            System.out.println("thread " + l2 + " index " + indexOfHiCCUPSRegion);
 
-                            HiCCUPSRegionContainer regionContainer = allRegionContainers.get(indexOfRegionForThread);
-                            try {
+                            GPUController gpuController = buildGPUController(conf);
+                            while (indexOfRegionForThread < allRegionContainers.size()) {
+                                System.out.println("thread " + l2 + " index " + indexOfHiCCUPSRegion);
 
-                                if (HiCGlobals.printVerboseComments) {
-                                    System.out.println();
-                                    System.out.println("GPU Run Details");
-                                    System.out.println("Row bounds " + Arrays.toString(regionContainer.getRowBounds()));
-                                    System.out.println("Col bounds " + Arrays.toString(regionContainer.getColumnBounds()));
-                                }
+                                HiCCUPSRegionContainer regionContainer = allRegionContainers.get(indexOfRegionForThread);
+                                try {
 
-                                int[] rowBounds = regionContainer.getRowBounds();
-                                int[] columnBounds = regionContainer.getColumnBounds();
-
-                                GPUOutputContainer gpuOutputs = gpuController.process(regionContainer, matrixSize,
-                                        thresholdBL, thresholdDonut, thresholdH, thresholdV, norm);
-
-                                int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
-
-                                if (runNum == 0) {
-                                    gpuOutputs.cleanUpBinNans();
-                                    gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
-                                    gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
-
-                                } else if (runNum == 1) {
-                                    gpuOutputs.cleanUpPeakNaNs();
-                                    gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
-
-                                    Chromosome chromosome = regionContainer.getChromosome();
-
-                                    Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
-                                            w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
-                                    Feature2DTools.calculateFDR(peaksList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-                                    globalList.add(peaksList);
-
-                                    if (listGiven) {
-                                        float rowBound1GenomeCoords = ((float) rowBounds[4]) * conf.getResolution();
-                                        float columnBound1GenomeCoords = ((float) columnBounds[4]) * conf.getResolution();
-                                        float rowBound2GenomeCoords = ((float) rowBounds[5] - 1) * conf.getResolution();
-                                        float columnBound2GenomeCoords = ((float) columnBounds[5] - 1) * conf.getResolution();
-                                        // System.out.println(chromosome.getIndex() + "\t" + rowBound1GenomeCoords + "\t" + rowBound2GenomeCoords + "\t" + columnBound1GenomeCoords + "\t" + columnBound2GenomeCoords);
-                                        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowBound1GenomeCoords,
-                                                columnBound1GenomeCoords, rowBound2GenomeCoords, columnBound2GenomeCoords);
-                                        List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.getContainedFeatures(chromosome.getIndex(), chromosome.getIndex(),
-                                                currentWindow);
-                                        Feature2DList peaksRequestedList = gpuOutputs.extractPeaksListGiven(chromosome.getIndex(), chromosome.getName(),
-                                                w1, w2, rowBounds[4], columnBounds[4], conf.getResolution(), inputListFoundFeatures);
-                                        Feature2DTools.calculateFDR(peaksRequestedList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-                                        requestedList.add(peaksRequestedList);
+                                    if (HiCGlobals.printVerboseComments) {
+                                        System.out.println();
+                                        System.out.println("GPU Run Details");
+                                        System.out.println("Row bounds " + Arrays.toString(regionContainer.getRowBounds()));
+                                        System.out.println("Col bounds " + Arrays.toString(regionContainer.getColumnBounds()));
                                     }
 
+                                    int[] rowBounds = regionContainer.getRowBounds();
+                                    int[] columnBounds = regionContainer.getColumnBounds();
+
+                                    GPUOutputContainer gpuOutputs = gpuController.process(regionContainer, matrixSize,
+                                            thresholdBL, thresholdDonut, thresholdH, thresholdV, norm);
+
+                                    int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
+
+                                    if (runNum == 0) {
+                                        gpuOutputs.cleanUpBinNans();
+                                        gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
+                                        gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
+
+                                    } else if (runNum == 1) {
+                                        gpuOutputs.cleanUpPeakNaNs();
+                                        gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
+
+                                        Chromosome chromosome = regionContainer.getChromosome();
+
+                                        Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
+                                                w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
+                                        Feature2DTools.calculateFDR(peaksList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                        globalList.add(peaksList);
+
+                                        if (listGiven) {
+                                            float rowBound1GenomeCoords = ((float) rowBounds[4]) * conf.getResolution();
+                                            float columnBound1GenomeCoords = ((float) columnBounds[4]) * conf.getResolution();
+                                            float rowBound2GenomeCoords = ((float) rowBounds[5] - 1) * conf.getResolution();
+                                            float columnBound2GenomeCoords = ((float) columnBounds[5] - 1) * conf.getResolution();
+                                            // System.out.println(chromosome.getIndex() + "\t" + rowBound1GenomeCoords + "\t" + rowBound2GenomeCoords + "\t" + columnBound1GenomeCoords + "\t" + columnBound2GenomeCoords);
+                                            net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowBound1GenomeCoords,
+                                                    columnBound1GenomeCoords, rowBound2GenomeCoords, columnBound2GenomeCoords);
+                                            List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.getContainedFeatures(chromosome.getIndex(), chromosome.getIndex(),
+                                                    currentWindow);
+                                            Feature2DList peaksRequestedList = gpuOutputs.extractPeaksListGiven(chromosome.getIndex(), chromosome.getName(),
+                                                    w1, w2, rowBounds[4], columnBounds[4], conf.getResolution(), inputListFoundFeatures);
+                                            Feature2DTools.calculateFDR(peaksRequestedList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                            requestedList.add(peaksRequestedList);
+                                        }
+
+                                    }
+                                    int currProg = currentProgressStatus.incrementAndGet();
+                                    System.out.println(((int) Math.floor((100.0 * currProg) / allRegionContainers.size())) + "% ");
+
+                                } catch (IOException e) {
+                                    System.err.println("No data in map region");
                                 }
-                                int currProg = currentProgressStatus.incrementAndGet();
-                                System.out.println(((int) Math.floor((100.0 * currProg) / allRegionContainers.size())) + "% ");
 
-                            } catch (IOException e) {
-                                System.err.println("No data in map region");
+                                indexOfRegionForThread = indexOfHiCCUPSRegion.getAndIncrement();
                             }
-
-                            indexOfRegionForThread = indexOfHiCCUPSRegion.getAndIncrement();
                         }
                     }
                 };
