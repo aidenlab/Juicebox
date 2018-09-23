@@ -170,7 +170,7 @@ public class HiCCUPS extends JuicerCLT {
     public static double oeThreshold3 = 2;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private static int numCPUThreads = 4;
+    private static int numCPUThreads = 1; // default just 1 for when GPUs used
     private boolean configurationsSetByUser = false;
     private String featureListPath;
     private boolean listGiven = false;
@@ -241,11 +241,13 @@ public class HiCCUPS extends JuicerCLT {
             useCPUVersionHiCCUPS = true;
             restrictSearchRegions = true;
             System.out.println(CPU_VERSION_WARNING);
-        }
 
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
+            numCPUThreads = 4;
+
+            int numThreads = juicerParser.getNumThreads();
+            if (numThreads > 0) {
+                numCPUThreads = numThreads;
+            }
         }
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
@@ -297,13 +299,13 @@ public class HiCCUPS extends JuicerCLT {
         // force hiccups to run
         checkMapDensityThreshold = false;
 
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        }
-
         if (usingCPUVersion) {
             useCPUVersionHiCCUPS = true;
             restrictSearchRegions = true;
+
+            if (numThreads > 0) {
+                numCPUThreads = numThreads;
+            }
         }
     }
 
@@ -425,14 +427,12 @@ public class HiCCUPS extends JuicerCLT {
         final Feature2DList globalList = new Feature2DList();
         final Feature2DList requestedList = new Feature2DList();
 
+
         // two runs, 1st to build histograms, 2nd to identify loops
 
-        // determine which chromosomes will run
-        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler) * 2;
-
-        final AtomicInteger currentProgressStatus = new AtomicInteger(0);
         for (final int runNum : new int[]{0, 1}) {
 
+            final AtomicInteger currentProgressStatus = new AtomicInteger(0);
             final List<HiCCUPSRegionContainer> allRegionContainers = new ArrayList<>();
 
             for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -485,7 +485,6 @@ public class HiCCUPS extends JuicerCLT {
                                             zd, normalizationVector, expectedVector, rowBounds, columnBounds));
 
                                 }
-
                             }
                         }
                     }
@@ -503,10 +502,11 @@ public class HiCCUPS extends JuicerCLT {
                     @Override
                     public void run() {
                         int indexOfRegionForThread = indexOfHiCCUPSRegion.getAndIncrement();
+
+                        GPUController gpuController = buildGPUController(conf);
                         while (indexOfRegionForThread < allRegionContainers.size()) {
 
                             HiCCUPSRegionContainer regionContainer = allRegionContainers.get(indexOfRegionForThread);
-
                             try {
 
                                 if (HiCGlobals.printVerboseComments) {
@@ -515,8 +515,6 @@ public class HiCCUPS extends JuicerCLT {
                                     System.out.println("Row bounds " + Arrays.toString(regionContainer.getRowBounds()));
                                     System.out.println("Col bounds " + Arrays.toString(regionContainer.getColumnBounds()));
                                 }
-
-                                GPUController gpuController = buildGPUController(conf);
 
                                 int[] rowBounds = regionContainer.getRowBounds();
                                 int[] columnBounds = regionContainer.getColumnBounds();
@@ -557,8 +555,8 @@ public class HiCCUPS extends JuicerCLT {
                                         Feature2DTools.calculateFDR(peaksRequestedList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
                                         requestedList.add(peaksRequestedList);
                                     }
-                                }
 
+                                }
                                 int currProg = currentProgressStatus.incrementAndGet();
                                 System.out.println(((int) Math.floor((100.0 * currProg) / allRegionContainers.size())) + "% ");
 
