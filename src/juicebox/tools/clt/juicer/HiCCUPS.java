@@ -493,7 +493,6 @@ public class HiCCUPS extends JuicerCLT {
 
             ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
             for (int l = 0; l < numCPUThreads; l++) {
-                final int l2 = l;
                 Runnable worker = new Runnable() {
                     @Override
                     public void run() {
