@@ -141,8 +141,6 @@ public class GPUController {
                     rowBounds, columnBounds);
         }
 
-        //long gpu_time1 = System.currentTimeMillis();
-
         // transfer host (CPU) memory to device (GPU) memory
         CUdeviceptr observedKRGPU = GPUHelper.allocateInput(observedVals);
         CUdeviceptr expectedDistanceVectorGPU = GPUHelper.allocateInput(distanceExpectedKRVector);
@@ -210,6 +208,13 @@ public class GPUController {
         cuMemcpyDtoH(Pointer.to(binVResult), binVGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(observedResult), observedGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(peakResult), peakGPU, flattenedSize * Sizeof.FLOAT);
+
+        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedDistanceVectorGPU,
+                kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
+                thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU,
+                expectedBLGPU, expectedDonutGPU, expectedHGPU, expectedVGPU,
+                binBLGPU, binDonutGPU, binHGPU, binVGPU,
+                observedGPU, peakGPU});
 
         //long gpu_time2 = System.currentTimeMillis();
         //System.out.println("GPU Time: " + (gpu_time2-gpu_time1));
