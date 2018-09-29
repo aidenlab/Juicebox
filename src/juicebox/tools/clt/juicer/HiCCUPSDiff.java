@@ -159,9 +159,7 @@ public class HiCCUPSDiff extends JuicerCLT {
             boolean usingCPUVersion = false;
             if (juicerParser.getCPUVersionOfHiCCUPSOptions()) {
                 usingCPUVersion = true;
-                System.out.println("WARNING - You are using the CPU version of HiCCUPS.\n" +
-                        "The GPU version of HiCCUPS is the official version and has been tested extensively.\n" +
-                        "The CPU version only searches for loops within 4MB of the diagonal and is still experimental.\n");
+                System.out.println(HiCCUPS.CPU_VERSION_WARNING);
             }
 
             double[] thresholds = null;
@@ -170,13 +168,15 @@ public class HiCCUPSDiff extends JuicerCLT {
                 thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, Double.NaN);
             }
 
+            int numThreads = juicerParser.getNumThreads();
+
             System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
             hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4],
-                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
             hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3],
-                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
         }
     }
 

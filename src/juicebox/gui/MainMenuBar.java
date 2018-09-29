@@ -666,44 +666,43 @@ public class MainMenuBar extends JMenuBar {
 
       //TODO: add warning if changes are present
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (superAdapter.getLayersPanel() == null) {
-          superAdapter.intializeLayersPanel();
-        }
-        new LoadModifiedAssemblyAnnotationsDialog(superAdapter);
-      }
-    });
 
-    setScale = new JMenuItem("Set Scale");
-    setScale.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        double scale;
-        String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
-        try {
-          scale = Double.parseDouble(newScale);
-          if (scale == 0.0) {  // scale cannot be zero
-            scale = 1.0;
-          }
-          HiCGlobals.hicMapScale = scale;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                new LoadModifiedAssemblyAnnotationsDialog(superAdapter);
+            }
+        });
 
-          // Rescale resolution slider labels
-          superAdapter.getMainViewPanel().getResolutionSlider().reset();
+        setScale = new JMenuItem("Set Scale");
+        setScale.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                double scale;
+                String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                try {
+                    scale = Double.parseDouble(newScale);
+                    if (scale == 0.0) {  // scale cannot be zero
+                        scale = 1.0;
+                    }
+                    HiCGlobals.hicMapScale = scale;
 
-          // Rescale axis tick labels
-          superAdapter.getMainViewPanel().getRulerPanelX().repaint();
-          superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+                    // Rescale resolution slider labels
+                    superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-          // Rescale and redraw assembly annotations
-          if (superAdapter.getAssemblyStateTracker() != null) {
-            superAdapter.getAssemblyStateTracker().resetState();
-//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-////                        assemblyHandler.updateAssembly(true);
-//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
-//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
-////                        //superAdapter.repaint();
-          }
+                    // Rescale axis tick labels
+                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                    // Rescale and redraw assembly annotations
+                    if (superAdapter.getAssemblyStateTracker() != null) {
+                        superAdapter.getAssemblyStateTracker().resetState();
+                    }
+
+      
+
 
         } catch (NumberFormatException t) {
           JOptionPane.showMessageDialog(null, "Value must be an integer!");

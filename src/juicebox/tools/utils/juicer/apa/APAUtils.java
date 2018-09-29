@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class APAUtils {
         APARegionStatistics apaStats = new APARegionStatistics(matrix, currentRegionWidth);
 
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
             writer.write("P2M" + '\t' + apaStats.getPeak2mean() + '\n');
             writer.write("P2UL" + '\t' + apaStats.getPeak2UL() + '\n');
             writer.write("P2UR" + '\t' + apaStats.getPeak2UR() + '\n');
@@ -75,7 +76,7 @@ public class APAUtils {
     public static void saveListText(String filename, List<Double> array) {
         Writer writer = null;
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
             for (double val : array) {
                 writer.write(val + " ");
             }

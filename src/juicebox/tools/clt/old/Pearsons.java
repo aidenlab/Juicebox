@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -179,7 +179,7 @@ public class Pearsons extends JuiceboxCLT {
         dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), true);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
-        if (!chromosomeHandler.containsChromosome(args[3])) {
+        if (chromosomeHandler.doesNotContainChromosome(args[3])) {
             System.err.println("Unknown chromosome: " + args[3]);
             System.exit(18);
         }
