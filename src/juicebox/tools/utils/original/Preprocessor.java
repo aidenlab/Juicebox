@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,12 @@ public class Preprocessor {
 
     private static final int VERSION = 8;
     private static final int BLOCK_SIZE = 1000;
+    public static final String HIC_FILE_SCALING = "hicFileScalingFactor";
+    public static final String STATISTICS = "statistics";
+    public static final String GRAPHS = "graphs";
+    public static final String SOFTWARE = "software";
+    private static final String NVI_INDEX = "nviIndex";
+    private static final String NVI_LENGTH = "nviLength";
 
     private final ChromosomeHandler chromosomeHandler;
     private final Map<String, Integer> chromosomeIndexes;
@@ -77,15 +83,20 @@ public class Preprocessor {
     // Fragment resolutions
     private int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
 
+    // hic scaling factor value
+    private double hicFileScalingFactor = 1;
+
 
     /**
      * The position of the field containing the masterIndex position
      */
     private long masterIndexPositionPosition;
+    private long normVectorIndexPosition;
+    private long normVectorLengthPosition;
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
 
-    public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler) {
+    public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         this.genomeId = genomeId;
         this.outputFile = outputFile;
         this.matrixPositions = new LinkedHashMap<>();
@@ -100,6 +111,10 @@ public class Preprocessor {
         compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
 
         this.tmpDir = null;  // TODO -- specify this
+
+        if (hicFileScalingFactor > 0) {
+            this.hicFileScalingFactor = hicFileScalingFactor;
+        }
 
     }
 
@@ -201,6 +216,7 @@ public class Preprocessor {
         try {
             StringBuilder stats = null;
             StringBuilder graphs = null;
+            StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
             if (fragmentFileName != null) {
                 try {
                     fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
@@ -287,7 +303,7 @@ public class Preprocessor {
 
             System.out.println("Writing header");
 
-            writeHeader(stats, graphs);
+            writeHeader(stats, graphs, hicFileScaling);
 
             System.out.println("Writing body");
             writeBody(inputFile);
@@ -306,7 +322,7 @@ public class Preprocessor {
         System.out.println("\nFinished preprocess");
     }
 
-    private void writeHeader(StringBuilder stats, StringBuilder graphs) throws IOException {
+    private void writeHeader(StringBuilder stats, StringBuilder graphs, StringBuilder hicFileScaling) throws IOException {
         // Magic number
         byte[] magicBytes = "HIC".getBytes();
         los.write(magicBytes[0]);
@@ -326,23 +342,38 @@ public class Preprocessor {
         los.writeString(genomeId);
 
         // Attribute dictionary
-        int nAttributes;
-        if (stats != null && graphs != null) nAttributes = 3;
-        else if (stats != null) nAttributes = 2;
-        else if (graphs != null) nAttributes = 2;
-        else nAttributes = 1;
+        int nAttributes = 1;
+        if (stats != null) nAttributes += 1;
+        if (graphs != null) nAttributes += 1;
+        if (hicFileScaling != null) nAttributes += 1;
+
 
         los.writeInt(nAttributes);
-        los.writeString("software");
+        los.writeString(SOFTWARE);
         los.writeString("Juicer Tools Version " + HiCGlobals.versionNum);
         if (stats != null) {
-            los.writeString("statistics");
+            los.writeString(STATISTICS);
             los.writeString(stats.toString());
         }
         if (graphs != null) {
-            los.writeString("graphs");
+            los.writeString(GRAPHS);
             los.writeString(graphs.toString());
         }
+        if (hicFileScaling != null) {
+            los.writeString(HIC_FILE_SCALING);
+            los.writeString(hicFileScaling.toString());
+        }
+
+        // Add NVI info
+        los.writeString(NVI_INDEX);
+        normVectorIndexPosition = los.getWrittenCount();
+        los.writeString(hicFileScaling.toString());
+
+        los.writeString(NVI_LENGTH);
+        normVectorLengthPosition = los.getWrittenCount();
+        los.writeString(hicFileScaling.toString());
+
+
 
         // Sequence dictionary
         int nChrs = chromosomeHandler.size();
@@ -586,6 +617,33 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             if (raf != null) raf.close();
         }
     }
+
+
+    /* todo
+    private void updateNormVectorIndexInfo() throws IOException {
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(outputFile, "rw");
+
+            // NVI index
+            raf.getChannel().position(normVectorIndexPosition);
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            generateZeroPaddedString
+            buffer.putNullTerminatedString(normVectorIndex);
+            raf.write(buffer.getBytes());
+
+
+            // NVI length
+            raf.getChannel().position(normVectorLengthPosition);
+            buffer = new BufferedByteWriter();
+            buffer.putNullTerminatedString(normVectorLength);
+            raf.write(buffer.getBytes());
+
+        } finally {
+            if (raf != null) raf.close();
+        }
+    }
+    */
 
 
     private void writeFooter() throws IOException {

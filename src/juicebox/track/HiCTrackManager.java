@@ -345,7 +345,7 @@ public class HiCTrackManager {
 
         // Set track properties from header
         Object header = tribbleFeatureSource.getHeader();
-        if (header != null && header instanceof FeatureFileHeader) {
+        if (header instanceof FeatureFileHeader) {
             FeatureFileHeader ffh = (FeatureFileHeader) header;
           /*  if (ffh.getTrackType() != null) {
                 t.setTrackType(ffh.getTrackType());

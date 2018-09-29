@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public class BinaryConnectedComponents {
      * @param threshold
      * @return list of connected components in image
      */
-    public static List<Set<Point>> detection(double[][] image, double threshold) {
+    public synchronized static List<Set<Point>> detection(double[][] image, double threshold) {
         int r = image.length;
         int c = image[0].length;
 

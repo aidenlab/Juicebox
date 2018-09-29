@@ -52,7 +52,9 @@ public class GPUController {
 
     private final KernelLauncher kernelLauncher;
     private final boolean useCPUVersionHiCCUPS;
-    private int windowCPU, matrixSizeCPU, peakWidthCPU;
+    private final int windowCPU;
+    private final int matrixSizeCPU;
+    private final int peakWidthCPU;
 
     public GPUController(int window, int matrixSize, int peakWidth, boolean useCPUVersionHiCCUPS) {
 
@@ -66,6 +68,7 @@ public class GPUController {
         } else {
             String kernelCode = readCuFile("HiCCUPSKernel.cu", window, matrixSize, peakWidth);
             kernelLauncher = KernelLauncher.compile(kernelCode, "BasicPeakCallingKernel");
+            //KernelLauncher.create()
 
             //threads per block = block_size*block_size
             kernelLauncher.setBlockSize(blockSize, blockSize, 1);
@@ -98,11 +101,16 @@ public class GPUController {
         return cuFileText;
     }
 
-    public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
-                                      int[] rowBounds, int[] columnBounds, int matrixSize,
+    public GPUOutputContainer process(HiCCUPSRegionContainer regionContainer, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
                                       NormalizationType normalizationType)
             throws NegativeArraySizeException, IOException {
+
+        MatrixZoomData zd = regionContainer.getZd();
+        double[] normalizationVector = regionContainer.getNormalizationVector();
+        double[] expectedVector = regionContainer.getExpectedVector();
+        int[] rowBounds = regionContainer.getRowBounds();
+        int[] columnBounds = regionContainer.getColumnBounds();
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
@@ -132,8 +140,6 @@ public class GPUController {
                     boundRowIndex, boundColumnIndex, thresholdBL, thresholdDonut, thresholdH, thresholdV,
                     rowBounds, columnBounds);
         }
-
-        //long gpu_time1 = System.currentTimeMillis();
 
         // transfer host (CPU) memory to device (GPU) memory
         CUdeviceptr observedKRGPU = GPUHelper.allocateInput(observedVals);
@@ -203,6 +209,13 @@ public class GPUController {
         cuMemcpyDtoH(Pointer.to(observedResult), observedGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(peakResult), peakGPU, flattenedSize * Sizeof.FLOAT);
 
+        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedDistanceVectorGPU,
+                kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
+                thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU,
+                expectedBLGPU, expectedDonutGPU, expectedHGPU, expectedVGPU,
+                binBLGPU, binDonutGPU, binHGPU, binVGPU,
+                observedGPU, peakGPU});
+
         //long gpu_time2 = System.currentTimeMillis();
         //System.out.println("GPU Time: " + (gpu_time2-gpu_time1));
 
@@ -226,13 +239,6 @@ public class GPUController {
         float[][] expectedDonutDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedDonutResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedHDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedHResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedVDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedVResult, matrixSize, x1, x2, y1, y2);
-
-        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedDistanceVectorGPU,
-                kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
-                thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU,
-                expectedBLGPU, expectedDonutGPU, expectedHGPU, expectedVGPU,
-                binBLGPU, binDonutGPU, binHGPU, binVGPU,
-                observedGPU, peakGPU});
 
         return new GPUOutputContainer(observedDenseCPU, peakDenseCPU,
                 binBLDenseCPU, binDonutDenseCPU, binHDenseCPU, binVDenseCPU,
