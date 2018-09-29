@@ -78,11 +78,11 @@ public class IGVFeatureCopy implements IGVFeature {
       else {
         if (colorFeaturesChk && isBed && color != null) {
           // Update color to complement color
-            int r = color.getRed();
-            int g = color.getGreen();
-            int b = color.getBlue();
+          int r = color.getRed();
+          int g = color.getGreen();
+          int b = color.getBlue();
 
-            color = new Color(~r & 0xff, ~g & 0xff, ~b & 0xff);
+          color = new Color(~r & 0xff, ~g & 0xff, ~b & 0xff);
         }
 
         // Update strand orientation

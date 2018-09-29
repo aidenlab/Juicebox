@@ -535,6 +535,7 @@ public class MainMenuBar extends JMenuBar {
       devMenu.add(colorFeatures);
     }
 
+    // todo MSS and Santiago - is this to be deleted?
     final JCheckBoxMenuItem useAssemblyMatrix = new JCheckBoxMenuItem("Use Assembly Chromosome Matrix");
     useAssemblyMatrix.setEnabled(!SuperAdapter.assemblyModeCurrentlyActive);
     useAssemblyMatrix.addActionListener(new ActionListener() {
@@ -554,6 +555,7 @@ public class MainMenuBar extends JMenuBar {
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(useAssemblyMatrix);
     }
+
 
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
