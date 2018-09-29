@@ -1479,10 +1479,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         double ev = getExpectedValue(c1, c2, binX, binY, zd, hic.getExpectedValues());
         String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected value (E) = " + evString + "</span>");
+        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected value (E) = ").append(evString).append("</span>");
         if (ev > 0 && !Float.isNaN(value)) {
           txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = ");
-          txt.append(formatter.format(value / ev) + "</span>");
+          txt.append(formatter.format(value / ev)).append("</span>");
         } else {
           txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = NaN</span>");
         }
@@ -1497,10 +1497,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
           double evCtrl = getExpectedValue(c1, c2, binX, binY, controlZD, hic.getExpectedControlValues());
           String evStringCtrl = evCtrl < 0.001 || Double.isNaN(evCtrl) ? String.valueOf(evCtrl) : formatter.format(evCtrl);
-          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected control value (EC) = " + evStringCtrl + "</span>");
+          txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected control value (EC) = ").append(evStringCtrl).append("</span>");
           if (evCtrl > 0 && !Float.isNaN(controlValue)) {
             txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = ");
-            txt.append(formatter.format(controlValue / evCtrl) + "</span>");
+            txt.append(formatter.format(controlValue / evCtrl)).append("</span>");
           } else {
             txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = NaN</span>");
           }
@@ -1508,21 +1508,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
           double obsAvg = zd.getAverageCount();
           double obsValue = (value / obsAvg);
           txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("average observed value (AVG) = " + getFloatString((float) obsAvg));
-          txt.append("<br>O' = O/AVG = " + getFloatString((float) obsValue));
+          txt.append("average observed value (AVG) = ").append(getFloatString((float) obsAvg));
+          txt.append("<br>O' = O/AVG = ").append(getFloatString((float) obsValue));
           txt.append("</span>");
 
           double ctrlAvg = controlZD.getAverageCount();
           double ctlValue = (float) (controlValue / ctrlAvg);
           txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("average control value (AVGC) = " + getFloatString((float) ctrlAvg));
-          txt.append("<br>C' = C/AVGC = " + getFloatString((float) ctlValue));
+          txt.append("average control value (AVGC) = ").append(getFloatString((float) ctrlAvg));
+          txt.append("<br>C' = C/AVGC = ").append(getFloatString((float) ctlValue));
           txt.append("</span>");
 
           if (value > 0 && controlValue > 0) {
             double ratio = obsValue / ctlValue;
             txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-            txt.append("O'/C' = " + getFloatString((float) ratio));
+            txt.append("O'/C' = ").append(getFloatString((float) ratio));
             txt.append("</span>");
 
             double diff = (obsValue - ctlValue) * (obsAvg / 2. + ctrlAvg / 2.);
@@ -2607,7 +2607,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
           repaint();
           return;
         }
-        int scroll = e.getWheelRotation();
+        int scroll = 0;
 
         if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
           double precScroll = e.getPreciseWheelRotation();
@@ -2617,6 +2617,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
           } else {
             scroll = (int) Math.floor(precScroll);
           }
+        } else {
+          scroll = e.getWheelRotation();
         }
 
         hic.moveBy(scroll, scroll);

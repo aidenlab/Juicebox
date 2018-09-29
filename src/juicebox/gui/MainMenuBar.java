@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
+import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
@@ -521,7 +522,7 @@ public class MainMenuBar extends JMenuBar {
       devMenu.add(displayTiles);
     }
 
-    final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Enable 1D Annotation Colors");
+    final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Recolor 1D Annotations in Assembly Mode");
     colorFeatures.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -533,6 +534,28 @@ public class MainMenuBar extends JMenuBar {
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(colorFeatures);
     }
+
+    // todo MSS and Santiago - is this to be deleted?
+    final JCheckBoxMenuItem useAssemblyMatrix = new JCheckBoxMenuItem("Use Assembly Chromosome Matrix");
+    useAssemblyMatrix.setEnabled(!SuperAdapter.assemblyModeCurrentlyActive);
+    useAssemblyMatrix.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        MainViewPanel.invertAssemblyMatCheck();
+        superAdapter.createAssemblyChromosome();
+        AssemblyFileImporter assemblyFileImporter;
+        assemblyFileImporter = new AssemblyFileImporter(superAdapter);
+        assemblyFileImporter.importAssembly();
+//        superAdapter.assemblyModeCurrentlyActive = true;
+        System.out.println(assemblyFileImporter.getAssemblyScaffoldHandler().toString());
+      }
+    });
+
+    useAssemblyMatrix.setSelected(MainViewPanel.assemblyMatCheck);
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(useAssemblyMatrix);
+    }
+
 
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
@@ -645,44 +668,43 @@ public class MainMenuBar extends JMenuBar {
 
       //TODO: add warning if changes are present
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (superAdapter.getLayersPanel() == null) {
-          superAdapter.intializeLayersPanel();
-        }
-        new LoadModifiedAssemblyAnnotationsDialog(superAdapter);
-      }
-    });
 
-    setScale = new JMenuItem("Set Scale");
-    setScale.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        double scale;
-        String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
-        try {
-          scale = Double.parseDouble(newScale);
-          if (scale == 0.0) {  // scale cannot be zero
-            scale = 1.0;
-          }
-          HiCGlobals.hicMapScale = scale;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                new LoadModifiedAssemblyAnnotationsDialog(superAdapter);
+            }
+        });
 
-          // Rescale resolution slider labels
-          superAdapter.getMainViewPanel().getResolutionSlider().reset();
+        setScale = new JMenuItem("Set Scale");
+        setScale.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                double scale;
+                String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                try {
+                    scale = Double.parseDouble(newScale);
+                    if (scale == 0.0) {  // scale cannot be zero
+                        scale = 1.0;
+                    }
+                    HiCGlobals.hicMapScale = scale;
 
-          // Rescale axis tick labels
-          superAdapter.getMainViewPanel().getRulerPanelX().repaint();
-          superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+                    // Rescale resolution slider labels
+                    superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-          // Rescale and redraw assembly annotations
-          if (superAdapter.getAssemblyStateTracker() != null) {
-            superAdapter.getAssemblyStateTracker().resetState();
-//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-////                        assemblyHandler.updateAssembly(true);
-//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
-//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
-////                        //superAdapter.repaint();
-          }
+                    // Rescale axis tick labels
+                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                    // Rescale and redraw assembly annotations
+                    if (superAdapter.getAssemblyStateTracker() != null) {
+                        superAdapter.getAssemblyStateTracker().resetState();
+                    }
+
+      
+
 
         } catch (NumberFormatException t) {
           JOptionPane.showMessageDialog(null, "Value must be an integer!");

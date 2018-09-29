@@ -49,7 +49,7 @@ class MapSelectionPanel extends JPanel {
      * @param reader
      * @param controlReader
      */
-    public MapSelectionPanel(SuperAdapter superAdapter, Dataset reader, Dataset controlReader) {
+    private MapSelectionPanel(SuperAdapter superAdapter, Dataset reader, Dataset controlReader) {
         super(new BorderLayout());
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -346,12 +346,12 @@ public class Dump extends JuiceboxCLT {
 
             extractChromosomeRegionIndices(); // at the end of this, chr1&2 will just be the chr key names
 
-            if (!chromosomeHandler.containsChromosome(chr1)) {
+            if (chromosomeHandler.doesNotContainChromosome(chr1)) {
                 System.err.println("Unknown chromosome: " + chr1);
                 System.exit(18);
             }
 
-            if (!chromosomeHandler.containsChromosome(chr2)) {
+            if (chromosomeHandler.doesNotContainChromosome(chr2)) {
                 System.err.println("Unknown chromosome: " + chr2);
                 System.exit(19);
             }

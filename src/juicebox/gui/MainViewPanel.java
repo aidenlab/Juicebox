@@ -60,6 +60,7 @@ public class MainViewPanel {
     public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static final List<Float> preDefMapColorFractions = new ArrayList<>();
     public static boolean preDefMapColor = false;
+  public static boolean assemblyMatCheck = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();
@@ -107,7 +108,7 @@ public class MainViewPanel {
     private final JLabel normalizationLabel = new JLabel("Normalization");
     private final JLabel displayOptionLabel = new JLabel("Show");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
-    private boolean tooltipAllowedToUpdated = true;
+    private boolean tooltipAllowedToUpdate = true;
     private boolean ignoreUpdateThumbnail = false;
     private final JPanel tooltipPanel = new JPanel(new BorderLayout());
 
@@ -495,7 +496,7 @@ public class MainViewPanel {
     }
 
     public void updateToolTipText(String s) {
-        if (tooltipAllowedToUpdated)
+        if (tooltipAllowedToUpdate)
             mouseHoverTextPanel.setText(s);
         mouseHoverTextPanel.setCaretPosition(0);
     }
@@ -668,16 +669,24 @@ public class MainViewPanel {
     }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
-        if (chrBox1.getSelectedIndex() == 0) {
-            chrBox2.setSelectedIndex(0);
-        }
+      if (chrBox1.getSelectedIndex() == 0) {
+        chrBox2.setSelectedIndex(0);
+      } else if (assemblyMatCheck && chrBox1.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+        chrBox2.setSelectedIndex(chrBox1.getItemCount() - 1);
+      }
     }
 
     private void chrBox2ActionPerformed(ActionEvent e) {
-        if (chrBox2.getSelectedIndex() == 0) {
-            chrBox1.setSelectedIndex(0);
-        }
+      if (chrBox2.getSelectedIndex() == 0) {
+        chrBox1.setSelectedIndex(0);
+      } else if (assemblyMatCheck && chrBox2.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+        chrBox1.setSelectedIndex(chrBox1.getItemCount() - 1);
+      }
     }
+
+  public static void invertAssemblyMatCheck() {
+    assemblyMatCheck = !assemblyMatCheck;
+  }
 
     public boolean setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
 
@@ -878,12 +887,12 @@ public class MainViewPanel {
         return colorRangePanel;
     }
 
-    public boolean isTooltipAllowedToUpdated() {
-        return tooltipAllowedToUpdated;
+    public boolean isTooltipAllowedToUpdate() {
+        return tooltipAllowedToUpdate;
     }
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
-        this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
+        this.tooltipAllowedToUpdate = tooltipAllowedToUpdated;
     }
 
     public JComboBox<String> getNormalizationComboBox() {
