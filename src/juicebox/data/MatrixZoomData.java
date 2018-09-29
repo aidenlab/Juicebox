@@ -443,7 +443,7 @@ public class MatrixZoomData {
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
-                                         final NormalizationType no, int chr1Id, int chr2Id) {
+                                         final NormalizationType no, final int chr1Id, final int chr2Id) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         ExecutorService service = Executors.newFixedThreadPool(200);
