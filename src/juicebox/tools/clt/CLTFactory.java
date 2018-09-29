@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
 import juicebox.tools.dev.APAvsDistance;
-import juicebox.tools.utils.Benchmark;
 import juicebox.tools.dev.GeneFinder;
+import juicebox.tools.utils.Benchmark;
 
 /**
  * Factory for command line tools to call different functions
@@ -116,8 +116,6 @@ public class CLTFactory {
             return new SQLDatabase();
         } else if (cmd.equals("hiccupsdiff")) {
             return new HiCCUPSDiff();
-        } else if (cmd.equals("hiccups_postproc")) {
-            return new HiCCUPS_postproc();
         } else if (cmd.equals("ab_compdiff")) {
             return new ABCompartmentsDiff();
         } else if (cmd.equals("genes")) {
@@ -128,9 +126,10 @@ public class CLTFactory {
             return new Pearsons();
         } else if (cmd.equals("eigenvector")) {
             return new Eigenvector();
-        }
-        else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
-        return new APAvsDistance();
+        } else if (cmd.equals("librarycomplexity")) {
+            return new LibraryComplexity();
+        } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
+            return new APAvsDistance();
         }
 
 

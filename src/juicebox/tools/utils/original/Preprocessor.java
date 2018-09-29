@@ -57,6 +57,8 @@ public class Preprocessor {
     public static final String STATISTICS = "statistics";
     public static final String GRAPHS = "graphs";
     public static final String SOFTWARE = "software";
+    private static final String NVI_INDEX = "nviIndex";
+    private static final String NVI_LENGTH = "nviLength";
 
     private final ChromosomeHandler chromosomeHandler;
     private final Map<String, Integer> chromosomeIndexes;
@@ -89,6 +91,8 @@ public class Preprocessor {
      * The position of the field containing the masterIndex position
      */
     private long masterIndexPositionPosition;
+    private long normVectorIndexPosition;
+    private long normVectorLengthPosition;
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
 
@@ -360,6 +364,17 @@ public class Preprocessor {
             los.writeString(hicFileScaling.toString());
         }
 
+        // Add NVI info
+        los.writeString(NVI_INDEX);
+        normVectorIndexPosition = los.getWrittenCount();
+        los.writeString(hicFileScaling.toString());
+
+        los.writeString(NVI_LENGTH);
+        normVectorLengthPosition = los.getWrittenCount();
+        los.writeString(hicFileScaling.toString());
+
+
+
         // Sequence dictionary
         int nChrs = chromosomeHandler.size();
         los.writeInt(nChrs);
@@ -602,6 +617,33 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             if (raf != null) raf.close();
         }
     }
+
+
+    /* todo
+    private void updateNormVectorIndexInfo() throws IOException {
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(outputFile, "rw");
+
+            // NVI index
+            raf.getChannel().position(normVectorIndexPosition);
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            generateZeroPaddedString
+            buffer.putNullTerminatedString(normVectorIndex);
+            raf.write(buffer.getBytes());
+
+
+            // NVI length
+            raf.getChannel().position(normVectorLengthPosition);
+            buffer = new BufferedByteWriter();
+            buffer.putNullTerminatedString(normVectorLength);
+            raf.write(buffer.getBytes());
+
+        } finally {
+            if (raf != null) raf.close();
+        }
+    }
+    */
 
 
     private void writeFooter() throws IOException {

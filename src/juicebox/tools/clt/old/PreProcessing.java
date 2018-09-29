@@ -57,6 +57,7 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
+                + "           : -z <double> scale factor for hic file\n"
         );
     }
 
