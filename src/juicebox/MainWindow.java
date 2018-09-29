@@ -66,6 +66,8 @@ public class MainWindow extends JFrame {
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
     public static Cursor scissorCursor;
+    public static Cursor groupNECursor;
+    public static Cursor groupSWCursor;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
@@ -215,9 +217,10 @@ public class MainWindow extends JFrame {
     }
 
     private void createCursors() {
-        BufferedImage handImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        boolean isWindows = (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0);
 
         // Make background transparent
+        BufferedImage handImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = handImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         Rectangle2D.Double rect = new Rectangle2D.Double(0, 0, 32, 32);
@@ -240,6 +243,9 @@ public class MainWindow extends JFrame {
         g = pasteNEImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            pasteNEImage = windowsCreateCursor(pasteNEImage, 240);
+        }
         pasteNECursor = getToolkit().createCustomCursor(pasteNEImage, new Point(8, 6), "PasteNE");
 
         // Insert (paste) prompts
@@ -251,6 +257,9 @@ public class MainWindow extends JFrame {
         g = pasteSWImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            pasteSWImage = windowsCreateCursor(pasteSWImage, 240);
+        }
         pasteSWCursor = getToolkit().createCustomCursor(pasteSWImage, new Point(8, 6), "PasteSW");
 
         // Insert (paste) prompts
@@ -262,6 +271,9 @@ public class MainWindow extends JFrame {
         g = pasteNWImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-nw-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            pasteNWImage = windowsCreateCursor(pasteNWImage, 240);
+        }
         pasteNWCursor = getToolkit().createCustomCursor(pasteNWImage, new Point(8, 6), "PasteNW");
 
         // Insert (paste) prompts
@@ -273,18 +285,24 @@ public class MainWindow extends JFrame {
         g = pasteSEImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-se-paste.png"), "paste");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            pasteSEImage = windowsCreateCursor(pasteSEImage, 240);
+        }
         pasteSECursor = getToolkit().createCustomCursor(pasteSEImage, new Point(8, 6), "PasteSE");
-
 
         // Invert prompts
         BufferedImage invertNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         g = invertNEImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
         g = invertNEImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-invert.png"), "invert");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            invertNEImage = windowsCreateCursor(invertNEImage, 240);
+        }
         invertNECursor = getToolkit().createCustomCursor(invertNEImage, new Point(8, 6), "InvertNE");
 
         // Invert prompts
@@ -296,6 +314,9 @@ public class MainWindow extends JFrame {
         g = invertSWImage.createGraphics();
         imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-invert.png"), "invert");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            invertSWImage = windowsCreateCursor(invertSWImage, 240);
+        }
         invertSWCursor = getToolkit().createCustomCursor(invertSWImage, new Point(8, 6), "InvertSW");
 
         // Cut prompts
@@ -305,16 +326,102 @@ public class MainWindow extends JFrame {
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
         g = scissorImage.createGraphics();
-        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "invert");
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "cut");
         g.drawImage(imageIcon.getImage(), 0, 0, null);
+        if (isWindows) {
+            scissorImage = windowsCreateCursor(scissorImage, 141);
+        }
         scissorCursor = getToolkit().createCustomCursor(scissorImage, new Point(8, 6), "Scissors");
+
+        // Group prompts
+        BufferedImage groupNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = groupNEImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = groupNEImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/layer/ur_clicked.png"), "grouptoggle");
+        g.drawImage(imageIcon.getImage(), 0, 0, 20, 20, null);
+        groupNECursor = getToolkit().createCustomCursor(groupNEImage, new Point(8, 6), "GroupNE");
+
+        BufferedImage groupSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = groupSWImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        g.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = groupSWImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/layer/ll_clicked.png"), "grouptoggle");
+        g.drawImage(imageIcon.getImage(), 0, 0, 20, 20, null);
+        groupSWCursor = getToolkit().createCustomCursor(groupSWImage, new Point(8, 6), "GroupSW");
+    }
+
+    private BufferedImage windowsCreateCursor(BufferedImage img, int thresholdVal) {
+        try {
+            int size = 32;
+
+            BufferedImage image = new BufferedImage(size, size,
+                    BufferedImage.TYPE_INT_RGB);
+            BufferedImage image2 = new BufferedImage(size, size,
+                    BufferedImage.TYPE_INT_ARGB);
+
+            Graphics2D g = image.createGraphics();
+            Graphics2D g2 = image2.createGraphics();
+
+            g.setColor(Color.white);
+            g.fillRect(0, 0, size, size);
+
+
+            // turn on anti-aliasing.
+            g.setStroke(new BasicStroke(4.0f)); // 4-pixel lines
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            g.setColor(new Color(0.5f, 0f, 0f));
+            g.drawImage(img, 0, 0, null, null);
+
+            g2.drawImage(image,  0, 0, null, null);
+
+
+            for (int y = 0 ; y < size ; y++) {
+                for (int x = 0 ; x < size ; x++) {
+
+                    int rgb = image.getRGB(x, y);
+
+                    int blue = rgb & 0xff;
+                    int green = (rgb & 0xff00) >> 8;
+                    int red = (rgb & 0xff0000) >> 16;
+
+                    if (red >= thresholdVal && green >= thresholdVal && blue >= thresholdVal) {
+                        // make white transparent
+                        image2.setRGB(x, y, 0);
+                    }
+
+                }
+            }
+            return image2;
+        }
+        catch (Exception exp) {
+            exp.printStackTrace();
+            return null;
+        }
     }
 
     public void exitActionPerformed() {
-        setVisible(false);
-        dispose();
-        System.out.println("Exiting Main Window");
-        System.exit(0);
+        int option = 0;
+        if (SuperAdapter.assemblyModeCurrentlyActive) {
+            setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit? Make sure you have saved any important assembly changes.",
+                    "Warning", JOptionPane.YES_NO_OPTION);
+        }
+        if (option == 0) {
+            setVisible(false);
+            dispose();
+            System.out.println("Exiting Main Window");
+            System.exit(0);
+        }
     }
 
     /**
