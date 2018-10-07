@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer;
+package juicebox.tools.utils.juicer.curse;
 
 import java.util.HashMap;
 import java.util.Map;

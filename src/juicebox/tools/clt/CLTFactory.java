@@ -109,7 +109,7 @@ public class CLTFactory {
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
         } else if (cmd.equals("curse")) {
-            return new Clustering();
+            return new Curse();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {

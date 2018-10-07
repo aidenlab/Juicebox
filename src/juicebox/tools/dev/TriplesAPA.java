@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ public class TriplesAPA extends JuicerCLT {
     }
 
     private static GenomeWideList<IntraChromTriple> readInIntraChromTriple(ChromosomeHandler handler, String triplesPath) {
-        GenomeWideList<IntraChromTriple> triples = new GenomeWideList<>();
+        GenomeWideList<IntraChromTriple> triples = new GenomeWideList<>(handler);
         try (BufferedReader br = new BufferedReader(new FileReader(triplesPath))) {
             for (String line; (line = br.readLine()) != null; ) {
                 IntraChromTriple triple = IntraChromTriple.parse(line, handler);

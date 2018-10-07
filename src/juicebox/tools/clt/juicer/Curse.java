@@ -24,39 +24,43 @@
 
 package juicebox.tools.clt.juicer;
 
-import be.ac.ulg.montefiore.run.jahmm.Hmm;
-import be.ac.ulg.montefiore.run.jahmm.ObservationVector;
-import be.ac.ulg.montefiore.run.jahmm.OpdfMultiGaussianFactory;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.feature.FeatureFilter;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.juicer.DataCleaner;
+import juicebox.tools.utils.juicer.curse.DataCleaner;
+import juicebox.tools.utils.juicer.curse.SubcompartmentInterval;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import kmeans.BasicKMeans;
 import kmeans.Cluster;
-import kmeans.ConcurrentKMeans;
 import kmeans.KMeansListener;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
  */
-public class Clustering extends JuicerCLT {
+public class Curse extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
     private int resolution = 100000;
     private Dataset ds;
-    private String outputPath;
+    private File outputFile;
+    private AtomicInteger uniqueClusterID = new AtomicInteger(1);
 
-    public Clustering() {
+    public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
         HiCGlobals.useCache = false;
     }
@@ -71,12 +75,12 @@ public class Clustering extends JuicerCLT {
         if (preferredNorm != null) norm = preferredNorm;
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
-        outputPath = args[2];
+        outputFile = new File(args[2]);
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Clustering\nUsing " + possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Curse\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }
@@ -85,67 +89,120 @@ public class Clustering extends JuicerCLT {
     public void run() {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        Chromosome chromosome = chromosomeHandler.getChromosomeArrayWithoutAllByAll()[0];
 
-        // skip these matrices
-        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+        final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
+        final AtomicInteger numRunsToExpect = new AtomicInteger();
+        final AtomicInteger numRunsDone = new AtomicInteger();
 
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-        final MatrixZoomData zd = matrix.getZoomData(zoom);
-        try {
+        for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
-            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-                System.exit(14);
-            }
+            // skip these matrices
+            Matrix matrix = ds.getMatrix(chromosome, chromosome);
+            if (matrix == null) continue;
 
-            RealMatrix localizedRegionData = HiCFileTools.extractLocalLogOEBoundedRegion(zd, 0, 2000,
-                    0, 2000, 2001, 2001, norm, true, df, chromosome.getIndex());
+            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+            final MatrixZoomData zd = matrix.getZoomData(zoom);
+            if (zd == null) continue;
 
-            final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), 0.3);
+            try {
 
-            ConcurrentKMeans asd = new ConcurrentKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
-
-            KMeansListener kml = new KMeansListener() {
-                @Override
-                public void kmeansMessage(String s) {
-                    //System.out.println(s);
+                ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+                if (df == null) {
+                    System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
+                    System.exit(14);
                 }
 
-                @Override
-                public void kmeansComplete(Cluster[] clusters, long l) {
+                int maxBin = chromosome.getLength() / resolution + 1;
+                int maxSize = maxBin + 1;
 
-                    System.out.println(clusters.length);
-                    for (Cluster cluster : clusters) {
-                        for (int i : cluster.getMemberIndexes()) {
-                            System.out.print(i + "->" + dataCleaner.getOriginalIndexRow(i) + "_  _");
-                        }
-                        System.out.println();
+                RealMatrix localizedRegionData = HiCFileTools.extractLocalLogOEBoundedRegion(zd, 0, maxBin,
+                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex());
+
+                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), 0.3);
+
+                //ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
+                BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
+
+                numRunsToExpect.incrementAndGet();
+
+                KMeansListener kMeansListener = new KMeansListener() {
+                    @Override
+                    public void kmeansMessage(String s) {
                     }
-                }
 
-                @Override
-                public void kmeansError(Throwable throwable) {
-                    throwable.printStackTrace();
-                    System.err.println(throwable.getLocalizedMessage());
-                }
-            };
-            asd.addKMeansListener(kml);
+                    @Override
+                    public void kmeansComplete(Cluster[] clusters, long l) {
+                        numRunsDone.incrementAndGet();
+                        processKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
+                    }
 
-            asd.run();
+                    @Override
+                    public void kmeansError(Throwable throwable) {
+                        System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                        throwable.printStackTrace();
+                        System.exit(98);
+                    }
+                };
+                kMeans.addKMeansListener(kMeansListener);
+                kMeans.run();
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        while (numRunsDone.get() < numRunsToExpect.get()) {
+            System.out.println("So far size is " + subcompartments.size());
+            System.out.println("Wait another minute");
+            try {
+                TimeUnit.MINUTES.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
+        subcompartments.simpleExport(outputFile);
+    }
+
+    private void processKmeansResult(Chromosome chromosome, DataCleaner dataCleaner,
+                                     GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
+
+        List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
+        //if(HiCGlobals.printVerboseComments) { }
+        System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
+
+        for (Cluster cluster : clusters) {
+            int currentClusterID = uniqueClusterID.getAndIncrement();
+            for (int i : cluster.getMemberIndexes()) {
+                int x1 = dataCleaner.getOriginalIndexRow(i) * resolution;
+                int x2 = x1 + resolution;
+
+                subcompartmentIntervals.add(
+                        new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(),
+                                x1, x2, currentClusterID));
+            }
+        }
+
+        // resort
+        reSort(subcompartments);
+
+        subcompartments.addAll(subcompartmentIntervals);
+    }
+
+    public void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
+        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+            @Override
+            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
+                Collections.sort(featureList);
+                return featureList;
+            }
+        });
     }
 
 
-    /**
+    /*
      * @param data to cluster - each
      * @param n
-     */
+
     public void cluster(double[][] data, int n) {
 
 
@@ -177,7 +234,7 @@ public class Clustering extends JuicerCLT {
                 new KMeansLearner <ObservationVector>(3 , new OpdfMultiGaussianFactory(6) , sequences2);
         Hmm <ObservationVector> initHmm = kml.iterate() ;
 
-        */
+
 
     }
 
@@ -214,7 +271,7 @@ public class Clustering extends JuicerCLT {
         BaumWelchLearner<?> bwl = new BaumWelchLearner<?>();
         Hmm<ObservationVector> learntHmm = bwl.learn(fittedHmm, sequences);
         System.out.println(learntHmm.toString());
-        */
+
 
 
     }
@@ -228,5 +285,6 @@ public class Clustering extends JuicerCLT {
         //idx = model.predict(x)
         //export(idx+1)
     }
+    */
 
 }
