@@ -40,31 +40,7 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        String hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
-        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
 
-        /*
-        APAvsDistance test= new APAvsDistance();
-        test.run();
-
-        */
-
-
-
-
-/*
-
-        String hicpath = "/Users/muhammadsaadshamim/Desktop/Aiden Lab/local_hic/gm12878_intra_nofrag_30.hic";
-        String respath = "/Users/muhammadsaadshamim/Desktop/result_hiccups";
-
-
-        //writeMergedNoDupsFromTimeSeq(seqPath, newPath);
-
-        String[] ll51231123 = {"hiccups", "--cpu",
-                hicpath,respath};
-
-                */
         String[] ll51231123 = {"compare", "0", "hg19",
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
                 //"/Users/muhammadsaadshamim/Desktop/MBR19_loops.txt",
@@ -72,19 +48,7 @@ class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/result_25kb_hiccups_compare.bedpe"};
 
         HiCTools.main(ll51231123);
-//        started 9:20
 
-
-
-        /*
-        String[] ll51231123 = {"motifs",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
-
-
-        HiCTools.main(ll51231123);
-*/
 
     }
 

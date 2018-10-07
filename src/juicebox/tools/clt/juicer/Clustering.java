@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,22 @@ import be.ac.ulg.montefiore.run.jahmm.Hmm;
 import be.ac.ulg.montefiore.run.jahmm.ObservationVector;
 import be.ac.ulg.montefiore.run.jahmm.OpdfMultiGaussianFactory;
 import juicebox.HiCGlobals;
+import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.juicer.DataCleaner;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import kmeans.Cluster;
+import kmeans.ConcurrentKMeans;
+import kmeans.KMeansListener;
+import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.feature.Chromosome;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,12 +51,13 @@ import java.util.List;
  */
 public class Clustering extends JuicerCLT {
 
-    double[][] data = new double[][]{{1, 2, 3, 2.1}, {1, 2, 3, 2.1}, {1, 1.8, 3, 2}};
-
     private boolean doDifferentialClustering = false;
+    private int resolution = 100000;
+    private Dataset ds;
+    private String outputPath;
 
     public Clustering() {
-        super("clustering [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
+        super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
         HiCGlobals.useCache = false;
     }
 
@@ -57,23 +68,76 @@ public class Clustering extends JuicerCLT {
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
-        NormalizationType norm = NormalizationType.KR;
-        if (preferredNorm != null)
-            norm = preferredNorm;
+        if (preferredNorm != null) norm = preferredNorm;
 
-        String inputFiles = args[1];
-        String outputPath = args[2];
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        outputPath = args[2];
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
                 System.err.println("Only one resolution can be specified for Clustering\nUsing " + possibleResolutions.get(0));
-            int resolution = Integer.parseInt(possibleResolutions.get(0));
+            resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }
 
     @Override
     public void run() {
+
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+        Chromosome chromosome = chromosomeHandler.getChromosomeArrayWithoutAllByAll()[0];
+
+        // skip these matrices
+        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+
+        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+        final MatrixZoomData zd = matrix.getZoomData(zoom);
+        try {
+
+            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+            if (df == null) {
+                System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
+                System.exit(14);
+            }
+
+            RealMatrix localizedRegionData = HiCFileTools.extractLocalLogOEBoundedRegion(zd, 0, 2000,
+                    0, 2000, 2001, 2001, norm, true, df, chromosome.getIndex());
+
+            final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), 0.3);
+
+            ConcurrentKMeans asd = new ConcurrentKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
+
+            KMeansListener kml = new KMeansListener() {
+                @Override
+                public void kmeansMessage(String s) {
+                    //System.out.println(s);
+                }
+
+                @Override
+                public void kmeansComplete(Cluster[] clusters, long l) {
+
+                    System.out.println(clusters.length);
+                    for (Cluster cluster : clusters) {
+                        for (int i : cluster.getMemberIndexes()) {
+                            System.out.print(i + "->" + dataCleaner.getOriginalIndexRow(i) + "_  _");
+                        }
+                        System.out.println();
+                    }
+                }
+
+                @Override
+                public void kmeansError(Throwable throwable) {
+                    throwable.printStackTrace();
+                    System.err.println(throwable.getLocalizedMessage());
+                }
+            };
+            asd.addKMeansListener(kml);
+
+            asd.run();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
