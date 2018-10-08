@@ -451,8 +451,8 @@ public class HiCFileTools {
                             expected = (averageCount > 0 ? averageCount : 1);
                         }
 
-                        double oeVal = Math.log(rec.getCounts() / expected) * 10;
-
+                        double oeVal = Math.log(rec.getCounts() / expected);
+                        oeVal = Math.min(Math.max(-5, oeVal), 5);
 
                         // place oe value in relative position
                         int relativeX = rec.getBinX() - binXStart;

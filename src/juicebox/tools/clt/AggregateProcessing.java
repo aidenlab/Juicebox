@@ -47,8 +47,15 @@ class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/result_hiccups/merged_loops.bedpe",
                 "/Users/muhammadsaadshamim/Desktop/result_25kb_hiccups_compare.bedpe"};
 
-        HiCTools.main(ll51231123);
+        // GSE63525_GM12878_insitu_primary_30.hic
 
+        // gm12878_intra_nofrag_30.hic
+
+        ll51231123 = new String[]{"curse",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Users/muhammad/Desktop/curse_replicate_100000_v01"};
+
+        HiCTools.main(ll51231123);
 
     }
 

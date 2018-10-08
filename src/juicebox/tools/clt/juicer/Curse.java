@@ -32,15 +32,16 @@ import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.curse.DataCleaner;
 import juicebox.tools.utils.juicer.curse.SubcompartmentInterval;
+import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
+import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
+import juicebox.tools.utils.juicer.curse.kmeans.KMeansListener;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import kmeans.BasicKMeans;
-import kmeans.Cluster;
-import kmeans.KMeansListener;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,10 +56,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Curse extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
-    private int resolution = 100000;
+    private int resolution = 50000;
     private Dataset ds;
-    private File outputFile;
+    private File outputDirectory;
     private AtomicInteger uniqueClusterID = new AtomicInteger(1);
+    private int numClusters = 20;
+    private double threshold = 0.7;
+    private int maxIters = 10000;
 
     public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
@@ -75,7 +79,7 @@ public class Curse extends JuicerCLT {
         if (preferredNorm != null) norm = preferredNorm;
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
-        outputFile = new File(args[2]);
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
@@ -89,6 +93,65 @@ public class Curse extends JuicerCLT {
     public void run() {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+
+        GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+
+        File outputFile = new File(outputDirectory, "result_intra_initial.bed");
+        intraSubcompartments.simpleExport(outputFile);
+
+        //GenomeWideList<SubcompartmentInterval> finalSubcompartments = extractFinalGWSubcompartments(ds, chromosomeHandler, intraSubcompartments);
+    }
+
+    /*
+    private GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
+        final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
+        ScaledGenomeWideMatrix gwMatrix = new ScaledGenomeWideMatrix(chromosomeHandler, ds, norm, resolution, subcompartments, threshold);
+
+        final AtomicBoolean gwRunNotDone = new AtomicBoolean(true);
+
+                if(gwMatrix.getLength() > 0) {
+
+                    ConcurrentKMeans kMeans = new ConcurrentKMeans(gwMatrix.getCleanedData(), numClusters,
+                            maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
+                    //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
+
+                    KMeansListener kMeansListener = new KMeansListener() {
+                        @Override
+                        public void kmeansMessage(String s) {
+                        }
+
+                        @Override
+                        public void kmeansComplete(Cluster[] clusters, long l) {
+                            gwRunNotDone.set(false);
+                            processGWKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
+                        }
+
+                        @Override
+                        public void kmeansError(Throwable throwable) {
+                            System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                            throwable.printStackTrace();
+                            System.exit(98);
+                        }
+                    };
+                    kMeans.addKMeansListener(kMeansListener);
+                    kMeans.run();
+                }
+
+        while (gwRunNotDone.get()) {
+            System.out.println("So far size is " + subcompartments.size());
+            System.out.println("Wait another minute");
+            try {
+                TimeUnit.MINUTES.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return subcompartments;
+    }
+    */
+
+    private GenomeWideList<SubcompartmentInterval> extractAllInitialIntraSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler) {
 
         final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
         final AtomicInteger numRunsToExpect = new AtomicInteger();
@@ -118,34 +181,37 @@ public class Curse extends JuicerCLT {
                 RealMatrix localizedRegionData = HiCFileTools.extractLocalLogOEBoundedRegion(zd, 0, maxBin,
                         0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex());
 
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), 0.3);
+                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), threshold);
 
-                //ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
-                BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), 20, 20000, 128971L);
+                if (dataCleaner.getLength() > 0) {
 
-                numRunsToExpect.incrementAndGet();
+                    ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
+                            maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
+                    //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
 
-                KMeansListener kMeansListener = new KMeansListener() {
-                    @Override
-                    public void kmeansMessage(String s) {
-                    }
+                    numRunsToExpect.incrementAndGet();
 
-                    @Override
-                    public void kmeansComplete(Cluster[] clusters, long l) {
-                        numRunsDone.incrementAndGet();
-                        processKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
-                    }
+                    KMeansListener kMeansListener = new KMeansListener() {
+                        @Override
+                        public void kmeansMessage(String s) {
+                        }
 
-                    @Override
-                    public void kmeansError(Throwable throwable) {
-                        System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
-                        throwable.printStackTrace();
-                        System.exit(98);
-                    }
-                };
-                kMeans.addKMeansListener(kMeansListener);
-                kMeans.run();
+                        @Override
+                        public void kmeansComplete(Cluster[] clusters, long l) {
+                            numRunsDone.incrementAndGet();
+                            processKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
+                        }
 
+                        @Override
+                        public void kmeansError(Throwable throwable) {
+                            System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                            throwable.printStackTrace();
+                            System.exit(98);
+                        }
+                    };
+                    kMeans.addKMeansListener(kMeansListener);
+                    kMeans.run();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -160,14 +226,13 @@ public class Curse extends JuicerCLT {
             }
         }
 
-        subcompartments.simpleExport(outputFile);
+        return subcompartments;
     }
 
     private void processKmeansResult(Chromosome chromosome, DataCleaner dataCleaner,
                                      GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
 
         List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
-        //if(HiCGlobals.printVerboseComments) { }
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
@@ -177,8 +242,7 @@ public class Curse extends JuicerCLT {
                 int x2 = x1 + resolution;
 
                 subcompartmentIntervals.add(
-                        new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(),
-                                x1, x2, currentClusterID));
+                        new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(), x1, x2, currentClusterID));
             }
         }
 
@@ -198,93 +262,18 @@ public class Curse extends JuicerCLT {
         });
     }
 
+    private void writeClusterCenterToWig(Chromosome chromosome, double[] center, File file) {
+        try {
+            final FileWriter fw = new FileWriter(file);
+            fw.write("fixedStep chrom=chr" + chromosome.getName() + " start=1" + " step=" + resolution + "\n");
+            for (double d : center) {
+                fw.write(d + "\n");
+            }
+            fw.close();
 
-    /*
-     * @param data to cluster - each
-     * @param n
-
-    public void cluster(double[][] data, int n) {
-
-
-        OpdfMultiGaussianFactory factory = new OpdfMultiGaussianFactory(6);
-        new ObservationVector(data[0]);
-        Hmm<ObservationVector> hmm = new Hmm<>(6, factory);
-
-        List<ObservationVector> sequences = new ArrayList<>();
-
-        /* todo
-        for (double[] row : data)
-
-            sequences.add(new ArrayList(new ObservationVector(row)));
-        //sequences.add(mg.observationSequence(100));
-
-
-
-        BaumWelchLearner bwl = new BaumWelchLearner();
-        Hmm<?> learntHmm = bwl.learn(hmm, sequences);
-
-        for (int i = 0; i < 10; i++) {
-            bwl.iterate(learntHmm);
+        } catch (Exception e) {
+            System.err.println("Unable to make file for exporting center");
         }
-
-
-        List<List<ObservationVector>> sequences2 = new ArrayList<List<ObservationVector>>();
-
-        KMeansLearner<ObservationVector> kml =
-                new KMeansLearner <ObservationVector>(3 , new OpdfMultiGaussianFactory(6) , sequences2);
-        Hmm <ObservationVector> initHmm = kml.iterate() ;
-
-
 
     }
-
-
-    private int[][] normalizeMatrix(int[][] matrix, int v0, int v1, int z0, int z1) {
-
-
-        if (v1 == 1) {
-            matrix = MatrixTools.normalizeMatrixUsingRowSum(matrix);
-        }
-        if (v0 == 1) {
-            matrix = MatrixTools.normalizeMatrixUsingColumnSum(matrix);
-        }
-        if (z1 == 1) {
-            //matrix=stats.zscore(matrix,axis=1);
-        }
-        if (z0 == 1) {
-            //matrix=stats.zscore(matrix,axis=0);
-        }
-        return matrix;
-    }
-
-    // TODO
-    private void runKmeansClustering(int[][] matrix, int v0, int v1, int z0, int z1) {
-        matrix = normalizeMatrix(matrix, v0, v1, z0, z1);
-        //centroids = kmeans(x,k)
-        //idx = vq(x,centroids)
-        //export(idx+1)
-
-        /*
-        KMeansLearner<ObservationVector> kml = new KMeansLearner<ObservationVector>(2,new OpdfMultiGaussianFactory<?>(21), sequences);
-        Hmm<ObservationVector> fittedHmm = kml.iterate();//kml.learn();
-
-        BaumWelchLearner<?> bwl = new BaumWelchLearner<?>();
-        Hmm<ObservationVector> learntHmm = bwl.learn(fittedHmm, sequences);
-        System.out.println(learntHmm.toString());
-
-
-
-    }
-
-    // TODO
-    private void runHMMClustering(int[][] matrix, int v0, int v1, int z0, int z1) {
-        matrix = normalizeMatrix(matrix, v0, v1, z0, z1);
-        //from sklearn.hmm import GaussianHMM
-        //model = GaussianHMM(n_components=k, covariance_type="diag",n_iter=1000)
-        //model.fit([x])
-        //idx = model.predict(x)
-        //export(idx+1)
-    }
-    */
-
 }

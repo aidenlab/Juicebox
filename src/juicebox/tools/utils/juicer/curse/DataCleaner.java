@@ -119,4 +119,8 @@ public class DataCleaner {
     public int getOriginalIndexCol(int i) {
         return cleanIndexColToOriginalIndexCol.get(i);
     }
+
+    public int getLength() {
+        return cleanData.length;
+    }
 }

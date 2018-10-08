@@ -51,9 +51,49 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
             new Color(255, 215, 180),
             new Color(0, 0, 128),
             new Color(128, 128, 128),
-            new Color(255, 255, 255),
             new Color(0, 0, 0)
     };
+
+    private static Color[] colors2 = new Color[]{
+            new Color(255, 191, 191),
+            new Color(178, 48, 0),
+            new Color(255, 162, 128),
+            new Color(204, 133, 51),
+            new Color(76, 50, 19),
+            new Color(51, 47, 38),
+            new Color(229, 195, 57),
+            new Color(127, 108, 32),
+            new Color(51, 48, 13),
+            new Color(166, 163, 124),
+            new Color(229, 255, 128),
+            new Color(48, 179, 0),
+            new Color(22, 89, 31),
+            new Color(57, 230, 172),
+            new Color(0, 64, 60),
+            new Color(35, 140, 133),
+            new Color(115, 207, 230),
+            new Color(57, 96, 115),
+            new Color(0, 27, 51),
+            new Color(128, 196, 255),
+            new Color(0, 46, 115),
+            new Color(102, 129, 204),
+            new Color(0, 0, 102),
+            new Color(92, 51, 204),
+            new Color(191, 115, 230),
+            new Color(204, 0, 255),
+            new Color(54, 16, 64),
+            new Color(107, 0, 115),
+            new Color(213, 163, 217),
+            new Color(89, 67, 88),
+            new Color(230, 0, 153),
+            new Color(229, 0, 92),
+            new Color(242, 0, 32),
+            new Color(89, 22, 31),
+            new Color(140, 70, 79)
+    };
+
+
+
     private final Integer x1;
     private final Integer x2;
     private final Integer chrIndex;
@@ -107,7 +147,9 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
     //    chr19	200000	500000	B1	-1	.	200000	500000	220,20,60
     @Override
     public String toString() {
+        Color color = colors[clusterID % colors.length];
+        String colorString = color.getRed() + "," + color.getGreen() + "," + color.getBlue();
         return "chr" + chrName + "\t" + x1 + "\t" + x2 + "\t" + clusterID + "\t" + clusterID
-                + "\t.\t" + x1 + "\t" + x2 + "\t" + colors[clusterID % colors.length].toString();
+                + "\t.\t" + x1 + "\t" + x2 + "\t" + colorString;
     }
 }
