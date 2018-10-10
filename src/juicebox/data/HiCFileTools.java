@@ -417,75 +417,9 @@ public class HiCFileTools {
         return data;
     }
 
-    public static RealMatrix extractLocalLogOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                            int binYStart, int binYEnd, int numRows, int numCols,
-                                                            NormalizationType normalizationType, boolean isIntra,
-                                                            ExpectedValueFunction df, int chrIndex) throws IOException {
-
-        if (df == null) {
-            System.err.println("DF is null");
-            return null;
-        }
-
-        // numRows/numCols is just to ensure a set size in case bounds are approximate
-        // left upper corner is reference for 0,0
-        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-
-        double averageCount = zd.getAverageCount();
-
-        if (blocks.size() > 0) {
-            for (Block b : blocks) {
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-
-                        int x = rec.getBinX();
-                        int y = rec.getBinY();
-
-                        double expected;
-                        if (isIntra) {
-                            int dist = Math.abs(x - y);
-                            expected = df.getExpectedValue(chrIndex, dist);
-                        } else {
-                            expected = (averageCount > 0 ? averageCount : 1);
-                        }
-
-                        double oeVal = Math.log(rec.getCounts() / expected);
-                        oeVal = Math.min(Math.max(-5, oeVal), 5);
-
-                        // place oe value in relative position
-                        int relativeX = rec.getBinX() - binXStart;
-                        int relativeY = rec.getBinY() - binYStart;
-                        if (relativeX >= 0 && relativeX < numRows) {
-                            if (relativeY >= 0 && relativeY < numCols) {
-                                data.addToEntry(relativeX, relativeY, oeVal);
-                            }
-                        }
-
-                        if (isIntra) {
-                            // check if the other half of matrix should also be displayed/passed in
-                            relativeX = rec.getBinY() - binXStart;
-                            relativeY = rec.getBinX() - binYStart;
-                            if (relativeX >= 0 && relativeX < numRows) {
-                                if (relativeY >= 0 && relativeY < numCols) {
-                                    data.addToEntry(relativeX, relativeY, oeVal);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // ~force cleanup
-        blocks = null;
-
-        return data;
-    }
-
-    private static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                  int binYStart, int binYEnd,
-                                                  NormalizationType normalizationType) throws IOException {
+    public static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                 int binYStart, int binYEnd,
+                                                 NormalizationType normalizationType) throws IOException {
 
         List<Block> blocks = new ArrayList<>();
 

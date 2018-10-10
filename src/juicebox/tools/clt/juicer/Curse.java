@@ -30,7 +30,10 @@ import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.curse.DataCleaner;
+import juicebox.tools.utils.juicer.curse.ExtractingOEDataUtils;
+import juicebox.tools.utils.juicer.curse.ScaledGenomeWideMatrix;
 import juicebox.tools.utils.juicer.curse.SubcompartmentInterval;
 import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
 import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
@@ -48,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -56,13 +60,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Curse extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
-    private int resolution = 50000;
+    private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
     private AtomicInteger uniqueClusterID = new AtomicInteger(1);
     private int numClusters = 20;
-    private double threshold = 0.7;
+    private double coverageThreshold = 0.7;
     private int maxIters = 10000;
+    private double logThreshold = 1.5;
 
     public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
@@ -99,46 +104,62 @@ public class Curse extends JuicerCLT {
         File outputFile = new File(outputDirectory, "result_intra_initial.bed");
         intraSubcompartments.simpleExport(outputFile);
 
-        //GenomeWideList<SubcompartmentInterval> finalSubcompartments = extractFinalGWSubcompartments(ds, chromosomeHandler, intraSubcompartments);
+        SubcompartmentInterval.collapseGWList(intraSubcompartments);
+
+        File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
+        intraSubcompartments.simpleExport(outputFile2);
+
+        GenomeWideList<SubcompartmentInterval> finalSubcompartments = extractFinalGWSubcompartments(ds, chromosomeHandler, intraSubcompartments);
     }
 
-    /*
-    private GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
-        final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
-        ScaledGenomeWideMatrix gwMatrix = new ScaledGenomeWideMatrix(chromosomeHandler, ds, norm, resolution, subcompartments, threshold);
+
+    private GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler,
+                                                                                 GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
+        final ScaledGenomeWideMatrix gwMatrix = new ScaledGenomeWideMatrix(chromosomeHandler, ds, norm,
+                resolution, intraSubcompartments, logThreshold);
+
+
+        final GenomeWideList<SubcompartmentInterval> finalSubcompartments = new GenomeWideList<>(chromosomeHandler);
+
 
         final AtomicBoolean gwRunNotDone = new AtomicBoolean(true);
+        System.out.println("preprintingFile");
+        if (gwMatrix.getLength() > 0) {
 
-                if(gwMatrix.getLength() > 0) {
+            System.out.println("printingFile");
+            File outputFile = new File(outputDirectory, "gw_matrix_data.txt");
+            MatrixTools.exportData(gwMatrix.getCleanedData(), outputFile);
 
-                    ConcurrentKMeans kMeans = new ConcurrentKMeans(gwMatrix.getCleanedData(), numClusters,
-                            maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
-                    //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
+            /*
+            ConcurrentKMeans kMeans = new ConcurrentKMeans(gwMatrix.getCleanedData(), numClusters,
+                    maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
+            //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
 
-                    KMeansListener kMeansListener = new KMeansListener() {
-                        @Override
-                        public void kmeansMessage(String s) {
-                        }
+            KMeansListener kMeansListener = new KMeansListener() {
+                @Override
+                public void kmeansMessage(String s) { }
 
-                        @Override
-                        public void kmeansComplete(Cluster[] clusters, long l) {
-                            gwRunNotDone.set(false);
-                            processGWKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
-                        }
-
-                        @Override
-                        public void kmeansError(Throwable throwable) {
-                            System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
-                            throwable.printStackTrace();
-                            System.exit(98);
-                        }
-                    };
-                    kMeans.addKMeansListener(kMeansListener);
-                    kMeans.run();
+                @Override
+                public void kmeansComplete(Cluster[] clusters, long l) {
+                    gwRunNotDone.set(false);
+                    gwMatrix.processGWKmeansResult(clusters, finalSubcompartments);
                 }
 
+                @Override
+                public void kmeansError(Throwable throwable) {
+                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
+                    throwable.printStackTrace();
+                    System.exit(98);
+                }
+            };
+            kMeans.addKMeansListener(kMeansListener);
+            kMeans.run();
+
+            */
+        }
+
         while (gwRunNotDone.get()) {
-            System.out.println("So far size is " + subcompartments.size());
+            System.out.println("So far size is " + finalSubcompartments.size());
             System.out.println("Wait another minute");
             try {
                 TimeUnit.MINUTES.sleep(1);
@@ -147,9 +168,8 @@ public class Curse extends JuicerCLT {
             }
         }
 
-        return subcompartments;
+        return finalSubcompartments;
     }
-    */
 
     private GenomeWideList<SubcompartmentInterval> extractAllInitialIntraSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler) {
 
@@ -176,12 +196,12 @@ public class Curse extends JuicerCLT {
                 }
 
                 int maxBin = chromosome.getLength() / resolution + 1;
-                int maxSize = maxBin + 1;
+                int maxSize = maxBin;
 
-                RealMatrix localizedRegionData = HiCFileTools.extractLocalLogOEBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex());
+                RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
+                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
 
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), threshold);
+                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), coverageThreshold);
 
                 if (dataCleaner.getLength() > 0) {
 

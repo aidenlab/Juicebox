@@ -562,4 +562,34 @@ public class MatrixTools {
                 }
         return matrix;
     }
+
+    public static double getAverage(RealMatrix data) {
+        return getAverage(data.getData());
+    }
+
+    public static double getAverage(double[][] data) {
+        double average = 0;
+        if (data.length > 0) {
+            double total = 0;
+            for (double[] vals : data) {
+                for (double val : vals) {
+                    total += val;
+                }
+            }
+            average = (total / data.length) / data[0].length;
+        }
+        return average;
+    }
+
+    public static void exportData(double[][] data, File file) {
+        try {
+            final FileWriter fw = new FileWriter(file);
+            for (double[] row : data) {
+                fw.write(Arrays.toString(row) + "\n");
+            }
+            fw.close();
+        } catch (Exception e) {
+            System.err.println("Error exporting matrix");
+        }
+    }
 }

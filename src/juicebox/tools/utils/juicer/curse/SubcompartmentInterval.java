@@ -25,8 +25,12 @@
 package juicebox.tools.utils.juicer.curse;
 
 import juicebox.data.feature.Feature;
+import juicebox.data.feature.FeatureFilter;
+import juicebox.data.feature.GenomeWideList;
 
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class SubcompartmentInterval extends Feature implements Comparable<SubcompartmentInterval> {
 
@@ -95,7 +99,7 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
 
 
     private final Integer x1;
-    private final Integer x2;
+    private Integer x2;
     private final Integer chrIndex;
     private final Integer clusterID;
     private String chrName;
@@ -106,6 +110,48 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
         this.x1 = x1;
         this.x2 = x2;
         this.clusterID = clusterID;
+    }
+
+    public static void collapseGWList(GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
+        intraSubcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+            @Override
+            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
+                return collapseSubcompartmentIntervals(featureList);
+            }
+        });
+    }
+
+    private static List<SubcompartmentInterval> collapseSubcompartmentIntervals(List<SubcompartmentInterval> intervals) {
+        if (intervals.size() > 0) {
+
+            Collections.sort(intervals);
+            SubcompartmentInterval collapsedInterval = (SubcompartmentInterval) intervals.get(0).deepClone();
+
+            Set<SubcompartmentInterval> newIntervals = new HashSet<>();
+            for (SubcompartmentInterval nextInterval : intervals) {
+                if (collapsedInterval.overlapsWith(nextInterval)) {
+                    collapsedInterval.absorb(nextInterval);
+                } else {
+                    newIntervals.add(collapsedInterval);
+                    collapsedInterval = (SubcompartmentInterval) nextInterval.deepClone();
+                }
+            }
+            newIntervals.add(collapsedInterval);
+
+            List<SubcompartmentInterval> newIntervalsSorted = new ArrayList<>(newIntervals);
+            Collections.sort(newIntervalsSorted);
+
+            return newIntervalsSorted;
+        }
+        return intervals;
+    }
+
+    private boolean overlapsWith(SubcompartmentInterval o) {
+        return chrIndex.equals(o.chrIndex) && clusterID.equals(o.clusterID) && x2.equals(o.x1);
+    }
+
+    private void absorb(SubcompartmentInterval interval) {
+        x2 = new Integer(interval.x2);
     }
 
     @Override
