@@ -29,7 +29,6 @@ import juicebox.data.*;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.curse.DataCleaner;
 import juicebox.tools.utils.juicer.curse.ExtractingOEDataUtils;
 import juicebox.tools.utils.juicer.curse.ScaledGenomeWideMatrix;
@@ -106,6 +105,14 @@ public class Curse extends JuicerCLT {
         intraSubcompartments.simpleExport(outputFile2);
 
         GenomeWideList<SubcompartmentInterval> finalSubcompartments = extractFinalGWSubcompartments(ds, chromosomeHandler, intraSubcompartments);
+
+        File outputFile3 = new File(outputDirectory, "gw_result_initial.bed");
+        finalSubcompartments.simpleExport(outputFile3);
+
+        SubcompartmentInterval.collapseGWList(finalSubcompartments);
+
+        File outputFile4 = new File(outputDirectory, "gw_result_collapsed.bed");
+        finalSubcompartments.simpleExport(outputFile4);
     }
 
 
@@ -119,17 +126,14 @@ public class Curse extends JuicerCLT {
 
 
         final AtomicBoolean gwRunNotDone = new AtomicBoolean(true);
-        System.out.println("preprintingFile");
         if (gwMatrix.getLength() > 0) {
 
-            System.out.println("printingFile");
-            File outputFile = new File(outputDirectory, "gw_matrix_data.txt");
-            MatrixTools.exportData(gwMatrix.getCleanedData(), outputFile);
+            //System.out.println("printing GW matrix file");
+            //File outputFile = new File(outputDirectory, "gw_matrix_data.txt");
+            //MatrixTools.exportData(gwMatrix.getCleanedData(), outputFile);
 
-            /*
             ConcurrentKMeans kMeans = new ConcurrentKMeans(gwMatrix.getCleanedData(), numClusters,
-                    maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
-            //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
+                    maxIters, 128971L);
 
             KMeansListener kMeansListener = new KMeansListener() {
                 @Override
@@ -143,15 +147,13 @@ public class Curse extends JuicerCLT {
 
                 @Override
                 public void kmeansError(Throwable throwable) {
-                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
                     throwable.printStackTrace();
+                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
                     System.exit(98);
                 }
             };
             kMeans.addKMeansListener(kMeansListener);
             kMeans.run();
-
-            */
         }
 
         while (gwRunNotDone.get()) {
@@ -202,11 +204,9 @@ public class Curse extends JuicerCLT {
                 if (dataCleaner.getLength() > 0) {
 
                     ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
-                            maxIters, 128971L); //Runtime.getRuntime().availableProcessors()/2
-                    //BasicKMeans kMeans = new BasicKMeans(dataCleaner.getCleanedData(), numClusters, maxIters, 128971L);
+                            maxIters, 128971L);
 
                     numRunsToExpect.incrementAndGet();
-
                     KMeansListener kMeansListener = new KMeansListener() {
                         @Override
                         public void kmeansMessage(String s) {

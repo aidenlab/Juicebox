@@ -53,7 +53,7 @@ class AggregateProcessing {
 
         ll51231123 = new String[]{"curse",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
-                "/Users/muhammad/Desktop/curse_replicate_100000_v01"};
+                "/Users/muhammad/Desktop/curse_replicate_gw_testing"};
 
         HiCTools.main(ll51231123);
 

@@ -130,7 +130,6 @@ public class DataCleaner {
     }
 
     public void processKmeansResult(Chromosome chromosome, GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
-
         List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 

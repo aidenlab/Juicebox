@@ -32,7 +32,8 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScaledGenomeWideMatrix {
 
@@ -92,41 +93,8 @@ public class ScaledGenomeWideMatrix {
         return gwMatrix;
     }
 
-    private void fillInChromosomeRegion(double[][] matrix, MatrixZoomData zd, ExpectedValueFunction df, boolean isIntra,
-                                        Chromosome chr1, int offsetIndex1, Chromosome chr2, int offsetIndex2) {
-
-        int chr1Index = chr1.getIndex();
-        int lengthChr1 = chr1.getLength() / resolution;
-        int lengthChr2 = chr2.getLength() / resolution;
-        List<SubcompartmentInterval> intervals1 = intraSubcompartments.getFeatures("" + chr1.getIndex());
-        List<SubcompartmentInterval> intervals2 = intraSubcompartments.getFeatures("" + chr2.getIndex());
-
-        try {
-            if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold);
-
-            for (int i = 0; i < intervals1.size(); i++) {
-                int binXStart = intervals1.get(i).getX1() / resolution;
-                int binXEnd = Math.min(intervals1.get(i).getX2() / resolution, lengthChr1);
-
-                for (int j = 0; j < intervals2.size(); j++) {
-                    int binYStart = intervals2.get(j).getX1() / resolution;
-                    int binYEnd = Math.min(intervals2.get(j).getX2() / resolution, lengthChr2);
-
-                    double averagedValue = ExtractingOEDataUtils.extractAveragedOEFromRegion(allDataForRegion,
-                            binXStart, binXEnd, binYStart, binYEnd, threshold, isIntra);
-
-                    matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
-                    if (!isIntra) {
-                        matrix[offsetIndex2 + j][offsetIndex1 + i] = averagedValue;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    private final static AtomicInteger uniqueClusterID = new AtomicInteger(1);
+    Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
 
     private int calculateSizeGWMatrix(Chromosome[] chromosomes) {
         int total = 0;
@@ -145,8 +113,71 @@ public class ScaledGenomeWideMatrix {
         return indices;
     }
 
+    private void fillInChromosomeRegion(double[][] matrix, MatrixZoomData zd, ExpectedValueFunction df, boolean isIntra,
+                                        Chromosome chr1, int offsetIndex1, Chromosome chr2, int offsetIndex2) {
+
+        int chr1Index = chr1.getIndex();
+        int lengthChr1 = chr1.getLength() / resolution;
+        int lengthChr2 = chr2.getLength() / resolution;
+        List<SubcompartmentInterval> intervals1 = intraSubcompartments.getFeatures("" + chr1.getIndex());
+        List<SubcompartmentInterval> intervals2 = intraSubcompartments.getFeatures("" + chr2.getIndex());
+
+        try {
+            if (intervals1.size() == 0 || intervals2.size() == 0) return;
+            double[][] allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
+                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold);
+
+            for (int i = 0; i < intervals1.size(); i++) {
+                SubcompartmentInterval interv1 = intervals1.get(i);
+                indexToIntervalMap.put(offsetIndex1 + i, interv1);
+                int binXStart = interv1.getX1() / resolution;
+                int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
+
+                for (int j = 0; j < intervals2.size(); j++) {
+                    SubcompartmentInterval interv2 = intervals2.get(j);
+                    int binYStart = interv2.getX1() / resolution;
+                    int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
+
+                    double averagedValue = ExtractingOEDataUtils.extractAveragedOEFromRegion(allDataForRegion,
+                            binXStart, binXEnd, binYStart, binYEnd, threshold, isIntra);
+
+                    matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
+                    if (!isIntra) {
+                        matrix[offsetIndex2 + j][offsetIndex1 + i] = averagedValue;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments) {
 
+        List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
+        System.out.println("GW data clustered into " + clusters.length + " clusters");
+
+        for (Cluster cluster : clusters) {
+            int currentClusterID = uniqueClusterID.getAndIncrement();
+            System.out.println("Cluster " + currentClusterID);
+            System.out.println(Arrays.toString(cluster.getMemberIndexes()));
+            for (int i : cluster.getMemberIndexes()) {
+
+                SubcompartmentInterval interv1 = indexToIntervalMap.get(i);
+                System.out.println(i + " - " + interv1);
+
+                int chrIndex = interv1.getChrIndex();
+                String chrName = interv1.getChrName();
+                int x1 = interv1.getX1();
+                int x2 = interv1.getX2();
+
+                subcompartmentIntervals.add(
+                        new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
+            }
+        }
+
+        SubcompartmentInterval.reSort(subcompartments);
+        subcompartments.addAll(subcompartmentIntervals);
     }
 
     public int getLength() {

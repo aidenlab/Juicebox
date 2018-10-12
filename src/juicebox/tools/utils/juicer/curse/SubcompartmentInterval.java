@@ -183,6 +183,10 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
         return new SubcompartmentInterval(chrIndex, chrName, x1, x2, clusterID);
     }
 
+    public Integer getChrIndex() {
+        return chrIndex;
+    }
+
     public Integer getX1() {
         return x1;
     }
