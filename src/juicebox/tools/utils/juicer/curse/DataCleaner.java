@@ -24,25 +24,30 @@
 
 package juicebox.tools.utils.juicer.curse;
 
+import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
+import org.broad.igv.feature.Chromosome;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DataCleaner {
 
     final private double[][] originalData;
     final private double[][] cleanData;
+    private static AtomicInteger uniqueClusterID = new AtomicInteger(1);
     Map<Integer, Integer> cleanIndexRowToOriginalIndexRow = new HashMap<>();
     Map<Integer, Integer> cleanIndexColToOriginalIndexCol = new HashMap<>();
-    private double coverageThreshold = 0.3;
+    final private int resolution;
+    private double coverageThreshold;
 
-    public DataCleaner(double[][] data, double threshold) {
+    public DataCleaner(double[][] data, double threshold, int resolution) {
+        this.resolution = resolution;
         coverageThreshold = threshold;
-        if (threshold > 0) {
-            coverageThreshold = threshold;
-        }
-
         originalData = data;
-
         cleanData = cleanUpData();
     }
 
@@ -122,5 +127,25 @@ public class DataCleaner {
 
     public int getLength() {
         return cleanData.length;
+    }
+
+    public void processKmeansResult(Chromosome chromosome, GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
+
+        List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
+        System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
+
+        for (Cluster cluster : clusters) {
+            int currentClusterID = uniqueClusterID.getAndIncrement();
+            for (int i : cluster.getMemberIndexes()) {
+                int x1 = getOriginalIndexRow(i) * resolution;
+                int x2 = x1 + resolution;
+
+                subcompartmentIntervals.add(
+                        new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(), x1, x2, currentClusterID));
+            }
+        }
+
+        SubcompartmentInterval.reSort(subcompartments);
+        subcompartments.addAll(subcompartmentIntervals);
     }
 }

@@ -26,7 +26,6 @@ package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
 import juicebox.data.*;
-import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -46,9 +45,7 @@ import org.broad.igv.feature.Chromosome;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,7 +60,6 @@ public class Curse extends JuicerCLT {
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private AtomicInteger uniqueClusterID = new AtomicInteger(1);
     private int numClusters = 20;
     private double coverageThreshold = 0.7;
     private int maxIters = 10000;
@@ -201,7 +197,7 @@ public class Curse extends JuicerCLT {
                 RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
                         0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
 
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), coverageThreshold);
+                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), coverageThreshold, resolution);
 
                 if (dataCleaner.getLength() > 0) {
 
@@ -219,7 +215,7 @@ public class Curse extends JuicerCLT {
                         @Override
                         public void kmeansComplete(Cluster[] clusters, long l) {
                             numRunsDone.incrementAndGet();
-                            processKmeansResult(chromosome, dataCleaner, subcompartments, clusters);
+                            dataCleaner.processKmeansResult(chromosome, subcompartments, clusters);
                         }
 
                         @Override
@@ -247,39 +243,6 @@ public class Curse extends JuicerCLT {
         }
 
         return subcompartments;
-    }
-
-    private void processKmeansResult(Chromosome chromosome, DataCleaner dataCleaner,
-                                     GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
-
-        List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
-        System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
-
-        for (Cluster cluster : clusters) {
-            int currentClusterID = uniqueClusterID.getAndIncrement();
-            for (int i : cluster.getMemberIndexes()) {
-                int x1 = dataCleaner.getOriginalIndexRow(i) * resolution;
-                int x2 = x1 + resolution;
-
-                subcompartmentIntervals.add(
-                        new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(), x1, x2, currentClusterID));
-            }
-        }
-
-        // resort
-        reSort(subcompartments);
-
-        subcompartments.addAll(subcompartmentIntervals);
-    }
-
-    public void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
-        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
-            @Override
-            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
-                Collections.sort(featureList);
-                return featureList;
-            }
-        });
     }
 
     private void writeClusterCenterToWig(Chromosome chromosome, double[] center, File file) {

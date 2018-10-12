@@ -146,6 +146,16 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
         return intervals;
     }
 
+    public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
+        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+            @Override
+            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
+                Collections.sort(featureList);
+                return featureList;
+            }
+        });
+    }
+
     private boolean overlapsWith(SubcompartmentInterval o) {
         return chrIndex.equals(o.chrIndex) && clusterID.equals(o.clusterID) && x2.equals(o.x1);
     }

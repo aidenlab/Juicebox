@@ -26,14 +26,12 @@ package juicebox.tools.utils.juicer.curse;
 
 import juicebox.data.*;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ScaledGenomeWideMatrix {
@@ -72,24 +70,22 @@ public class ScaledGenomeWideMatrix {
                 Chromosome chr2 = chromosomes[j];
 
                 boolean isIntra = chr1.getIndex() == chr2.getIndex();
-
                 Matrix matrix = ds.getMatrix(chr1, chr2);
+
                 if (matrix == null) continue;
 
                 HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-
                 final MatrixZoomData zd = matrix.getZoomData(zoom);
+
                 if (zd == null) continue;
 
                 ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-
                 if (isIntra && df == null) {
                     System.err.println("O/E data not available at " + chr1.getName() + " " + zoom + " " + norm);
                     System.exit(14);
                 }
 
                 fillInChromosomeRegion(gwMatrix, zd, df, isIntra, chr1, indices[i], chr2, indices[j]);
-
             }
         }
 
@@ -100,24 +96,15 @@ public class ScaledGenomeWideMatrix {
                                         Chromosome chr1, int offsetIndex1, Chromosome chr2, int offsetIndex2) {
 
         int chr1Index = chr1.getIndex();
-        int chr2Index = chr2.getIndex();
         int lengthChr1 = chr1.getLength() / resolution;
         int lengthChr2 = chr2.getLength() / resolution;
         List<SubcompartmentInterval> intervals1 = intraSubcompartments.getFeatures("" + chr1.getIndex());
         List<SubcompartmentInterval> intervals2 = intraSubcompartments.getFeatures("" + chr2.getIndex());
 
-        List<Double> allEncountered = new ArrayList<>();
-
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
             double[][] allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
                     0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold);
-            double averageForRegion = MatrixTools.getAverage(allDataForRegion);
-
-            int numEntriesInRegion = intervals1.size() * intervals2.size();
-            double totalAvgsInRegion = 0;
-
-            double[] sumAcrossRow = new double[intervals1.size()];
 
             for (int i = 0; i < intervals1.size(); i++) {
                 int binXStart = intervals1.get(i).getX1() / resolution;
@@ -128,11 +115,7 @@ public class ScaledGenomeWideMatrix {
                     int binYEnd = Math.min(intervals2.get(j).getX2() / resolution, lengthChr2);
 
                     double averagedValue = ExtractingOEDataUtils.extractAveragedOEFromRegion(allDataForRegion,
-                            binXStart, binXEnd, binYStart, binYEnd, isIntra, threshold, averageForRegion);
-
-                    sumAcrossRow[i] += averagedValue;
-                    totalAvgsInRegion += averagedValue;
-                    allEncountered.add(averagedValue);
+                            binXStart, binXEnd, binYStart, binYEnd, threshold, isIntra);
 
                     matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
                     if (!isIntra) {
@@ -140,28 +123,6 @@ public class ScaledGenomeWideMatrix {
                     }
                 }
             }
-
-        /*
-        if(!isIntra) {
-            Collections.sort(allEncountered);
-            double median = allEncountered.get(allEncountered.size()/2);
-            double averageForRegionV2 = totalAvgsInRegion / numEntriesInRegion;
-
-            for (int i = 0; i < intervals1.size(); i++) {
-                for (int j = 0; j < intervals2.size(); j++) {
-                    //double newVal = matrix[offsetIndex1 + i][offsetIndex2 + j] * 15 / Math.abs(sumAcrossRow[i]);// x / averageForRegionV2;
-                    //newVal = Math.log(newVal);
-                    //newVal = Math.max(Math.min(newVal, threshold), -threshold);
-
-                    //if(Double.isNaN(newVal)) newVal = 0;
-
-                    //matrix[offsetIndex1 + i][offsetIndex2 + j] = newVal;
-                    //matrix[offsetIndex2 + j][offsetIndex1 + i] = newVal;
-                }
-            }
-        }
-        */
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -170,7 +131,6 @@ public class ScaledGenomeWideMatrix {
     private int calculateSizeGWMatrix(Chromosome[] chromosomes) {
         int total = 0;
         for (Chromosome chromosome : chromosomes) {
-            System.out.println("i " + intraSubcompartments.getFeatures("" + chromosome.getIndex()).size());
             total += intraSubcompartments.getFeatures("" + chromosome.getIndex()).size();
         }
         return total;
@@ -186,6 +146,7 @@ public class ScaledGenomeWideMatrix {
     }
 
     public void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments) {
+
     }
 
     public int getLength() {

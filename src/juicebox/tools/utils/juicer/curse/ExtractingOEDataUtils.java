@@ -30,7 +30,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ExtractingOEDataUtils {
@@ -187,23 +186,16 @@ public class ExtractingOEDataUtils {
             for (Block b : blocks) {
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-
                         int x = rec.getBinX();
                         int y = rec.getBinY();
 
-                        double expected = 1;
-                        if (isIntra) {
-                            int dist = Math.abs(x - y);
-                            expected = df.getExpectedValue(chrIndex, dist);
-                        }
-
-
                         double oeVal = rec.getCounts();
                         if (isIntra) {
+                            int dist = Math.abs(x - y);
+                            double expected = df.getExpectedValue(chrIndex, dist);
                             oeVal = Math.log(rec.getCounts() / expected);
-                            oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
+                            //oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                         }
-
                         if (Double.isNaN(oeVal)) oeVal = 0;
 
                         // place oe value in relative position
@@ -236,42 +228,25 @@ public class ExtractingOEDataUtils {
     }
 
     public static double extractAveragedOEFromRegion(double[][] allDataForRegion, int binXStart, int binXEnd,
-                                                     int binYStart, int binYEnd, boolean isIntra, double threshold,
-                                                     double averageForRegion) {
+                                                     int binYStart, int binYEnd, double threshold, boolean isIntra) {
 
-        List<Double> values = new ArrayList<>();
         int totalNumInclZero = (binXEnd - binXStart) * (binYEnd - binYStart);
-        int numNotZero = 0;
-        double accum = 0;
+        double total = 0;
         for (int i = binXStart; i < binXEnd; i++) {
             for (int j = binYStart; j < binYEnd; j++) {
                 if (!Double.isNaN(allDataForRegion[i][j])) {
-                    accum += allDataForRegion[i][j];
-                    values.add(allDataForRegion[i][j]);
-                    numNotZero++;
+                    total += allDataForRegion[i][j];
                 }
             }
         }
 
-        if (numNotZero == 0) numNotZero = 1;
-        if (Double.isNaN(accum)) accum = 0;
-
-        double average;
-        if (isIntra) {
-// todo           average = Math.log(accum/totalNumInclZero)*2;
-            //average = accum/numNotZero;//*2
-            //average = Math.log(accum/numNotZero);//*2
-            average = accum / totalNumInclZero;//*2
-            //Collections.sort(values);
-            //average = Math.log(values.get(values.size()/2));
-
-        } else {
-            average = Math.log(accum / totalNumInclZero); //  div / averageForRegion
-            //average = accum/totalNumInclZero;
+        if (Double.isNaN(total)) total = 0;
+        double average = total / totalNumInclZero;
+        if (!isIntra) {
+            //intra is already log value so don't repeat for those
+            average = Math.log(average);
         }
-
         average = Math.max(Math.min(average, threshold), -threshold);
-
         if (Double.isNaN(average)) average = 0;
 
         return average;
