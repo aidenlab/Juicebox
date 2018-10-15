@@ -40,11 +40,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScaledInterchromosomalMatrix {
 
-    private final static AtomicInteger uniqueClusterID = new AtomicInteger(1);
+
     private final Chromosome mainVSChromosome;
     private final ChromosomeHandler chromosomeHandler;
     private final NormalizationType norm;
@@ -179,11 +178,11 @@ public class ScaledInterchromosomalMatrix {
                     try {
                         matrix[i][offsetIndex2 + j] = averagedValue;
                     } catch (Exception e) {
-                        System.err.println("err " + i + ", (" + offsetIndex2 + "+" + j + ")");
-                        System.err.println("err interv1 " + interv1);
-                        System.err.println("err interv2 " + interv2);
-                        System.err.println("err region size " + allDataForRegion.length + " by " + allDataForRegion[0].length);
-                        System.err.println("err matrix size " + matrix.length + " by " + matrix[0].length);
+                        //System.err.println("err " + i + ", (" + offsetIndex2 + "+" + j + ")");
+                        //System.err.println("err interv1 " + interv1);
+                        //System.err.println("err interv2 " + interv2);
+                        //System.err.println("err region size " + allDataForRegion.length + " by " + allDataForRegion[0].length);
+                        //System.err.println("err matrix size " + matrix.length + " by " + matrix[0].length);
 
                         e.printStackTrace();
                         System.exit(99);
@@ -201,7 +200,7 @@ public class ScaledInterchromosomalMatrix {
         System.out.println("GW data vs " + mainVSChromosome.getName() + " clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = uniqueClusterID.getAndIncrement();
+            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
             //System.out.println("Cluster " + currentClusterID);
             //System.out.println(Arrays.toString(cluster.getMemberIndexes()));
             for (int i : cluster.getMemberIndexes()) {

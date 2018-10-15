@@ -33,7 +33,7 @@ import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class ScaledGenomeWideMatrix {
 
@@ -93,7 +93,6 @@ public class ScaledGenomeWideMatrix {
         return gwMatrix;
     }
 
-    private final static AtomicInteger uniqueClusterID = new AtomicInteger(1);
     Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
 
     private int calculateSizeGWMatrix(Chromosome[] chromosomes) {
@@ -158,7 +157,7 @@ public class ScaledGenomeWideMatrix {
         System.out.println("GW data clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = uniqueClusterID.getAndIncrement();
+            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
             System.out.println("Cluster " + currentClusterID);
             System.out.println(Arrays.toString(cluster.getMemberIndexes()));
             for (int i : cluster.getMemberIndexes()) {

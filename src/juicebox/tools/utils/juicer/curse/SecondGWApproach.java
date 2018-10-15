@@ -36,6 +36,7 @@ import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,6 +93,13 @@ public class SecondGWApproach {
     private static GenomeWideList<SubcompartmentInterval>
     mergeIntraAndInterAnnotations(Chromosome[] chromosomes, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments,
                                   Map<Integer, GenomeWideList<SubcompartmentInterval>> interSubcompartmentMap) {
+
+        for (Chromosome chromosome : chromosomes) {
+
+            List<SubcompartmentInterval> origIntervals = origIntraSubcompartments.getFeatures("" + chromosome.getIndex());
+
+
+        }
 
 
         return null;

@@ -32,7 +32,10 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-public class SubcompartmentInterval extends Feature implements Comparable<SubcompartmentInterval> {
+public class SubcompartmentInterval extends SimpleInterval {
+
+    private final Integer clusterID;
+
 
     private static Color[] colors = new Color[]{
             new Color(230, 25, 75),
@@ -57,6 +60,15 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
             new Color(128, 128, 128),
             new Color(0, 0, 0)
     };
+
+    public static void collapseGWList(GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
+        intraSubcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+            @Override
+            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
+                return collapseSubcompartmentIntervals(featureList);
+            }
+        });
+    }
 
     private static Color[] colors2 = new Color[]{
             new Color(255, 191, 191),
@@ -96,29 +108,19 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
             new Color(140, 70, 79)
     };
 
-
-
-    private final Integer x1;
-    private Integer x2;
-    private final Integer chrIndex;
-    private final Integer clusterID;
-    private String chrName;
-
-    public SubcompartmentInterval(int chrIndex, String chrName, int x1, int x2, Integer clusterID) {
-        this.chrIndex = chrIndex;
-        this.chrName = chrName;
-        this.x1 = x1;
-        this.x2 = x2;
-        this.clusterID = clusterID;
-    }
-
-    public static void collapseGWList(GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
-        intraSubcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+    public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
+        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
             @Override
             public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
-                return collapseSubcompartmentIntervals(featureList);
+                Collections.sort(featureList);
+                return featureList;
             }
         });
+    }
+
+    public SubcompartmentInterval(int chrIndex, String chrName, int x1, int x2, Integer clusterID) {
+        super(chrIndex, chrName, x1, x2);
+        this.clusterID = clusterID;
     }
 
     private static List<SubcompartmentInterval> collapseSubcompartmentIntervals(List<SubcompartmentInterval> intervals) {
@@ -130,7 +132,7 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
             Set<SubcompartmentInterval> newIntervals = new HashSet<>();
             for (SubcompartmentInterval nextInterval : intervals) {
                 if (collapsedInterval.overlapsWith(nextInterval)) {
-                    collapsedInterval.absorb(nextInterval);
+                    collapsedInterval = collapsedInterval.absorbAndReturnNewInterval(nextInterval);
                 } else {
                     newIntervals.add(collapsedInterval);
                     collapsedInterval = (SubcompartmentInterval) nextInterval.deepClone();
@@ -146,70 +148,29 @@ public class SubcompartmentInterval extends Feature implements Comparable<Subcom
         return intervals;
     }
 
-    public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
-        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
-            @Override
-            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
-                Collections.sort(featureList);
-                return featureList;
-            }
-        });
-    }
-
     private boolean overlapsWith(SubcompartmentInterval o) {
-        return chrIndex.equals(o.chrIndex) && clusterID.equals(o.clusterID) && x2.equals(o.x1);
+        return getChrIndex().equals(o.getChrIndex()) && clusterID.equals(o.clusterID) && getX2().equals(o.getX1());
     }
 
-    private void absorb(SubcompartmentInterval interval) {
-        x2 = new Integer(interval.x2);
-    }
-
-    @Override
-    public int compareTo(SubcompartmentInterval o) {
-        int comparison = chrIndex.compareTo(o.chrIndex);
-        if (comparison == 0) comparison = x1.compareTo(o.x1);
-        if (comparison == 0) comparison = x2.compareTo(o.x2);
-        if (comparison == 0) comparison = clusterID.compareTo(o.clusterID);
-        return comparison;
-    }
-
-    @Override
-    public String getKey() {
-        return "" + chrIndex;
-    }
-
-    @Override
-    public Feature deepClone() {
-        return new SubcompartmentInterval(chrIndex, chrName, x1, x2, clusterID);
-    }
-
-    public Integer getChrIndex() {
-        return chrIndex;
-    }
-
-    public Integer getX1() {
-        return x1;
-    }
-
-    public Integer getX2() {
-        return x2;
-    }
 
     public Integer getClusterID() {
         return clusterID;
     }
 
-    public String getChrName() {
-        return chrName;
+    private SubcompartmentInterval absorbAndReturnNewInterval(SubcompartmentInterval interval) {
+        return new SubcompartmentInterval(getChrIndex(), getChrName(), getX1(), interval.getX2(), clusterID);
     }
 
-    //    chr19	0	200000	NA	0	.	0	200000	255,255,255
-    //    chr19	200000	500000	B1	-1	.	200000	500000	220,20,60
+    @Override
+    public Feature deepClone() {
+        return new SubcompartmentInterval(getChrIndex(), getChrName(), getX1(), getX2(), clusterID);
+    }
+
     @Override
     public String toString() {
         Color color = colors[clusterID % colors.length];
         String colorString = color.getRed() + "," + color.getGreen() + "," + color.getBlue();
-        return "chr" + chrName + "\t" + x1 + "\t" + x2 + "\t" + clusterID + "\t" + clusterID
-                + "\t.\t" + x1 + "\t" + x2 + "\t" + colorString;
+        return "chr" + getChrName() + "\t" + getX1() + "\t" + getX2() + "\t" + clusterID + "\t" + clusterID
+                + "\t.\t" + getX1() + "\t" + getX2() + "\t" + colorString;
     }
 }
