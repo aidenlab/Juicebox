@@ -29,10 +29,7 @@ import juicebox.data.*;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.curse.DataCleaner;
-import juicebox.tools.utils.juicer.curse.ExtractingOEDataUtils;
-import juicebox.tools.utils.juicer.curse.ScaledGenomeWideMatrix;
-import juicebox.tools.utils.juicer.curse.SubcompartmentInterval;
+import juicebox.tools.utils.juicer.curse.*;
 import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
 import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
 import juicebox.tools.utils.juicer.curse.kmeans.KMeansListener;
@@ -47,7 +44,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -56,13 +52,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Curse extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
-    private int resolution = 100000;
+    private int resolution = 250000;
     private Dataset ds;
     private File outputDirectory;
-    private int numClusters = 20;
-    private double coverageThreshold = 0.7;
+    private int numClusters = 30;
+    private double coverageThreshold = 0.5;
     private int maxIters = 10000;
-    private double logThreshold = 1.5;
+    private double logThreshold = 2;
 
     public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
@@ -94,79 +90,47 @@ public class Curse extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+        int whichApproachtoUse = 2;
 
-        File outputFile = new File(outputDirectory, "result_intra_initial.bed");
-        intraSubcompartments.simpleExport(outputFile);
+        if (whichApproachtoUse == 1) {
 
-        SubcompartmentInterval.collapseGWList(intraSubcompartments);
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
 
-        File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
-        intraSubcompartments.simpleExport(outputFile2);
+            File outputFile = new File(outputDirectory, "result_intra_initial.bed");
+            intraSubcompartments.simpleExport(outputFile);
 
-        GenomeWideList<SubcompartmentInterval> finalSubcompartments = extractFinalGWSubcompartments(ds, chromosomeHandler, intraSubcompartments);
+            SubcompartmentInterval.collapseGWList(intraSubcompartments);
 
-        File outputFile3 = new File(outputDirectory, "gw_result_initial.bed");
-        finalSubcompartments.simpleExport(outputFile3);
+            File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
+            intraSubcompartments.simpleExport(outputFile2);
 
-        SubcompartmentInterval.collapseGWList(finalSubcompartments);
+            GenomeWideList<SubcompartmentInterval> finalSubcompartments = OriginalGWApproach.extractFinalGWSubcompartments(
+                    ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
+                    intraSubcompartments);
+            File outputFile3 = new File(outputDirectory, "gw_result_initial.bed");
+            finalSubcompartments.simpleExport(outputFile3);
 
-        File outputFile4 = new File(outputDirectory, "gw_result_collapsed.bed");
-        finalSubcompartments.simpleExport(outputFile4);
-    }
+            SubcompartmentInterval.collapseGWList(finalSubcompartments);
+
+            File outputFile4 = new File(outputDirectory, "gw_result_collapsed.bed");
+            finalSubcompartments.simpleExport(outputFile4);
+        } else if (whichApproachtoUse == 2) {
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+
+            File outputFile = new File(outputDirectory, "result_intra_initial.bed");
+            intraSubcompartments.simpleExport(outputFile);
+
+            SubcompartmentInterval.collapseGWList(intraSubcompartments);
+
+            File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
+            intraSubcompartments.simpleExport(outputFile2);
 
 
-    private GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler,
-                                                                                 GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
-        final ScaledGenomeWideMatrix gwMatrix = new ScaledGenomeWideMatrix(chromosomeHandler, ds, norm,
-                resolution, intraSubcompartments, logThreshold);
+            GenomeWideList<SubcompartmentInterval> finalSubcompartments = SecondGWApproach.extractFinalGWSubcompartments(
+                    ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
+                    intraSubcompartments);
 
-
-        final GenomeWideList<SubcompartmentInterval> finalSubcompartments = new GenomeWideList<>(chromosomeHandler);
-
-
-        final AtomicBoolean gwRunNotDone = new AtomicBoolean(true);
-        if (gwMatrix.getLength() > 0) {
-
-            //System.out.println("printing GW matrix file");
-            //File outputFile = new File(outputDirectory, "gw_matrix_data.txt");
-            //MatrixTools.exportData(gwMatrix.getCleanedData(), outputFile);
-
-            ConcurrentKMeans kMeans = new ConcurrentKMeans(gwMatrix.getCleanedData(), numClusters,
-                    maxIters, 128971L);
-
-            KMeansListener kMeansListener = new KMeansListener() {
-                @Override
-                public void kmeansMessage(String s) { }
-
-                @Override
-                public void kmeansComplete(Cluster[] clusters, long l) {
-                    gwRunNotDone.set(false);
-                    gwMatrix.processGWKmeansResult(clusters, finalSubcompartments);
-                }
-
-                @Override
-                public void kmeansError(Throwable throwable) {
-                    throwable.printStackTrace();
-                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
-                    System.exit(98);
-                }
-            };
-            kMeans.addKMeansListener(kMeansListener);
-            kMeans.run();
         }
-
-        while (gwRunNotDone.get()) {
-            System.out.println("So far size is " + finalSubcompartments.size());
-            System.out.println("Wait another minute");
-            try {
-                TimeUnit.MINUTES.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return finalSubcompartments;
     }
 
     private GenomeWideList<SubcompartmentInterval> extractAllInitialIntraSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler) {

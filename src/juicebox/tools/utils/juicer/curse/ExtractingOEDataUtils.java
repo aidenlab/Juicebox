@@ -234,8 +234,14 @@ public class ExtractingOEDataUtils {
         double total = 0;
         for (int i = binXStart; i < binXEnd; i++) {
             for (int j = binYStart; j < binYEnd; j++) {
-                if (!Double.isNaN(allDataForRegion[i][j])) {
-                    total += allDataForRegion[i][j];
+                try {
+                    if (!Double.isNaN(allDataForRegion[i][j])) {
+                        total += allDataForRegion[i][j];
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println(i + "-" + j);
+                    System.exit(94);
                 }
             }
         }

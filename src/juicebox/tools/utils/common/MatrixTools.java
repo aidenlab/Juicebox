@@ -30,6 +30,7 @@ import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -583,13 +584,31 @@ public class MatrixTools {
 
     public static void exportData(double[][] data, File file) {
         try {
+            DecimalFormat df = new DecimalFormat("##.###");
+
             final FileWriter fw = new FileWriter(file);
             for (double[] row : data) {
-                fw.write(Arrays.toString(row) + "\n");
+                for (double val : row) {
+                    fw.write(Double.valueOf(df.format(val)) + ", ");
+                }
+                fw.write("0\n");
             }
             fw.close();
         } catch (Exception e) {
             System.err.println("Error exporting matrix");
         }
+    }
+
+    public static double[][] transpose(double[][] matrix) {
+        int h0 = matrix.length;
+        int w0 = matrix[0].length;
+        double[][] transposedMatrix = new double[w0][h0];
+
+        for (int i = 0; i < h0; i++) {
+            for (int j = 0; j < w0; j++) {
+                transposedMatrix[j][i] = matrix[i][j];
+            }
+        }
+        return transposedMatrix;
     }
 }
