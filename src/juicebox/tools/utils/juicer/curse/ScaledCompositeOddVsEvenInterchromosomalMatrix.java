@@ -41,21 +41,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ScaledInterchromosomalMatrix {
+public class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
-
-    private final Chromosome mainVSChromosome;
     private final ChromosomeHandler chromosomeHandler;
     private final NormalizationType norm;
     private final int resolution;
     private final GenomeWideList<SubcompartmentInterval> intraSubcompartments;
     private final double threshold;
-    private final double[][] gwCleanMatrix;
-    private final Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
+    private final double[][] gwCleanMatrix, transposedGWCleanMatrix;
+    private final Map<Integer, SubcompartmentInterval> indexToInterval1Map = new HashMap<>();
+    private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
 
-    public ScaledInterchromosomalMatrix(Chromosome mainVSChromosome, ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                        GenomeWideList<SubcompartmentInterval> intraSubcompartments, double threshold) {
-        this.mainVSChromosome = mainVSChromosome;
+    public ScaledCompositeOddVsEvenInterchromosomalMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
+                                                          GenomeWideList<SubcompartmentInterval> intraSubcompartments, double threshold,
+                                                          boolean isOddVsEven) {
+
         this.chromosomeHandler = chromosomeHandler;
         this.norm = norm;
         this.resolution = resolution;
@@ -63,37 +63,50 @@ public class ScaledInterchromosomalMatrix {
         this.threshold = threshold;
 
         gwCleanMatrix = makeCleanScaledInterMatrix(ds);
+        transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
         //System.out.println("Final Size "+gwCleanMatrix.length+" by "+gwCleanMatrix[0].length);
     }
 
     private double[][] makeCleanScaledInterMatrix(Dataset ds) {
 
-        Chromosome[] chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
-        int w = calculateWidthInterMatrix(chromosomes);
-        int h = calculateHeightInterMatrix();
-        int[] indices = calculateOffsetIndex(chromosomes);
+        Chromosome[] oddChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(true);
+        Chromosome[] evenChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
+
+        // assuming Odd vs Even
+        Chromosome[] heightChromosomes = oddChromosomes;
+        int h = calculateDimensionInterMatrix(oddChromosomes);
+        int[] heightIndices = calculateOffsetIndex(oddChromosomes);
+
+        Chromosome[] widthChromosomes = evenChromosomes;
+        int w = calculateDimensionInterMatrix(evenChromosomes);
+        int[] widthIndices = calculateOffsetIndex(evenChromosomes);
+
+
         //System.out.println("Size "+h+" by "+w);
 
         double[][] interMatrix = new double[h][w];
 
-        Chromosome chr1 = mainVSChromosome;
-        for (int j = 0; j < chromosomes.length; j++) {
-            Chromosome chr2 = chromosomes[j];
+        for (int i = 0; i < heightChromosomes.length; i++) {
+            Chromosome chr1 = heightChromosomes[i];
 
-            if (chr1.getIndex() == chr2.getIndex()) continue;
+            for (int j = 0; j < widthChromosomes.length; j++) {
+                Chromosome chr2 = widthChromosomes[j];
 
-            Matrix matrix = ds.getMatrix(chr1, chr2);
+                if (chr1.getIndex() == chr2.getIndex()) continue;
 
-            if (matrix == null) continue;
+                Matrix matrix = ds.getMatrix(chr1, chr2);
 
-            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-            final MatrixZoomData zd = matrix.getZoomData(zoom);
+                if (matrix == null) continue;
 
-            if (zd == null) continue;
+                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                final MatrixZoomData zd = matrix.getZoomData(zoom);
 
-            // will need to flip across diagonal
-            boolean needToFlip = chr2.getIndex() < chr1.getIndex();
-            fillInInterChromosomeRegion(interMatrix, zd, chr1, chr2, indices[j], needToFlip);
+                if (zd == null) continue;
+
+                // will need to flip across diagonal
+                boolean needToFlip = chr2.getIndex() < chr1.getIndex();
+                fillInInterChromosomeRegion(interMatrix, zd, chr1, heightIndices[i], chr2, widthIndices[j], needToFlip);
+            }
         }
 
         if (w > 0 && h > 0)
@@ -102,16 +115,10 @@ public class ScaledInterchromosomalMatrix {
         return interMatrix;
     }
 
-    private int calculateHeightInterMatrix() {
-        return intraSubcompartments.getFeatures("" + mainVSChromosome.getIndex()).size();
-    }
-
-    private int calculateWidthInterMatrix(Chromosome[] chromosomes) {
+    private int calculateDimensionInterMatrix(Chromosome[] chromosomes) {
         int total = 0;
         for (Chromosome chromosome : chromosomes) {
-            if (chromosome.getIndex() != mainVSChromosome.getIndex()) {
-                total += intraSubcompartments.getFeatures("" + chromosome.getIndex()).size();
-            }
+            total += intraSubcompartments.getFeatures("" + chromosome.getIndex()).size();
         }
         return total;
     }
@@ -120,19 +127,12 @@ public class ScaledInterchromosomalMatrix {
         int[] indices = new int[chromosomes.length];
         for (int i = 0; i < chromosomes.length - 1; i++) {
             int chrIndex = chromosomes[i].getIndex();
-
-            if (chrIndex == mainVSChromosome.getIndex()) {
-                if (i > 0) {
-                    indices[i + 1] = indices[i];
-                }
-            } else {
-                indices[i + 1] = indices[i] + intraSubcompartments.getFeatures("" + chrIndex).size();
-            }
+            indices[i + 1] = indices[i] + intraSubcompartments.getFeatures("" + chrIndex).size();
         }
         return indices;
     }
 
-    private void fillInInterChromosomeRegion(double[][] matrix, MatrixZoomData zd, Chromosome chr1,
+    private void fillInInterChromosomeRegion(double[][] matrix, MatrixZoomData zd, Chromosome chr1, int offsetIndex1,
                                              Chromosome chr2, int offsetIndex2, boolean needToFlip) {
 
         int chr1Index = chr1.getIndex();
@@ -166,17 +166,18 @@ public class ScaledInterchromosomalMatrix {
 
                 int binXStart = interv1.getX1() / resolution;
                 int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
+                indexToInterval1Map.put(offsetIndex1 + i, interv1);
 
                 for (int j = 0; j < intervals2.size(); j++) {
                     SubcompartmentInterval interv2 = intervals2.get(j);
-                    indexToIntervalMap.put(offsetIndex2 + j, interv2);
+                    indexToInterval2Map.put(offsetIndex2 + j, interv2);
                     int binYStart = interv2.getX1() / resolution;
                     int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
                     double averagedValue = ExtractingOEDataUtils.extractAveragedOEFromRegion(allDataForRegion,
                             binXStart, binXEnd, binYStart, binYEnd, threshold, false);
 
                     try {
-                        matrix[i][offsetIndex2 + j] = averagedValue;
+                        matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
                     } catch (Exception e) {
                         //System.err.println("err " + i + ", (" + offsetIndex2 + "+" + j + ")");
                         //System.err.println("err interv1 " + interv1);
@@ -194,10 +195,10 @@ public class ScaledInterchromosomalMatrix {
         }
     }
 
-    public void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments) {
+    public void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments, boolean isTranspose) {
 
         List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
-        System.out.println("GW data vs " + mainVSChromosome.getName() + " clustered into " + clusters.length + " clusters");
+        System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
             int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
@@ -205,16 +206,28 @@ public class ScaledInterchromosomalMatrix {
             //System.out.println(Arrays.toString(cluster.getMemberIndexes()));
             for (int i : cluster.getMemberIndexes()) {
 
-                SubcompartmentInterval interv1 = indexToIntervalMap.get(i);
-                //System.out.println(i + " - " + interv1);
+                try {
+                    SubcompartmentInterval interv;
+                    if (isTranspose) {
+                        interv = indexToInterval1Map.get(i);
+                    } else {
+                        interv = indexToInterval2Map.get(i);
+                    }
 
-                int chrIndex = interv1.getChrIndex();
-                String chrName = interv1.getChrName();
-                int x1 = interv1.getX1();
-                int x2 = interv1.getX2();
+                    //System.out.println(i + " - " + interv1);
 
-                subcompartmentIntervals.add(
-                        new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
+                    int chrIndex = interv.getChrIndex();
+                    String chrName = interv.getChrName();
+                    int x1 = interv.getX1();
+                    int x2 = interv.getX2();
+
+                    subcompartmentIntervals.add(
+                            new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
+                } catch (Exception e) {
+                    System.err.println(i + " - " + isTranspose);
+                    e.printStackTrace();
+                    System.exit(87);
+                }
             }
         }
 
@@ -230,4 +243,11 @@ public class ScaledInterchromosomalMatrix {
         return gwCleanMatrix;
     }
 
+    public double[][] getCleanedTransposedData() {
+        return transposedGWCleanMatrix;
+    }
+
+    public int getWidth() {
+        return gwCleanMatrix[0].length;
+    }
 }

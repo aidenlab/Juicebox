@@ -611,4 +611,26 @@ public class MatrixTools {
         }
         return transposedMatrix;
     }
+
+    public static double[][] convertToDoubleMatrix(boolean[][] adjacencyMatrix) {
+        double[][] matrix = new double[adjacencyMatrix.length][adjacencyMatrix[0].length];
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            for (int j = 0; j < adjacencyMatrix[0].length; j++) {
+                if (adjacencyMatrix[i][j]) {
+                    matrix[i][j] = 1;
+                }
+            }
+        }
+        return matrix;
+    }
+
+    public static double[][] convertToDoubleMatrix(int[][] adjacencyMatrix) {
+        double[][] matrix = new double[adjacencyMatrix.length][adjacencyMatrix[0].length];
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            for (int j = 0; j < adjacencyMatrix[0].length; j++) {
+                matrix[i][j] = adjacencyMatrix[i][j];
+            }
+        }
+        return matrix;
+    }
 }

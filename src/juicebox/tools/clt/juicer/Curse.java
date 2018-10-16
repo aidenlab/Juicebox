@@ -52,13 +52,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Curse extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
-    private int resolution = 250000;
+    private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private int numClusters = 30;
-    private double coverageThreshold = 0.5;
+    private int numClusters = 20;
+    private double maxPercentAllowedToBeZeroThreshold = 0.3;
     private int maxIters = 10000;
     private double logThreshold = 2;
+    private int connectedComponentThreshold = 50;
+    private int whichApproachtoUse = 0;
 
     public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
@@ -90,9 +92,17 @@ public class Curse extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        int whichApproachtoUse = 2;
+        if (whichApproachtoUse == 0) {
 
-        if (whichApproachtoUse == 1) {
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+
+            SubcompartmentInterval.collapseGWList(intraSubcompartments);
+
+            File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
+            intraSubcompartments.simpleExport(outputFile2);
+
+
+        } else if (whichApproachtoUse == 1) {
 
             GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
 
@@ -128,7 +138,29 @@ public class Curse extends JuicerCLT {
 
             GenomeWideList<SubcompartmentInterval> finalSubcompartments = SecondGWApproach.extractFinalGWSubcompartments(
                     ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                    intraSubcompartments);
+                    intraSubcompartments, connectedComponentThreshold);
+
+            outputFile2 = new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed");
+            finalSubcompartments.simpleExport(outputFile2);
+
+        } else if (whichApproachtoUse == 3) {
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+
+            File outputFile = new File(outputDirectory, "result_intra_initial.bed");
+            intraSubcompartments.simpleExport(outputFile);
+
+            SubcompartmentInterval.collapseGWList(intraSubcompartments);
+
+            File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
+            intraSubcompartments.simpleExport(outputFile2);
+
+
+            GenomeWideList<SubcompartmentInterval> finalSubcompartments = ThirdGWApproach.extractFinalGWSubcompartments(
+                    ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
+                    intraSubcompartments, connectedComponentThreshold);
+
+            outputFile2 = new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed");
+            finalSubcompartments.simpleExport(outputFile2);
 
         }
     }
@@ -139,7 +171,7 @@ public class Curse extends JuicerCLT {
         final AtomicInteger numRunsToExpect = new AtomicInteger();
         final AtomicInteger numRunsDone = new AtomicInteger();
 
-        for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+        for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
 
             // skip these matrices
             Matrix matrix = ds.getMatrix(chromosome, chromosome);
@@ -163,7 +195,7 @@ public class Curse extends JuicerCLT {
                 RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
                         0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
 
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), coverageThreshold, resolution);
+                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
 
                 if (dataCleaner.getLength() > 0) {
 

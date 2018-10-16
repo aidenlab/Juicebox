@@ -58,7 +58,7 @@ public class ScaledGenomeWideMatrix {
 
     private double[][] makeCleanScaledGWMatrix(Dataset ds) {
 
-        Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
+        Chromosome[] chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
         int n = calculateSizeGWMatrix(chromosomes);
         int[] indices = calculateOffsetIndex(chromosomes);
         System.out.println("Size " + n);
@@ -174,6 +174,7 @@ public class ScaledGenomeWideMatrix {
                         new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
             }
         }
+        System.out.println("Cluster counter0 at " + UniqueSubcompartmentClusterID.tempInitialClusterID.get());
 
         SubcompartmentInterval.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);

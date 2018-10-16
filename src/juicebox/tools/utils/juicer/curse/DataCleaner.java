@@ -32,21 +32,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DataCleaner {
 
     final private double[][] originalData;
     final private double[][] cleanData;
-    private static AtomicInteger uniqueClusterID = new AtomicInteger(1);
     Map<Integer, Integer> cleanIndexRowToOriginalIndexRow = new HashMap<>();
     Map<Integer, Integer> cleanIndexColToOriginalIndexCol = new HashMap<>();
     final private int resolution;
-    private double coverageThreshold;
+    private double maxPercentAllowedToBeZeroThreshold;
 
-    public DataCleaner(double[][] data, double threshold, int resolution) {
+    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution) {
         this.resolution = resolution;
-        coverageThreshold = threshold;
+        this.maxPercentAllowedToBeZeroThreshold = maxPercentAllowedToBeZeroThreshold;
         originalData = data;
         cleanData = cleanUpData();
     }
@@ -97,11 +95,11 @@ public class DataCleaner {
 
     private void calculateWhichIndicesToKeep(int[] numZerosIndxCount, Map<Integer, Integer> cleanIndexToOriginalIndex) {
 
-        int cutOff = (int) (numZerosIndxCount.length * coverageThreshold);
+        int maxNumAllowedToBeZeroCutOff = (int) (numZerosIndxCount.length * maxPercentAllowedToBeZeroThreshold);
         int counter = 0;
 
         for (int i0 = 0; i0 < numZerosIndxCount.length; i0++) {
-            if (numZerosIndxCount[i0] < cutOff) {
+            if (numZerosIndxCount[i0] < maxNumAllowedToBeZeroCutOff) {
                 cleanIndexToOriginalIndex.put(counter, i0);
                 counter++;
             }
@@ -134,7 +132,7 @@ public class DataCleaner {
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = uniqueClusterID.getAndIncrement();
+            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
             for (int i : cluster.getMemberIndexes()) {
                 int x1 = getOriginalIndexRow(i) * resolution;
                 int x2 = x1 + resolution;

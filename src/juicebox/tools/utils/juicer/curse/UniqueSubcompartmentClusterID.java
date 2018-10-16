@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class UniqueSubcompartmentClusterID {
 
-    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(1);
+    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
 
-    public final static AtomicInteger finalClusterID = new AtomicInteger(1);
+    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }

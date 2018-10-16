@@ -45,7 +45,7 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
                 //"/Users/muhammadsaadshamim/Desktop/MBR19_loops.txt",
                 "/Users/muhammadsaadshamim/Desktop/result_hiccups/merged_loops.bedpe",
-                "/Users/muhammadsaadshamim/Desktop/result_25kb_hiccups_compare.bedpe"};
+                "/Users/muhammadsaadshamim/Desktop/result_100kb_hiccups_compare.bedpe"};
 
         // GSE63525_GM12878_insitu_primary_30.hic
 
@@ -53,7 +53,18 @@ class AggregateProcessing {
 
         ll51231123 = new String[]{"curse",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
-                "/Users/muhammad/Desktop/curse_replicate_250k_gw_inter_testing_versionBeta"};
+                "/Users/muhammad/Desktop/new_100k_curse_delta_replicate"};
+
+        //HiCTools.main(ll51231123);
+
+        ll51231123 = new String[]{"curse",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                "/Users/muhammad/Desktop/new_100k_oddeven_curse_echo_primary"};
+
+        ll51231123 = new String[]{"curse",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                "/Users/muhammad/Desktop/100k_oddeven_curse_echo_primary"};
+
 
         HiCTools.main(ll51231123);
 
