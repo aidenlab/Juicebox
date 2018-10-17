@@ -38,28 +38,32 @@ public class SubcompartmentInterval extends SimpleInterval {
 
 
     private static Color[] colors = new Color[]{
-            new Color(230, 25, 75),
-            new Color(60, 180, 75),
-            new Color(255, 225, 25),
-            new Color(0, 130, 200),
-            new Color(245, 130, 48),
-            new Color(145, 30, 180),
-            new Color(70, 240, 240),
-            new Color(240, 50, 230),
-            new Color(210, 245, 60),
-            new Color(250, 190, 190),
-            new Color(0, 128, 128),
-            new Color(230, 190, 255),
-            new Color(170, 110, 40),
-            new Color(255, 250, 200),
-            new Color(128, 0, 0),
-            new Color(170, 255, 195),
-            new Color(128, 128, 0),
-            new Color(255, 215, 180),
-            new Color(0, 0, 128),
-            new Color(128, 128, 128),
-            new Color(0, 0, 0)
+            new Color(255, 0, 0),
+            new Color(255, 255, 0),
+            new Color(0, 234, 255),
+            new Color(170, 0, 255),
+            new Color(255, 127, 0),
+            new Color(191, 255, 0),
+            new Color(0, 149, 255),
+            new Color(255, 0, 170),
+            new Color(255, 212, 0),
+            new Color(106, 255, 0),
+            new Color(0, 64, 255),
+            new Color(237, 185, 185),
+            new Color(185, 215, 237),
+            new Color(231, 233, 185),
+            new Color(220, 185, 237),
+            new Color(185, 237, 224),
+            new Color(143, 35, 35),
+            new Color(35, 98, 143),
+            new Color(143, 106, 35),
+            new Color(107, 35, 143),
+            new Color(79, 143, 35),
+            new Color(0, 0, 0),
+            new Color(115, 115, 115),
+            new Color(204, 204, 204)
     };
+
 
     public static void collapseGWList(GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
         intraSubcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
@@ -69,44 +73,6 @@ public class SubcompartmentInterval extends SimpleInterval {
             }
         });
     }
-
-    private static Color[] colors2 = new Color[]{
-            new Color(255, 191, 191),
-            new Color(178, 48, 0),
-            new Color(255, 162, 128),
-            new Color(204, 133, 51),
-            new Color(76, 50, 19),
-            new Color(51, 47, 38),
-            new Color(229, 195, 57),
-            new Color(127, 108, 32),
-            new Color(51, 48, 13),
-            new Color(166, 163, 124),
-            new Color(229, 255, 128),
-            new Color(48, 179, 0),
-            new Color(22, 89, 31),
-            new Color(57, 230, 172),
-            new Color(0, 64, 60),
-            new Color(35, 140, 133),
-            new Color(115, 207, 230),
-            new Color(57, 96, 115),
-            new Color(0, 27, 51),
-            new Color(128, 196, 255),
-            new Color(0, 46, 115),
-            new Color(102, 129, 204),
-            new Color(0, 0, 102),
-            new Color(92, 51, 204),
-            new Color(191, 115, 230),
-            new Color(204, 0, 255),
-            new Color(54, 16, 64),
-            new Color(107, 0, 115),
-            new Color(213, 163, 217),
-            new Color(89, 67, 88),
-            new Color(230, 0, 153),
-            new Color(229, 0, 92),
-            new Color(242, 0, 32),
-            new Color(89, 22, 31),
-            new Color(140, 70, 79)
-    };
 
     public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
         subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {

@@ -51,17 +51,15 @@ public class DataCleaner {
 
     private double[][] cleanUpData() {
 
-        boolean[][] isZeroNanOrInf = new boolean[originalData.length][originalData[0].length];
+        //boolean[][] isZeroNanOrInf = new boolean[originalData.length][originalData[0].length];
         int[] numZerosRowIndx = new int[originalData.length];
         int[] numZerosColIndx = new int[originalData[0].length];
 
         for (int i = 0; i < originalData.length; i++) {
             for (int j = 0; j < originalData[0].length; j++) {
-                isZeroNanOrInf[i][j] = Double.isNaN(originalData[i][j])
-                        || Double.isInfinite(originalData[i][j])
-                        || isCloseToZero(originalData[i][j]);
+                //isZeroNanOrInf[i][j] = Double.isNaN(originalData[i][j]) || Double.isInfinite(originalData[i][j]) || isCloseToZero(originalData[i][j]);
 
-                if (isZeroNanOrInf[i][j]) {
+                if (Double.isNaN(originalData[i][j]) || Double.isInfinite(originalData[i][j]) || isCloseToZero(originalData[i][j])) {
                     originalData[i][j] = 0;
                     numZerosRowIndx[i]++;
                     numZerosColIndx[j]++;
@@ -79,6 +77,7 @@ public class DataCleaner {
 
         int numRows = cleanIndexRowToOriginalIndexRow.keySet().size();
         int numCols = cleanIndexColToOriginalIndexCol.keySet().size();
+        //System.out.println("cleaner "+numRows+" "+numCols);
 
         double[][] cleanMatrx = new double[numRows][numCols];
 
@@ -115,6 +114,10 @@ public class DataCleaner {
         return cleanData;
     }
 
+    public double[][] getOriginalData() {
+        return originalData;
+    }
+
     public int getOriginalIndexRow(int i) {
         return cleanIndexRowToOriginalIndexRow.get(i);
     }
@@ -144,5 +147,9 @@ public class DataCleaner {
 
         SubcompartmentInterval.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
+    }
+
+    int getResolution() {
+        return resolution;
     }
 }

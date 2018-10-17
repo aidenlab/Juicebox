@@ -25,26 +25,21 @@
 package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.curse.*;
-import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
-import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.juicer.curse.kmeans.KMeansListener;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
@@ -56,11 +51,12 @@ public class Curse extends JuicerCLT {
     private Dataset ds;
     private File outputDirectory;
     private int numClusters = 20;
-    private double maxPercentAllowedToBeZeroThreshold = 0.3;
+    private double maxPercentAllowedToBeZeroThreshold = 0.7;
     private int maxIters = 10000;
     private double logThreshold = 2;
     private int connectedComponentThreshold = 50;
     private int whichApproachtoUse = 0;
+    private List<Dataset> datasetList = new ArrayList<>();
 
     public Curse() {
         super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
@@ -76,7 +72,16 @@ public class Curse extends JuicerCLT {
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null) norm = preferredNorm;
 
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        if (whichApproachtoUse == 0) {
+            for (String path : args[1].split("\\+")) {
+                List<String> paths = new ArrayList<>();
+                paths.add(path);
+                datasetList.add(HiCFileTools.extractDatasetForCLT(paths, true));
+            }
+            ds = datasetList.get(0);
+        } else {
+            ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        }
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
@@ -92,19 +97,23 @@ public class Curse extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        if (whichApproachtoUse == 0) {
+        if (whichApproachtoUse == 0 && datasetList.size() > 0) {
 
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+            List<GenomeWideList<SubcompartmentInterval>> intraSubcompartments =
+                    Clustering.extractAllComparativeIntraSubcompartments(datasetList, chromosomeHandler, resolution, norm, logThreshold,
+                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory);
 
-            SubcompartmentInterval.collapseGWList(intraSubcompartments);
-
-            File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
-            intraSubcompartments.simpleExport(outputFile2);
+            for (int i = 0; i < datasetList.size(); i++) {
+                File outputFile2 = new File(outputDirectory, "result_intra_compare_file" + i + ".bed");
+                intraSubcompartments.get(i).simpleExport(outputFile2);
+            }
 
 
         } else if (whichApproachtoUse == 1) {
 
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments =
+                    Clustering.extractAllInitialIntraSubcompartments(ds, chromosomeHandler, resolution, norm, logThreshold,
+                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters);
 
             File outputFile = new File(outputDirectory, "result_intra_initial.bed");
             intraSubcompartments.simpleExport(outputFile);
@@ -125,7 +134,9 @@ public class Curse extends JuicerCLT {
             File outputFile4 = new File(outputDirectory, "gw_result_collapsed.bed");
             finalSubcompartments.simpleExport(outputFile4);
         } else if (whichApproachtoUse == 2) {
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments =
+                    Clustering.extractAllInitialIntraSubcompartments(ds, chromosomeHandler, resolution, norm, logThreshold,
+                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters);
 
             File outputFile = new File(outputDirectory, "result_intra_initial.bed");
             intraSubcompartments.simpleExport(outputFile);
@@ -144,7 +155,9 @@ public class Curse extends JuicerCLT {
             finalSubcompartments.simpleExport(outputFile2);
 
         } else if (whichApproachtoUse == 3) {
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments = extractAllInitialIntraSubcompartments(ds, chromosomeHandler);
+            GenomeWideList<SubcompartmentInterval> intraSubcompartments =
+                    Clustering.extractAllInitialIntraSubcompartments(ds, chromosomeHandler, resolution, norm, logThreshold,
+                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters);
 
             File outputFile = new File(outputDirectory, "result_intra_initial.bed");
             intraSubcompartments.simpleExport(outputFile);
@@ -165,81 +178,7 @@ public class Curse extends JuicerCLT {
         }
     }
 
-    private GenomeWideList<SubcompartmentInterval> extractAllInitialIntraSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler) {
 
-        final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
-        final AtomicInteger numRunsToExpect = new AtomicInteger();
-        final AtomicInteger numRunsDone = new AtomicInteger();
-
-        for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
-
-            // skip these matrices
-            Matrix matrix = ds.getMatrix(chromosome, chromosome);
-            if (matrix == null) continue;
-
-            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-            final MatrixZoomData zd = matrix.getZoomData(zoom);
-            if (zd == null) continue;
-
-            try {
-
-                ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-                if (df == null) {
-                    System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-                    System.exit(14);
-                }
-
-                int maxBin = chromosome.getLength() / resolution + 1;
-                int maxSize = maxBin;
-
-                RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
-
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
-
-                if (dataCleaner.getLength() > 0) {
-
-                    ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
-                            maxIters, 128971L);
-
-                    numRunsToExpect.incrementAndGet();
-                    KMeansListener kMeansListener = new KMeansListener() {
-                        @Override
-                        public void kmeansMessage(String s) {
-                        }
-
-                        @Override
-                        public void kmeansComplete(Cluster[] clusters, long l) {
-                            numRunsDone.incrementAndGet();
-                            dataCleaner.processKmeansResult(chromosome, subcompartments, clusters);
-                        }
-
-                        @Override
-                        public void kmeansError(Throwable throwable) {
-                            System.err.println("curse chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
-                            throwable.printStackTrace();
-                            System.exit(98);
-                        }
-                    };
-                    kMeans.addKMeansListener(kMeansListener);
-                    kMeans.run();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        while (numRunsDone.get() < numRunsToExpect.get()) {
-            System.out.println("So far size is " + subcompartments.size());
-            System.out.println("Wait another minute");
-            try {
-                TimeUnit.MINUTES.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return subcompartments;
-    }
 
     private void writeClusterCenterToWig(Chromosome chromosome, double[] center, File file) {
         try {

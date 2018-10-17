@@ -589,13 +589,19 @@ public class MatrixTools {
             final FileWriter fw = new FileWriter(file);
             for (double[] row : data) {
                 for (double val : row) {
-                    fw.write(Double.valueOf(df.format(val)) + ", ");
+                    if (Double.isNaN(val)) {
+                        fw.write("NaN, ");
+                    } else {
+                        fw.write(Double.valueOf(df.format(val)) + ", ");
+                    }
                 }
                 fw.write("0\n");
             }
             fw.close();
         } catch (Exception e) {
             System.err.println("Error exporting matrix");
+            e.printStackTrace();
+            System.exit(86);
         }
     }
 
@@ -632,5 +638,13 @@ public class MatrixTools {
             }
         }
         return matrix;
+    }
+
+    public static void copyFromAToBRegion(double[][] region, double[][] aggregator, int rowOffSet, int colOffSet) {
+        for (int i = 0; i < region.length; i++) {
+            for (int j = 0; j < region[0].length; j++) {
+                aggregator[i + rowOffSet][j + colOffSet] = region[i][j];
+            }
+        }
     }
 }
