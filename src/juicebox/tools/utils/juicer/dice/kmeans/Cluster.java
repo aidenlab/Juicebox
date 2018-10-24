@@ -22,34 +22,47 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse.kmeans;
+package juicebox.tools.utils.juicer.dice.kmeans;
+
 
 /**
- * Simple K-Means clustering interface.
+ * Class to represent a cluster of coordinates.
  */
-public interface KMeans extends Runnable {
+public class Cluster {
+
+    // Indices of the member coordinates.
+    private int[] mMemberIndexes;
+    // The cluster center.
+    private double[] mCenter;
 
     /**
-     * Adds a KMeansListener to be notified of significant happenings.
+     * Constructor.
      *
-     * @param l the listener to be added.
+     * @param memberIndexes indices of the member coordinates.
+     * @param center        the cluster center.
      */
-    void addKMeansListener(KMeansListener l);
+    public Cluster(int[] memberIndexes, double[] center) {
+        mMemberIndexes = memberIndexes;
+        mCenter = center;
+    }
 
     /**
-     * Removes a KMeansListener from the listener list.
+     * Get the member indices.
      *
-     * @param l the listener to be removed.
+     * @return an array containing the indices of the member coordinates.
      */
-    void removeKMeansListener(KMeansListener l);
+    public int[] getMemberIndexes() {
+        return mMemberIndexes;
+    }
 
     /**
-     * Get the clusters computed by the algorithm.  This method should
-     * not be called until clustering has completed successfully.
+     * Get the cluster center.
      *
-     * @return an array of Cluster objects.
+     * @return a reference to the cluster center array.
      */
-    Cluster[] getClusters();
+    public double[] getCenter() {
+        return mCenter;
+    }
 
 }
 

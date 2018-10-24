@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse.kmeans;
+package juicebox.tools.utils.juicer.dice.kmeans;
 
 /**
  * Exception thrown when insufficient memory is available to

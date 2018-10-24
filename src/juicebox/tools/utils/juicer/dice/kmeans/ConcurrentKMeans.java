@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse.kmeans;
+package juicebox.tools.utils.juicer.dice.kmeans;
 
 import java.util.ArrayList;
 import java.util.Arrays;

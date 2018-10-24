@@ -22,47 +22,36 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse.kmeans;
+package juicebox.tools.utils.juicer.dice.kmeans;
 
 
 /**
- * Class to represent a cluster of coordinates.
+ * Defines object which register with implementation of <code>KMeans</code>
+ * to be notified of significant events during clustering.
  */
-public class Cluster {
-
-    // Indices of the member coordinates.
-    private int[] mMemberIndexes;
-    // The cluster center.
-    private double[] mCenter;
+public interface KMeansListener {
 
     /**
-     * Constructor.
+     * A message has been received.
      *
-     * @param memberIndexes indices of the member coordinates.
-     * @param center        the cluster center.
+     * @param message
      */
-    public Cluster(int[] memberIndexes, double[] center) {
-        mMemberIndexes = memberIndexes;
-        mCenter = center;
-    }
+    void kmeansMessage(String message);
 
     /**
-     * Get the member indices.
+     * KMeans is complete.
      *
-     * @return an array containing the indices of the member coordinates.
+     * @param clusters      the output of clustering.
+     * @param executionTime the time in milliseconds taken to cluster.
      */
-    public int[] getMemberIndexes() {
-        return mMemberIndexes;
-    }
+    void kmeansComplete(Cluster[] clusters, long executionTime);
 
     /**
-     * Get the cluster center.
+     * An error occurred during KMeans clustering.
      *
-     * @return a reference to the cluster center array.
+     * @param t
      */
-    public double[] getCenter() {
-        return mCenter;
-    }
+    void kmeansError(Throwable t);
 
 }
 

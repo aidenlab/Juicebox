@@ -24,9 +24,6 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.HiCTools;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +35,7 @@ import java.util.List;
 class AggregateProcessing {
 
 
-    public static void main(String[] argv) throws CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+    public static void main(String[] argv) {
 
 
         String[] ll51231123 = {"compare", "0", "hg19",
@@ -51,22 +48,99 @@ class AggregateProcessing {
 
         // gm12878_intra_nofrag_30.hic
 
-        ll51231123 = new String[]{"curse",
+        ll51231123 = new String[]{"dice",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Users/muhammad/Desktop/new_100k_curse_delta_replicate"};
 
         //HiCTools.main(ll51231123);
 
-        ll51231123 = new String[]{"curse",
+        ll51231123 = new String[]{"dice",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 "/Users/muhammad/Desktop/new_100k_oddeven_curse_echo_primary"};
 
-        ll51231123 = new String[]{"curse",
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
-                "/Users/muhammad/Desktop/100k_oddeven_curse_echo_primary"};
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/gm12878_self_50k"};
 
 
-        HiCTools.main(ll51231123);
+        ll51231123 = new String[]{"dice",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/gm12878s"};
+
+
+        ll51231123 = new String[]{"dice",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_maternal.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_paternal.hic",
+                "/Users/muhammad/Desktop/ECHO5/echo5_maternalVSpaternal_100k"};
+
+        ll51231123 = new String[]{"dice",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/degron/6hrtreat_nosync_combined.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/degron/notreat_nosync_combined.hic",
+                "/Users/muhammad/Desktop/ECHO6/degron"};
+
+        //HiCTools.main(ll51231123);
+
+        ll51231123 = new String[]{"dice",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/collins/map1_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/collins/map2_30.hic",
+                "/Users/muhammad/Desktop/ECHO5/collins_50k"};
+
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/HIC1255_tcell_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/HIC1258_3lanes_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/day7_HIC1528_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/goodell"};
+
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/imr90_30_nf/imr90_intra_nofrag_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/gm12878_imr90_k562_trio"};
+
+
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM_38all_mega.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM_39all_mega.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM40all_mega.hic",
+                "/Users/muhammad/Desktop/ECHO6/marianna"};
+
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/pure_gm12878_50k"};
+        // HiCTools.main(ll51231123);
+        ll51231123 = new String[]{"dice",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic+" +
+                        "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
+                "/Users/muhammad/Desktop/ECHO6/pure_k562_100k"};
+
+        ll51231123 = new String[]{"pre", "-f",
+                "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/hg19_MboI.txt",
+                "-s", "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/inter.txt",
+                "-g", "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/inter_hists.m",
+                "-q", "1", "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/merged_nodups.txt",
+                "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/inter.hic",
+                "/Users/muhammad/Desktop/testjuicer/reerrorwhenrunningjuicerpipeline/hg19.chrom.sizes"};
+
+
+        //HiCTools.main(ll51231123);
+
+
+
+
+
 
     }
 

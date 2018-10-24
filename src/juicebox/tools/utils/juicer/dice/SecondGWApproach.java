@@ -22,50 +22,55 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse;
+package juicebox.tools.utils.juicer.dice;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
-import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.juicer.curse.kmeans.KMeansListener;
+import juicebox.tools.utils.juicer.dice.kmeans.Cluster;
+import juicebox.tools.utils.juicer.dice.kmeans.ConcurrentKMeans;
+import juicebox.tools.utils.juicer.dice.kmeans.KMeansListener;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ThirdGWApproach {
+public class SecondGWApproach {
 
     public static GenomeWideList<SubcompartmentInterval>
     extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
                                   File outputDirectory, int numClusters, int maxIters, double logThreshold,
                                   GenomeWideList<SubcompartmentInterval> origIntraSubcompartments, int connectedComponentThreshold) {
 
+        Chromosome[] chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
+
+        AtomicInteger numToExpect = new AtomicInteger(0);
         AtomicInteger numCompleted = new AtomicInteger(0);
 
-        final ScaledCompositeOddVsEvenInterchromosomalMatrix interMatrix = new ScaledCompositeOddVsEvenInterchromosomalMatrix(
-                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold, true);
+        Map<Integer, GenomeWideList<SubcompartmentInterval>> interSubcompartmentMap = new HashMap<>();
 
-        File outputFile = new File(outputDirectory, "inter_Odd_vs_Even_matrix_data.txt");
-        MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
+        for (Chromosome chromosome : chromosomes) {
+            final ScaledInterchromosomalMatrix interMatrix = new ScaledInterchromosomalMatrix(chromosome,
+                    chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold);
 
-        File outputFile2 = new File(outputDirectory, "inter_Even_vs_Odd_matrix_data.txt");
-        MatrixTools.exportData(interMatrix.getCleanedTransposedData(), outputFile2);
-
-        GenomeWideList<SubcompartmentInterval> interOddSubcompartments = new GenomeWideList<>(chromosomeHandler);
-        launchKmeansInterMatrix(interMatrix, interOddSubcompartments, numClusters, maxIters, numCompleted, false);
-
-        GenomeWideList<SubcompartmentInterval> interEvenSubcompartments = new GenomeWideList<>(chromosomeHandler);
-        launchKmeansInterMatrix(interMatrix, interEvenSubcompartments, numClusters, maxIters, numCompleted, true);
+            File outputFile = new File(outputDirectory, "inter_" + chromosome.getIndex() + "_matrix_data.txt");
+            MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
 
 
-        while (numCompleted.get() < 1) {
-            System.out.println("So far portion completed is " + numCompleted.get() + "/2");
+            GenomeWideList<SubcompartmentInterval> interSubcompartments = new GenomeWideList<>(chromosomeHandler);
+            launchKmeansInterMatrix(interMatrix, interSubcompartments, numClusters, maxIters, numToExpect, numCompleted);
+            interSubcompartmentMap.put(chromosome.getIndex(), interSubcompartments);
+
+
+        }
+
+        while (numToExpect.get() > numCompleted.get()) {
+            System.out.println("So far portion completed is " + numCompleted.get() + "/" + numToExpect.get());
             System.out.println("Wait another minute");
             try {
                 TimeUnit.MINUTES.sleep(1);
@@ -74,22 +79,17 @@ public class ThirdGWApproach {
             }
         }
 
-        File outputFile3 = new File(outputDirectory, "inter_odd_kmeans_clusters.bed");
-        interOddSubcompartments.simpleExport(outputFile3);
+        for (Integer key : interSubcompartmentMap.keySet()) {
+            File outputFile = new File(outputDirectory, "inter_kmeans_" + key + "_clusters.bed");
+            interSubcompartmentMap.get(key).simpleExport(outputFile);
+        }
 
-        outputFile3 = new File(outputDirectory, "inter_even_kmeans_clusters.bed");
-        interEvenSubcompartments.simpleExport(outputFile3);
-
-        GenomeWideList<SubcompartmentInterval> finalSubcompartments = mergeIntraAndInterAnnotations(outputDirectory,
-                origIntraSubcompartments, interOddSubcompartments, interEvenSubcompartments, connectedComponentThreshold);
-
-        return finalSubcompartments;
+        return mergeIntraAndInterAnnotations(outputDirectory, origIntraSubcompartments, interSubcompartmentMap, connectedComponentThreshold);
     }
 
     private static GenomeWideList<SubcompartmentInterval>
     mergeIntraAndInterAnnotations(File outputDirectory, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments,
-                                  GenomeWideList<SubcompartmentInterval> interOddSubcompartments,
-                                  GenomeWideList<SubcompartmentInterval> interEvenSubcompartments, int connectedComponentThreshold) {
+                                  Map<Integer, GenomeWideList<SubcompartmentInterval>> interSubcompartmentMap, int connectedComponentThreshold) {
 
         final Map<SimpleInterval, Set<Integer>> intervalToClusterIDs = new HashMap<>();
 
@@ -108,28 +108,16 @@ public class ThirdGWApproach {
         System.out.println("End Intra List Processing");
 
         System.out.println("Start Inter List Processing");
-
-        //odds first
-        interOddSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
-            @Override
-            public void process(String chr, List<SubcompartmentInterval> featureList) {
-                for (SubcompartmentInterval interval : featureList) {
-                    intervalToClusterIDs.get(interval.getSimpleIntervalKey()).add(interval.getClusterID());
+        for (GenomeWideList<SubcompartmentInterval> intervalList : interSubcompartmentMap.values()) {
+            intervalList.processLists(new FeatureFunction<SubcompartmentInterval>() {
+                @Override
+                public void process(String chr, List<SubcompartmentInterval> featureList) {
+                    for (SubcompartmentInterval interval : featureList) {
+                        intervalToClusterIDs.get(interval.getSimpleIntervalKey()).add(interval.getClusterID());
+                    }
                 }
-            }
-        });
-
-        //even next
-        interEvenSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
-            @Override
-            public void process(String chr, List<SubcompartmentInterval> featureList) {
-                for (SubcompartmentInterval interval : featureList) {
-                    intervalToClusterIDs.get(interval.getSimpleIntervalKey()).add(interval.getClusterID());
-                }
-            }
-        });
-
-
+            });
+        }
         System.out.println("End Inter List Processing");
 
         int[][] adjacencyMatrix = ConnectedComponents.generateAdjacencyMatrix(intervalToClusterIDs);
@@ -144,19 +132,14 @@ public class ThirdGWApproach {
     }
 
 
-    private static void launchKmeansInterMatrix(final ScaledCompositeOddVsEvenInterchromosomalMatrix matrix,
+    private static void launchKmeansInterMatrix(final ScaledInterchromosomalMatrix matrix,
                                                 final GenomeWideList<SubcompartmentInterval> interSubcompartments, int numClusters,
-                                                int maxIters, final AtomicInteger numCompleted, final boolean isTranspose) {
+                                                int maxIters, AtomicInteger numToExpect, final AtomicInteger numCompleted) {
 
-        if (matrix.getLength() > 0 && matrix.getWidth() > 0) {
+        if (matrix.getLength() > 0) {
 
-            double[][] cleanData;
-            if (isTranspose) {
-                cleanData = matrix.getCleanedTransposedData();
-            } else {
-                cleanData = matrix.getCleanedData();
-            }
-            ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanData, numClusters, maxIters, 128971L);
+            ConcurrentKMeans kMeans = new ConcurrentKMeans(matrix.getCleanedData(), numClusters,
+                    maxIters, 128971L);
 
             KMeansListener kMeansListener = new KMeansListener() {
                 @Override
@@ -166,19 +149,21 @@ public class ThirdGWApproach {
                 @Override
                 public void kmeansComplete(Cluster[] clusters, long l) {
                     numCompleted.incrementAndGet();
-                    matrix.processGWKmeansResult(clusters, interSubcompartments, isTranspose);
+                    matrix.processGWKmeansResult(clusters, interSubcompartments);
                 }
 
                 @Override
                 public void kmeansError(Throwable throwable) {
                     throwable.printStackTrace();
-                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
+                    System.err.println("gw dice - err - " + throwable.getLocalizedMessage());
                     System.exit(98);
                 }
             };
             kMeans.addKMeansListener(kMeansListener);
+            numToExpect.incrementAndGet();
             kMeans.run();
+
         }
     }
-
 }
+

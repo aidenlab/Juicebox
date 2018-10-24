@@ -22,36 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse.kmeans;
-
+package juicebox.tools.utils.juicer.dice.kmeans;
 
 /**
- * Defines object which register with implementation of <code>KMeans</code>
- * to be notified of significant events during clustering.
+ * Simple K-Means clustering interface.
  */
-public interface KMeansListener {
+public interface KMeans extends Runnable {
 
     /**
-     * A message has been received.
+     * Adds a KMeansListener to be notified of significant happenings.
      *
-     * @param message
+     * @param l the listener to be added.
      */
-    void kmeansMessage(String message);
+    void addKMeansListener(KMeansListener l);
 
     /**
-     * KMeans is complete.
+     * Removes a KMeansListener from the listener list.
      *
-     * @param clusters      the output of clustering.
-     * @param executionTime the time in milliseconds taken to cluster.
+     * @param l the listener to be removed.
      */
-    void kmeansComplete(Cluster[] clusters, long executionTime);
+    void removeKMeansListener(KMeansListener l);
 
     /**
-     * An error occurred during KMeans clustering.
+     * Get the clusters computed by the algorithm.  This method should
+     * not be called until clustering has completed successfully.
      *
-     * @param t
+     * @return an array of Cluster objects.
      */
-    void kmeansError(Throwable t);
+    Cluster[] getClusters();
 
 }
 

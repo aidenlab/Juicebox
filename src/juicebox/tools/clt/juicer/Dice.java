@@ -31,7 +31,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.curse.*;
+import juicebox.tools.utils.juicer.dice.*;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -44,13 +44,13 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/14/15.
  */
-public class Curse extends JuicerCLT {
+public class Dice extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private int numClusters = 20;
+    private int numClusters = 10;
     private double maxPercentAllowedToBeZeroThreshold = 0.7;
     private int maxIters = 10000;
     private double logThreshold = 2;
@@ -58,8 +58,8 @@ public class Curse extends JuicerCLT {
     private int whichApproachtoUse = 0;
     private List<Dataset> datasetList = new ArrayList<>();
 
-    public Curse() {
-        super("curse [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
+    public Dice() {
+        super("dice [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
         HiCGlobals.useCache = false;
     }
 
@@ -68,6 +68,8 @@ public class Curse extends JuicerCLT {
         if (args.length != 3) {
             printUsageAndExit();
         }
+
+        determineNumClusters(juicerParser);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null) norm = preferredNorm;
@@ -87,9 +89,14 @@ public class Curse extends JuicerCLT {
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Curse\nUsing " + possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Dice\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
+    }
+
+    private void determineNumClusters(CommandLineParserForJuicer juicerParser) {
+        int n = juicerParser.getMatrixSizeOption();
+        if (n > 1) numClusters = n;
     }
 
     @Override
@@ -107,7 +114,6 @@ public class Curse extends JuicerCLT {
                 File outputFile2 = new File(outputDirectory, "result_intra_compare_file" + i + ".bed");
                 intraSubcompartments.get(i).simpleExport(outputFile2);
             }
-
 
         } else if (whichApproachtoUse == 1) {
 

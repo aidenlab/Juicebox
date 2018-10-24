@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse;
+package juicebox.tools.utils.juicer.dice;
 
 import juicebox.data.*;
 import juicebox.tools.utils.common.MatrixTools;

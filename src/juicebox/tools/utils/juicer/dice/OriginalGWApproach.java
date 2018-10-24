@@ -22,15 +22,15 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.curse;
+package juicebox.tools.utils.juicer.dice;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.juicer.curse.kmeans.Cluster;
-import juicebox.tools.utils.juicer.curse.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.juicer.curse.kmeans.KMeansListener;
+import juicebox.tools.utils.juicer.dice.kmeans.Cluster;
+import juicebox.tools.utils.juicer.dice.kmeans.ConcurrentKMeans;
+import juicebox.tools.utils.juicer.dice.kmeans.KMeansListener;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -74,7 +74,7 @@ public class OriginalGWApproach {
                 @Override
                 public void kmeansError(Throwable throwable) {
                     throwable.printStackTrace();
-                    System.err.println("gw curse - err - " + throwable.getLocalizedMessage());
+                    System.err.println("gw dice - err - " + throwable.getLocalizedMessage());
                     System.exit(98);
                 }
             };
