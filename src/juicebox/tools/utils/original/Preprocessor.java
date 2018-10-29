@@ -346,7 +346,7 @@ public class Preprocessor {
         if (stats != null) nAttributes += 1;
         if (graphs != null) nAttributes += 1;
         if (hicFileScaling != null) nAttributes += 1;
-
+        nAttributes += 2; // NVI info
 
         los.writeInt(nAttributes);
         los.writeString(SOFTWARE);
@@ -367,12 +367,11 @@ public class Preprocessor {
         // Add NVI info
         los.writeString(NVI_INDEX);
         normVectorIndexPosition = los.getWrittenCount();
-        los.writeString(hicFileScaling.toString());
+        los.writeString("0000000000000000");
 
         los.writeString(NVI_LENGTH);
         normVectorLengthPosition = los.getWrittenCount();
-        los.writeString(hicFileScaling.toString());
-
+        los.writeString("0000000000000000");
 
 
         // Sequence dictionary

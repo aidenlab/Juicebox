@@ -449,8 +449,6 @@ public class MatrixZoomData {
         ExecutorService service = Executors.newFixedThreadPool(200);
 
         final int binSize = getBinSize();
-        final int chr1Index = chr1.getIndex();
-        final int chr2Index = chr2.getIndex();
 
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
@@ -464,7 +462,7 @@ public class MatrixZoomData {
                         }
                         //Run out of memory if do it here
                         if (SuperAdapter.assemblyModeCurrentlyActive) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index);
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Id, chr2Id);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
