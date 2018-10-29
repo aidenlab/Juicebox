@@ -163,7 +163,10 @@ public class Arrowhead extends JuicerCLT {
         int numThreads = juicerParser.getNumThreads();
         if (numThreads > 0) {
             numCPUThreads = numThreads;
+        } else {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
         }
+        System.out.println("Using " + numCPUThreads + " CPU threads");
 
         List<String> t = juicerParser.getThresholdOptions();
         if (t != null && t.size() == 6) {

@@ -32,6 +32,7 @@ import org.broad.igv.feature.Chromosome;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DataCleanerV2 extends DataCleaner {
 
@@ -86,7 +87,8 @@ public class DataCleanerV2 extends DataCleaner {
 
 
     public void processKmeansResultV2(Chromosome chromosome,
-                                      List<GenomeWideList<SubcompartmentInterval>> subcompartmentsLists, Cluster[] clusters) {
+                                      List<GenomeWideList<SubcompartmentInterval>> subcompartmentsLists, Cluster[] clusters,
+                                      Map<Integer, double[]> idToCentroidMap) {
 
         List<List<SubcompartmentInterval>> subcompartmentIntervals = new ArrayList<>();
         for (int i = 0; i < numDatasets; i++) {
@@ -97,6 +99,10 @@ public class DataCleanerV2 extends DataCleaner {
 
         for (Cluster cluster : clusters) {
             int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
+            synchronized (idToCentroidMap) {
+                idToCentroidMap.put(currentClusterID, cluster.getCenter());
+            }
+
             for (int i : cluster.getMemberIndexes()) {
                 int originalRow = getOriginalIndexRow(i);
 
@@ -114,6 +120,10 @@ public class DataCleanerV2 extends DataCleaner {
             SubcompartmentInterval.reSort(subcompartmentsLists.get(i));
             subcompartmentsLists.get(i).addAll(subcompartmentIntervals.get(i));
         }
+
+        // process diffs relative to first map
+
+        // process diff relative to concensus
     }
 
     private int determineWhichDatasetThisBelongsTo(int originalRow) {

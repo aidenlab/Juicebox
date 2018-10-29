@@ -37,7 +37,9 @@ import org.broad.igv.feature.Chromosome;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -135,6 +137,8 @@ public class Clustering {
         final AtomicInteger numRunsToExpect = new AtomicInteger();
         final AtomicInteger numRunsDone = new AtomicInteger();
 
+        final Map<Integer, double[]> idToCentroidMap = new HashMap<>();
+
         for (Dataset ds : datasets) {
             comparativeSubcompartments.add(new GenomeWideList<SubcompartmentInterval>(chromosomeHandler));
         }
@@ -196,7 +200,8 @@ public class Clustering {
                         @Override
                         public void kmeansComplete(Cluster[] clusters, long l) {
                             numRunsDone.incrementAndGet();
-                            dataCleanerV2.processKmeansResultV2(chromosome, comparativeSubcompartments, clusters);
+                            dataCleanerV2.processKmeansResultV2(chromosome, comparativeSubcompartments, clusters,
+                                    idToCentroidMap);
                         }
 
                         @Override
@@ -224,6 +229,12 @@ public class Clustering {
 
         for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
             SubcompartmentInterval.reSort(gwList);
+        }
+
+        // process differences for diff vector
+        SubcompartmentInterval.extractDiffVectors(comparativeSubcompartments, idToCentroidMap, outputDirectory);
+
+        for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
             SubcompartmentInterval.collapseGWList(gwList);
         }
 

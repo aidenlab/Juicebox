@@ -24,18 +24,20 @@
 
 package juicebox.tools.utils.juicer.dice;
 
+import com.google.common.primitives.Ints;
 import juicebox.data.feature.Feature;
 import juicebox.data.feature.FeatureFilter;
+import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 
 import java.awt.*;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
 public class SubcompartmentInterval extends SimpleInterval {
 
-    private final Integer clusterID;
-
+    private Integer clusterID;
 
     private static Color[] colors = new Color[]{
             new Color(255, 0, 0),
@@ -72,6 +74,113 @@ public class SubcompartmentInterval extends SimpleInterval {
                 return collapseSubcompartmentIntervals(featureList);
             }
         });
+    }
+
+    public static void extractDiffVectors(List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments,
+                                          Map<Integer, double[]> idToCentroidMap, File outputDirectory) {
+        // extract differences relative to control
+        // calculate consensus
+
+        GenomeWideList<SubcompartmentInterval> consensus = calculateConsensus(comparativeSubcompartments);
+
+
+        // extract differences relative to consensus
+
+
+    }
+
+    private static GenomeWideList<SubcompartmentInterval> calculateConsensus(
+            final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments) {
+
+        GenomeWideList<SubcompartmentInterval> control = comparativeSubcompartments.get(0);
+        GenomeWideList<SubcompartmentInterval> consensus = control.deepClone();
+
+        final Map<SimpleInterval, Integer> modeOfClusterIdsInInterval = new HashMap<>();
+
+        control.processLists(new FeatureFunction<SubcompartmentInterval>() {
+            @Override
+            public void process(String chr, List<SubcompartmentInterval> controlList) {
+
+                Map<SimpleInterval, List<Integer>> clusterIdsInInterval = new HashMap<>();
+                for (SubcompartmentInterval sInterval : controlList) {
+                    List<Integer> ids = new ArrayList<>();
+                    ids.add(sInterval.getClusterID());
+                    clusterIdsInInterval.put(sInterval.getSimpleIntervalKey(), ids);
+                }
+
+                if (comparativeSubcompartments.size() > 1) {
+                    for (int i = 1; i < comparativeSubcompartments.size(); i++) {
+                        for (SubcompartmentInterval sInterval : comparativeSubcompartments.get(i).getFeatures(chr)) {
+                            if (clusterIdsInInterval.containsKey(sInterval.getSimpleIntervalKey())) {
+                                clusterIdsInInterval.get(sInterval.getSimpleIntervalKey()).add(sInterval.getClusterID());
+                            } else {
+                                List<Integer> ids = new ArrayList<>();
+                                ids.add(sInterval.getClusterID());
+                                clusterIdsInInterval.put(sInterval.getSimpleIntervalKey(), ids);
+                            }
+                        }
+                    }
+                }
+
+
+                for (SimpleInterval sInterval : clusterIdsInInterval.keySet()) {
+                    int mode = mode(clusterIdsInInterval.get(sInterval));
+                    if (mode >= 0) {
+                        modeOfClusterIdsInInterval.put(sInterval, mode);
+                    }
+                }
+            }
+        });
+
+        consensus.processLists(new FeatureFunction<SubcompartmentInterval>() {
+            @Override
+            public void process(String chr, List<SubcompartmentInterval> featureList) {
+                for (SubcompartmentInterval sInterval : featureList) {
+                    SimpleInterval key = sInterval.getSimpleIntervalKey();
+                    if (modeOfClusterIdsInInterval.containsKey(key)) {
+                        sInterval.setClusterID(modeOfClusterIdsInInterval.get(key));
+                    }
+                }
+            }
+        });
+
+        return null;
+    }
+
+    /**
+     * @param integers
+     * @return mode only if there is exactly one value repeated the max number of times
+     */
+    private static Integer mode(List<Integer> integers) {
+
+        Map<Integer, Integer> counts = new HashMap<>();
+        for (Integer i : integers) {
+            if (counts.containsKey(i)) {
+                counts.put(i, counts.get(i) + 1);
+            } else {
+                counts.put(i, 1);
+            }
+        }
+
+        int maxNumTimesCount = Ints.max(Ints.toArray(counts.values()));
+        int howManyTimesDoesMaxAppear = 0;
+        int potentialModeVal = -1;
+        for (Integer val : counts.keySet()) {
+            if (counts.get(val).equals(maxNumTimesCount)) {
+                potentialModeVal = val;
+                howManyTimesDoesMaxAppear++;
+            }
+        }
+
+        if (howManyTimesDoesMaxAppear == 1) {
+            return potentialModeVal;
+        }
+
+        return -1;
+    }
+
+    private void setClusterID(Integer clusterID) {
+        this.clusterID = clusterID;
     }
 
     public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {

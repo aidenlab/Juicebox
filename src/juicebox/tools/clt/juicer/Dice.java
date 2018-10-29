@@ -115,6 +115,10 @@ public class Dice extends JuicerCLT {
                 intraSubcompartments.get(i).simpleExport(outputFile2);
             }
 
+            // todo mss
+            // variableStep chrom=chr2 span=5
+            // 300701  12.5
+
         } else if (whichApproachtoUse == 1) {
 
             GenomeWideList<SubcompartmentInterval> intraSubcompartments =
