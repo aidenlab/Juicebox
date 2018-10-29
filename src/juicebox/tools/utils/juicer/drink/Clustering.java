@@ -22,13 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice;
+package juicebox.tools.utils.juicer.drink;
 
 import juicebox.data.*;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.juicer.dice.kmeans.Cluster;
-import juicebox.tools.utils.juicer.dice.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.juicer.dice.kmeans.KMeansListener;
+import juicebox.tools.utils.juicer.drink.kmeans.Cluster;
+import juicebox.tools.utils.juicer.drink.kmeans.ConcurrentKMeans;
+import juicebox.tools.utils.juicer.drink.kmeans.KMeansListener;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -98,7 +98,7 @@ public class Clustering {
 
                         @Override
                         public void kmeansError(Throwable throwable) {
-                            System.err.println("dice chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                            System.err.println("drink chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
                             throwable.printStackTrace();
                             System.exit(98);
                         }
@@ -206,7 +206,7 @@ public class Clustering {
 
                         @Override
                         public void kmeansError(Throwable throwable) {
-                            System.err.println("dice chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                            System.err.println("drink chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
                             throwable.printStackTrace();
                             System.exit(98);
                         }

@@ -22,25 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice.kmeans;
+package juicebox.tools.utils.juicer.drink.kmeans;
 
 /**
- * Exception thrown when insufficient memory is available to
- * perform an operation.  Designed to be throw before doing
- * something that would cause a <code>java.lang.OutOfMemoryError</code>.
+ * Simple K-Means clustering interface.
  */
-public class InsufficientMemoryException extends Exception {
-
-    private static final long serialVersionUID = 72138634L;
+public interface KMeans extends Runnable {
 
     /**
-     * Constructor.
+     * Adds a KMeansListener to be notified of significant happenings.
      *
-     * @param message an explanatory message.
+     * @param l the listener to be added.
      */
-    public InsufficientMemoryException(String message) {
-        super(message);
-    }
+    void addKMeansListener(KMeansListener l);
+
+    /**
+     * Removes a KMeansListener from the listener list.
+     *
+     * @param l the listener to be removed.
+     */
+    void removeKMeansListener(KMeansListener l);
+
+    /**
+     * Get the clusters computed by the algorithm.  This method should
+     * not be called until clustering has completed successfully.
+     *
+     * @return an array of Cluster objects.
+     */
+    Cluster[] getClusters();
 
 }
 

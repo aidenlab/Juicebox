@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice;
+package juicebox.tools.utils.juicer.drink;
 
 import com.google.common.primitives.Ints;
 import juicebox.data.feature.Feature;

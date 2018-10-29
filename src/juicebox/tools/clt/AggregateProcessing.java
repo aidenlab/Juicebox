@@ -48,23 +48,23 @@ class AggregateProcessing {
 
         // gm12878_intra_nofrag_30.hic
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Users/muhammad/Desktop/new_100k_curse_delta_replicate"};
 
         //HiCTools.main(ll51231123);
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 "/Users/muhammad/Desktop/new_100k_oddeven_curse_echo_primary"};
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 "/Users/muhammad/Desktop/ECHO6/gm12878_self_50k"};
 
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+" +
@@ -74,14 +74,14 @@ class AggregateProcessing {
                 "/Users/muhammad/Desktop/ECHO6/gm12878s"};
 
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_maternal.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_paternal.hic",
                 "/Users/muhammad/Desktop/ECHO5/echo5_maternalVSpaternal_100k"};
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/degron/6hrtreat_nosync_combined.hic+" +
@@ -90,38 +90,38 @@ class AggregateProcessing {
 
         //HiCTools.main(ll51231123);
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
                 //"/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/collins/map1_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/collins/map2_30.hic",
                 "/Users/muhammad/Desktop/ECHO5/collins_50k"};
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/HIC1255_tcell_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/HIC1258_3lanes_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/goodell/day7_HIC1528_30.hic",
                 "/Users/muhammad/Desktop/ECHO6/goodell"};
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/gm12878_intra_nofrag_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/imr90_30_nf/imr90_intra_nofrag_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
                 "/Users/muhammad/Desktop/ECHO6/gm12878_imr90_k562_trio"};
 
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM_38all_mega.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM_39all_mega.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/Marianna/GM40all_mega.hic",
                 "/Users/muhammad/Desktop/ECHO6/marianna"};
 
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
                 "/Users/muhammad/Desktop/ECHO6/pure_gm12878_50k"};
         // HiCTools.main(ll51231123);
-        ll51231123 = new String[]{"dice",
+        ll51231123 = new String[]{"drink",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic+" +
                         "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
                 "/Users/muhammad/Desktop/ECHO6/pure_k562_100k"};

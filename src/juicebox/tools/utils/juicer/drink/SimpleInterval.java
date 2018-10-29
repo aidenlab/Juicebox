@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice;
+package juicebox.tools.utils.juicer.drink;
 
 import juicebox.data.feature.Feature;
 

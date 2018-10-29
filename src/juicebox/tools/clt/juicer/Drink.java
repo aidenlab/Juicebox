@@ -31,7 +31,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.dice.*;
+import juicebox.tools.utils.juicer.drink.*;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/14/15.
  */
-public class Dice extends JuicerCLT {
+public class Drink extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
     private int resolution = 100000;
@@ -58,8 +58,8 @@ public class Dice extends JuicerCLT {
     private int whichApproachtoUse = 0;
     private List<Dataset> datasetList = new ArrayList<>();
 
-    public Dice() {
-        super("dice [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
+    public Drink() {
+        super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
         HiCGlobals.useCache = false;
     }
 
@@ -89,7 +89,7 @@ public class Dice extends JuicerCLT {
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Dice\nUsing " + possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }

@@ -22,13 +22,25 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice;
+package juicebox.tools.utils.juicer.drink.kmeans;
 
-import java.util.concurrent.atomic.AtomicInteger;
+/**
+ * Exception thrown when insufficient memory is available to
+ * perform an operation.  Designed to be throw before doing
+ * something that would cause a <code>java.lang.OutOfMemoryError</code>.
+ */
+public class InsufficientMemoryException extends Exception {
 
-public class UniqueSubcompartmentClusterID {
+    private static final long serialVersionUID = 72138634L;
 
-    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+    /**
+     * Constructor.
+     *
+     * @param message an explanatory message.
+     */
+    public InsufficientMemoryException(String message) {
+        super(message);
+    }
 
-    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }
+

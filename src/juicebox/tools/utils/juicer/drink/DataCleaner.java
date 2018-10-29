@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.dice;
+package juicebox.tools.utils.juicer.drink;
 
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.juicer.dice.kmeans.Cluster;
+import juicebox.tools.utils.juicer.drink.kmeans.Cluster;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;

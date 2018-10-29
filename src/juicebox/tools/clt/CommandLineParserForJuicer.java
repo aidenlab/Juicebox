@@ -116,7 +116,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
                 cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
-                || cmd.equals("apa_vs_distance") || cmd.equals("dice");
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink");
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
