@@ -61,6 +61,14 @@ public class CommandLineParser extends CmdLineParser {
     private static Option multipleChromosomesOption = null;
     private static Option resolutionOption = null;
 
+    //filter option based on directionality
+    private static Option alignmentFilterOption = null;
+
+    public enum Alignment
+    {
+        INNER, OUTER, TANDEM;
+    }
+
     public CommandLineParser() {
 
         // available
@@ -92,6 +100,8 @@ public class CommandLineParser extends CmdLineParser {
         resolutionOption = addStringOption('r', "resolutions");
 
         hicFileScalingOption = addDoubleOption('z', "scale");
+
+        alignmentFilterOption = addIntegerOption('a', "alignment");
     }
 
     /**
@@ -146,6 +156,22 @@ public class CommandLineParser extends CmdLineParser {
 
     public String getTmpdirOption() {
         return optionToString(tmpDirOption);
+    }
+
+    public Alignment getAlignmentOption() {
+        if (getOptionValue(alignmentFilterOption) == null) {
+            return null;
+        }
+        int alignmentInt = optionToInt(alignmentFilterOption);
+        if (alignmentInt == 0) {
+            return Alignment.INNER;
+        } else if (alignmentInt == 1) {
+            return Alignment.OUTER;
+        } else if (alignmentInt == 2) {
+            return Alignment.TANDEM;
+        } else {
+            throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
+        }
     }
 
     /**
