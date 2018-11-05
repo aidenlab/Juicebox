@@ -159,15 +159,16 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public Alignment getAlignmentOption() {
-        if (getOptionValue(alignmentFilterOption) == null) {
+        int alignmentInt = optionToInt(alignmentFilterOption);
+
+        if (alignmentInt == 0) {
             return null;
         }
-        int alignmentInt = optionToInt(alignmentFilterOption);
-        if (alignmentInt == 0) {
+        if (alignmentInt == 1) {
             return Alignment.INNER;
-        } else if (alignmentInt == 1) {
-            return Alignment.OUTER;
         } else if (alignmentInt == 2) {
+            return Alignment.OUTER;
+        } else if (alignmentInt == 3) {
             return Alignment.TANDEM;
         } else {
             throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
@@ -186,9 +187,7 @@ public class CommandLineParser extends CmdLineParser {
         return optionToInt(countThresholdOption);
     }
 
-    public int getMapqThresholdOption() {
-        return optionToInt(mapqOption);
-    }
+    public int getMapqThresholdOption() { return optionToInt(mapqOption); }
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
