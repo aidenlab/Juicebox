@@ -233,6 +233,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
 //            dataset.bpZooms.retainAll(ds.getBpZooms());
         }
+        Collections.sort(dataset.bpZooms, Collections.reverseOrder());
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
             for (Dataset ds : datasetList) {
