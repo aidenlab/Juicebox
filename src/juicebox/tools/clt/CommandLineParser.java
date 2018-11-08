@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,12 +56,19 @@ public class CommandLineParser extends CmdLineParser {
     private static Option mapqOption = null;
     private static Option noFragNormOption = null;
     private static Option genomeWideOption = null;
+    private static Option hicFileScalingOption = null;
 
     // sets of strings
     private static Option multipleChromosomesOption = null;
     private static Option resolutionOption = null;
 
     public CommandLineParser() {
+
+        // available
+        // abeijklouy
+
+        // used
+        // d h x v n p F V f t s g m q w c r z
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
@@ -86,6 +93,7 @@ public class CommandLineParser extends CmdLineParser {
         resolutionOption = addStringOption('r', "resolutions");
 
         expectedVectorOption = addStringOption('e', "expected_vector_file");
+        hicFileScalingOption = addDoubleOption('z', "scale");
     }
 
     /**
@@ -164,6 +172,18 @@ public class CommandLineParser extends CmdLineParser {
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
+
+    /**
+     * double flags
+     */
+    private double optionToDouble(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? 0 : ((Number) opt).doubleValue();
+    }
+
+    public double getScalingOption() {
+        return optionToDouble(hicFileScalingOption);
+    }
 
     /**
      * String Set flags

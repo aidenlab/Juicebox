@@ -53,7 +53,7 @@ public class HiCFileLoader {
     private static Properties properties;
     private static LoadDialog loadDialog = null;
     private static String propertiesFileURL = null;
-    private static String RECENT_PROPERTIES_FILE = "recentPropertiesFile";
+    private static final String RECENT_PROPERTIES_FILE = "recentPropertiesFile";
 
     public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
@@ -191,7 +191,7 @@ public class HiCFileLoader {
         }
     }
 
-    public static void setPropertiesFileURL(String propertiesFileURL) {
+    private static void setPropertiesFileURL(String propertiesFileURL) {
         HiCFileLoader.propertiesFileURL = propertiesFileURL;
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
         prefs.put(RECENT_PROPERTIES_FILE, propertiesFileURL);

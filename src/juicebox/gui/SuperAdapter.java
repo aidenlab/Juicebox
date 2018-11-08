@@ -587,7 +587,7 @@ public class SuperAdapter {
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
 
         if (MatrixType.isVSTypeDisplay(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
@@ -595,7 +595,7 @@ public class SuperAdapter {
         }
 
         if (MatrixType.isPearsonType(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
@@ -758,7 +758,7 @@ public class SuperAdapter {
     }
 
     public boolean isTooltipAllowedToUpdated() {
-        return mainViewPanel.isTooltipAllowedToUpdated();
+        return mainViewPanel.isTooltipAllowedToUpdate();
     }
 
     public void toggleToolTipUpdates(boolean b) {
@@ -996,6 +996,11 @@ public class SuperAdapter {
                 updateChrHandlerAndMVP(custom);
             }
         }
+    }
+
+    public void createAssemblyChromosome() {
+        Chromosome assembly = hic.getChromosomeHandler().generateAssemblyChromosome();
+        updateChrHandlerAndMVP(assembly);
     }
 
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {

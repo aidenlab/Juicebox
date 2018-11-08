@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,9 +63,75 @@ public class Matrix {
         return "" + chr1 + "_" + chr2;
     }
 
+    public static Matrix createAssemblyChromosomeMatrix(ChromosomeHandler handler,
+                                                        final Map<String, Matrix> matrices, DatasetReader reader) {
+        Map<HiCZoom, MatrixZoomData> assemblyZDs = new HashMap<>();
+
+        Matrix matrix = null;
+        int numAttempts = 0;
+        while (matrix == null && numAttempts < 3) {
+            try {
+                matrix = reader.readMatrix("1_1");
+            } catch (Exception ignored) {
+                numAttempts++;
+            }
+        }
+
+        int length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
+        for (MatrixZoomData zd : matrix.bpZoomData) {
+            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(), length / zd.getBinSize(), length / zd.getBinSize(), null, null, reader));
+        }
+
+
+        //TODO: assumption that we are doing this before modifying the handler
+
+//        for (Chromosome i : handler.getChromosomeArrayWithoutAllByAll()) {
+//            for (Chromosome j : handler.getChromosomeArrayWithoutAllByAll()) {
+//
+//                //System.out.println("from mtrx");
+//                String key = Matrix.generateKey(i, j);
+//                try {
+//                    Matrix m = matrices.get(key);
+//                    if (m == null) {
+//                        // TODO sometimes this fails once or twice, but later succeeds -
+//                        // TODO high priority, needs to be fixed??????
+//                        int numAttempts = 0;
+//                        while (m == null && numAttempts < 3) {
+//                            try {
+//                                m = reader.readMatrix(key);
+//                            } catch (Exception ignored) {
+//                                numAttempts++;
+//                            }
+//                        }
+//
+//                        for(MatrixZoomData tempMatrixZoomData : m.bpZoomData){
+//                            tempMatrixZoomData.
+//                        }
+//
+//
+//                        // modify m for each zoom
+////                        matrices.put(key, m); //perhaps move it to the end
+//                    }
+//                    for (MatrixZoomData zd : m.bpZoomData) {
+//                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, assemblyZDs, reader);
+//                    }
+////                    for (MatrixZoomData zd : m.fragZoomData) {
+////                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+////                    }
+//                } catch (Exception ee) {
+//                    System.err.println("Everything failed in creatingAssemblyChromosomeMatrix " + key);
+//                    ee.printStackTrace();
+//                }
+//            }
+//        }
+
+        Matrix m = new Matrix(handler.size(), handler.size(), new ArrayList<>(assemblyZDs.values()));
+        matrices.put(generateKey(handler.size(), handler.size()), m);
+        return m;
+    }
+
     public static Matrix createCustomChromosomeMatrix(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                                       final Map<String, Matrix> matrices, DatasetReader reader) {
-
         // TODO some weird null error when X chr in bed file?
         List<Chromosome> indicesForChr1 = getIndicesFromSubChromosomes(handler, chr1);
         List<Chromosome> indicesForChr2;
@@ -239,7 +305,7 @@ public class Matrix {
         return (unit == HiC.Unit.BP) ? bpZoomData.size() : fragZoomData.size();
     }
 
-    public boolean isIntra() {
-        return chr1 == chr2;
+    public boolean isNotIntra() {
+        return chr1 != chr2;
     }
 }

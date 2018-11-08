@@ -31,6 +31,7 @@ import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
+import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
@@ -168,8 +169,16 @@ public class MatrixZoomData {
         return chr1.getName() + "_" + chr2.getName() + "_" + zoom.getKey();
     }
 
+    public String getKey(int chr1, int chr2) {
+        return "2_2" + "_" + zoom.getKey();
+    }
+
     public String getBlockKey(int blockNumber, NormalizationType no) {
         return getKey() + "_" + blockNumber + "_" + no;
+    }
+
+    public String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
+        return getKey(chr1, chr2) + "_" + blockNumber + "_" + no;
     }
 
     public String getColorScaleKey(MatrixType displayOption) {
@@ -194,7 +203,10 @@ public class MatrixZoomData {
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no,
                                                       boolean isImportant) {
         final List<Block> blockList = new ArrayList<>();
-        if (SuperAdapter.assemblyModeCurrentlyActive) {
+        Block b = new Block(1, getBlockKey(1, no));
+        if (MainViewPanel.assemblyMatCheck) {
+            return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no, 1, 1);
+        } else if (SuperAdapter.assemblyModeCurrentlyActive && !MainViewPanel.assemblyMatCheck) {
             return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
         } else {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
@@ -241,6 +253,29 @@ public class MatrixZoomData {
 
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
+        return new ArrayList<>(new HashSet<>(blockList));
+    }
+
+    private List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
+                                                  final NormalizationType no, int chr1, int chr2) {
+
+        Set<Integer> blocksToLoad = new HashSet<>();
+
+        // have to do this regardless (just in case)
+        int col1 = binX1 / blockBinCount;
+        int row1 = binY1 / blockBinCount;
+        int col2 = binX2 / blockBinCount;
+        int row2 = binY2 / blockBinCount;
+
+        for (int r = row1; r <= row2; r++) {
+            for (int c = col1; c <= col2; c++) {
+                populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+            }
+        }
+
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, chr1, chr2);
+        System.out.println("I am block size: " + blockList.size());
+        System.out.println("I am first block: " + blockList.get(0).getNumber());
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
@@ -374,6 +409,60 @@ public class MatrixZoomData {
                         //Run out of memory if do it here
                         if (SuperAdapter.assemblyModeCurrentlyActive) {
                             b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index);
+                        }
+                        if (HiCGlobals.useCache) {
+                            blockCache.put(key, b);
+                        }
+                        blockList.add(b);
+                    } catch (IOException e) {
+                        errorCounter.incrementAndGet();
+                    }
+                }
+            };
+
+            service.submit(loader);
+        }
+
+        // done submitting all jobs
+        service.shutdown();
+
+        // wait for all to finish
+        try {
+            service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Error loading mzd data " + e.getLocalizedMessage());
+            if (HiCGlobals.printVerboseComments) {
+                e.printStackTrace();
+            }
+        }
+
+        // error printing
+        if (errorCounter.get() > 0) {
+            System.err.println(errorCounter.get() + " errors while reading blocks");
+        }
+    }
+
+    private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
+                                         final NormalizationType no, final int chr1Id, final int chr2Id) {
+        final AtomicInteger errorCounter = new AtomicInteger();
+
+        ExecutorService service = Executors.newFixedThreadPool(200);
+
+        final int binSize = getBinSize();
+
+        for (final int blockNumber : blocksToLoad) {
+            Runnable loader = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String key = getBlockKey(blockNumber, no, chr1Id, chr2Id);
+                        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
+                        if (b == null) {
+                            b = new Block(blockNumber, key);   // An empty block
+                        }
+                        //Run out of memory if do it here
+                        if (SuperAdapter.assemblyModeCurrentlyActive) {
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Id, chr2Id);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -687,7 +776,7 @@ public class MatrixZoomData {
         System.out.println("blockColumnCount (columns): " + blockColumnCount);
 
         System.out.println("Block size (bp): " + blockBinCount * zoom.getBinSize());
-        System.out.println("");
+        System.out.println();
 
     }
 

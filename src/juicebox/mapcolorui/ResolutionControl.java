@@ -267,7 +267,6 @@ public class ResolutionControl extends JPanel {
                     }
                 }
             }
-
         });
         setEnabled(false);
     }

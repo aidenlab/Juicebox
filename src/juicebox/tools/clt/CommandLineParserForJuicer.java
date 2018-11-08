@@ -47,6 +47,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option legacyOutputOption = null;
     private static Option helpOption = null;
     private static Option versionOption = null;
+    private static Option threadNumOption = null;
+
 
     // APA
     private static Option apaWindowOption = null;
@@ -71,10 +73,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqbvuhgjy
+        // wmnxcrplafdptkqbvuhgjyz
 
         // available flags
-        // ozes
+        // oes
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -86,6 +88,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         legacyOutputOption = addBooleanOption('g', "legacy");
         helpOption = addBooleanOption('h', "help");
         versionOption = addBooleanOption('V', "version");
+        threadNumOption = addIntegerOption('z', "threads");
 
         // APA
         apaWindowOption = addIntegerOption('w', "window");
@@ -194,6 +197,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public int getMatrixSizeOption() {
         return optionToInt(matrixSizeOption);
+    }
+
+    public int getNumThreads() {
+        return optionToInt(threadNumOption);
     }
 
     /**

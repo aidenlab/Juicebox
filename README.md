@@ -14,6 +14,12 @@ Juicebox was created by <a href="https://github.com/jrobinso">Jim Robinson</a>,
 Ongoing development work is carried out by <a href="https://github.com/nchernia">Neva C. Durand</a>, <a href="https://github.com/sa501428">Muhammad Saad Shamim</a>, <a href="https://github.com/musianat">Nathaniel T. Musial</a>, <a href="https://github.com/ranganmostofa11">Ragib Mostofa</a>, and <a href="https://github.com/dudcha">Olga Dudchenko</a>.
 
 --------------
+Questions?
+--------------
+
+For FAQs, or for asking new questions, please see our forum: <a href="http://aidenlab.org/forum.html">aidenlab.org/forum.html</a>.
+
+--------------
 IntelliJ Setup
 --------------
 

@@ -822,7 +822,7 @@ public class ResourceTree {
                     parentNodeResource.setSelected(true);
                 } else { // Uncheck Only if their are no selected descendants
 
-                    if (!hasSelectedChildren(parentNode)) {
+                    if (doesNotHaveSelectedChildren(parentNode)) {
                         parentNodeResource.setSelected(false);
                     }
                 }
@@ -863,7 +863,7 @@ public class ResourceTree {
             return false;
         }
 
-        static boolean hasSelectedChildren(TreeNode treeNode) {
+        static boolean doesNotHaveSelectedChildren(TreeNode treeNode) {
 
             Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
@@ -876,11 +876,11 @@ public class ResourceTree {
                     CheckableResource childResource =
                             ((CheckableResource) childsUserObject);
                     if (childResource.isSelected()) {
-                        return true;
+                        return false;
                     }
                 }
             }
-            return false;
+            return true;
         }
 
         public Object getCellEditorValue() {
@@ -891,7 +891,7 @@ public class ResourceTree {
 
                 Object node = treePath.getLastPathComponent();
 
-                if ((node != null) && (node instanceof DefaultMutableTreeNode)) {
+                if ((node instanceof DefaultMutableTreeNode)) {
 
                     LinkCheckBox checkbox = renderer.getRendereringComponent();
 
@@ -966,7 +966,7 @@ public class ResourceTree {
 
             // If we are unchecking a parent make sure there are
             // no checked children
-            if (!hasSelectedChildren(treeNode)) {
+            if (doesNotHaveSelectedChildren(treeNode)) {
                 resource.setSelected(false);
             } else {
 
@@ -1182,8 +1182,7 @@ public class ResourceTree {
                 if (treePath != null) {
 
                     Object node = treePath.getLastPathComponent();
-                    if ((node != null) &&
-                            (node instanceof DefaultMutableTreeNode)) {
+                    if ((node instanceof DefaultMutableTreeNode)) {
                         DefaultMutableTreeNode treeNode =
                                 (DefaultMutableTreeNode) node;
                         Object userObject = treeNode.getUserObject();

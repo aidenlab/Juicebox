@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
+                + "           : -z <double> scale factor for hic file\n"
         );
     }
 
@@ -82,8 +83,9 @@ public class PreProcessing extends JuiceboxCLT {
         inputFile = args[1];
         outputFile = args[2];
         String tmpDir = parser1.getTmpdirOption();
+        double hicFileScalingFactor = parser1.getScalingOption();
 
-        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler);
+        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
         preprocessor.setIncludedChromosomes(parser1.getChromosomeOption());
         preprocessor.setCountThreshold(parser1.getCountThresholdOption());
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());

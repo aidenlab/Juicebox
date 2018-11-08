@@ -32,6 +32,7 @@ import juicebox.data.ChromosomeHandler;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class AsciiPairIterator implements PairIterator {
         if (path.endsWith(".gz")) {
             InputStream fileStream = new FileInputStream(path);
             InputStream gzipStream = new GZIPInputStream(fileStream);
-            Reader decoder = new InputStreamReader(gzipStream, "UTF8");
+            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
             this.reader = new BufferedReader(decoder, 4194304);
         } else {
             //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);

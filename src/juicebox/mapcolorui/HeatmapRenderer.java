@@ -168,7 +168,7 @@ class HeatmapRenderer {
 
                 BasicMatrix bm = zd.getPearsons(df);
 
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(key)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
 
@@ -186,7 +186,7 @@ class HeatmapRenderer {
                 BasicMatrix bm = controlZD.getPearsons(controlDF);
 
                 String key = controlZD.getColorScaleKey(displayOption);
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(key)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
                 renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
@@ -204,7 +204,7 @@ class HeatmapRenderer {
                 BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
                 String key = zd.getColorScaleKey(displayOption);
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(key)) {
                     float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
                     float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
                     pearsonColorScale.setMinMax(key, min, max);

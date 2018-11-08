@@ -169,6 +169,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             dataset.setAttributes(attributes);
 
+            if (dataset.getHiCFileScalingFactor() != null) {
+                HiCGlobals.hicMapScale = Double.parseDouble(dataset.getHiCFileScalingFactor());
+            }
+
             // Read chromosome dictionary
             int nchrs = dis.readInt();
             position += 4;
@@ -294,7 +298,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         String stats;
         BufferedReader reader = null;
         try {
-            StringBuilder builder = new StringBuilder("");
+            StringBuilder builder = new StringBuilder();
             reader = ParsingUtils.openBufferedReader(statsFileName);
             String nextLine;
             int count = 0; // if there is an big text file that happens to be named the same, don't read it forever
@@ -337,7 +341,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         try {
             reader = ParsingUtils.openBufferedReader(graphFileName);
             if (reader == null) return null;
-            StringBuilder builder = new StringBuilder("");
+            StringBuilder builder = new StringBuilder();
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 builder.append(nextLine);

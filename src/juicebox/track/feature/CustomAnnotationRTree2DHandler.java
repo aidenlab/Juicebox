@@ -95,8 +95,7 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public List<Feature2D> get(int chrIdx1, int chrIdx2) {
 
-        List<Feature2D> features = new ArrayList<>(loopList.get(chrIdx1, chrIdx2));
-        return features;
+        return new ArrayList<>(loopList.get(chrIdx1, chrIdx2));
     }
 
     public boolean exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
