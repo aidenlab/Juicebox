@@ -72,10 +72,10 @@ public class CommandLineParser extends CmdLineParser {
     public CommandLineParser() {
 
         // available
-        // abeijklouy
+        // beijklouy
 
         // used
-        // d h x v n p F V f t s g m q w c r z
+        // d h x v n p F V f t s g m q w c r z a
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
