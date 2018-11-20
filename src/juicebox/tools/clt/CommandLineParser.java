@@ -61,13 +61,21 @@ public class CommandLineParser extends CmdLineParser {
     private static Option multipleChromosomesOption = null;
     private static Option resolutionOption = null;
 
+    //filter option based on directionality
+    private static Option alignmentFilterOption = null;
+
+    public enum Alignment
+    {
+        INNER, OUTER, TANDEM;
+    }
+
     public CommandLineParser() {
 
         // available
-        // abeijklouy
+        // beijklouy
 
         // used
-        // d h x v n p F V f t s g m q w c r z
+        // d h x v n p F V f t s g m q w c r z a
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
@@ -92,6 +100,8 @@ public class CommandLineParser extends CmdLineParser {
         resolutionOption = addStringOption('r', "resolutions");
 
         hicFileScalingOption = addDoubleOption('z', "scale");
+
+        alignmentFilterOption = addIntegerOption('a', "alignment");
     }
 
     /**
@@ -148,6 +158,23 @@ public class CommandLineParser extends CmdLineParser {
         return optionToString(tmpDirOption);
     }
 
+    public Alignment getAlignmentOption() {
+        int alignmentInt = optionToInt(alignmentFilterOption);
+
+        if (alignmentInt == 0) {
+            return null;
+        }
+        if (alignmentInt == 1) {
+            return Alignment.INNER;
+        } else if (alignmentInt == 2) {
+            return Alignment.OUTER;
+        } else if (alignmentInt == 3) {
+            return Alignment.TANDEM;
+        } else {
+            throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
+        }
+    }
+
     /**
      * int flags
      */
@@ -160,9 +187,7 @@ public class CommandLineParser extends CmdLineParser {
         return optionToInt(countThresholdOption);
     }
 
-    public int getMapqThresholdOption() {
-        return optionToInt(mapqOption);
-    }
+    public int getMapqThresholdOption() { return optionToInt(mapqOption); }
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 

@@ -33,6 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.windowui.NormalizationType;
+import juicebox.tools.clt.CommandLineParser.Alignment;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -76,6 +77,7 @@ public class Preprocessor {
     private String graphFileName = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
+    private Alignment alignmentFilter;
 
     // Base-pair resolutions
     private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -203,6 +205,10 @@ public class Preprocessor {
                 System.exit(1);
             }
         }
+    }
+
+    public void setAlignmentFilter(Alignment al) {
+        this.alignmentFilter = al;
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -410,7 +416,7 @@ public class Preprocessor {
     }
 
     private void writeBody(String inputFile) throws IOException {
-        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
+        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
 
         writeMatrix(wholeGenomeMatrix);
 
@@ -455,6 +461,9 @@ public class Preprocessor {
                     if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
                         continue;
                     }
+                }
+                if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+                    continue;
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
@@ -503,7 +512,7 @@ public class Preprocessor {
      * @return Matrix with counts in each bin
      * @throws IOException
      */
-    private MatrixPP computeWholeGenomeMatrix(String file) throws IOException {
+    private MatrixPP computeWholeGenomeMatrix(String file, Alignment alignmentFilter) throws IOException {
 
 
         MatrixPP matrix;
@@ -554,6 +563,10 @@ public class Preprocessor {
                             continue;
                         }
                     }
+                    
+                    if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+                        continue;
+                    }
 
 
                     if (chr1 == chr2 && frag1 == frag2) {
@@ -599,6 +612,24 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         return (int) (len / 1000);
 
+    }
+
+    private static Alignment calculateAlignment(AlignmentPair pair) {
+        if (pair.getStrand1() == pair.getStrand2()) {
+            return Alignment.TANDEM;
+        } else if (pair.getStrand1()) {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.INNER;
+            } else {
+                return Alignment.OUTER;
+            }
+        } else {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.OUTER;
+            } else {
+                return Alignment.INNER;
+            }
+        }
     }
 
     private void updateMasterIndex() throws IOException {
