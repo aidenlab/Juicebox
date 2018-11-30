@@ -59,6 +59,8 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -n Don't normalize the matrices\n"
                 + "           : -z <double> scale factor for hic file\n"
                 + "           : -a <1, 2, 3> filter based on inner, outer, or tandem alignment\n"
+                + "           : --randomize_pos randomize positions based on seed\n"
+
         );
     }
 
@@ -97,6 +99,8 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setGraphFile(parser1.getGraphOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
         preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
+        preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();
         noFragNorm = parser1.getNoFragNormOption();

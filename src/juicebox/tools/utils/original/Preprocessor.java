@@ -43,7 +43,9 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.Deflater;
+
 
 /**
  * @author jrobinso
@@ -78,6 +80,7 @@ public class Preprocessor {
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
     private Alignment alignmentFilter;
+    private long positionRandomizerSeed;
 
     // Base-pair resolutions
     private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -209,6 +212,11 @@ public class Preprocessor {
 
     public void setAlignmentFilter(Alignment al) {
         this.alignmentFilter = al;
+    }
+
+    public void setPositionRandomizerSeed(long seed) {
+        System.out.println(String.format("seed %d", seed));
+        this.positionRandomizerSeed = seed;
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -465,6 +473,12 @@ public class Preprocessor {
                 if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
                     continue;
                 }
+
+                // Randomize
+                if (fragmentCalculation != null && positionRandomizerSeed != 0) {
+                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1, positionRandomizerSeed);
+                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2, positionRandomizerSeed);
+                }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
                 if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
@@ -630,6 +644,23 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 return Alignment.INNER;
             }
         }
+    }
+
+    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag, long seed) {
+        Random random = new Random();
+        random.setSeed(seed);
+        int low = 1;
+        int high = 1;
+        if (frag == 0) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+        } else {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+        }
+        return random.nextInt(high - low + 1) + low;
     }
 
     private void updateMasterIndex() throws IOException {

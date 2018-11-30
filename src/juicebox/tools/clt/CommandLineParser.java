@@ -64,6 +64,8 @@ public class CommandLineParser extends CmdLineParser {
     //filter option based on directionality
     private static Option alignmentFilterOption = null;
 
+    private static Option randomizePositionOption = null;
+
     public enum Alignment
     {
         INNER, OUTER, TANDEM;
@@ -102,6 +104,7 @@ public class CommandLineParser extends CmdLineParser {
         hicFileScalingOption = addDoubleOption('z', "scale");
 
         alignmentFilterOption = addIntegerOption('a', "alignment");
+        randomizePositionOption = addLongOption("randomize_pos");
     }
 
     /**
@@ -191,6 +194,12 @@ public class CommandLineParser extends CmdLineParser {
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
+    private long optionToLong(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? 0 : ((Number) opt).longValue();
+    }
+
+    public long getRandomPositionSeedOption() { return optionToLong(randomizePositionOption); }
 
     /**
      * double flags
