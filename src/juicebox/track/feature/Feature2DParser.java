@@ -182,7 +182,7 @@ public class Feature2DParser {
      * @return  Appropriate header
      */
     private static String[] getHeaders(String line) {
-        String[] tmpHeaders = Globals.tabPattern.split(line.replaceAll("#", ""));
+        String[] tmpHeaders = Globals.tabPattern.split(line.replaceAll("#", "").trim());
         String[] headers = new String[tmpHeaders.length];
 
         for (int i=0; i<tmpHeaders.length; i++) {
