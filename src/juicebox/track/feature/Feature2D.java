@@ -47,8 +47,8 @@ import java.util.List;
  */
 public class Feature2D implements Comparable<Feature2D> {
 
-    static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
-    private static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    static final String genericHeader = "#chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
+    private static final String genericLegacyHeader = "#chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
     public static int tolerance = 0;
