@@ -441,7 +441,8 @@ class HeatmapRenderer {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
                                         score = rec.getCounts() / ctrlRecord.getCounts();
-                                     //   score = num / den;
+                                       // System.err.println(ctrlAverageCount + " " + averageCount);
+                                        score = num / den;
                                     }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {
                                     ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
