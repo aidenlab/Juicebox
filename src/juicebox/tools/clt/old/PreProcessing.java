@@ -58,8 +58,9 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
                 + "           : -z <double> scale factor for hic file\n"
-                + "           : -a <1, 2, 3> filter based on inner, outer, or tandem alignment\n"
-                + "           : --randomize_pos randomize positions based on seed\n"
+                + "           : -a <1, 2, 3> filter based on inner, outer, or tandem pairs respectively\n"
+                + "           : --randomize_position randomize positions between fragment sites\n"
+                + "           : --random_seed seed for random generator\n"
 
         );
     }

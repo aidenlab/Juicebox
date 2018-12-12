@@ -105,7 +105,6 @@ public class CommandLineParser extends CmdLineParser {
     }
 
 
-
     /**
      * boolean flags
      */
