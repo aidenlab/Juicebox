@@ -32,8 +32,8 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
-import juicebox.windowui.NormalizationType;
 import juicebox.tools.clt.CommandLineParser.Alignment;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -43,7 +43,6 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.Deflater;
 
 
@@ -80,7 +79,8 @@ public class Preprocessor {
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
     private Alignment alignmentFilter;
-    private long positionRandomizerSeed;
+    private static final Random random = new Random();
+    private static boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
     private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -214,9 +214,24 @@ public class Preprocessor {
         this.alignmentFilter = al;
     }
 
-    public void setPositionRandomizerSeed(long seed) {
-        System.out.println(String.format("seed %d", seed));
-        this.positionRandomizerSeed = seed;
+    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
+
+        int low = 1;
+        int high = 1;
+        if (frag == 0) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+        } else {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+        }
+        return random.nextInt(high - low + 1) + low;
+    }
+
+    public void setRandomizePosition(boolean allowPositionsRandomization) {
+        Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -423,101 +438,8 @@ public class Preprocessor {
         }
     }
 
-    private void writeBody(String inputFile) throws IOException {
-        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
-
-        writeMatrix(wholeGenomeMatrix);
-
-        PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes);
-
-
-        int currentChr1 = -1;
-        int currentChr2 = -1;
-        MatrixPP currentMatrix = null;
-        HashSet<String> writtenMatrices = new HashSet<>();
-        String currentMatrixKey = null;
-
-        while (iter.hasNext()) {
-            AlignmentPair pair = iter.next();
-            // skip pairs that mapped to contigs
-            if (!pair.isContigPair()) {
-                // Flip pair if needed so chr1 < chr2
-                int chr1, chr2, bp1, bp2, frag1, frag2, mapq;
-                if (pair.getChr1() < pair.getChr2()) {
-                    bp1 = pair.getPos1();
-                    bp2 = pair.getPos2();
-                    frag1 = pair.getFrag1();
-                    frag2 = pair.getFrag2();
-                    chr1 = pair.getChr1();
-                    chr2 = pair.getChr2();
-                } else {
-                    bp1 = pair.getPos2();
-                    bp2 = pair.getPos1();
-                    frag1 = pair.getFrag2();
-                    frag2 = pair.getFrag1();
-                    chr1 = pair.getChr2();
-                    chr2 = pair.getChr1();
-                }
-                mapq = Math.min(pair.getMapq1(), pair.getMapq2());
-                // Filters
-                if (diagonalsOnly && chr1 != chr2) continue;
-                if (includedChromosomes != null && chr1 != 0) {
-                    String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
-                    String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                    if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
-                        continue;
-                    }
-                }
-                if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
-                    continue;
-                }
-
-                // Randomize
-                if (fragmentCalculation != null && positionRandomizerSeed != 0) {
-                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1, positionRandomizerSeed);
-                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2, positionRandomizerSeed);
-                }
-                // only increment if not intraFragment and passes the mapq threshold
-                if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
-                if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
-                    // Starting a new matrix
-                    if (currentMatrix != null) {
-                        currentMatrix.parsingComplete();
-                        writeMatrix(currentMatrix);
-                        writtenMatrices.add(currentMatrixKey);
-                        currentMatrix = null;
-                        System.gc();
-                        //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
-                    }
-
-                    // Start the next matrix
-                    currentChr1 = chr1;
-                    currentChr2 = chr2;
-                    currentMatrixKey = currentChr1 + "_" + currentChr2;
-
-                    if (writtenMatrices.contains(currentMatrixKey)) {
-                        System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
-                        if (outputFile != null) outputFile.deleteOnExit();
-                        System.exit(58);
-                    }
-                    currentMatrix = new MatrixPP(currentChr1, currentChr2);
-                }
-                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore());
-
-            }
-        }
-
-        if (currentMatrix != null) {
-            currentMatrix.parsingComplete();
-            writeMatrix(currentMatrix);
-        }
-
-        if (iter != null) iter.close();
-
-
-        masterIndexPosition = los.getWrittenCount();
+    public void setPositionRandomizerSeed(long randomSeed) {
+        random.setSeed(randomSeed);
     }
 
 
@@ -646,21 +568,101 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
     }
 
-    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag, long seed) {
-        Random random = new Random();
-        random.setSeed(seed);
-        int low = 1;
-        int high = 1;
-        if (frag == 0) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
-        } else {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+    private void writeBody(String inputFile) throws IOException {
+        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
+
+        writeMatrix(wholeGenomeMatrix);
+
+        PairIterator iter = (inputFile.endsWith(".bin")) ?
+                new BinPairIterator(inputFile) :
+                new AsciiPairIterator(inputFile, chromosomeIndexes);
+
+
+        int currentChr1 = -1;
+        int currentChr2 = -1;
+        MatrixPP currentMatrix = null;
+        HashSet<String> writtenMatrices = new HashSet<>();
+        String currentMatrixKey = null;
+
+        while (iter.hasNext()) {
+            AlignmentPair pair = iter.next();
+            // skip pairs that mapped to contigs
+            if (!pair.isContigPair()) {
+                // Flip pair if needed so chr1 < chr2
+                int chr1, chr2, bp1, bp2, frag1, frag2, mapq;
+                if (pair.getChr1() < pair.getChr2()) {
+                    bp1 = pair.getPos1();
+                    bp2 = pair.getPos2();
+                    frag1 = pair.getFrag1();
+                    frag2 = pair.getFrag2();
+                    chr1 = pair.getChr1();
+                    chr2 = pair.getChr2();
+                } else {
+                    bp1 = pair.getPos2();
+                    bp2 = pair.getPos1();
+                    frag1 = pair.getFrag2();
+                    frag2 = pair.getFrag1();
+                    chr1 = pair.getChr2();
+                    chr2 = pair.getChr1();
+                }
+                mapq = Math.min(pair.getMapq1(), pair.getMapq2());
+                // Filters
+                if (diagonalsOnly && chr1 != chr2) continue;
+                if (includedChromosomes != null && chr1 != 0) {
+                    String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                    String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                    if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
+                        continue;
+                    }
+                }
+                if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+                    continue;
+                }
+
+                // Randomize
+                if (fragmentCalculation != null && allowPositionsRandomization) {
+                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
+                }
+                // only increment if not intraFragment and passes the mapq threshold
+                if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
+                if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
+                    // Starting a new matrix
+                    if (currentMatrix != null) {
+                        currentMatrix.parsingComplete();
+                        writeMatrix(currentMatrix);
+                        writtenMatrices.add(currentMatrixKey);
+                        currentMatrix = null;
+                        System.gc();
+                        //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
+                    }
+
+                    // Start the next matrix
+                    currentChr1 = chr1;
+                    currentChr2 = chr2;
+                    currentMatrixKey = currentChr1 + "_" + currentChr2;
+
+                    if (writtenMatrices.contains(currentMatrixKey)) {
+                        System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
+                        if (outputFile != null) outputFile.deleteOnExit();
+                        System.exit(58);
+                    }
+                    currentMatrix = new MatrixPP(currentChr1, currentChr2);
+                }
+                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore());
+
+            }
         }
-        return random.nextInt(high - low + 1) + low;
+
+        if (currentMatrix != null) {
+            currentMatrix.parsingComplete();
+            writeMatrix(currentMatrix);
+        }
+
+        if (iter != null) iter.close();
+
+
+        masterIndexPosition = los.getWrittenCount();
     }
 
     private void updateMasterIndex() throws IOException {

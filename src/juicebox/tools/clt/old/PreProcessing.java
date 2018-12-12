@@ -99,6 +99,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setGraphFile(parser1.getGraphOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
         preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
+        preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
         preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
 
         noNorm = parser1.getNoNormOption();
