@@ -100,7 +100,7 @@ public class CommandLineParser extends CmdLineParser {
         hicFileScalingOption = addDoubleOption('z', "scale");
 
         alignmentFilterOption = addIntegerOption('a', "alignment");
-        randomizePositionOption = addBooleanOption('V', "randomize_position");
+        randomizePositionOption = addBooleanOption("randomize_position");
         randomSeedOption = addLongOption("random_seed");
     }
 
