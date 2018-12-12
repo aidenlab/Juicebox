@@ -104,9 +104,7 @@ public class CommandLineParser extends CmdLineParser {
         randomSeedOption = addLongOption("random_seed");
     }
 
-    public boolean getRandomizePositionsOption() {
-        return optionToBoolean(randomizePositionOption);
-    }
+
 
     /**
      * boolean flags
@@ -138,8 +136,8 @@ public class CommandLineParser extends CmdLineParser {
 
     public boolean getVersionOption() { return optionToBoolean(versionOption); }
 
-    public long getRandomPositionSeedOption() {
-        return optionToLong(randomSeedOption);
+    public boolean getRandomizePositionsOption() {
+        return optionToBoolean(randomizePositionOption);
     }
 
     /**
@@ -202,6 +200,10 @@ public class CommandLineParser extends CmdLineParser {
     private long optionToLong(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? 0 : ((Number) opt).longValue();
+    }
+
+    public long getRandomPositionSeedOption() {
+        return optionToLong(randomSeedOption);
     }
 
     public enum Alignment {
