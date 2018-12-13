@@ -81,6 +81,7 @@ public class ChromosomeHandler {
 
         boolean set1IsLarger = set1.size() > set2.size();
         Set<Chromosome> cloneSet = new HashSet<>(set1IsLarger ? set2 : set1);
+        // TODO: Chromosome defines hashcode based on index + length, but this is incorrect since index can be arbitrary
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }
@@ -224,8 +225,12 @@ public class ChromosomeHandler {
         return chromosomesArray[indx];
     }
 
-    public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
-        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(cleanedChromosomes, handler2.cleanedChromosomes)));
+    public ChromosomeHandler getIntersectionWith(ChromosomeHandler handler2) {
+        Set<Chromosome> intersection = getSetIntersection(cleanedChromosomes, handler2.cleanedChromosomes);
+        if (intersection.isEmpty()) {
+            return null;
+        }
+        else return new ChromosomeHandler(new ArrayList<>(intersection));
     }
 
     public Chromosome[] getChromosomeArrayWithoutAllByAll() {
@@ -234,5 +239,29 @@ public class ChromosomeHandler {
 
     public GenomeWideList<MotifAnchor> getListOfRegionsInCustomChromosome(Integer index) {
         return customChromosomeRegions.get(index);
+    }
+
+    public String getGenomeId() {
+        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38","aedAeg1", "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2", "felCat8", "galGal4", "hg18",  "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4", "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
+
+
+        for (String id:chrom_sizes)  {
+            ChromosomeHandler handler = HiCFileTools.loadChromosomes(id);
+            for (Chromosome chr:handler.cleanedChromosomes) {
+                for (Chromosome chr2:this.cleanedChromosomes) {
+                    if (!chr.getName().equalsIgnoreCase("ALL") &&
+                            chr.getName().equals(chr2.getName()) &&
+                            chr.getLength() == chr2.getLength()) {
+                        return id;
+                    }
+                }
+            }
+            // this is more elegant but there's a problem with the Chromosome hashCode
+            //ChromosomeHandler handler1 = this.getIntersectionWith(handler);
+            //if (handler1 != null && handler1.size() > 1) {
+            //    return id;
+            //}
+        }
+        return null;
     }
 }

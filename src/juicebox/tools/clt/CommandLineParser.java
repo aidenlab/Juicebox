@@ -65,10 +65,8 @@ public class CommandLineParser extends CmdLineParser {
     //filter option based on directionality
     private static Option alignmentFilterOption = null;
 
-    public enum Alignment
-    {
-        INNER, OUTER, TANDEM;
-    }
+    private static Option randomizePositionOption = null;
+    private static Option randomSeedOption = null;
 
     public CommandLineParser() {
 
@@ -104,7 +102,10 @@ public class CommandLineParser extends CmdLineParser {
         hicFileScalingOption = addDoubleOption('z', "scale");
 
         alignmentFilterOption = addIntegerOption('a', "alignment");
+        randomizePositionOption = addBooleanOption("randomize_position");
+        randomSeedOption = addLongOption("random_seed");
     }
+
 
     /**
      * boolean flags
@@ -135,6 +136,10 @@ public class CommandLineParser extends CmdLineParser {
     public boolean getNoFragNormOption() { return optionToBoolean(noFragNormOption); }
 
     public boolean getVersionOption() { return optionToBoolean(versionOption); }
+
+    public boolean getRandomizePositionsOption() {
+        return optionToBoolean(randomizePositionOption);
+    }
 
     /**
      * String flags
@@ -197,6 +202,18 @@ public class CommandLineParser extends CmdLineParser {
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
+    private long optionToLong(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? 0 : ((Number) opt).longValue();
+    }
+
+    public long getRandomPositionSeedOption() {
+        return optionToLong(randomSeedOption);
+    }
+
+    public enum Alignment {
+        INNER, OUTER, TANDEM
+    }
 
     /**
      * double flags
