@@ -26,22 +26,10 @@ package juicebox.tools.utils.optimization;
 
 public class MainScale {
 
-    // int scale(int c, int *m,int **i,int **j,double **x, double *z,double *b, double *report, int verb=0,
-    // double tol=1.0e-3,double perc=1e-2,double perc1=0.25e-2, int maxiter=200, double del=1.0e-2,int trials=5);
 
-    /*
-    static void usage(const char *argv0)
-    {
-        fprintf(stderr, "Usage: %s [-m memarray][-p percent][-v verbose][-C max_array_count][-t tol] <infile> <vector_file> <outfile>\n", argv0);
-        fprintf(stderr, "  <infile>: matrix file in sparse upper triangular notation\n");
-        fprintf(stderr, "  <vector_file>: vector to scale to, all 1s for balanced\n");
-        fprintf(stderr, "  <outfile>: normalization vector output  file\n");
-    }
-    */
+    int main(int argc, char argv[]) {
 
-
-    int main(int argc, char *argv[]) {
-
+        /*
         // parameters
         int maxC = 100;
         double tol = 5.0e-4;
@@ -95,7 +83,7 @@ public class MainScale {
 
         //////////////////time?ftime(&t1);
         //	iter = scale(c, m,i,j,x, z,b, tol,perc,perc1,maxiter, report,verb);
-        FinalScale.scale(c, m, i, j, x, z, b, report, verb);
+        ZeroScale.scale(c, m, i, j, x, z, b, report, verb);
 
         //////////////////time?ftime(&end);
         int iter = 0;
@@ -129,6 +117,8 @@ public class MainScale {
             System.out.printf("still did not converge!!!\n");
         }
         return iter;
+        */
+        return 0;
     }
 
 
