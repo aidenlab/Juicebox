@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.original.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;

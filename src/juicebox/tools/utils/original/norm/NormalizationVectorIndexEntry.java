@@ -22,36 +22,27 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.original.norm;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.norm.NormalizationCalculations;
+public class NormalizationVectorIndexEntry {
+    final String type;
+    final int chrIdx;
+    final String unit;
+    final int resolution;
+    final int sizeInBytes;
+    long position;
 
-
-public class CalcKR extends JuiceboxCLT {
-
-    private String infile = null;
-
-    public CalcKR() {
-        super("calcKR <input_?_file>");
+    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
+        this.type = type;
+        this.chrIdx = chrIdx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.position = position;
+        this.sizeInBytes = sizeInBytes;
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsageAndExit();
-        }
-        infile = args[1];
-    }
-
-    @Override
-    public void run() {
-        try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String toString() {
+        return type + " " + chrIdx + " " + unit + " " + resolution + " " + position + " " + sizeInBytes;
     }
 }

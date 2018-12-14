@@ -22,11 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.original.norm;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.tools.utils.original.ExpectedValueCalculation;
+import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -46,6 +48,8 @@ import java.util.zip.GZIPInputStream;
  */
 public class NormalizationVectorUpdater {
 
+    private static String HIC_NORM = "HICNORM";
+
     /**
      * Main method is for internal testing and should not be used in general
      * @param args If one argument, call updater code; if two, call dump index code
@@ -59,7 +63,7 @@ public class NormalizationVectorUpdater {
             updateHicFile(path, args[1]);
         }
         else {
-            updateHicFile(path);
+            updateHicFile(path, -100, false);
         }
 
      /*   if (args.length > 1) {
@@ -69,18 +73,12 @@ public class NormalizationVectorUpdater {
        */
     }
 
-    private static void updateHicFile(String path) throws IOException {
-        updateHicFile(path, -100, false);
-    }
-
     public static void updateHicFile(String path, int genomeWideResolution, boolean noFrag) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-
-
 
         // chr -> frag count map.  Needed for expected value calculations
         Map<String, Integer> fragCountMap = ds.getFragmentCounts();
@@ -490,63 +488,20 @@ public class NormalizationVectorUpdater {
 
                 // Get existing norm vectors so we don't lose them
                 for (NormalizationType type : NormalizationType.values()) {
-
                     NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                     if (existingNorm != null) {
 
                         //System.out.println(type.getLabel() + " normalization for chromosome " + chr.getName() + " at " + zoom.getBinSize() + " " + zoom.getUnit() + " resolution already exists.  Keeping this normalization vector.");
 
-                        // KR normalization
-                        if (type == NormalizationType.KR) {
-                            int position = normVectorBuffer.bytesWritten();
-                            writeNormalizationVector(normVectorBuffer, existingNorm.getData());
-                            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                            final NormalizationVectorUpdater.NormalizationVectorIndexEntry normalizationVectorIndexEntry1 =
-                                    new NormalizationVectorIndexEntry(NormalizationType.KR.toString(), chr.getIndex(), zoom.getUnit().toString(),
-                                            zoom.getBinSize(), position, sizeInBytes);
-                            normVectorIndex.add(normalizationVectorIndexEntry1);
-                        } else {
-                            // Write existing norm
-                            int position = normVectorBuffer.bytesWritten();
-                            writeNormalizationVector(normVectorBuffer, existingNorm.getData());
-
-                            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                            normVectorIndex.add(new NormalizationVectorIndexEntry(
-                                    type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
-                        }
+                        int position = normVectorBuffer.bytesWritten();
+                        writeNormalizationVector(normVectorBuffer, existingNorm.getData());
+                        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+                        normVectorIndex.add(new NormalizationVectorIndexEntry(
+                                type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
                     }
                 }
 
-                String key = NormalizationType.LOADED + "_" + chr.getIndex() + "_" + zoom.getUnit() + "_" + zoom.getBinSize();
-                NormalizationVector vector = normVectors.get(key);
-                if (vector == null)  continue;
-
-                // Write loaded norm
-                int position = normVectorBuffer.bytesWritten();
-                writeNormalizationVector(normVectorBuffer, vector.getData());
-
-                int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                normVectorIndex.add(new NormalizationVectorIndexEntry(
-                        NormalizationType.LOADED.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
-
-                // Calculate the expected values
-
-                Iterator<ContactRecord> iter = zd.contactRecordIterator();
-
-                final int chrIdx = chr.getIndex();
-                while (iter.hasNext()) {
-                    ContactRecord cr = iter.next();
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    final float counts = cr.getCounts();
-                    if (isValidNormValue(vector.getData()[x]) & isValidNormValue(vector.getData()[y])) {
-                        double value = counts / (vector.getData()[x] * vector.getData()[y]);
-                        evLoaded.addDistance(chrIdx, x, y, value);
-                    }
-
-                }
+                handleLoadedVector(chr.getIndex(), zoom, normVectors, normVectorBuffer, normVectorIndex, zd, evLoaded);
             }
 
             String key = zoom.getUnit().toString() + zoom.getBinSize() + "_" + NormalizationType.LOADED;
@@ -560,6 +515,39 @@ public class NormalizationVectorUpdater {
         update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
                 normVectorBuffer.getBytes());
         System.out.println("Finished adding normalizations.");
+    }
+
+    private static void handleLoadedVector(final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
+                                           BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex,
+                                           MatrixZoomData zd, ExpectedValueCalculation evLoaded) throws IOException {
+
+        String key = NormalizationType.LOADED + "_" + chrIndx + "_" + zoom.getUnit() + "_" + zoom.getBinSize();
+        NormalizationVector vector = normVectors.get(key);
+        if (vector == null) return;
+        // Write loaded norm
+        int position = normVectorBuffer.bytesWritten();
+        writeNormalizationVector(normVectorBuffer, vector.getData());
+
+        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+        normVectorIndex.add(new NormalizationVectorIndexEntry(
+                NormalizationType.LOADED.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+
+
+        // Calculate the expected values
+
+        Iterator<ContactRecord> iter = zd.contactRecordIterator();
+
+        while (iter.hasNext()) {
+            ContactRecord cr = iter.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+            if (isValidNormValue(vector.getData()[x]) & isValidNormValue(vector.getData()[y])) {
+                double value = counts / (vector.getData()[x] * vector.getData()[y]);
+                evLoaded.addDistance(chrIndx, x, y, value);
+            }
+
+        }
     }
 
     static void writeNormSums(
@@ -972,7 +960,7 @@ public class NormalizationVectorUpdater {
             BufferedByteWriter buffer = new BufferedByteWriter();
 
             // header: magic string HICNORM; version number 1; path
-            buffer.putNullTerminatedString("HICNORM");
+            buffer.putNullTerminatedString(HIC_NORM);
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
 
@@ -1009,48 +997,6 @@ public class NormalizationVectorUpdater {
         }
         finally {
             if (raf != null) raf.close();
-        }
-    }
-
-
-    static class NormalizationVectorIndexEntry {
-        final String type;
-        final int chrIdx;
-        final String unit;
-        final int resolution;
-        final int sizeInBytes;
-        long position;
-
-        NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
-            this.type = type;
-            this.chrIdx = chrIdx;
-            this.unit = unit;
-            this.resolution = resolution;
-            this.position = position;
-            this.sizeInBytes = sizeInBytes;
-        }
-
-        @Override
-        public String toString() {
-            return type + " " + chrIdx + " " + unit + " " + resolution + " " + position + " " + sizeInBytes;
-        }
-    }
-
-    static class NormalizedSum {
-        final String type;
-        final int chr1Idx;
-        final int chr2Idx;
-        final String unit;
-        final int resolution;
-        final double value;
-
-        NormalizedSum(String type, int chr1Idx, int chr2Idx, String unit, int resolution, double value) {
-            this.type = type;
-            this.chr1Idx = chr1Idx;
-            this.chr2Idx = chr2Idx;
-            this.unit = unit;
-            this.resolution = resolution;
-            this.value = value;
         }
     }
 

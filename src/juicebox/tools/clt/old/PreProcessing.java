@@ -30,8 +30,8 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
+import juicebox.tools.utils.original.norm.NormalizationVectorUpdater;
 
 import java.io.File;
 
