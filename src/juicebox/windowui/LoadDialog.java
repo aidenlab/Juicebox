@@ -66,7 +66,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
 
-        System.out.println(properties);
+        //System.out.println(properties);
         if (properties != null) {
 
             if (!createNodes(top, properties)) {

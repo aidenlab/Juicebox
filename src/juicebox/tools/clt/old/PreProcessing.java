@@ -58,6 +58,10 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
                 + "           : -z <double> scale factor for hic file\n"
+                + "           : -a <1, 2, 3> filter based on inner, outer, or tandem pairs respectively\n"
+                + "           : --randomize_position randomize positions between fragment sites\n"
+                + "           : --random_seed seed for random generator\n"
+
         );
     }
 
@@ -91,10 +95,15 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
         preprocessor.setFragmentFile(parser1.getFragmentOption());
+        preprocessor.setExpectedVectorFile(parser1.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
+        preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
+        preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
+        preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();
         noFragNorm = parser1.getNoFragNormOption();

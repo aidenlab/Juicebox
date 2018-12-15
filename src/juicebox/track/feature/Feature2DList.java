@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
@@ -295,6 +296,7 @@ public class Feature2DList {
                         header.append("\t").append(key);
                     }
                     outputFilePrintWriter.println(header);
+                    outputFilePrintWriter.println("# juicer_tools version " + HiCGlobals.versionNum);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {

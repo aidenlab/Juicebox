@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -145,6 +145,7 @@ public class Feature2DParser {
             int lineNum = 1;
             while ((nextLine = br.readLine()) != null) {
                 lineNum++;
+                if (nextLine.startsWith("#")) continue;
                 String[] tokens = Globals.tabPattern.split(nextLine);
                 if (tokens.length > headers.length) {
                     String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
@@ -181,7 +182,7 @@ public class Feature2DParser {
      * @return  Appropriate header
      */
     private static String[] getHeaders(String line) {
-        String[] tmpHeaders = Globals.tabPattern.split(line);
+        String[] tmpHeaders = Globals.tabPattern.split(line.replaceAll("#", "").trim());
         String[] headers = new String[tmpHeaders.length];
 
         for (int i=0; i<tmpHeaders.length; i++) {

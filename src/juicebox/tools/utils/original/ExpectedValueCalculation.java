@@ -144,20 +144,6 @@ public class ExpectedValueCalculation {
         return gridSize;
     }
 
-    /**
-     * Set list of chromosomesMap; need to do this when reading from file
-     *
-     * @param chromosomes1 Array of chromosomesMap to set
-     */
-    public void setChromosomesMap(Chromosome[] chromosomes1) {
-
-        this.chromosomesMap = new LinkedHashMap<>();
-        for (Chromosome chr : chromosomes1) {
-            if (chr != null) {
-                chromosomesMap.put(chr.getIndex(), chr);
-            }
-        }
-    }
 
     /**
      * Add an observed distance.  This is called for each pair in the data set

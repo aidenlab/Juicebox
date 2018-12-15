@@ -440,6 +440,8 @@ class HeatmapRenderer {
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
+                                        score = rec.getCounts() / ctrlRecord.getCounts();
+                                       // System.err.println(ctrlAverageCount + " " + averageCount);
                                         score = num / den;
                                     }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {

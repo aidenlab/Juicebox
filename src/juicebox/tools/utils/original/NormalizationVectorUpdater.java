@@ -494,7 +494,7 @@ public class NormalizationVectorUpdater {
                     NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                     if (existingNorm != null) {
 
-                        System.out.println(type.getLabel() + " normalization for chromosome " + chr.getName() + " at " + zoom.getBinSize() + " " + zoom.getUnit() + " resolution already exists.  Keeping this normalization vector.");
+                        //System.out.println(type.getLabel() + " normalization for chromosome " + chr.getName() + " at " + zoom.getBinSize() + " " + zoom.getUnit() + " resolution already exists.  Keeping this normalization vector.");
 
                         // KR normalization
                         if (type == NormalizationType.KR) {
@@ -520,8 +520,8 @@ public class NormalizationVectorUpdater {
 
                 String key = NormalizationType.LOADED + "_" + chr.getIndex() + "_" + zoom.getUnit() + "_" + zoom.getBinSize();
                 NormalizationVector vector = normVectors.get(key);
-                if (vector == null) {System.err.println("key :" + key); continue;}
-                else {System.out.println("writing " + key);}
+                if (vector == null)  continue;
+
                 // Write loaded norm
                 int position = normVectorBuffer.bytesWritten();
                 writeNormalizationVector(normVectorBuffer, vector.getData());

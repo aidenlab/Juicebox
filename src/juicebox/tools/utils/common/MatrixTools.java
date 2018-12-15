@@ -562,4 +562,14 @@ public class MatrixTools {
                 }
         return matrix;
     }
+
+    public static double sum(double[][] data) {
+        double sum = 0;
+        for (double[] row : data) {
+            for (double val : row) {
+                sum += val;
+            }
+        }
+        return sum;
+    }
 }

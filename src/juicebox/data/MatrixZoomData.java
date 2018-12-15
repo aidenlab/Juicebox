@@ -885,6 +885,7 @@ public class MatrixZoomData {
                                     printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
                                 }
                             } else {
+                                // TODO I suspect this is wrong - should be writing xActual - but this is for binary dumping and we never use it
                                 if (matrixType == MatrixType.OBSERVED) {
                                     les.writeInt(x);
                                     les.writeInt(y);
