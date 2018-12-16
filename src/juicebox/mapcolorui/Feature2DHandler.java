@@ -50,6 +50,8 @@ public class Feature2DHandler {
     public static int numberOfLoopsToFind = 1000;
     private final Map<String, SpatialIndex> featureRtrees = new HashMap<>();
     protected Feature2DList loopList;
+    protected Feature2DList originalLoopList = null;
+    private Map<String, SpatialIndex> originalFeatureRtrees = new HashMap<>();
     private boolean isTranslucentPlottingEnabled = false;
     private boolean sparseFeaturePlottingEnabled = false, isEnlargedPlottingEnabled = false;
     private boolean layerVisible = true;
@@ -139,6 +141,26 @@ public class Feature2DHandler {
         //}
     }
 
+    protected void makeOriginalRTree() {
+        originalFeatureRtrees.clear();
+
+        originalLoopList.processLists(new FeatureFunction() {
+            @Override
+            public void process(String key, List<Feature2D> features) {
+
+                SpatialIndex si = new RTree();
+                si.init(null);
+                for (int i = 0; i < features.size(); i++) {
+                    Feature2D feature = features.get(i);
+                    si.add(new net.sf.jsi.Rectangle((float) feature.getStart1(), (float) feature.getStart2(),
+                            (float) feature.getEnd1(), (float) feature.getEnd2()), i);
+                }
+                originalFeatureRtrees.put(key, si);
+            }
+        });
+        //}
+    }
+
     public resultContainer setLoopList(String path, ChromosomeHandler chromosomeHandler) {
         int numFeaturesAdded = 0;
         ArrayList<String> attributes = null;
@@ -150,13 +172,16 @@ public class Feature2DHandler {
             color = newList.extractSingleFeature().getColor();
             attributes = newList.extractSingleFeature().getAttributeKeys();
             loopList = newList;
+            originalLoopList = loopList;
             Map<String, String> defaultAttributes = new HashMap<>(); //creates defaultAttributes map
             for (String attribute : attributes) {
                 defaultAttributes.put(attribute, null);
             }
             loopList.setDefaultAttributes(defaultAttributes);
+            originalLoopList.setDefaultAttributes(defaultAttributes);
         }
         //loopLists.get(path).setVisible(true);
+        makeOriginalRTree();
         remakeRTree();
         return new resultContainer(numFeaturesAdded, color, attributes);
     }
@@ -260,6 +285,30 @@ public class Feature2DHandler {
                 if (features != null) foundFeatures.addAll(features);
             }
         }
+        return foundFeatures;
+    }
+
+    public List<Feature2D> getOriginalContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
+        final List<Feature2D> foundFeatures = new ArrayList<>();
+        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+        if (originalFeatureRtrees.containsKey(key)) {
+            originalFeatureRtrees.get(key).contains(
+                    currentWindow,      // the window in which we want to find all rectangles
+                    new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                        public boolean execute(int i) {
+                            Feature2D feature = originalLoopList.get(key).get(i);
+                            //System.out.println(feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getStart2());
+                            foundFeatures.add(feature);
+                            return true;              // return true here to continue receiving results
+                        }
+                    }
+            );
+        } else {
+            System.err.println("returning all; key " + key + " not found contained");
+            List<Feature2D> features = originalLoopList.get(key);
+            if (features != null) foundFeatures.addAll(features);
+        }
+
         return foundFeatures;
     }
 

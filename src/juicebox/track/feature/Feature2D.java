@@ -58,8 +58,8 @@ public class Feature2D implements Comparable<Feature2D> {
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    final int start1;
-    final int start2;
+    int start1;
+    int start2;
     int end1;
     int end2;
     private boolean isSelected = false;
@@ -118,8 +118,20 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1;
     }
 
+    public void setStart1(int start1) {
+        this.start1 = start1;
+        if (reflection != null)
+            reflection.start1 = start1;
+    }
+
     public int getStart2() {
         return start2;
+    }
+
+    public void setStart2(int start2) {
+        this.start2 = start2;
+        if (reflection != null)
+            reflection.start2 = start2;
     }
 
     public int getEnd1() {

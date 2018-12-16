@@ -28,10 +28,7 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.assembly.AssemblyHeatmapHandler;
-import juicebox.assembly.AssemblyOperationExecutor;
-import juicebox.assembly.AssemblyScaffoldHandler;
-import juicebox.assembly.Scaffold;
+import juicebox.assembly.*;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
@@ -500,14 +497,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         // Only look at assembly layers if we're in assembly mode
         List<AnnotationLayerHandler> handlers;
-        if (activelyEditingAssembly) {
-          handlers = superAdapter.getAssemblyLayerHandlers();
-        } else {
           handlers = superAdapter.getAllLayers();
-        }
 
 
         for (AnnotationLayerHandler handler : handlers) {
+
+          if (activelyEditingAssembly && handler.getAnnotationLayerType() == AnnotationLayer.LayerType.DEFAULT) {
+            TwoDimAssemblyTrackLifter.liftTwoDimAssemblyTrack(superAdapter.getAllLayers().get(0), zd, (int) binOriginX, (int) (binOriginX + screenWidth / scaleFactor), (int) binOriginY, (int) (binOriginY + screenHeight / scaleFactor));
+          }
 
           List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
               centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
@@ -1692,30 +1689,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     return this.currentDownstreamFeature;
   }
 
-  private enum AdjustAnnotation {LEFT, RIGHT, NONE}
-
-//    @Override
-//    public String getToolTipText(MouseEvent e) {
-//        return toolTipText(e.getX(), e.getY());
-//
-//    }
-
-  private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
-
-  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
-
-  static class ImageTile {
-    final int bLeft;
-    final int bTop;
-    final Image image;
-
-    ImageTile(Image image, int bLeft, int py0) {
-      this.bLeft = bLeft;
-      this.bTop = py0;
-      this.image = image;
-    }
-  }
-
   private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
     final Point mousePoint = calculateSelectionPoint(x, y);
 
@@ -1734,6 +1707,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
     return null;
   }
 
+//    @Override
+//    public String getToolTipText(MouseEvent e) {
+//        return toolTipText(e.getX(), e.getY());
+//
+//    }
+
   private Point calculateSelectionPoint(int unscaledX, int unscaledY) {
     final MatrixZoomData zd;
     try {
@@ -1751,6 +1730,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
     float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
     float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
     return new Point((int) x, (int) y);
+  }
+
+  private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+
+  private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
+
+  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
+
+  static class ImageTile {
+    final int bLeft;
+    final int bTop;
+    final Image image;
+
+    ImageTile(Image image, int bLeft, int py0) {
+      this.bLeft = bLeft;
+      this.bTop = py0;
+      this.image = image;
+    }
   }
 
   class HeatmapMouseHandler extends MouseAdapter {
