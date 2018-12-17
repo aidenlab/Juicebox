@@ -503,7 +503,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         for (AnnotationLayerHandler handler : handlers) {
 
           if (activelyEditingAssembly && handler.getAnnotationLayerType() == AnnotationLayer.LayerType.DEFAULT) {
-            TwoDimAssemblyTrackLifter.liftTwoDimAssemblyTrack(superAdapter.getAllLayers().get(0), zd, (int) binOriginX, (int) (binOriginX + screenWidth / scaleFactor), (int) binOriginY, (int) (binOriginY + screenHeight / scaleFactor));
+            TwoDimAssemblyTrackLifter.liftTwoDimAssemblyTrack(handler, zd, (int) binOriginX, (int) (binOriginX + screenWidth / scaleFactor), (int) binOriginY, (int) (binOriginY + screenHeight / scaleFactor));
           }
 
           List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
