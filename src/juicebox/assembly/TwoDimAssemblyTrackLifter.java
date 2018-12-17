@@ -47,6 +47,12 @@ public class TwoDimAssemblyTrackLifter {
             int binY2
     ) {
 
+        //could have done this smarter by splitting in two rectangles...
+        binX1 = Math.min(binX1, binY1);
+        binY1 = binX1;
+        binX2 = Math.max(binX2, binY2);
+        binY2 = binX2;
+
         HiCZoom zoom = zd.getZoom();
         // get aggregate scaffold handler
         AssemblyScaffoldHandler
@@ -57,16 +63,6 @@ public class TwoDimAssemblyTrackLifter {
         long actualBinSize = (long) binSize;
         if (zd.getChr1().getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
-        }
-
-        //loaded features are in lower left - always?
-        if (binX1 > binY1) {
-            int tmp = binY1;
-            binY1 = binX1;
-            binX1 = tmp;
-            tmp = binY2;
-            binY2 = binX2;
-            binX2 = tmp;
         }
 
         List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
