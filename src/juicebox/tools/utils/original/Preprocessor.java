@@ -100,6 +100,7 @@ public class Preprocessor {
     private long normVectorLengthPosition;
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
+    private Random randomizer;
 
     public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         this.genomeId = genomeId;
@@ -120,6 +121,8 @@ public class Preprocessor {
         if (hicFileScalingFactor > 0) {
             this.hicFileScalingFactor = hicFileScalingFactor;
         }
+
+        randomizer = new Random();
 
     }
 
@@ -215,8 +218,8 @@ public class Preprocessor {
     }
 
     public void setPositionRandomizerSeed(long seed) {
-        System.out.println(String.format("seed %d", seed));
         this.positionRandomizerSeed = seed;
+        this.randomizer.setSeed(seed);
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -476,8 +479,8 @@ public class Preprocessor {
 
                 // Randomize
                 if (fragmentCalculation != null && positionRandomizerSeed != 0) {
-                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1, positionRandomizerSeed);
-                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2, positionRandomizerSeed);
+                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1, randomizer);
+                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2, randomizer);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
@@ -646,9 +649,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
     }
 
-    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag, long seed) {
-        Random random = new Random();
-        random.setSeed(seed);
+    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag, Random randomizer) {
         int low = 1;
         int high = 1;
         if (frag == 0) {
@@ -660,7 +661,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
             low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
         }
-        return random.nextInt(high - low + 1) + low;
+        return randomizer.nextInt(high - low + 1) + low;
     }
 
     private void updateMasterIndex() throws IOException {
