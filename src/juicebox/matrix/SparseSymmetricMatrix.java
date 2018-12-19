@@ -40,6 +40,7 @@ import java.util.Arrays;
  */
 public class SparseSymmetricMatrix implements BasicMatrix {
 
+    private final int numValsEstimate;
     private IntArrayList rows1;
     private IntArrayList cols1;
     private FloatArrayList values1;
@@ -48,6 +49,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
     private FloatArrayList values2 = null;
 
     public SparseSymmetricMatrix(int numValsEstimate) {
+        this.numValsEstimate = numValsEstimate;
         rows1 = new IntArrayList(numValsEstimate);
         cols1 = new IntArrayList(numValsEstimate);
         values1 = new FloatArrayList(numValsEstimate);
@@ -140,9 +142,9 @@ public class SparseSymmetricMatrix implements BasicMatrix {
                     cols1.add(col);
                     values1.add(val);
                 } catch (NegativeArraySizeException error) {
-                    rows2 = new IntArrayList();
-                    cols2 = new IntArrayList();
-                    values2 = new FloatArrayList();
+                    rows2 = new IntArrayList(numValsEstimate);
+                    cols2 = new IntArrayList(numValsEstimate);
+                    values2 = new FloatArrayList(numValsEstimate);
                     rows2.add(row);
                     cols2.add(col);
                     values2.add(val);
