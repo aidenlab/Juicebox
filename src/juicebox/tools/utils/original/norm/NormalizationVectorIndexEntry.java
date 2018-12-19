@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.original.norm;
 
-public class NormalizationVectorIndexEntry {
+class NormalizationVectorIndexEntry {
     final String type;
     final int chrIdx;
     final String unit;

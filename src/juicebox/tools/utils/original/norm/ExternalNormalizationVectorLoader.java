@@ -24,5 +24,5 @@
 
 package juicebox.tools.utils.original.norm;
 
-public class ExternalNormalizationVectorLoader {
+class ExternalNormalizationVectorLoader {
 }

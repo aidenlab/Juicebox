@@ -26,11 +26,10 @@ package juicebox.tools.utils.original.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.matrix.SparseSymmetricMatrix;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
-import org.broad.igv.util.collections.FloatArrayList;
-import org.broad.igv.util.collections.IntArrayList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -136,7 +135,6 @@ public class NormalizationCalculations {
         if nargin < 2, tol = 1e-6; end
     */
     private static double[] computeKRNormVector(SparseSymmetricMatrix A, double tol, double[] x0, double delta) {
-
 
         int n = x0.length;
         double[] e = new double[n];
@@ -421,7 +419,6 @@ public class NormalizationCalculations {
                 // if (recalculate) System.out.print(" " + rowsTossed);
             }
             iteration++;
-            sparseMatrix = null;
             System.gc();
         }
         if (iteration > 6 && recalculate) {
@@ -480,98 +477,8 @@ public class NormalizationCalculations {
             int y = cr.getBinY();
             float value = cr.getCounts();
             if (offset[x] != -1 && offset[y] != -1) {
-                A.set(offset[x], offset[y], value);
+                A.setEntry(offset[x], offset[y], value);
             }
         }
     }
-
-    /**
-     * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
-     * add an x,y value twice, or to add both x,y and y,x, although this is not checked.   The class is designed
-     * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
-     * matrix class.   It is not private only so it can be unit tested
-     */
-    // TODO - should we make this its own class? able to do Pearson's and gradient?
-    static class SparseSymmetricMatrix {
-
-        IntArrayList rows1 = null;
-        IntArrayList cols1 = null;
-        FloatArrayList values1 = null;
-        IntArrayList rows2 = null;
-        IntArrayList cols2 = null;
-        FloatArrayList values2 = null;
-
-
-        SparseSymmetricMatrix() {
-            rows1 = new IntArrayList();
-            cols1 = new IntArrayList();
-            values1 = new FloatArrayList();
-        }
-
-        void set(int row, int col, float v) {
-
-            if (!Float.isNaN(v)) {
-                if (rows2 == null) {
-                    try {
-                        rows1.add(row);
-                        cols1.add(col);
-                        values1.add(v);
-                    } catch (NegativeArraySizeException error) {
-                        rows2 = new IntArrayList();
-                        cols2 = new IntArrayList();
-                        values2 = new FloatArrayList();
-                        rows2.add(row);
-                        cols2.add(col);
-                        values2.add(v);
-                    }
-                } else {
-                    rows2.add(row);
-                    cols2.add(col);
-                    values2.add(v);
-                }
-            }
-        }
-
-
-        double[] multiply(double[] vector) {
-
-            double[] result = new double[vector.length];
-            Arrays.fill(result, 0);
-
-            int[] rowArray1 = rows1.toArray();
-            int[] colArray1 = cols1.toArray();
-            float[] valueArray1 = values1.toArray();
-
-            int n = rowArray1.length;
-            for (int i = 0; i < n; i++) {
-                int row = rowArray1[i];
-                int col = colArray1[i];
-                float value = valueArray1[i];
-                result[row] += vector[col] * value;
-
-                if (row != col) {
-                    result[col] += vector[row] * value;
-                }
-            }
-            if (rows2 != null) {
-                int[] rowArray2 = rows2.toArray();
-                int[] colArray2 = cols2.toArray();
-                float[] valueArray2 = values2.toArray();
-                int n2 = rowArray2.length;
-                for (int j = 0; j < n2; j++) {
-                    int row = rowArray2[j];
-                    int col = colArray2[j];
-                    float value = valueArray2[j];
-                    result[row] += vector[col] * value;
-
-                    if (row != col) {
-                        result[col] += vector[row] * value;
-                    }
-                }
-            }
-
-            return result;
-        }
-    }
-
 }

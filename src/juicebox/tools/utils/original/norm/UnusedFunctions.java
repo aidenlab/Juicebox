@@ -38,9 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class UnusedFunctions {
-
-    private static String HIC_NORM = "HICNORM";
+class UnusedFunctions {
 
     /**
      * Main method is for internal testing and should not be used in general
@@ -141,13 +139,12 @@ public class UnusedFunctions {
     static private void dumpNormalizationVectorIndex(String path, String outputFile) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         reader.read();
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(outputFile, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(outputFile, "rw")) {
 
             BufferedByteWriter buffer = new BufferedByteWriter();
 
             // header: magic string HICNORM; version number 1; path
+            String HIC_NORM = "HICNORM";
             buffer.putNullTerminatedString(HIC_NORM);
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
@@ -181,8 +178,6 @@ public class UnusedFunctions {
 
             NormalizationVectorUpdater.writeNormIndex(buffer, normList);
             raf.write(buffer.getBytes());
-        } finally {
-            if (raf != null) raf.close();
         }
     }
 }

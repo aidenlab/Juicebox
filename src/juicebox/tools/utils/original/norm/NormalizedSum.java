@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.original.norm;
 
-public class NormalizedSum {
+class NormalizedSum {
     final String type;
     final int chr1Idx;
     final int chr2Idx;

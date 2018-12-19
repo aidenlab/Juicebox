@@ -506,9 +506,7 @@ public class NormalizationVectorUpdater {
     private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
                                List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
 
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(hicfile, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
 
             if (version < 6) {
                 // Update version
@@ -546,8 +544,6 @@ public class NormalizationVectorUpdater {
             // Finally the norm vectors
             raf.write(normVectorBuffer);
 
-        } finally {
-            if (raf != null) raf.close();
         }
     }
 
@@ -558,9 +554,7 @@ public class NormalizationVectorUpdater {
                                List<NormalizationVectorIndexEntry> normVectorIndex,
                                byte[] normVectorBuffer) throws IOException {
 
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(hicfile, "rw");
+        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
 
             if (version < 6) {
                 // Update version
@@ -598,8 +592,6 @@ public class NormalizationVectorUpdater {
             // Finally the norm vectors
             raf.write(normVectorBuffer);
 
-        } finally {
-            if (raf != null) raf.close();
         }
     }
 
