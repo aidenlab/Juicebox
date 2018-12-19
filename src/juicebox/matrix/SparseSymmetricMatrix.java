@@ -30,6 +30,14 @@ import org.broad.igv.util.collections.IntArrayList;
 
 import java.util.Arrays;
 
+/**
+ * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
+ * add an x,y value twice, or to add both x,y and y,x, although this is not checked.   The class is designed
+ * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
+ * matrix class.   It is not private only so it can be unit tested
+ * <p>
+ * TODO - able to do Pearson's and gradient?
+ */
 public class SparseSymmetricMatrix implements BasicMatrix {
 
     private IntArrayList rows1;
@@ -39,20 +47,11 @@ public class SparseSymmetricMatrix implements BasicMatrix {
     private IntArrayList cols2 = null;
     private FloatArrayList values2 = null;
 
-    public SparseSymmetricMatrix() {
-        rows1 = new IntArrayList();
-        cols1 = new IntArrayList();
-        values1 = new FloatArrayList();
+    public SparseSymmetricMatrix(int numValsEstimate) {
+        rows1 = new IntArrayList(numValsEstimate);
+        cols1 = new IntArrayList(numValsEstimate);
+        values1 = new FloatArrayList(numValsEstimate);
     }
-
-    /**
-     * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
-     * add an x,y value twice, or to add both x,y and y,x, although this is not checked.   The class is designed
-     * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
-     * matrix class.   It is not private only so it can be unit tested
-     */
-    // TODO - able to do Pearson's and gradient?
-
 
     public double[] multiply(double[] vector) {
 
@@ -92,8 +91,6 @@ public class SparseSymmetricMatrix implements BasicMatrix {
 
         return result;
     }
-
-
 
 
     @Override

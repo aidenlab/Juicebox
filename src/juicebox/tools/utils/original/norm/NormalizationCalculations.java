@@ -361,7 +361,7 @@ public class NormalizationCalculations {
         while (recalculate && iteration <= 6) {
             // create new matrix upon every iteration, because we've thrown out rows
 
-            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix();
+            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix(Math.max(100, list.size()));
             populateMatrix(sparseMatrix, offset);
 
             // newSize is size of new sparse matrix (non-sparse rows)
