@@ -210,14 +210,7 @@ public class NormalizationVectorUpdater {
         }
     }
 
-    private static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
-                                                        int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
-        int position = normVectorBuffer.bytesWritten();
-        writeNormalizationVector(normVectorBuffer, vec);
-        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-        normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
-    }
 
 
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
@@ -258,15 +251,7 @@ public class NormalizationVectorUpdater {
 
                     Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
                     for (Chromosome chromosome : nvMap.keySet()) {
-
-                        NormalizationVector nv = nvMap.get(chromosome);
-
-                        int position = normVectorBuffer.bytesWritten();
-                        writeNormalizationVector(normVectorBuffer, nv.getData());
-
-                        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                        normVectorIndex.add(new NormalizationVectorIndexEntry(
-                                normType.toString(), chromosome.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
                     }
                     ExpectedValueCalculation calculation = wgVectors.getSecond();
                     String key = "BP_" + zoom.getBinSize() + "_" + normType;
@@ -288,33 +273,13 @@ public class NormalizationVectorUpdater {
                 Matrix matrix = ds.getMatrix(chr, chr);
 
                 if (matrix == null) continue;
+                NormalizationType[] possibleNorms = new NormalizationType[]{NormalizationType.VC, NormalizationType.VC_SQRT, NormalizationType.KR};
 
-
-                NormalizationVector vc = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.VC);
-                NormalizationVector vcSqrt = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.VC_SQRT);
-                NormalizationVector kr = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.KR);
-
-                int position = normVectorBuffer.bytesWritten();
-                writeNormalizationVector(normVectorBuffer, vc.getData());
-                int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                normVectorIndex.add(new NormalizationVectorIndexEntry(
-                        NormalizationType.VC.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
-                position = normVectorBuffer.bytesWritten();
-                writeNormalizationVector(normVectorBuffer, vcSqrt.getData());
-                sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                normVectorIndex.add(new NormalizationVectorIndexEntry(
-                        NormalizationType.VC_SQRT.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
-                // KR normalization
-                if (kr != null) {
-                    position = normVectorBuffer.bytesWritten();
-                    writeNormalizationVector(normVectorBuffer, kr.getData());
-                    sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                    final NormalizationVectorIndexEntry normalizationVectorIndexEntry1 =
-                            new NormalizationVectorIndexEntry(NormalizationType.KR.toString(), chr.getIndex(), zoom.getUnit().toString(),
-                                    zoom.getBinSize(), position, sizeInBytes);
-                    normVectorIndex.add(normalizationVectorIndexEntry1);
+                for (NormalizationType normType : possibleNorms) {
+                    NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
+                    if (vector != null) {
+                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vector.getData(), chr.getIndex(), normType, zoom);
+                    }
                 }
             }
         }
@@ -327,6 +292,15 @@ public class NormalizationVectorUpdater {
         update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
                 normVectorBuffer.getBytes());
         System.out.println("Finished normalization");
+    }
+
+    private static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
+                                                        int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
+        int position = normVectorBuffer.bytesWritten();
+        writeNormalizationVector(normVectorBuffer, vec);
+        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+        normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+
     }
 
     private static Map<String,NormalizationVector> readVectorFile(String fname, ChromosomeHandler chromosomeHandler) throws IOException {
