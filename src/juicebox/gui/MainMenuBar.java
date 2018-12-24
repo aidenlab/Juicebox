@@ -551,7 +551,7 @@ public class MainMenuBar extends JMenuBar {
       }
     });
 
-    useAssemblyMatrix.setSelected(MainViewPanel.assemblyMatCheck);
+    useAssemblyMatrix.setSelected(HiCGlobals.isAssemblyMatCheck);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(useAssemblyMatrix);
     }

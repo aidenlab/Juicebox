@@ -88,6 +88,7 @@ public class HiCGlobals {
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
     public static boolean isDarkulaModeEnabled = false;
+    public static boolean isAssemblyMatCheck = false;
 
 
     // whether instance was linked before mouse press or not

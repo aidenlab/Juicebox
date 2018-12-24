@@ -57,7 +57,6 @@ import java.util.List;
  */
 public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
-    public static boolean assemblyMatCheck = false;
 
     //private final MainWindow mainWindow;
     //private final Feature2DHandler feature2DHandler;
