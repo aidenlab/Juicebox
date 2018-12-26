@@ -213,7 +213,7 @@ public class ExpectedValueCalculation {
             }
 
         }
-
+        //System.err.println("max # bins " + maxNumBins);
         densityAvg = new double[maxNumBins];
         // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
 
@@ -231,7 +231,7 @@ public class ExpectedValueCalculation {
                     denSum += possibleDistances[bound2];
                 }
             } else if (numSum >= 400 && bound2 - bound1 > 0) {
-                while (numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
+                while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
                     numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
                     denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
                     bound1++;
