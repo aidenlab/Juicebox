@@ -57,7 +57,6 @@ import java.util.List;
  */
 public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
-    public static boolean assemblyMatCheck = false;
 
     //private final MainWindow mainWindow;
     //private final Feature2DHandler feature2DHandler;
@@ -66,6 +65,7 @@ public class HiC {
     private final SuperAdapter superAdapter;
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -89,7 +89,6 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -881,8 +880,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
@@ -893,8 +892,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return xChr + "@" + (long) (xContext.getBinOrigin() * currentZoom.getBinSize()) + "_" +
                 yChr + "@" + (long) (yContext.getBinOrigin() * currentZoom.getBinSize());
