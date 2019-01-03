@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,8 +41,8 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.zip.Deflater;
 
 
@@ -224,13 +224,13 @@ public class Preprocessor {
         int low = 1;
         int high = 1;
         if (frag == 0) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+            high = fragmentCalculation.getSites(chr)[frag];
+        } else if (frag >= fragmentCalculation.getNumberFragments(chr)) {
+            high = fragmentCalculation.getSites(chr)[frag - 1];
+            low = fragmentCalculation.getSites(chr)[frag - 2];
         } else {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            high = fragmentCalculation.getSites(chr)[frag];
+            low = fragmentCalculation.getSites(chr)[frag - 1];
         }
         return random.nextInt(high - low + 1) + low;
     }
@@ -787,7 +787,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                         String[] words = line.split("\\s+");
                         for (String str:words){
                             if (str.contains("chrom")){
-                                String chrs[] = str.split("=");
+                                String[] chrs = str.split("=");
                                 
                             }
                         }
@@ -1166,7 +1166,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Read enough bytes to fill the input buffer
          */
-        void readFully(byte b[], InputStream is) throws IOException {
+        void readFully(byte[] b, InputStream is) throws IOException {
             int len = b.length;
             if (len < 0)
                 throw new IndexOutOfBoundsException();
