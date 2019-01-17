@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
-import org.broad.igv.util.Pair;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +44,7 @@ import java.util.zip.GZIPInputStream;
  * @author jrobinso
  * @since 2/8/13
  */
-public class NormalizationVectorUpdater {
+public class NormalizationVectorUpdater extends NormVectorUpdater {
 
     public static void updateHicFile(String path, int genomeWideResolution, boolean noFrag) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
@@ -66,7 +65,7 @@ public class NormalizationVectorUpdater {
         Set<Chromosome> krFragFailedChromosomes = new HashSet<>();
 
         BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
+        List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
         List<ExpectedValueCalculation> expectedValueCalculations = new ArrayList<>();
 
 
@@ -75,32 +74,7 @@ public class NormalizationVectorUpdater {
 
             // Optionally compute genome-wide normalizaton
             if (genomeWideResolution > 0 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
-
-                // do all four genome-wide normalizations
-                NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
-                        NormalizationType.INTER_KR, NormalizationType.INTER_VC};
-
-                for (NormalizationType normType : types) {
-
-                    Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
-
-                    Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
-                    for (Chromosome chromosome : nvMap.keySet()) {
-
-                        NormalizationVector nv = nvMap.get(chromosome);
-
-
-                        int position = normVectorBuffer.bytesWritten();
-                        writeNormalizationVector(normVectorBuffer, nv.getData());
-
-                        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                        normVectorIndex.add(new NormalizationVectorIndexEntry(
-                                normType.toString(), chromosome.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-                    }
-
-                    expectedValueCalculations.add(wgVectors.getSecond());
-                }
-
+                GenomeWideNormalizationVectorUpdater.updateHicFileForGW(ds, zoom, normVectorIndices, normVectorBuffer, expectedValueCalculations);
             }
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
@@ -140,8 +114,8 @@ public class NormalizationVectorUpdater {
 
                 final int chrIdx = chr.getIndex();
 
-                updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationType.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndex);
-                updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationType.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndex);
+                updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationType.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
+                updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationType.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
 
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("\nVC normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
@@ -157,7 +131,7 @@ public class NormalizationVectorUpdater {
                         failureSet.add(chr);
                     } else {
 
-                        updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationType.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndex);
+                        updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationType.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
 
                     }
                     if (HiCGlobals.printVerboseComments) {
@@ -181,7 +155,7 @@ public class NormalizationVectorUpdater {
         long filePosition = reader.getNormFilePosition();
         reader.close();
         System.out.println();
-        update(path, version, filePosition, expectedValueCalculations, normVectorIndex,
+        update(path, version, filePosition, expectedValueCalculations, normVectorIndices,
                 normVectorBuffer.getBytes());
         System.out.println("Finished writing norms");
     }
@@ -208,99 +182,6 @@ public class NormalizationVectorUpdater {
                 ev.addDistance(chrIdx, x, y, value);
             }
         }
-    }
-
-
-
-
-    public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
-        DatasetReaderV2 reader = new DatasetReaderV2(path);
-        Dataset ds = reader.read();
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
-
-        List<HiCZoom> resolutions = new ArrayList<>();
-        resolutions.addAll(ds.getBpZooms());
-        resolutions.addAll(ds.getFragZooms());
-
-
-        BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
-        Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
-
-        for (Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, ExpectedValueFunction> entry = it.next();
-            if (entry.getKey().contains("NONE")) {
-                it.remove();
-            }
-        }
-
-        // Loop through resolutions
-        for (HiCZoom zoom : resolutions) {
-
-            // compute genome-wide normalization
-            // TODO make this dependent on memory, do as much as possible
-            if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
-
-                // do all four genome-wide normalizations
-                NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
-                        NormalizationType.INTER_KR, NormalizationType.INTER_VC};
-
-                for (NormalizationType normType : types) {
-
-                    Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
-
-                    Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
-                    for (Chromosome chromosome : nvMap.keySet()) {
-                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
-                    }
-                    ExpectedValueCalculation calculation = wgVectors.getSecond();
-                    String key = "BP_" + zoom.getBinSize() + "_" + normType;
-                    expectedValueFunctionMap.put(key, calculation.getExpectedValueFunction());
-                }
-
-            }
-            System.out.println();
-            System.out.print("Calculating norms for zoom " + zoom);
-
-            /*
-            // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
-            if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
-            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
-            */
-
-            // Loop through chromosomes
-            for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
-                Matrix matrix = ds.getMatrix(chr, chr);
-
-                if (matrix == null) continue;
-                NormalizationType[] possibleNorms = new NormalizationType[]{NormalizationType.VC, NormalizationType.VC_SQRT, NormalizationType.KR};
-
-                for (NormalizationType normType : possibleNorms) {
-                    NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
-                    if (vector != null) {
-                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vector.getData(), chr.getIndex(), normType, zoom);
-                    }
-                }
-            }
-        }
-
-
-        int version = reader.getVersion();
-        long filePosition = reader.getNormFilePosition();
-        reader.close();
-        System.out.println();
-        update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
-                normVectorBuffer.getBytes());
-        System.out.println("Finished normalization");
-    }
-
-    private static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
-                                                        int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
-        int position = normVectorBuffer.bytesWritten();
-        writeNormalizationVector(normVectorBuffer, vec);
-        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-        normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
     }
 
     private static Map<String,NormalizationVector> readVectorFile(String fname, ChromosomeHandler chromosomeHandler) throws IOException {
@@ -422,7 +303,7 @@ public class NormalizationVectorUpdater {
                         //System.out.println(type.getLabel() + " normalization for chromosome " + chr.getName() + " at " + zoom.getBinSize() + " " + zoom.getUnit() + " resolution already exists.  Keeping this normalization vector.");
 
                         int position = normVectorBuffer.bytesWritten();
-                        writeNormalizationVector(normVectorBuffer, existingNorm.getData());
+                        putArrayValuesIntoBuffer(normVectorBuffer, existingNorm.getData());
                         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
                         normVectorIndex.add(new NormalizationVectorIndexEntry(
                                 type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
@@ -454,7 +335,7 @@ public class NormalizationVectorUpdater {
         if (vector == null) return;
         // Write loaded norm
         int position = normVectorBuffer.bytesWritten();
-        writeNormalizationVector(normVectorBuffer, vector.getData());
+        putArrayValuesIntoBuffer(normVectorBuffer, vector.getData());
 
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
         normVectorIndex.add(new NormalizationVectorIndexEntry(
@@ -477,95 +358,42 @@ public class NormalizationVectorUpdater {
     }
 
 
-    private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
-                               List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+    private static void writeNormsToBuffer(BufferedByteWriter buffer, RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+        System.out.println("Writing norms");
+        // Get the size of the index in bytes, to compute an offset for the actual entries.
+        buffer = new BufferedByteWriter();
+        writeNormIndex(buffer, normVectorIndex);
+        long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
 
-        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
-
-            if (version < 6) {
-                // Update version
-                // Master index
-                raf.getChannel().position(4);
-                BufferedByteWriter buffer = new BufferedByteWriter();
-                buffer.putInt(6);
-                raf.write(buffer.getBytes());
-            }
-
-            BufferedByteWriter buffer = new BufferedByteWriter();
-            System.out.println("Writing expected");
-            writeExpectedValues(buffer, expectedValueCalculations);
-
-            byte[] evBytes = buffer.getBytes();
-            raf.getChannel().position(filePosition);
-            raf.write(evBytes);
-
-            System.out.println("Writing norms");
-            // Get the size of the index in bytes, to compute an offset for the actual entries.
-            buffer = new BufferedByteWriter();
-            writeNormIndex(buffer, normVectorIndex);
-            long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
-
-            // Update index entries
-            for (NormalizationVectorIndexEntry entry : normVectorIndex) {
-                entry.position += normVectorStartPosition;
-            }
-
-            // Now write for real
-            buffer = new BufferedByteWriter();
-            writeNormIndex(buffer, normVectorIndex);
-            raf.write(buffer.getBytes());
-
-            // Finally the norm vectors
-            raf.write(normVectorBuffer);
-
+        // Update index entries
+        for (NormalizationVectorIndexEntry entry : normVectorIndex) {
+            entry.position += normVectorStartPosition;
         }
+
+        // Now write for real
+        buffer = new BufferedByteWriter();
+        writeNormIndex(buffer, normVectorIndex);
+        raf.write(buffer.getBytes());
+
+        // Finally the norm vectors
+        raf.write(normVectorBuffer);
     }
 
-    private static void update(String hicfile,
-                               int version,
-                               final long filePosition,
-                               Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                               List<NormalizationVectorIndexEntry> normVectorIndex,
-                               byte[] normVectorBuffer) throws IOException {
 
-        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
+    private static void writeExpectedToBuffer(RandomAccessFile raf, BufferedByteWriter buffer, long filePosition) throws IOException {
+        byte[] evBytes = buffer.getBytes();
+        raf.getChannel().position(filePosition);
+        raf.write(evBytes);
+    }
 
-            if (version < 6) {
-                // Update version
-                // Master index
-                raf.getChannel().position(4);
-                BufferedByteWriter buffer = new BufferedByteWriter();
-                buffer.putInt(6);
-                raf.write(buffer.getBytes());
-            }
-
+    private static void handleVersionSix(RandomAccessFile raf, int version) throws IOException {
+        if (version < 6) {
+            // Update version
+            // Master index
+            raf.getChannel().position(4);
             BufferedByteWriter buffer = new BufferedByteWriter();
-            System.out.println("Writing expected");
-            writeExpectedValues(buffer, expectedValueFunctionMap);
-
-            byte[] evBytes = buffer.getBytes();
-            raf.getChannel().position(filePosition);
-            raf.write(evBytes);
-
-            System.out.println("Writing norms");
-            // Get the size of the index in bytes, to compute an offset for the actual entries.
-            buffer = new BufferedByteWriter();
-            writeNormIndex(buffer, normVectorIndex);
-            long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
-
-            // Update index entries
-            for (NormalizationVectorIndexEntry entry : normVectorIndex) {
-                entry.position += normVectorStartPosition;
-            }
-
-            // Now write for real
-            buffer = new BufferedByteWriter();
-            writeNormIndex(buffer, normVectorIndex);
+            buffer.putInt(6);
             raf.write(buffer.getBytes());
-
-            // Finally the norm vectors
-            raf.write(normVectorBuffer);
-
         }
     }
 
@@ -588,169 +416,58 @@ public class NormalizationVectorUpdater {
         }
     }
 
+    private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
+                               List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+
+        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
+            handleVersionSix(raf, version);
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            System.out.println("Writing expected");
+            writeExpectedValues(buffer, expectedValueCalculations);
+            writeExpectedToBuffer(raf, buffer, filePosition);
+            writeNormsToBuffer(buffer, raf, normVectorIndex, normVectorBuffer);
+        }
+    }
+
+    static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                       List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+
+        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
+            handleVersionSix(raf, version);
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            System.out.println("Writing expected");
+            writeExpectedValues(buffer, expectedValueFunctionMap);
+            writeExpectedToBuffer(raf, buffer, filePosition);
+            writeNormsToBuffer(buffer, raf, normVectorIndex, normVectorBuffer);
+        }
+    }
+
 
     private static void writeExpectedValues(BufferedByteWriter buffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
         buffer.putInt(expectedValueCalculations.size());
         for (ExpectedValueCalculation ev : expectedValueCalculations) {
-
             ev.computeDensity();
-
             buffer.putNullTerminatedString(ev.getType().toString());
 
-            int binSize = ev.getGridSize();
             HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
-
             buffer.putNullTerminatedString(unit.toString());
-            buffer.putInt(binSize);
 
-            // The density values
-            double[] expectedValues = ev.getDensityAvg();
-            buffer.putInt(expectedValues.length);
-            for (double d : expectedValues) {
-                buffer.putDouble(d);
-            }
-
-            // Map of chromosome index -> normalization factor
-            Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-            buffer.putInt(normalizationFactors.size());
-            for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                buffer.putInt(normFactor.getKey());
-                buffer.putDouble(normFactor.getValue());
-            }
+            buffer.putInt(ev.getGridSize());
+            putArrayValuesIntoBuffer(buffer, ev.getDensityAvg());
+            putMapValuesIntoBuffer(buffer, ev.getChrScaleFactors());
         }
     }
 
     private static void writeExpectedValues(BufferedByteWriter buffer, Map<String, ExpectedValueFunction> expectedValueFunctionMap) throws IOException {
-
         buffer.putInt(expectedValueFunctionMap.size());
-
         for (ExpectedValueFunction function : expectedValueFunctionMap.values()) {
             buffer.putNullTerminatedString(function.getNormalizationType().toString());
             buffer.putNullTerminatedString(function.getUnit().toString());
+
             buffer.putInt(function.getBinSize());
-            double[] expectedValues = function.getExpectedValues();
-            buffer.putInt(expectedValues.length);
-            for (double d : expectedValues) {
-                buffer.putDouble(d);
-            }
-            Map<Integer, Double> normalizationFactors = ((ExpectedValueFunctionImpl) function).getNormFactors();
-            buffer.putInt(normalizationFactors.size());
-            for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                buffer.putInt(normFactor.getKey());
-                buffer.putDouble(normFactor.getValue());
-            }
+            putArrayValuesIntoBuffer(buffer, function.getExpectedValues());
+            putMapValuesIntoBuffer(buffer, ((ExpectedValueFunctionImpl) function).getNormFactors());
         }
     }
-
-
-    private static void writeNormalizationVector(BufferedByteWriter buffer, double[] values) throws IOException {
-        buffer.putInt(values.length);
-        for (double value : values) buffer.putDouble(value);
-    }
-
-
-    /**
-     * Compute the whole-genome normalization and expected value vectors and return as a pair (normalization vector first)
-     */
-
-    private static Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> getWGVectors(Dataset dataset,
-                                                                                                     HiCZoom zoom,
-                                                                                                     NormalizationType norm) {
-
-        boolean includeIntra = false;
-        if (norm == NormalizationType.GW_KR || norm == NormalizationType.GW_VC) {
-            includeIntra = true;
-        }
-        final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
-        final int resolution = zoom.getBinSize();
-        final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
-
-        int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            totalSize += c1.getLength() / resolution + 1;
-        }
-
-
-        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm);
-
-
-        ExpectedValueCalculation expectedValueCalculation = new ExpectedValueCalculation(chromosomeHandler, resolution, null, norm);
-        int addY = 0;
-        // Loop through chromosomes
-        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            final int chrIdx = chr.getIndex();
-            Matrix matrix = dataset.getMatrix(chr, chr);
-
-            if (matrix == null) continue;
-            MatrixZoomData zd = matrix.getZoomData(zoom);
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                final double vx = vector[x + addY];
-                final double vy = vector[y + addY];
-                if (isValidNormValue(vx) && isValidNormValue(vy)) {
-                    double value = cr.getCounts() / (vx * vy);
-                    expectedValueCalculation.addDistance(chrIdx, x, y, value);
-                }
-            }
-
-            addY += chr.getLength() / resolution + 1;
-        }
-
-        // Split normalization vector by chromosome
-        Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<>();
-        int location1 = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            int chrBinned = c1.getLength() / resolution + 1;
-            double[] chrNV = new double[chrBinned];
-            for (int i = 0; i < chrNV.length; i++) {
-                chrNV[i] = vector[location1];
-                location1++;
-            }
-            normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
-        }
-
-        return new Pair<>(normVectorMap, expectedValueCalculation);
-    }
-
-    private static boolean isValidNormValue(double v) {
-        return v > 0 && !Double.isNaN(v);
-    }
-
-
-    public static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler,
-                                                                    HiCZoom zoom, boolean includeIntra) {
-        ArrayList<ContactRecord> recordArrayList = new ArrayList<>();
-        int addX = 0;
-        int addY = 0;
-        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
-            for (Chromosome c2 : handler.getChromosomeArrayWithoutAllByAll()) {
-                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    Matrix matrix = dataset.getMatrix(c1, c2);
-                    if (matrix != null) {
-                        MatrixZoomData zd = matrix.getZoomData(zoom);
-                        if (zd != null) {
-                            Iterator<ContactRecord> iter = zd.contactRecordIterator();
-                            while (iter.hasNext()) {
-                                ContactRecord cr = iter.next();
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
-                        }
-                    }
-                }
-                addY += c2.getLength() / zoom.getBinSize() + 1;
-            }
-            addX += c1.getLength() / zoom.getBinSize() + 1;
-            addY = 0;
-        }
-        return recordArrayList;
-    }
-
-
 }
