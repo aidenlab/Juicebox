@@ -103,6 +103,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
         preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
         preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+        preprocessor.setRandomizeFragMaps(parser1.getRandomizePositionMaps());
 
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();

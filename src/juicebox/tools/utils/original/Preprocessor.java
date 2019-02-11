@@ -77,8 +77,10 @@ public class Preprocessor {
     private String statsFileName = null;
     private String graphFileName = null;
     private String expectedVectorFile = null;
+    private Set<String> randomizeFragMapFiles = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
+    private ArrayList<FragmentCalculation> randomizeFragMaps = null;
     private Alignment alignmentFilter;
     private static final Random random = new Random();
     private static boolean allowPositionsRandomization = false;
@@ -219,6 +221,10 @@ public class Preprocessor {
         this.alignmentFilter = al;
     }
 
+    public void setRandomizeFragMaps(Set<String> fragMaps) {
+        this.randomizeFragMapFiles = fragMaps;
+    }
+
     private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
 
         int low = 1;
@@ -238,6 +244,30 @@ public class Preprocessor {
     public void setRandomizePosition(boolean allowPositionsRandomization) {
         Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
     }
+
+    private static FragmentCalculation findFragMap(List<FragmentCalculation> maps, int chr, int bp, int frag) {
+        for (FragmentCalculation fragmentCalculation : maps) {
+            int low = 1;
+            int high = 1;
+            if (frag == 0) {
+                high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+            } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
+                high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+                low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+            } else {
+                high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+                low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            }
+
+            // does bp fit in this range?
+            if (bp >= low && bp <= high) {
+                return fragmentCalculation;
+            }
+        }
+
+        return null;
+    }
+
 
     public void preprocess(final String inputFile) throws IOException {
         File file = new File(inputFile);
@@ -261,6 +291,26 @@ public class Preprocessor {
             } else {
                 System.out.println("Not including fragment map");
             }
+
+            if (allowPositionsRandomization) {
+                if (randomizeFragMapFiles != null) {
+                    randomizeFragMaps = new ArrayList<>();
+                    for (String fragmentFileName : randomizeFragMapFiles) {
+                        try {
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                            randomizeFragMaps.add(fragmentCalculation);
+                        } catch (Exception e) {
+                            System.err.println(String.format("Warning: Unable to process fragment file %s. Randomization will continue without fragment file %s.", fragmentFileName, fragmentFileName));
+                        }
+                    }
+                } else {
+                    System.out.println("Using default fragment map for randomization");
+                }
+
+            } else if (randomizeFragMapFiles != null) {
+                System.err.println("Position randomizer seed not set, disregarding map options");
+            }
+
             if (statsFileName != null) {
                 FileInputStream is = null;
                 try {
@@ -628,9 +678,22 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 }
 
                 // Randomize
+                // Randomize
                 if (fragmentCalculation != null && allowPositionsRandomization) {
-                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
-                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
+                    FragmentCalculation fragMap;
+                    if (randomizeFragMaps != null) {
+                        fragMap = findFragMap(randomizeFragMaps, chr1, bp1, frag1);
+                        if (fragMap == null) {
+                            fragMap = fragmentCalculation;
+                        }
+                    } else {
+                        // use default map
+                        fragMap = fragmentCalculation;
+                    }
+
+
+                    bp1 = randomizePos(fragMap, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragMap, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
