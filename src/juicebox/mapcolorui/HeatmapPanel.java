@@ -1690,23 +1690,23 @@ public class HeatmapPanel extends JComponent implements Serializable {
     return this.currentDownstreamFeature;
   }
 
-  private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
-    final Point mousePoint = calculateSelectionPoint(x, y);
-
-    if (activelyEditingAssembly) {
-      for (Feature2DGuiContainer loop : allFeaturePairs) {
-        if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
-          if (new Rectangle(
-                  loop.getFeature2D().getStart1(), loop.getFeature2D().getStart2(),
-                  loop.getFeature2D().getWidth1(), loop.getFeature2D().getWidth2()).contains(mousePoint)) {
-            return loop;
-          }
-        }
-      }
-    }
-
-    return null;
-  }
+//  private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
+//    final Point mousePoint = calculateSelectionPoint(x, y);
+//
+//    if (activelyEditingAssembly) {
+//      for (Feature2DGuiContainer loop : allFeaturePairs) {
+//        if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
+//          if (new Rectangle(
+//                  loop.getFeature2D().getStart1(), loop.getFeature2D().getStart2(),
+//                  loop.getFeature2D().getWidth1(), loop.getFeature2D().getWidth2()).contains(mousePoint)) {
+//            return loop;
+//          }
+//        }
+//      }
+//    }
+//
+//    return null;
+//  }
 
 //    @Override
 //    public String getToolTipText(MouseEvent e) {
@@ -1957,20 +1957,43 @@ public class HeatmapPanel extends JComponent implements Serializable {
           List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
           // selects superscaffold
-          if ((newSelectedFeatures == null || newSelectedFeatures.size() == 0) && (selectedFeatures == null || selectedFeatures.size() == 0)) {
-            Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
-            Rectangle annotateRectangle = newSelectedSuperscaffold.getRectangle();
-            superAdapter.getMainLayer().updateSelectionRegion(annotateRectangle);
+          if ((newSelectedFeatures == null || newSelectedFeatures.size() == 0) && (selectedFeatures == null || selectedFeatures.size() == 0) && currentFeature != null && currentFeature.getFeature2D().getAttribute("Superscaffold #") != null) {
+            final List<List<Integer>> listOfSuperscaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds();
+            int counter = 0;
+            int tmp;
+            for (tmp = 0; tmp < Integer.parseInt(currentFeature.getFeature2D().getAttribute("Superscaffold #")); tmp++) {
+              counter += listOfSuperscaffolds.get(tmp).size();
+            }
+            newSelectedFeatures.addAll(superAdapter.getMainLayer().getFeatureHandler().getFeatureList().get(1, 1).subList(counter - listOfSuperscaffolds.get(tmp - 1).size(), counter));
 
-            newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
+            //Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
 
-//            if (newSelectedSuperscaffold != null) {
-//              final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+
+            // get approx
+//            Feature2DGuiContainer newSelectedSuperscaffold=currentFeature;
+//            Rectangle annotateRectangle = newSelectedSuperscaffold.getRectangle();
+//            superAdapter.getMainLayer().updateSelectionRegion(new Rectangle(annotateRectangle.x,annotateRectangle.y,annotateRectangle.width+2,annotateRectangle.height+2));
+//            newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
+//            Collections.sort(newSelectedFeatures);
+//            // adjust
+//            List<Integer> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
 //                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
-//
+//            while (!listOfScaffolds.contains(Integer.parseInt(newSelectedFeatures.get(0).getAttribute("Signed scaffold #"))) && !newSelectedFeatures.isEmpty()) {
+//              newSelectedFeatures.remove(0);
+//            }
+//            while (!listOfScaffolds.contains(Integer.parseInt(newSelectedFeatures.get(newSelectedFeatures.size()-1).getAttribute("Signed scaffold #"))) && !newSelectedFeatures.isEmpty()) {
+//              newSelectedFeatures.remove(newSelectedFeatures.size()-1);
+//            }
+
+//            newSelectedFeatures.addAll(superAdapter.getMainLayer().getFeatureHandler().getFeatureList().get(1,1).subList(1,3));
+//            if (newSelectedSuperscaffold != null) {
+//              List<Integer> listOfScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+//                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
 //              newSelectedFeatures.clear();
-//              for (int scaffold : curScaffolds) {
-//                Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
+//              for (int scaffold : listOfScaffolds) {
+//                Feature2D curScaffold = superAdapter.getMainLayer().getFeatureHandler().getFeatureList().get(1,1).get(Math.abs(scaffold) - 1);
+//
+////                        superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
 //                newSelectedFeatures.add(curScaffold);
 //              }
 //            }
