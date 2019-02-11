@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1559,6 +1559,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
               txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
               txt.append(loop.getFeature2D().tooltipText());
               txt.append("</span>");
+              currentFeature = loop;
             }
           }
         }
@@ -1958,17 +1959,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
           // selects superscaffold
           if ((newSelectedFeatures == null || newSelectedFeatures.size() == 0) && (selectedFeatures == null || selectedFeatures.size() == 0)) {
             Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
+            Rectangle annotateRectangle = newSelectedSuperscaffold.getRectangle();
+            superAdapter.getMainLayer().updateSelectionRegion(annotateRectangle);
 
-            if (newSelectedSuperscaffold != null) {
-              final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
-                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
+            newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
-              newSelectedFeatures.clear();
-              for (int scaffold : curScaffolds) {
-                Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
-                newSelectedFeatures.add(curScaffold);
-              }
-            }
+//            if (newSelectedSuperscaffold != null) {
+//              final List<Integer> curScaffolds = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfSuperscaffolds().get(
+//                      Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1);
+//
+//              newSelectedFeatures.clear();
+//              for (int scaffold : curScaffolds) {
+//                Feature2D curScaffold = superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds().get(Math.abs(scaffold) - 1).getCurrentFeature2D();
+//                newSelectedFeatures.add(curScaffold);
+//              }
+//            }
           }
 
           Collections.sort(newSelectedFeatures);
