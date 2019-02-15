@@ -108,6 +108,8 @@ public class CLTFactory {
             return new HiCCUPS();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
+        } else if (cmd.equals("drink")) {
+            return new Drink();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {

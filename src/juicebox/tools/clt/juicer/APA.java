@@ -208,7 +208,7 @@ public class APA extends JuicerCLT {
 
     public APARegionStatistics runWithReturn() {
 
-        APARegionStatistics result=null;
+        APARegionStatistics result = null;
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;

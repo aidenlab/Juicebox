@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,9 @@ package juicebox.data.feature;
 import juicebox.data.ChromosomeHandler;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -44,6 +47,7 @@ public class GenomeWideList<T extends Feature> {
 
     /**
      * Private constructor only used for cloning
+     * todo delete / make private @mss
      */
     public GenomeWideList() {
     }
@@ -51,7 +55,7 @@ public class GenomeWideList<T extends Feature> {
     /**
      * @param handler
      */
-    private GenomeWideList(ChromosomeHandler handler) {
+    public GenomeWideList(ChromosomeHandler handler) {
         for (Chromosome c : handler.getChromosomeArray()) {
             featureLists.put("" + c.getIndex(), new ArrayList<T>());
         }
@@ -98,7 +102,7 @@ public class GenomeWideList<T extends Feature> {
      * @param key
      * @param features
      */
-    public void setFeatures(String key, List<T> features) {
+    public synchronized void setFeatures(String key, List<T> features) {
         featureLists.put(key, features);
     }
 
@@ -113,7 +117,7 @@ public class GenomeWideList<T extends Feature> {
     /**
      * @return number of features in full list
      */
-    public int size() {
+    public synchronized int size() {
         int val = 0;
         for (List<T> features : featureLists.values()) {
             val += features.size();
@@ -125,7 +129,7 @@ public class GenomeWideList<T extends Feature> {
      * @param features to be added to this list (deep copy)
      */
     @SuppressWarnings("unchecked")
-    private void addAll(List<T> features) {
+    public synchronized void addAll(List<T> features) {
         for (T feature : features) {
             featureLists.get(feature.getKey()).add((T) feature.deepClone());
         }
@@ -136,7 +140,7 @@ public class GenomeWideList<T extends Feature> {
      *
      * @param filter
      */
-    public void filterLists(FeatureFilter<T> filter) {
+    public synchronized void filterLists(FeatureFilter<T> filter) {
         for (String chr : featureLists.keySet()) {
             featureLists.put(chr, filter.filter(chr, featureLists.get(chr)));
         }
@@ -149,7 +153,7 @@ public class GenomeWideList<T extends Feature> {
      *
      * @param function
      */
-    public void processLists(FeatureFunction<T> function) {
+    public synchronized void processLists(FeatureFunction<T> function) {
         for (String key : featureLists.keySet()) {
             function.process(key, featureLists.get(key));
         }
@@ -192,13 +196,38 @@ public class GenomeWideList<T extends Feature> {
      * @param key
      * @param feature
      */
-    public void addFeature(String key, T feature) {
+    public synchronized void addFeature(String key, T feature) {
         if (featureLists.containsKey(key)) {
             featureLists.get(key).add(feature);
         } else {
             List<T> features = new ArrayList<>();
             features.add(feature);
             featureLists.put(key, features);
+        }
+    }
+
+    public void simpleExport(final File file) {
+        try {
+            final FileWriter fw = new FileWriter(file);
+            processLists(new FeatureFunction<T>() {
+                @Override
+                public void process(String chr, List<T> featureList) {
+                    for (T t : featureList) {
+                        try {
+                            if (fw != null) fw.write(t.toString() + "\n");
+                        } catch (IOException e) {
+                            System.err.println("Unable to write to file for exporting GWList");
+                        }
+                    }
+                }
+            });
+            try {
+                fw.close();
+            } catch (IOException e) {
+                System.err.println("Unable to close file for exporting GWList");
+            }
+        } catch (IOException e) {
+            System.err.println("Unable to open file for exporting GWList");
         }
     }
 }
