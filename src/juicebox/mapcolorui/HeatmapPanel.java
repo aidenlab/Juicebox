@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1200,7 +1200,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     if (clickedBinX > clickedBinY) {
 
-      final JMenuItem jumpToDiagonalLeft = new JMenuItem(Character.toString('\u25C0') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalLeft = new JMenuItem('\u25C0' + "  Jump To Diagonal");
       jumpToDiagonalLeft.setSelected(straightEdgeEnabled);
       jumpToDiagonalLeft.addActionListener(new ActionListener() {
         @Override
@@ -1216,7 +1216,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(jumpToDiagonalLeft);
 
-      final JMenuItem jumpToDiagonalDown = new JMenuItem(Character.toString('\u25BC') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalDown = new JMenuItem('\u25BC' + "  Jump To Diagonal");
       jumpToDiagonalDown.setSelected(straightEdgeEnabled);
       jumpToDiagonalDown.addActionListener(new ActionListener() {
         @Override
@@ -1234,7 +1234,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     } else if (clickedBinX < clickedBinY) {
 
-      final JMenuItem jumpToDiagonalUp = new JMenuItem(Character.toString('\u25B2') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalUp = new JMenuItem('\u25B2' + "  Jump To Diagonal");
       jumpToDiagonalUp.setSelected(straightEdgeEnabled);
       jumpToDiagonalUp.addActionListener(new ActionListener() {
         @Override
@@ -1250,7 +1250,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(jumpToDiagonalUp);
 
-      final JMenuItem jumpToDiagonalRight = new JMenuItem(Character.toString('\u25B6') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalRight = new JMenuItem('\u25B6' + "  Jump To Diagonal");
       jumpToDiagonalRight.setSelected(straightEdgeEnabled);
       jumpToDiagonalRight.addActionListener(new ActionListener() {
         @Override
@@ -1376,14 +1376,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
         txt += "</span></html>";
 
         if (xChrom.getName().toLowerCase().contains("chr")) {
-          hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+          hic.setXPosition(xChrom.getName() + ":" + xChromPos);
         } else {
-          hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+          hic.setXPosition("chr" + xChrom.getName() + ":" + xChromPos);
         }
         if (yChrom.getName().toLowerCase().contains("chr")) {
-          hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+          hic.setYPosition(yChrom.getName() + ":" + yChromPos);
         } else {
-          hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+          hic.setYPosition("chr" + yChrom.getName() + ":" + yChromPos);
         }
         return txt;
       }

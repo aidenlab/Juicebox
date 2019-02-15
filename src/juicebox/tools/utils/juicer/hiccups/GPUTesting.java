@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,9 +59,9 @@ class GPUTesting {
         // Create the input data
         System.out.println("Creating input data...");
         int size = 10;
-        float result[] = new float[size];
-        float a[] = new float[size];
-        float b[] = new float[size];
+        float[] result = new float[size];
+        float[] a = new float[size];
+        float[] b = new float[size];
         for (int i = 0; i < size; i++) {
             a[i] = i;
             b[i] = i;

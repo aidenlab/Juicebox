@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * experimental code
+ *
  * Created by muhammadsaadshamim on 9/14/15.
  */
 public class Drink extends JuicerCLT {
@@ -51,12 +53,12 @@ public class Drink extends JuicerCLT {
     private Dataset ds;
     private File outputDirectory;
     private int numClusters = 10;
-    private double maxPercentAllowedToBeZeroThreshold = 0.7;
-    private int maxIters = 10000;
-    private double logThreshold = 2;
-    private int connectedComponentThreshold = 50;
-    private int whichApproachtoUse = 0;
-    private List<Dataset> datasetList = new ArrayList<>();
+    private final double maxPercentAllowedToBeZeroThreshold = 0.7;
+    private final int maxIters = 10000;
+    private final double logThreshold = 2;
+    private final int connectedComponentThreshold = 50;
+    private final int whichApproachtoUse = 0;
+    private final List<Dataset> datasetList = new ArrayList<>();
 
     public Drink() {
         super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
