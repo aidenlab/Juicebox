@@ -119,10 +119,6 @@ class DataCleanerV2 extends DataCleaner {
             SubcompartmentInterval.reSort(subcompartmentsLists.get(i));
             subcompartmentsLists.get(i).addAll(subcompartmentIntervals.get(i));
         }
-
-        // process diffs relative to first map
-
-        // process diff relative to concensus
     }
 
     private int determineWhichDatasetThisBelongsTo(int originalRow) {
