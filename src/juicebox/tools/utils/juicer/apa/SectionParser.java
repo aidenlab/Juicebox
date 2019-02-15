@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,10 @@ import org.broad.igv.feature.Chromosome;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class SectionParser {
-
 
     public static void buildLoopSlicesRandom(final String savepath, String loopListPath, final int maxk, String hicFilePaths) {
         final Random generator = new Random();

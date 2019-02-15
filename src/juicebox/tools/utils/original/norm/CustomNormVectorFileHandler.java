@@ -167,10 +167,10 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     }
                     continue;
                 }
-                String normType;   // we're going to ignore this for now; need to have a way to add to enums.
 
+                // we're going to ignore this for now; need to have a way to add to enums.
                 // TODO: the normalization type should be read in; but need to modify other code for that
-                normType = tokens[1];     // this is ignored
+                String normType = tokens[1];     // this is ignored
                 resolution = Integer.valueOf(tokens[3]);
                 unit = HiC.Unit.valueOf(tokens[4]);
             }

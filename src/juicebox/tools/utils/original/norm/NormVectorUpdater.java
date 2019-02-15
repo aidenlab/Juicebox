@@ -137,8 +137,8 @@ public class NormVectorUpdater {
         }
     }
 
-    static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                       List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+    protected static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                                 List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
 
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);
