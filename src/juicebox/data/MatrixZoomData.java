@@ -31,7 +31,6 @@ import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
-import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
@@ -204,9 +203,9 @@ public class MatrixZoomData {
                                                       boolean isImportant) {
         final List<Block> blockList = new ArrayList<>();
         Block b = new Block(1, getBlockKey(1, no));
-        if (MainViewPanel.assemblyMatCheck) {
+        if (HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no, 1, 1);
-        } else if (SuperAdapter.assemblyModeCurrentlyActive && !MainViewPanel.assemblyMatCheck) {
+        } else if (SuperAdapter.assemblyModeCurrentlyActive && !HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
         } else {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
@@ -885,6 +884,7 @@ public class MatrixZoomData {
                                     printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
                                 }
                             } else {
+                                // TODO I suspect this is wrong - should be writing xActual - but this is for binary dumping and we never use it
                                 if (matrixType == MatrixType.OBSERVED) {
                                     les.writeInt(x);
                                     les.writeInt(y);

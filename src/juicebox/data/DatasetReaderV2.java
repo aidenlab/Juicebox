@@ -139,17 +139,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             masterIndexPos = dis.readLong();
             position += 8;
 
+            // will set genomeId below
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
-            // need to get rid of front part too
-            int chromSizes1 = genomeId.lastIndexOf(File.separatorChar);
-            int chromSizes2 = genomeId.indexOf(".chrom.sizes");
-
-            if (chromSizes2 < 0) {
-                chromSizes2 = genomeId.length();
-            }
-            genomeId = genomeId.substring(chromSizes1+1,chromSizes2);
-            dataset.setGenomeId(genomeId);
 
             Map<String, String> attributes = new HashMap<>();
             // Attributes  (key-value pairs)
@@ -188,6 +180,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 chromosomes.add(new Chromosome(i, ChromosomeHandler.cleanUpName(name), size));
             }
             dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes));
+            // guess genomeID from chromosomes
+            String genomeId1 = dataset.getChromosomeHandler().getGenomeId();
+            // if cannot find matching genomeID, set based on file
+            dataset.setGenomeId(genomeId1==null?genomeId:genomeId1);
 
             int nBpResolutions = dis.readInt();
             position += 4;

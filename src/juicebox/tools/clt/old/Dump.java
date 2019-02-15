@@ -84,7 +84,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         // This is for internal purposes only - to print the All vs All matrix
-        // This matrix should not in general be exposed since it is arbitrairily binned
+        // This matrix should not in general be exposed since it is arbitrarily binned
         // If in the future we wish to expose, we should use a more reasonable flag.
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
@@ -188,10 +188,16 @@ public class Dump extends JuiceboxCLT {
                 System.err.println("Norm not available at " + zoom + " " + norm);
                 System.exit(9);
             }
-
+            int count=0;
+            int total = (chromosome.getLength()/zoom.getBinSize())+1;
             // print out vector
             for (double element : nv.getData()) {
                 pw.println(element);
+                count++;
+                // Do not print out more entries than length of chromosome
+                if (zoom.getUnit() == HiC.Unit.BP) {
+                    if (count >= total) break;
+                }
             }
             pw.close();
 

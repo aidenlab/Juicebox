@@ -60,7 +60,6 @@ public class MainViewPanel {
     public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static final List<Float> preDefMapColorFractions = new ArrayList<>();
     public static boolean preDefMapColor = false;
-  public static boolean assemblyMatCheck = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();
@@ -466,7 +465,7 @@ public class MainViewPanel {
     }
 
     public void resetAllColors() {
-        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.darkGray : Color.WHITE;
         JComponent[] components = new JComponent[]{mainPanel, bigPanel, topPanel, trackLabelPanel,
                 leftPanel, chrSidePanel, chrSidePanel2, chrSidePanel3, bottomChromosomeFigPanel, wrapHeatmapPanel,
                 heatmapPanel, wrapGapPanel, hiCPanel, trackPanelX, trackPanelY, rulerPanelX, rulerPanelY,
@@ -668,10 +667,14 @@ public class MainViewPanel {
         }
     }
 
+    public static void invertAssemblyMatCheck() {
+        HiCGlobals.isAssemblyMatCheck = !HiCGlobals.isAssemblyMatCheck;
+    }
+
     private void chrBox1ActionPerformed(ActionEvent e) {
       if (chrBox1.getSelectedIndex() == 0) {
         chrBox2.setSelectedIndex(0);
-      } else if (assemblyMatCheck && chrBox1.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+      } else if (HiCGlobals.isAssemblyMatCheck && chrBox1.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
         chrBox2.setSelectedIndex(chrBox1.getItemCount() - 1);
       }
     }
@@ -679,14 +682,10 @@ public class MainViewPanel {
     private void chrBox2ActionPerformed(ActionEvent e) {
       if (chrBox2.getSelectedIndex() == 0) {
         chrBox1.setSelectedIndex(0);
-      } else if (assemblyMatCheck && chrBox2.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+      } else if (HiCGlobals.isAssemblyMatCheck && chrBox2.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
         chrBox1.setSelectedIndex(chrBox1.getItemCount() - 1);
       }
     }
-
-  public static void invertAssemblyMatCheck() {
-    assemblyMatCheck = !assemblyMatCheck;
-  }
 
     public boolean setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
 

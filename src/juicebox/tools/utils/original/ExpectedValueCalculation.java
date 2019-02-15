@@ -144,20 +144,6 @@ public class ExpectedValueCalculation {
         return gridSize;
     }
 
-    /**
-     * Set list of chromosomesMap; need to do this when reading from file
-     *
-     * @param chromosomes1 Array of chromosomesMap to set
-     */
-    public void setChromosomesMap(Chromosome[] chromosomes1) {
-
-        this.chromosomesMap = new LinkedHashMap<>();
-        for (Chromosome chr : chromosomes1) {
-            if (chr != null) {
-                chromosomesMap.put(chr.getIndex(), chr);
-            }
-        }
-    }
 
     /**
      * Add an observed distance.  This is called for each pair in the data set
@@ -227,7 +213,7 @@ public class ExpectedValueCalculation {
             }
 
         }
-
+        //System.err.println("max # bins " + maxNumBins);
         densityAvg = new double[maxNumBins];
         // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
 
@@ -245,7 +231,7 @@ public class ExpectedValueCalculation {
                     denSum += possibleDistances[bound2];
                 }
             } else if (numSum >= 400 && bound2 - bound1 > 0) {
-                while (numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
+                while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
                     numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
                     denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
                     bound1++;

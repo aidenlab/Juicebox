@@ -138,7 +138,7 @@ class PreDefColorScale implements ColorScale {
 
         if (colorList == null || colorList.size() == 0) {
             if (HiCGlobals.isDarkulaModeEnabled) {
-                return Color.black;
+                return Color.darkGray;
             } else {
                 return Color.white;
             }
