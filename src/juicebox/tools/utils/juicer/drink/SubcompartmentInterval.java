@@ -25,12 +25,12 @@
 package juicebox.tools.utils.juicer.drink;
 
 import com.google.common.primitives.Ints;
-import javafx.util.Pair;
 import juicebox.data.feature.Feature;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.ArrayTools;
+import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.io.File;
