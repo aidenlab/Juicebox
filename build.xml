@@ -369,6 +369,7 @@
 		    jvmversion="1.8"
 		    version="${version}"
 		    highResolutionCapable="true"
+		    bundleid="org.aidenlab.Juicebox"
 		    copyright="©2014, Broad Institute and Aiden Lab"
 		    vmoptions="-Xms5g -Xmx10g -d64">
 

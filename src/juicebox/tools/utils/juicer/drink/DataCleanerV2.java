@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DataCleanerV2 extends DataCleaner {
+class DataCleanerV2 extends DataCleaner {
 
     private final List<Integer> dataSetSeparatingIndices;
     private final int numDatasets;
@@ -69,8 +69,7 @@ public class DataCleanerV2 extends DataCleaner {
         double[][] aggregate = new double[rowNums][colNums];
 
         int rowOffSet = 0;
-        for (int i = 0; i < data.size(); i++) {
-            double[][] region = data.get(i);
+        for (double[][] region : data) {
             dataSetSeparatingIndices.add(rowOffSet);
 
             MatrixTools.copyFromAToBRegion(region, aggregate, rowOffSet, 0);
@@ -120,10 +119,6 @@ public class DataCleanerV2 extends DataCleaner {
             SubcompartmentInterval.reSort(subcompartmentsLists.get(i));
             subcompartmentsLists.get(i).addAll(subcompartmentIntervals.get(i));
         }
-
-        // process diffs relative to first map
-
-        // process diff relative to concensus
     }
 
     private int determineWhichDatasetThisBelongsTo(int originalRow) {

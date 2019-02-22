@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ package juicebox.tools.utils.juicer.drink.kmeans;
  * perform an operation.  Designed to be throw before doing
  * something that would cause a <code>java.lang.OutOfMemoryError</code>.
  */
-public class InsufficientMemoryException extends Exception {
+class InsufficientMemoryException extends Exception {
 
     private static final long serialVersionUID = 72138634L;
 

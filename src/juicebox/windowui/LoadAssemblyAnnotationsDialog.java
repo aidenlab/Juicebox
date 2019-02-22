@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -194,7 +194,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
         Boolean localFilesAdded = Boolean.FALSE;
 
-        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+        File[] twoDfiles = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
         if (twoDfiles != null && twoDfiles.length > 0) {
             for (File file : twoDfiles) {
@@ -401,8 +401,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
         // Add dataset-specific 2d annotations
         DefaultMutableTreeNode subParent = new DefaultMutableTreeNode(new ItemInfo("Dataset-specific 2D Features"), true);
-        ResourceLocator locators[] = {hic.getDataset().getPeaks(), hic.getDataset().getBlocks(), hic.getDataset().getSuperLoops()};
-        String locatorName[] = {"Peaks", "Contact Domains", "ChrX Super Loops"};
+        ResourceLocator[] locators = {hic.getDataset().getPeaks(), hic.getDataset().getBlocks(), hic.getDataset().getSuperLoops()};
+        String[] locatorName = {"Peaks", "Contact Domains", "ChrX Super Loops"};
 
         boolean datasetSpecificFeatureAdded = false;
         for (int i = 0; i < 3; i++) {

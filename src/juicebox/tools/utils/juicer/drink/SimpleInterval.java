@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ public class SimpleInterval extends Feature implements Comparable<SimpleInterval
     private final Integer chrIndex;
 
 
-    public SimpleInterval(int chrIndex, String chrName, int x1, int x2) {
+    SimpleInterval(int chrIndex, String chrName, int x1, int x2) {
         this.chrIndex = chrIndex;
         this.chrName = chrName;
         this.x1 = x1;

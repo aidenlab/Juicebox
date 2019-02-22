@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,7 +129,7 @@ public class Clustering {
      * version with multiple hic files
      */
 
-    public static List<GenomeWideList<SubcompartmentInterval>> extractAllComparativeIntraSubcompartments(
+    public static void extractAllComparativeIntraSubcompartments(
             List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm, double logThreshold,
             double maxPercentAllowedToBeZeroThreshold, int numClusters, int maxIters, File outputDirectory) {
 
@@ -140,6 +141,7 @@ public class Clustering {
         final Map<Integer, double[]> idToCentroidMap = new HashMap<>();
 
         for (Dataset ds : datasets) {
+            // each ds will need a respective list of assigned subcompartments
             comparativeSubcompartments.add(new GenomeWideList<SubcompartmentInterval>(chromosomeHandler));
         }
 
@@ -232,12 +234,37 @@ public class Clustering {
         }
 
         // process differences for diff vector
-        SubcompartmentInterval.extractDiffVectors(comparativeSubcompartments, idToCentroidMap, outputDirectory);
+        //SubcompartmentInterval.extractDiffVectors(comparativeSubcompartments, idToCentroidMap, outputDirectory);
+
+        GenomeWideList<SubcompartmentInterval> consensus = SubcompartmentInterval.calculateConsensus(comparativeSubcompartments);
 
         for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
             SubcompartmentInterval.collapseGWList(gwList);
         }
 
-        return comparativeSubcompartments;
+        for (int i = 0; i < datasets.size(); i++) {
+            File outputFile2 = new File(outputDirectory, "result_intra_compare_file" + i + ".bed");
+            comparativeSubcompartments.get(i).simpleExport(outputFile2);
+        }
+
+        File outputFile3 = new File(outputDirectory, "consensus_result_intra_compare_file.bed");
+        consensus.simpleExport(outputFile3);
+    }
+
+    // todo mss
+    // variableStep chrom=chr2 span=5
+    // 300701  12.5
+    private void writeClusterCenterToWig(Chromosome chromosome, double[] center, File file, int resolution) {
+        try {
+            final FileWriter fw = new FileWriter(file);
+            fw.write("fixedStep chrom=chr" + chromosome.getName() + " start=1" + " step=" + resolution + "\n");
+            for (double d : center) {
+                fw.write(d + "\n");
+            }
+            fw.close();
+
+        } catch (Exception e) {
+            System.err.println("Unable to make file for exporting center");
+        }
     }
 }

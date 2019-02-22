@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ package juicebox.tools.utils.juicer.drink.kmeans;
 /**
  * Simple K-Means clustering interface.
  */
-public interface KMeans extends Runnable {
+interface KMeans extends Runnable {
 
     /**
      * Adds a KMeansListener to be notified of significant happenings.

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -578,7 +578,7 @@ public class MatrixTools {
         return getAverage(data.getData());
     }
 
-    public static double getAverage(double[][] data) {
+    private static double getAverage(double[][] data) {
         double average = 0;
         if (data.length > 0) {
             double total = 0;

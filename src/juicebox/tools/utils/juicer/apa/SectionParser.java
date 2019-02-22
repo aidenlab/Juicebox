@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 
-public class SectionParser {
+class SectionParser {
 
     public static void buildLoopSlicesRandom(final String savepath, String loopListPath, final int maxk, String hicFilePaths) {
         final Random generator = new Random();
@@ -387,7 +387,7 @@ public class SectionParser {
         }
     }
 
-    public static void saveMatrixText2(String filename, RealMatrix realMatrix) {
+    private static void saveMatrixText2(String filename, RealMatrix realMatrix) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));

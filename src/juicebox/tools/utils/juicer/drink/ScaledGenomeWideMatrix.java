@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class ScaledGenomeWideMatrix {
+class ScaledGenomeWideMatrix {
 
     private final ChromosomeHandler chromosomeHandler;
     private final NormalizationType norm;
@@ -93,7 +93,7 @@ public class ScaledGenomeWideMatrix {
         return gwMatrix;
     }
 
-    Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
+    private final Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
 
     private int calculateSizeGWMatrix(Chromosome[] chromosomes) {
         int total = 0;

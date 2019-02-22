@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,15 +53,16 @@ public class ConcurrentKMeans implements KMeans {
     private int[] mClusterAssignments;
 
     // 2D array holding the coordinates to be clustered.
-    private double[][] mCoordinates;
+    private final double[][] mCoordinates;
     // The desired number of clusters and maximum number
     // of iterations.
-    private int mK, mMaxIterations;
+    private final int mK;
+    private final int mMaxIterations;
     // Seed for the random number generator used to select
     // coordinates for the initial cluster centers.
-    private long mRandomSeed;
+    private final long mRandomSeed;
     // The number of threads used to perform the subtasks.
-    private int mThreadCount;
+    private final int mThreadCount;
     // Subtask manager that handles the thread pool to which
     // time-consuming tasks are delegated.
     private ConcurrentKMeans.SubtaskManager mSubtaskManager;
@@ -70,7 +71,7 @@ public class ConcurrentKMeans implements KMeans {
     private Cluster[] mClusters;
 
     // Listeners to be notified of significant happenings.
-    private List<KMeansListener> mListeners = new ArrayList<KMeansListener>(1);
+    private final List<KMeansListener> mListeners = new ArrayList<KMeansListener>(1);
 
     /**
      * Constructor
@@ -81,8 +82,8 @@ public class ConcurrentKMeans implements KMeans {
      * @param randomSeed    seed used with the random number generator.
      * @param threadCount   the number of threads to be used for computing time-consuming steps.
      */
-    public ConcurrentKMeans(double[][] coordinates, int k, int maxIterations,
-                            long randomSeed, int threadCount) {
+    private ConcurrentKMeans(double[][] coordinates, int k, int maxIterations,
+                             long randomSeed, int threadCount) {
         mCoordinates = coordinates;
         // Can't have more clusters than coordinates.
         mK = Math.min(k, mCoordinates.length);
@@ -153,8 +154,8 @@ public class ConcurrentKMeans implements KMeans {
         if (mListeners.size() > 0) {
             synchronized (mListeners) {
                 int sz = mListeners.size();
-                for (int i = 0; i < sz; i++) {
-                    mListeners.get(i).kmeansMessage(message);
+                for (KMeansListener mListener : mListeners) {
+                    mListener.kmeansMessage(message);
                 }
             }
         }
@@ -170,8 +171,8 @@ public class ConcurrentKMeans implements KMeans {
         if (mListeners.size() > 0) {
             synchronized (mListeners) {
                 int sz = mListeners.size();
-                for (int i = 0; i < sz; i++) {
-                    mListeners.get(i).kmeansComplete(clusters, executionTime);
+                for (KMeansListener mListener : mListeners) {
+                    mListener.kmeansComplete(clusters, executionTime);
                 }
             }
         }
@@ -187,8 +188,8 @@ public class ConcurrentKMeans implements KMeans {
         if (mListeners.size() > 0) {
             synchronized (mListeners) {
                 int sz = mListeners.size();
-                for (int i = 0; i < sz; i++) {
-                    mListeners.get(i).kmeansError(err);
+                for (KMeansListener mListener : mListeners) {
+                    mListener.kmeansError(err);
                 }
             }
         }
@@ -340,10 +341,9 @@ public class ConcurrentKMeans implements KMeans {
         // Sets the update flags of the protoclusters that haven't been deleted and
         // whose memberships have changed in the iteration just completed.
         //
-        for (int c = 0; c < numClusters; c++) {
-            ConcurrentKMeans.ProtoCluster cluster = mProtoClusters[c];
+        for (ProtoCluster cluster : mProtoClusters) {
             if (cluster.getConsiderForAssignment()) {
-                if (!cluster.isEmpty()) {
+                if (cluster.isNotEmpty()) {
                     // This sets the protocluster's update flag to
                     // true only if its membership changed in last call
                     // to makeAssignments().
@@ -403,9 +403,9 @@ public class ConcurrentKMeans implements KMeans {
         // which one have changed after all the assignments have been
         // made.
         int numClusters = mProtoClusters.length;
-        for (int c = 0; c < numClusters; c++) {
-            if (mProtoClusters[c].getConsiderForAssignment()) {
-                mProtoClusters[c].checkPoint();
+        for (ProtoCluster mProtoCluster : mProtoClusters) {
+            if (mProtoCluster.getConsiderForAssignment()) {
+                mProtoCluster.checkPoint();
             }
         }
 
@@ -448,9 +448,8 @@ public class ConcurrentKMeans implements KMeans {
         //
         // - accumulate in a list.
         List<Cluster> clusterList = new ArrayList<Cluster>(numClusters);
-        for (int c = 0; c < numClusters; c++) {
-            ConcurrentKMeans.ProtoCluster pcluster = mProtoClusters[c];
-            if (!pcluster.isEmpty()) {
+        for (ProtoCluster pcluster : mProtoClusters) {
+            if (pcluster.isNotEmpty()) {
                 Cluster cluster = new Cluster(pcluster.getMembership(), pcluster.getCenter());
                 clusterList.add(cluster);
             }
@@ -491,7 +490,7 @@ public class ConcurrentKMeans implements KMeans {
         private int mCurrentSize;
 
         // The cluster center.
-        private double[] mCenter;
+        private final double[] mCenter;
 
         // Born true, so the first call to updateDistances() will set all the
         // distances.
@@ -571,8 +570,8 @@ public class ConcurrentKMeans implements KMeans {
          *
          * @return true if the cluster is empty.
          */
-        boolean isEmpty() {
-            return mCurrentSize == 0;
+        boolean isNotEmpty() {
+            return mCurrentSize != 0;
         }
 
         /**
@@ -813,8 +812,8 @@ public class ConcurrentKMeans implements KMeans {
                     mBarrier.reset();
                 }
                 // Now execute the run methods on the Workers.
-                for (int i = 0; i < mWorkers.length; i++) {
-                    mExecutor.execute(mWorkers[i]);
+                for (Worker mWorker : mWorkers) {
+                    mExecutor.execute(mWorker);
                 }
                 if (mBarrier != null) {
                     // Block until the workers are done.  The barrier
@@ -886,8 +885,8 @@ public class ConcurrentKMeans implements KMeans {
         int numberOfMoves() {
             // Sum the contributions from the workers.
             int moves = 0;
-            for (int i = 0; i < mWorkers.length; i++) {
-                moves += mWorkers[i].numberOfMoves();
+            for (Worker mWorker : mWorkers) {
+                moves += mWorker.numberOfMoves();
             }
             return moves;
         }
@@ -898,7 +897,8 @@ public class ConcurrentKMeans implements KMeans {
         private class Worker implements Runnable {
 
             // Defines range of coordinates to cover.
-            private int mStartCoord, mNumCoords;
+            private final int mStartCoord;
+            private final int mNumCoords;
 
             // Number of moves made by this worker in the last call
             // to workerMakeAssignments().  The SubtaskManager totals up

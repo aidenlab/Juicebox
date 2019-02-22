@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -226,5 +226,21 @@ public class ArrayTools {
         for(double val : vector){
             pw.println(val);
         }
+    }
+
+    /**
+     * confirm before calling that both vectors are the same size
+     *
+     * @param vector1
+     * @param vector2
+     * @return
+     */
+    public static double euclideanDistance(double[] vector1, double[] vector2) {
+        double distance = 0;
+        for (int i = 0; i < vector1.length; i++) {
+            double diff = vector1[i] - vector2[i];
+            distance += diff * diff;
+        }
+        return Math.sqrt(distance);
     }
 }

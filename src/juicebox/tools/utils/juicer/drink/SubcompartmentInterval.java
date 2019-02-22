@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +29,19 @@ import juicebox.data.feature.Feature;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.common.ArrayTools;
+import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class SubcompartmentInterval extends SimpleInterval {
 
     private Integer clusterID;
 
-    private static Color[] colors = new Color[]{
+    private static final Color[] colors = new Color[]{
             new Color(255, 0, 0),
             new Color(255, 255, 0),
             new Color(0, 234, 255),
@@ -76,20 +78,79 @@ public class SubcompartmentInterval extends SimpleInterval {
         });
     }
 
-    public static void extractDiffVectors(List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments,
-                                          Map<Integer, double[]> idToCentroidMap, File outputDirectory) {
+    public static GenomeWideList<SubcompartmentInterval> extractDiffVectors(List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments,
+                                                                            Map<Integer, double[]> idToCentroidMap, File outputDirectory) {
         // extract differences relative to control
         // calculate consensus
 
         GenomeWideList<SubcompartmentInterval> consensus = calculateConsensus(comparativeSubcompartments);
 
 
+        Map<Pair<Integer, Integer>, Double> distanceMatrix = calculateVectorDifferences(idToCentroidMap);
+        System.out.println(distanceMatrix);
+
         // extract differences relative to consensus
 
+        return consensus;
 
     }
 
-    private static GenomeWideList<SubcompartmentInterval> calculateConsensus(
+    private static Map<Pair<Integer, Integer>, Double> calculateVectorDifferences(Map<Integer, double[]> idToCentroidMap) {
+        Map<Pair<Integer, Integer>, Double> differences = new HashMap<>();
+        for (Integer indx1 : idToCentroidMap.keySet()) {
+            int n1 = idToCentroidMap.get(indx1).length;
+            for (Integer indx2 : idToCentroidMap.keySet()) {
+                int n2 = idToCentroidMap.get(indx2).length;
+                Pair<Integer, Integer> keyPair1 = new Pair<>(indx1, indx2);
+                Pair<Integer, Integer> keyPair2 = new Pair<>(indx2, indx1);
+                if (n1 == n2 && indx1 != indx2 && !differences.containsKey(keyPair1)) {
+                    double distance = ArrayTools.euclideanDistance(idToCentroidMap.get(indx1), idToCentroidMap.get(indx2));
+                    differences.put(keyPair1, distance);
+                    differences.put(keyPair2, distance);
+                }
+            }
+        }
+        return differences;
+    }
+
+
+    /*
+        // find the most common
+        List<SubcompartmentInterval> frequentFliers = new ArrayList();
+        for(Integer x : allSubcompartmentIntervalsMap.keySet()) {
+
+            Map<Integer, Integer> counts = new HashMap<>();
+            for (Pair<Integer, Integer> pair :allSubcompartmentIntervalsMap.get(x)){
+                int value = pair.getValue();
+                if(counts.containsKey(value)){
+                    counts.put(value,counts.get(value)+1);
+                }
+                else {
+                    counts.put(value,1);
+                }
+            }
+            int maxFrequency = Ints.max(Ints.toArray(counts.values()));
+            if(maxFrequency > 1){
+                int commonClusterID = -1;
+                for(Integer clusterID : counts.keySet()){
+                    if(counts.get(clusterID) >= maxFrequency){
+                        commonClusterID = clusterID;
+                        break;
+                    }
+                }
+
+                int x2 = x + getResolution();
+                frequentFliers.add(new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(), x, x2, commonClusterID));
+            }
+        }
+        mostFrequentSubcompartment.addAll(frequentFliers);
+        */
+
+    // process diffs relative to first map
+
+    // process diff relative to concensus
+
+    static GenomeWideList<SubcompartmentInterval> calculateConsensus(
             final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments) {
 
         GenomeWideList<SubcompartmentInterval> control = comparativeSubcompartments.get(0);
@@ -132,19 +193,25 @@ public class SubcompartmentInterval extends SimpleInterval {
             }
         });
 
-        consensus.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        consensus.filterLists(new FeatureFilter<SubcompartmentInterval>() {
             @Override
-            public void process(String chr, List<SubcompartmentInterval> featureList) {
+            public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
+
+                List<SubcompartmentInterval> newIntervals = new ArrayList<>();
+
                 for (SubcompartmentInterval sInterval : featureList) {
                     SimpleInterval key = sInterval.getSimpleIntervalKey();
                     if (modeOfClusterIdsInInterval.containsKey(key)) {
                         sInterval.setClusterID(modeOfClusterIdsInInterval.get(key));
+                        newIntervals.add(sInterval);
                     }
                 }
+
+                return newIntervals;
             }
         });
 
-        return null;
+        return consensus;
     }
 
     /**
