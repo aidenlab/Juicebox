@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -168,15 +168,16 @@ public class MatrixZoomData {
         return chr1.getName() + "_" + chr2.getName() + "_" + zoom.getKey();
     }
 
-    public String getKey(int chr1, int chr2) {
-        return "2_2" + "_" + zoom.getKey();
+    // i think this is how it should be? todo sxxgrc please confirm use case
+    private String getKey(int chr1, int chr2) {
+        return chr1 + "_" + chr2 + "_" + zoom.getKey();
     }
 
     public String getBlockKey(int blockNumber, NormalizationType no) {
         return getKey() + "_" + blockNumber + "_" + no;
     }
 
-    public String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
+    private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
         return getKey(chr1, chr2) + "_" + blockNumber + "_" + no;
     }
 

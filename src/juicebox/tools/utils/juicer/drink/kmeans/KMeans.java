@@ -22,7 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.juicer.drink.kmeans;
 
-class externalNormalizationVectorLoader {
+/**
+ * Simple K-Means clustering interface.
+ */
+interface KMeans extends Runnable {
+
+    /**
+     * Adds a KMeansListener to be notified of significant happenings.
+     *
+     * @param l the listener to be added.
+     */
+    void addKMeansListener(KMeansListener l);
+
+    /**
+     * Removes a KMeansListener from the listener list.
+     *
+     * @param l the listener to be removed.
+     */
+    void removeKMeansListener(KMeansListener l);
+
+    /**
+     * Get the clusters computed by the algorithm.  This method should
+     * not be called until clustering has completed successfully.
+     *
+     * @return an array of Cluster objects.
+     */
+    Cluster[] getClusters();
+
 }
+

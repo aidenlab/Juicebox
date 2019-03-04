@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,14 +36,22 @@ import java.awt.*;
 import java.util.List;
 
 public class IGVFeatureCopy implements IGVFeature {
-    private IGVFeature origFeat;
-    private String type, id, description, url, name, chr, contig;
+    private final IGVFeature origFeat;
+    private final String type;
+    private final String id;
+    private final String description;
+    private final String url;
+    private final String name;
+    private final String chr;
+    private final String contig;
     private Strand strand;
-    private int length, start, end;
+    private final int length;
+    private final MultiMap<String, String> attributes;
+    private final float score;
     private List<Exon> exons;
     private Color color;
-    private MultiMap<String, String> attributes;
-    private float score;
+    private int start;
+    private int end;
     public static boolean colorFeaturesChk = false;
 
     public IGVFeatureCopy(IGVFeature feature) {

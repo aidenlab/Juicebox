@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -390,27 +390,7 @@ public class HiCFileTools {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = new ArrayList<>();
-
-        int numDataReadingErrors = 0;
-
-        try {
-            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
-        } catch (Exception e) {
-            triggerNormError(normalizationType);
-            if (HiCGlobals.printVerboseComments) {
-                System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
-                System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
-                System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
-                e.printStackTrace();
-                System.exit(38);
-            }
-        }
-
-        if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
-            //System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
-            triggerNormError(normalizationType);
-        }
+        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
@@ -437,6 +417,35 @@ public class HiCFileTools {
         return data;
     }
 
+    public static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                 int binYStart, int binYEnd,
+                                                 NormalizationType normalizationType) throws IOException {
+
+        List<Block> blocks = new ArrayList<>();
+
+        int numDataReadingErrors = 0;
+
+        try {
+            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
+        } catch (Exception e) {
+            triggerNormError(normalizationType);
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
+                System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
+                System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
+                e.printStackTrace();
+                System.exit(38);
+            }
+        }
+
+        if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
+            //System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
+            triggerNormError(normalizationType);
+        }
+
+        return blocks;
+    }
+
     public static double[] extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
         ExpectedValueFunction expectedValueFunction = ds.getExpectedValues(zoom, normalization);
         int n = expectedValueFunction.getLength();
@@ -450,7 +459,7 @@ public class HiCFileTools {
 
 
     public static void triggerNormError(NormalizationType normalizationType) throws IOException {
-        System.err.println("");
+        System.err.println();
         System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region.");
         System.err.println("Region is likely too sparse/does not exist, or a different normalization/resolution should be chosen.");
         throw new IOException("Norm could not be found");
@@ -477,7 +486,7 @@ public class HiCFileTools {
         if (truncatedName.length() > maxLengthEntryName) {
             truncatedName = text.substring(0, maxLengthEntryName / 2 - 1);
             truncatedName += "...";
-            truncatedName += text.substring(text.length() - maxLengthEntryName / 2, text.length());
+            truncatedName += text.substring(text.length() - maxLengthEntryName / 2);
         }
         return truncatedName;
     }

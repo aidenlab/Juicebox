@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,7 @@ public class ChromosomeHandler {
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
+    private Chromosome[] chromosomeArrayAutosomesOnly;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -170,6 +171,19 @@ public class ChromosomeHandler {
         // array without all by all
         chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
         System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
+
+
+        // array without X and Y
+        List<Chromosome> autosomes = new ArrayList<>();
+        for (Chromosome chr : chromosomeArrayWithoutAllByAll) {
+            if (chr.getName().toLowerCase().contains("x") || chr.getName().toLowerCase().contains("y")) continue;
+            autosomes.add(chr);
+        }
+
+        chromosomeArrayAutosomesOnly = new Chromosome[autosomes.size()];
+        for (int i = 0; i < autosomes.size(); i++) {
+            chromosomeArrayAutosomesOnly[i] = autosomes.get(i);
+        }
     }
 
     private long getTotalLengthOfAllChromosomes(List<Chromosome> chromosomes) {
@@ -233,6 +247,10 @@ public class ChromosomeHandler {
         else return new ChromosomeHandler(new ArrayList<>(intersection));
     }
 
+    public Chromosome[] getAutosomalChromosomesArray() {
+        return chromosomeArrayAutosomesOnly;
+    }
+
     public Chromosome[] getChromosomeArrayWithoutAllByAll() {
         return chromosomeArrayWithoutAllByAll;
     }
@@ -263,5 +281,21 @@ public class ChromosomeHandler {
             //}
         }
         return null;
+    }
+
+    public Chromosome[] extractOddOrEvenAutosomes(boolean extractOdd) {
+        List<Chromosome> subset = new ArrayList<>();
+        for (Chromosome chromosome : chromosomeArrayAutosomesOnly) {
+            if (extractOdd && chromosome.getIndex() % 2 == 1) {
+                subset.add(chromosome);
+            } else if (!extractOdd && chromosome.getIndex() % 2 == 0) {
+                subset.add(chromosome);
+            }
+        }
+        Chromosome[] subsetArray = new Chromosome[subset.size()];
+        for (int i = 0; i < subset.size(); i++) {
+            subsetArray[i] = subset.get(i);
+        }
+        return subsetArray;
     }
 }

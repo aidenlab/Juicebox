@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ public class HiCGlobals {
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display and header purposes only)
     // Note: please follow "X.X.X" format, where "X" is a single digit; otherwise md5sums for hic files messed up.
-    public static final String versionNum = "1.9.9"; //
+    public static final String versionNum = "1.9.12"; //
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";

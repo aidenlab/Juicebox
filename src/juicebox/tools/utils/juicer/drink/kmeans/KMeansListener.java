@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,36 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.juicer.drink.kmeans;
 
-class externalNormalizationVectorLoader {
+
+/**
+ * Defines object which register with implementation of <code>KMeans</code>
+ * to be notified of significant events during clustering.
+ */
+public interface KMeansListener {
+
+    /**
+     * A message has been received.
+     *
+     * @param message
+     */
+    void kmeansMessage(String message);
+
+    /**
+     * KMeans is complete.
+     *
+     * @param clusters      the output of clustering.
+     * @param executionTime the time in milliseconds taken to cluster.
+     */
+    void kmeansComplete(Cluster[] clusters, long executionTime);
+
+    /**
+     * An error occurred during KMeans clustering.
+     *
+     * @param t
+     */
+    void kmeansError(Throwable t);
+
 }
+

@@ -22,7 +22,25 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.juicer.drink.kmeans;
 
-class externalNormalizationVectorLoader {
+/**
+ * Exception thrown when insufficient memory is available to
+ * perform an operation.  Designed to be throw before doing
+ * something that would cause a <code>java.lang.OutOfMemoryError</code>.
+ */
+class InsufficientMemoryException extends Exception {
+
+    private static final long serialVersionUID = 72138634L;
+
+    /**
+     * Constructor.
+     *
+     * @param message an explanatory message.
+     */
+    public InsufficientMemoryException(String message) {
+        super(message);
+    }
+
 }
+

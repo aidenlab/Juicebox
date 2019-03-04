@@ -22,7 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.juicer.drink;
 
-class externalNormalizationVectorLoader {
+import java.util.concurrent.atomic.AtomicInteger;
+
+class UniqueSubcompartmentClusterID {
+
+    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+
+    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }
