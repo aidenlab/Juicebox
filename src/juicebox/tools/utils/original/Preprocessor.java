@@ -33,7 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.tools.clt.CommandLineParser.Alignment;
-import juicebox.windowui.NormalizationType;
+import juicebox.windowui.NormalizationHandler;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -304,7 +304,7 @@ public class Preprocessor {
             if (expectedVectorFile == null) {
                 expectedValueCalculations = new LinkedHashMap<>();
                 for (int bBinSize : bpBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
+                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
                     String key = "BP_" + bBinSize;
                     expectedValueCalculations.put(key, calc);
                 }
@@ -322,7 +322,7 @@ public class Preprocessor {
 
                 if (expectedVectorFile == null) {
                     for (int fBinSize : fragBinSizes) {
-                        ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationType.NONE);
+                        ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
                         String key = "FRAG_" + fBinSize;
                         expectedValueCalculations.put(key, calc);
                     }

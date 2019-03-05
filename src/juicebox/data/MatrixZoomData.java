@@ -39,6 +39,7 @@ import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
@@ -1136,12 +1137,12 @@ public class MatrixZoomData {
 
                         // Optionally check the cache
                         // TODO why is this always NONE, should trace to ensure hard coding doesn't cause bug?
-                        String key = getBlockKey(blockNumber, NormalizationType.NONE);
+                        String key = getBlockKey(blockNumber, NormalizationHandler.NONE);
                         Block nextBlock;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             nextBlock = blockCache.get(key);
                         } else {
-                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationType.NONE);
+                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationHandler.NONE);
                         }
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;

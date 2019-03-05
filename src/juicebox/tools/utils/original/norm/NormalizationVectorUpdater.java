@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -82,9 +83,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
-            ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.VC);
-            ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.VC_SQRT);
-            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.KR);
+            ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
+            ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
 
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -110,8 +111,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
                 final int chrIdx = chr.getIndex();
 
-                updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationType.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
-                updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationType.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
+                updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
+                updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
 
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("\nVC normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
@@ -127,7 +128,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                         failureSet.add(chr);
                     } else {
 
-                        updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationType.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
+                        updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
 
                     }
                     if (HiCGlobals.printVerboseComments) {

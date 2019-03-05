@@ -36,7 +36,7 @@ import juicebox.tools.utils.original.norm.GenomeWideNormalizationVectorUpdater;
 import juicebox.tools.utils.original.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
-import juicebox.windowui.NormalizationType;
+import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -52,9 +52,7 @@ public class Dump extends JuiceboxCLT {
     private static int[] regionIndices = new int[]{-1, -1, -1, -1};
     private static boolean useRegionIndices = false;
     private HiC.Unit unit = null;
-    private NormalizationType norm = null;
     private String chr1, chr2;
-    private Dataset dataset = null;
     private ChromosomeHandler chromosomeHandler;
     private int binSize = 0;
     private MatrixType matrixType = null;
@@ -73,7 +71,6 @@ public class Dump extends JuiceboxCLT {
         return "dump <observed/oe> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> [outfile]\n" +
                 "\tdump <norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]\n" +
                 "\tdump <loops/domains> <hicFile URL> [outfile]";
-
     }
 
     private void dumpGenomeWideData() {
@@ -125,7 +122,7 @@ public class Dump extends JuiceboxCLT {
 
         if (matrixType == MatrixType.NORM) {
 
-            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationType.GW_KR);
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationHandler.GW_KR);
             int addY = 0;
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -331,15 +328,7 @@ public class Dump extends JuiceboxCLT {
                 System.exit(15);
             }
 
-            norm = NormalizationType.enumValueFromString(args[2]);
-            if (norm == null) {
-                System.err.println("Normalization type " + args[2] + " unrecognized.  Normalization type must be one of \n" +
-                        "\"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
-                        " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-                System.exit(16);
-            }
-
-            dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[3].split("\\+")), false);
+            setDatasetAndNorm(args[3], args[2], false);
 
             chromosomeHandler = dataset.getChromosomeHandler();
 

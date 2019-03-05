@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.tools.utils.original.norm;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.matrix.SparseSymmetricMatrix;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
@@ -107,7 +108,7 @@ public class NormalizationCalculations {
             if (binY > maxBin) maxBin = binY;
         }
         NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin + 1);
-        double[] norm = nc.getNorm(NormalizationType.KR);
+        double[] norm = nc.getNorm(NormalizationHandler.KR);
         for (double d : norm) {
             System.out.println(d);
         }
@@ -271,24 +272,18 @@ public class NormalizationCalculations {
 
     public double[] getNorm(NormalizationType normOption) {
         double[] norm;
-        switch (normOption) {
-            case KR:
-            case GW_KR:
-            case INTER_KR:
-                norm = computeKR();
-                break;
-            case VC:
-            case GW_VC:
-            case INTER_VC:
-                norm = computeVC();
-                break;
-            case NONE:
-                norm = new double[totSize];
-                Arrays.fill(norm, 1);
-                return norm;
-            default:
-                System.err.println("Not supported for normalization " + normOption);
-                return null;
+        String normLabel = normOption.getLabel().toUpperCase();
+        if (normLabel.endsWith("KR")) {
+            norm = computeKR();
+        } else if (normLabel.endsWith("VC")) {
+            norm = computeVC();
+        } else if (normLabel.endsWith("NONE")) {
+            norm = new double[totSize];
+            Arrays.fill(norm, 1);
+            return norm;
+        } else {
+            System.err.println("Not supported for normalization " + normOption);
+            return null;
         }
 
         double factor = getSumFactor(norm);

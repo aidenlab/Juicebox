@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
@@ -458,7 +459,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int nExpectedValues = dis.readInt();
         for (int i = 0; i < nExpectedValues; i++) {
 
-            NormalizationType no = NormalizationType.NONE;
+            NormalizationType no = NormalizationHandler.NONE;
             String unitString = dis.readString();
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
@@ -522,7 +523,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     normFactors.put(chrIdx, normFactor);
                 }
 
-                NormalizationType type = NormalizationType.valueOf(typeString);
+                NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
                 ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, values, normFactors);
                 expectedValuesMap.put(key, df);
 
@@ -534,7 +535,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             normVectorIndex = new HashMap<>(nEntries * 2);
             for (int i = 0; i < nEntries; i++) {
 
-                NormalizationType type = NormalizationType.valueOf(dis.readString());
+                NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(dis.readString());
                 int chrIdx = dis.readInt();
                 String unit = dis.readString();
                 int resolution = dis.readInt();
@@ -547,8 +548,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                 normVectorIndex.put(key, new Preprocessor.IndexEntry(filePosition, sizeInBytes));
             }
-
-
         }
     }
 
@@ -722,13 +721,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                             throw new RuntimeException("Unknown block type: " + type);
                     }
                 }
-                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationType.NONE));
+                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
             }
         }
 
         // If no block exists, mark with an "empty block" to prevent further attempts
         if (b == null) {
-            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationType.NONE));
+            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
         }
         return b;
     }
@@ -739,7 +738,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (no == null) {
             throw new IOException("Normalization type is null");
-        } else if (no == NormalizationType.NONE) {
+        } else if (no.equals(NormalizationHandler.NONE)) {
             return readBlock(blockNumber, zd);
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);

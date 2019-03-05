@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,11 +41,6 @@ import java.util.regex.Pattern;
  * Created by muhammadsaadshamim on 5/12/15.
  */
 public class HiCFileTools {
-
-    // coalescing some of the magic strings
-    public static final String KR = "KR";
-    public static final String VC = "VC";
-    public static final String VC_SQRT = "VC_SQRT";
 
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;

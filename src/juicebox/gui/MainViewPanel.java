@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -235,7 +235,7 @@ public class MainViewPanel {
         JPanel normalizationButtonPanel = new JPanel();
         normalizationButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
         normalizationButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        normalizationComboBox = new JComboBox<>(new String[]{NormalizationType.NONE.getLabel()});
+        normalizationComboBox = new JComboBox<>(new String[]{NormalizationHandler.NONE.getDescription()});
         normalizationComboBox.addPopupMenuListener(new BoundsPopupMenuListener<String>(true, false));
         normalizationComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -782,10 +782,6 @@ public class MainViewPanel {
 
     public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
-    }
-
-    public void setNormalizationBox(int indx) {
-        normalizationComboBox.setSelectedIndex(indx);
     }
 
     public void setNormalizationEnabledForReload() {

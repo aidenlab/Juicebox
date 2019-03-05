@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
@@ -127,7 +128,7 @@ public class HiC {
         controlEigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
-        normalizationType = NormalizationType.NONE;
+        normalizationType = NormalizationHandler.NONE;
         zoomActionTracker.clear();
         clearFeatures();
     }
@@ -243,7 +244,8 @@ public class HiC {
         trackManager.unsafeLoadTrackDirectPath(path);
     }
 
-    public void loadCoverageTrack(NormalizationType no) {
+    public void loadCoverageTrack(String label) {
+        NormalizationType no = dataset.getNormalizationHandler().getNormTypeFromString(label);
         trackManager.loadCoverageTrack(no, false);
         if (isControlLoaded()) {
             trackManager.loadCoverageTrack(no, true);
@@ -565,7 +567,8 @@ public class HiC {
         return normalizationType;
     }
 
-    public void setNormalizationType(NormalizationType option) {
+    public void setNormalizationType(String label) {
+        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
         if (this.normalizationType != option) {
             this.normalizationType = option;
             setNormalizationTypeChanged();

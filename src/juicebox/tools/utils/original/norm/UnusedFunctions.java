@@ -27,6 +27,7 @@ package juicebox.tools.utils.original.norm;
 import juicebox.data.*;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -83,9 +84,9 @@ class UnusedFunctions {
                     MatrixZoomData zd2 = ds.getMatrix(chr1, chr2).getZoomData(zoom);
                     Iterator<ContactRecord> iter2 = zd2.contactRecordIterator();
 
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationType.VC, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationType.VC_SQRT, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationType.KR, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
                 }
             }
         }
@@ -104,11 +105,11 @@ class UnusedFunctions {
 
     private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, Iterator<ContactRecord> iter2, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
 
-        String key1 = NormalizationVector.getKey(NormalizationType.VC, chr1.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
+        String key1 = NormalizationVector.getKey(NormalizationHandler.VC, chr1.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector1 = normVectors.get(key1);
         double[] vec1 = vector1.getData();
 
-        String key2 = NormalizationVector.getKey(NormalizationType.VC, chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
+        String key2 = NormalizationVector.getKey(NormalizationHandler.VC, chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector2 = normVectors.get(key2);
         double[] vec2 = vector2.getData();
 
@@ -132,11 +133,11 @@ class UnusedFunctions {
         }
 
         if (vecSum > 0) {
-            sums.add(new NormalizedSum(HiCFileTools.VC, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), vecSum));
+            sums.add(new NormalizedSum(NormalizationHandler.VC.getLabel(), chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), vecSum));
         }
     }
 
-    static private void dumpNormalizationVectorIndex(String path, String outputFile) throws IOException {
+    static private void dumpNormalizationVectorIndex(String path, String outputFile, NormalizationHandler normalizationHandler) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         reader.read();
         try (RandomAccessFile raf = new RandomAccessFile(outputFile, "rw")) {
@@ -161,7 +162,7 @@ class UnusedFunctions {
                 int resolution;
 
                 if (parts.length != 4) {
-                    NormalizationType type = NormalizationType.enumValueFromString(parts[0] + "_" + parts[1]);
+                    NormalizationType type = normalizationHandler.getNormTypeFromString(parts[0] + "_" + parts[1]);
                     strType = type.toString();
                     chrIdx = Integer.valueOf(parts[2]);
                     unit = parts[3];

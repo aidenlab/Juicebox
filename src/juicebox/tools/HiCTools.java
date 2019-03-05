@@ -39,7 +39,7 @@ import org.broad.igv.Globals;
  * @author Muhammad Shamim
  * @since 1/20/2015
  */
-class HiCTools {
+public class HiCTools {
 
     public static void main(String[] argv) throws CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);

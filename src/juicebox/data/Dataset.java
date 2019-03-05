@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.tools.dev.Private;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
@@ -62,7 +63,7 @@ public class Dataset {
     private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
-    private Map<String, NormalizationVector> loadedNormalizationVectors;
+    protected NormalizationHandler normalizationHandler = new NormalizationHandler();
     private List<NormalizationType> normalizationTypes;
     private ChromosomeHandler chromosomeHandler;
 
@@ -251,7 +252,7 @@ public class Dataset {
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
         if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
-        String key = zoom.getKey() + "_" + type.toString(); // getUnit() + "_" + zoom.getBinSize();
+        String key = ExpectedValueFunctionImpl.getKey(zoom, type);
         return expectedValueFunctionMap.get(key);
     }
 
@@ -845,7 +846,7 @@ public class Dataset {
     public NormalizationVector getNormalizationVector(int chrIdx, HiCZoom zoom, NormalizationType type) {
 
         String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
-        if (type == NormalizationType.NONE) {
+        if (type.equals(NormalizationHandler.NONE)) {
             return null;
         }  else if (!normalizationVectorCache.containsKey(key)) {
             try {
@@ -855,30 +856,10 @@ public class Dataset {
                 normalizationVectorCache.put(key, null);
             }
         }
-        if (normalizationVectorCache.get(key) == null && type == NormalizationType.LOADED) {
-            return loadedNormalizationVectors == null ? null : loadedNormalizationVectors.get(key);
-        }
 
         return normalizationVectorCache.get(key);
 
     }
-
-
-    public void putLoadedNormalizationVector(int chrIdx, int resolution, double[] data, double[] exp) {
-        NormalizationVector normalizationVector = new NormalizationVector(NormalizationType.LOADED, chrIdx, HiC.Unit.BP, resolution, data);
-        if (loadedNormalizationVectors == null) {
-            loadedNormalizationVectors = new HashMap<>();
-
-        }
-        loadedNormalizationVectors.put(normalizationVector.getKey(), normalizationVector);
-        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
-        String key = zoom.getKey() + "_LOADED";
-        ExpectedValueFunctionImpl function = (ExpectedValueFunctionImpl) getExpectedValues(zoom, NormalizationType.KR); // TODO is this supposed to be hardcoded to KR?
-
-        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, HiC.Unit.BP, resolution, exp, function.getNormFactors());
-        expectedValueFunctionMap.put(key, df);
-    }
-
 
     private String findRestrictionEnzyme(int sites) {
         if (genomeId == null) return null;
@@ -937,5 +918,9 @@ public class Dataset {
         resolutions.addAll(bpZooms);
         resolutions.addAll(fragZooms);
         return resolutions;
+    }
+
+    public NormalizationHandler getNormalizationHandler() {
+        return normalizationHandler;
     }
 }

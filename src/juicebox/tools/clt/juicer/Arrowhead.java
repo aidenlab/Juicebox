@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -111,7 +112,7 @@ public class Arrowhead extends JuicerCLT {
     private String featureList, controlList;
     // must be passed via command line
     private int resolution = 10000;
-    private String hicFile;
+    private Dataset ds;
     private boolean checkMapDensityThreshold = true;
     private static int numCPUThreads = 4;
 
@@ -132,12 +133,13 @@ public class Arrowhead extends JuicerCLT {
             printUsageAndExit();  // this will exit
         }
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
+
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
-
-        hicFile = args[1];
-        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
@@ -184,10 +186,8 @@ public class Arrowhead extends JuicerCLT {
 
     @Override
     public void run() {
-        final Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFile.split("\\+")), true);
-
         try {
-            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
             double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.

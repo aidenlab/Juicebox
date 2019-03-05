@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,8 @@ class Unused {
                 chrNV[i] = nv[location1];
                 location1++;
             }
-            hic.getDataset().putLoadedNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
+
+            //hic.getDataset().putCustomNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
         }
 
     }

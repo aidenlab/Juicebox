@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -67,8 +68,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
 
                 // do all four genome-wide normalizations
-                NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
-                        NormalizationType.INTER_KR, NormalizationType.INTER_VC};
+                NormalizationType[] types = {NormalizationHandler.GW_KR, NormalizationHandler.GW_VC,
+                        NormalizationHandler.INTER_KR, NormalizationHandler.INTER_VC};
 
                 for (NormalizationType normType : types) {
 
@@ -79,7 +80,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
                     }
                     ExpectedValueCalculation calculation = wgVectors.getSecond();
-                    String key = "BP_" + zoom.getBinSize() + "_" + normType;
+                    String key = ExpectedValueFunctionImpl.getKey(zoom, normType);
                     expectedValueFunctionMap.put(key, calculation.getExpectedValueFunction());
                 }
 
@@ -98,7 +99,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 Matrix matrix = ds.getMatrix(chr, chr);
 
                 if (matrix == null) continue;
-                NormalizationType[] possibleNorms = new NormalizationType[]{NormalizationType.VC, NormalizationType.VC_SQRT, NormalizationType.KR};
+                NormalizationType[] possibleNorms = new NormalizationType[]{NormalizationHandler.VC, NormalizationHandler.VC_SQRT, NormalizationHandler.KR};
 
                 for (NormalizationType normType : possibleNorms) {
                     NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
@@ -128,7 +129,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                                                                                                      NormalizationType norm) {
 
         boolean includeIntra = false;
-        if (norm == NormalizationType.GW_KR || norm == NormalizationType.GW_VC) {
+        if (norm.equals(NormalizationHandler.GW_KR) || norm.equals(NormalizationHandler.GW_VC)) {
             includeIntra = true;
         }
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
@@ -220,8 +221,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                                           BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
         // do all four genome-wide normalizations
-        NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
-                NormalizationType.INTER_KR, NormalizationType.INTER_VC};
+        NormalizationType[] types = {NormalizationHandler.GW_KR, NormalizationHandler.GW_VC,
+                NormalizationHandler.INTER_KR, NormalizationHandler.INTER_VC};
 
         for (NormalizationType normType : types) {
 

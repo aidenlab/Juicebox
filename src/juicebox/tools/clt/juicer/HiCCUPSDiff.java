@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -149,7 +149,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         }
         else {
 
-            NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+            NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds1.getNormalizationHandler());
             if (preferredNorm != null)
                 norm = preferredNorm;
 
@@ -173,9 +173,9 @@ public class HiCCUPSDiff extends JuicerCLT {
             System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
-            hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4],
+            hiccups1.initializeDirectly(ds1, outputDirectory + File.separator + "file1", args[4],
                     norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
-            hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3],
+            hiccups2.initializeDirectly(ds2, outputDirectory + File.separator + "file2", args[3],
                     norm, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
         }
     }

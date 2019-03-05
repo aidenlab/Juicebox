@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -45,70 +46,72 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
-        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        Map<String, NormalizationVector> normVectors = readVectorFile(vectorPath, chromosomeHandler);
+        Map<NormalizationType, Map<String, NormalizationVector>> allNormVectors = readVectorFile(vectorPath, ds.getChromosomeHandler(), ds.getNormalizationHandler());
 
-        // chr -> frag count map.  Needed for expected value calculations
-        Map<String, Integer> fragCountMap = ds.getFragmentCounts();
+        for (NormalizationType customNormType : allNormVectors.keySet()) {
+            reader = new DatasetReaderV2(path);
+            ds = reader.read();
+            ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+            Map<String, Integer> fragCountMap = ds.getFragmentCounts();
+            List<HiCZoom> resolutions = ds.getAllPossibleResolutions();
 
-        List<HiCZoom> resolutions = ds.getAllPossibleResolutions();
+            BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
+            List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
+            Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
-        BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-        List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
-        Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
-
-        for (Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, ExpectedValueFunction> entry = it.next();
-            if (entry.getKey().contains("NONE")) {
-                it.remove();
+            for (Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, ExpectedValueFunction> entry = it.next();
+                if (entry.getKey().contains("NONE")) {
+                    it.remove();
+                }
             }
-        }
 
-        // Loop through resolutions
-        for (HiCZoom zoom : resolutions) {
+            //NormalizationType customNormType = new NormalizationType("NEW"+System.currentTimeMillis(),"Additional vector "+System.currentTimeMillis());
+            // Loop through resolutions
+            for (HiCZoom zoom : resolutions) {
 
-            Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
-            ExpectedValueCalculation evLoaded = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.LOADED);
+                Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
+                ExpectedValueCalculation evLoaded = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, customNormType);
 
-            // Loop through chromosomes
-            for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+                // Loop through chromosomes
+                for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
-                Matrix matrix = ds.getMatrix(chr, chr);
+                    Matrix matrix = ds.getMatrix(chr, chr);
 
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
+                    if (matrix == null) continue;
+                    MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                // Get existing norm vectors so we don't lose them
-                for (NormalizationType type : NormalizationType.values()) {
-                    NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
-                    if (existingNorm != null) {
-
-                        //System.out.println(type.getLabel() + " normalization for chromosome " + chr.getName() + " at " + zoom.getBinSize() + " " + zoom.getUnit() + " resolution already exists.  Keeping this normalization vector.");
-
-                        int position = normVectorBuffer.bytesWritten();
-                        putArrayValuesIntoBuffer(normVectorBuffer, existingNorm.getData());
-                        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                        normVectorIndices.add(new NormalizationVectorIndexEntry(
-                                type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+                    // Get existing norm vectors so we don't lose them
+                    for (NormalizationType type : NormalizationHandler.getAllNormTypes()) {
+                        NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
+                        if (existingNorm != null) {
+                            int position = normVectorBuffer.bytesWritten();
+                            putArrayValuesIntoBuffer(normVectorBuffer, existingNorm.getData());
+                            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+                            normVectorIndices.add(new NormalizationVectorIndexEntry(
+                                    type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+                        }
                     }
+
+                    handleLoadedVector(customNormType, chr.getIndex(), zoom, allNormVectors.get(customNormType),
+                            normVectorBuffer, normVectorIndices, zd, evLoaded);
                 }
 
-                handleLoadedVector(chr.getIndex(), zoom, normVectors, normVectorBuffer, normVectorIndices, zd, evLoaded);
+                String key = ExpectedValueFunctionImpl.getKey(zoom, customNormType);
+                expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
             }
 
-            String key = zoom.getUnit().toString() + zoom.getBinSize() + "_" + NormalizationType.LOADED;
-            expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
+            writeNormsToUpdateFile(reader, path, false, null, expectedValueFunctionMap, normVectorIndices,
+                    normVectorBuffer, "Finished adding another normalization.");
         }
-
-        writeNormsToUpdateFile(reader, path, false, null, expectedValueFunctionMap, normVectorIndices,
-                normVectorBuffer, "Finished adding normalizations.");
+        System.out.println("all custom norms added");
     }
 
-    private static void handleLoadedVector(final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
+    private static void handleLoadedVector(NormalizationType customNormType, final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
                                            BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex,
                                            MatrixZoomData zd, ExpectedValueCalculation evLoaded) throws IOException {
 
-        String key = NormalizationType.LOADED + "_" + chrIndx + "_" + zoom.getUnit() + "_" + zoom.getBinSize();
+        String key = NormalizationVector.getKey(customNormType, chrIndx, zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector = normVectors.get(key);
         if (vector == null) return;
         // Write loaded norm
@@ -117,7 +120,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
 
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
         normVectorIndex.add(new NormalizationVectorIndexEntry(
-                NormalizationType.LOADED.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+                customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
         // Calculate the expected values
         Iterator<ContactRecord> iter = zd.contactRecordIterator();
@@ -131,11 +134,10 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                 double value = counts / (vector.getData()[x] * vector.getData()[y]);
                 evLoaded.addDistance(chrIndx, x, y, value);
             }
-
         }
     }
 
-    protected static Map<String, NormalizationVector> readVectorFile(String fname, ChromosomeHandler chromosomeHandler) throws IOException {
+    protected static Map<NormalizationType, Map<String, NormalizationVector>> readVectorFile(String fname, ChromosomeHandler chromosomeHandler, NormalizationHandler normalizationHandler) throws IOException {
         BufferedReader vectorReader;
         if (fname.endsWith(".gz")) {
             InputStream fileStream = new FileInputStream(fname);
@@ -147,10 +149,11 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             vectorReader = new BufferedReader(new InputStreamReader(new FileInputStream(fname)), HiCGlobals.bufferSize);
         }
 
-        Map<String, NormalizationVector> normVectors = new HashMap<>();
+        Map<NormalizationType, Map<String, NormalizationVector>> normVectors = new HashMap<>();
         Chromosome chr = null;
         int resolution = -1;
         HiC.Unit unit = null;
+        NormalizationType customNormType = null;
 
         String nextLine = vectorReader.readLine();
         while (nextLine != null) {
@@ -160,23 +163,16 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                 chr = chromosomeHandler.getChromosomeFromName(tokens[2]);
                 if (chr == null) {
                     System.err.println("Skipping " + tokens[2] + " which isn't in dataset");
-                    nextLine = vectorReader.readLine();
-                    // List<Double> data = new ArrayList<Double>();
-                    while (nextLine != null && !(nextLine.startsWith("vector"))) {
-                        nextLine = vectorReader.readLine();
-                    }
+                    nextLine = skipLinesUntilTextEncountered(vectorReader, "vector");
                     continue;
                 }
 
-                // we're going to ignore this for now; need to have a way to add to enums.
-                // TODO: the normalization type should be read in; but need to modify other code for that
-                String normType = tokens[1];     // this is ignored
+                customNormType = normalizationHandler.getNormTypeFromString(tokens[1]);
                 resolution = Integer.valueOf(tokens[3]);
                 unit = HiC.Unit.valueOf(tokens[4]);
             }
-            if (chr != null) {
+            if (chr != null && customNormType != null) {
                 System.out.println("Adding normalization for chromosome " + chr.getName() + " at " + resolution + " " + unit + " resolution.");
-
 
                 // Now do work on loaded norm vector
                 // Create the new vector by looping through the loaded vector file line by line
@@ -195,13 +191,26 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     }
                     nextLine = vectorReader.readLine();
                 }
-                NormalizationVector vector = new NormalizationVector(NormalizationType.LOADED, chr.getIndex(), unit, resolution, data);
-                normVectors.put(vector.getKey(), vector);
+
+                if (!normVectors.containsKey(customNormType)) {
+                    normVectors.put(customNormType, new HashMap<String, NormalizationVector>());
+                }
+                NormalizationVector vector = new NormalizationVector(customNormType, chr.getIndex(), unit, resolution, data);
+                normVectors.get(customNormType).put(vector.getKey(), vector);
+
             } else {
                 System.err.println("Chromosome null"); // this shouldn't happen due to continue above
             }
         }
 
         return normVectors;
+    }
+
+    private static String skipLinesUntilTextEncountered(BufferedReader vectorReader, String string) throws IOException {
+        String nextLine = vectorReader.readLine();
+        while (nextLine != null && !(nextLine.startsWith(string))) {
+            nextLine = vectorReader.readLine();
+        }
+        return nextLine;
     }
 }

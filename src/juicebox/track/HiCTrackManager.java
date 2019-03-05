@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ public class HiCTrackManager {
         if (isControl) {
             if (controlCoverageTracks.containsKey(no)) return; // Already loaded
             HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
-            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            ResourceLocator locator = new ResourceLocator(no.getDescription());
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             controlCoverageTracks.put(no, track);
             loadedTracks.add(track);
@@ -80,7 +80,7 @@ public class HiCTrackManager {
         } else {
             if (coverageTracks.containsKey(no)) return; // Already loaded
             HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
-            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            ResourceLocator locator = new ResourceLocator(no.getDescription());
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             coverageTracks.put(no, track);
             loadedTracks.add(track);

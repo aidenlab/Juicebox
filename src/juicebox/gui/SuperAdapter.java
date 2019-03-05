@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -448,12 +448,12 @@ public class SuperAdapter {
 
                 String[] normalizationOptions;
                 if (dataset.getVersion() < HiCGlobals.minVersion) {
-                    normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
+                    normalizationOptions = new String[]{NormalizationHandler.NONE.getDescription()};
                 } else {
                     ArrayList<String> tmp = new ArrayList<>();
-                    tmp.add(NormalizationType.NONE.getLabel());
+                    tmp.add(NormalizationHandler.NONE.getDescription());
                     for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                        tmp.add(t.getLabel());
+                        tmp.add(t.getDescription());
                     }
 
                     normalizationOptions = tmp.toArray(new String[tmp.size()]);
@@ -741,15 +741,7 @@ public class SuperAdapter {
 
     private void unsafeNormalizationComboBoxActionPerformed() {
         String value = (String) mainViewPanel.getNormalizationComboBox().getSelectedItem();
-        NormalizationType chosen = null;
-        for (NormalizationType type : NormalizationType.values()) {
-            if (type.getLabel().equals(value)) {
-                chosen = type;
-                break;
-            }
-        }
-        final NormalizationType passChosen = chosen;
-        hic.setNormalizationType(passChosen);
+        hic.setNormalizationType(value);
         refreshMainOnly();
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -70,7 +71,7 @@ class UnitTests {
         Dataset ds = HiCFileTools.extractDatasetForCLT(Collections.singletonList(folder + "inter_30.hic"), true);
         File outputMergedFile = new File(outputDirectory, "merged_loops");
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        NormalizationType norm = NormalizationType.KR;
+        NormalizationType norm = NormalizationHandler.KR;
 
         List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<>();
         filteredConfigurations.add(new HiCCUPSConfiguration(10000, 10, 2, 5, 20000));
