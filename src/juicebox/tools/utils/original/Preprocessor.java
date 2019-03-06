@@ -245,26 +245,42 @@ public class Preprocessor {
         Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
     }
 
-    private static FragmentCalculation findFragMap(List<FragmentCalculation> maps, int chr, int bp, int frag) {
+    private static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
+        //potential maps that this strand could come from
+        ArrayList<FragmentCalculation> mapsFound = new ArrayList<>();
         for (FragmentCalculation fragmentCalculation : maps) {
             int low = 1;
             int high = 1;
-            if (frag == 0) {
-                high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-            } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
-                high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-                low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
-            } else {
-                high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-                low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+
+            if (frag > fragmentCalculation.getNumberFragments(chr)) {
+                // definitely not this restriction site file for certain
+                continue;
+            }
+            
+            try {
+                if (frag == 0) {
+                    high = fragmentCalculation.getSites(chr)[frag];
+                } else if (frag == fragmentCalculation.getNumberFragments(chr)) {
+                    high = fragmentCalculation.getSites(chr)[frag - 1];
+                    low = fragmentCalculation.getSites(chr)[frag - 2];
+                } else {
+                    high = fragmentCalculation.getSites(chr)[frag];
+                    low = fragmentCalculation.getSites(chr)[frag - 1];
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(String.format("fragment: %d, number of frags: %d", frag, fragmentCalculation.getNumberFragments(chr)));
+
             }
 
             // does bp fit in this range?
             if (bp >= low && bp <= high) {
-                return fragmentCalculation;
+                mapsFound.add(fragmentCalculation);
             }
         }
-
+        if (mapsFound.size() == 1) {
+            return mapsFound.get(0);
+        }
         return null;
     }
 
@@ -299,6 +315,7 @@ public class Preprocessor {
                         try {
                             FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
                             randomizeFragMaps.add(fragmentCalculation);
+                            System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
                             System.err.println(String.format("Warning: Unable to process fragment file %s. Randomization will continue without fragment file %s.", fragmentFileName, fragmentFileName));
                         }
@@ -680,20 +697,26 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 // Randomize
                 // Randomize
                 if (fragmentCalculation != null && allowPositionsRandomization) {
-                    FragmentCalculation fragMap;
+                    FragmentCalculation fragMapToUse;
                     if (randomizeFragMaps != null) {
-                        fragMap = findFragMap(randomizeFragMaps, chr1, bp1, frag1);
+                        FragmentCalculation fragMap = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
                         if (fragMap == null) {
-                            fragMap = fragmentCalculation;
+                            fragMap = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp2, frag2);
+                            if (fragMap == null) {
+                                System.err.println("Cannot find fragment file, skipping");
+                                continue;
+                            }
                         }
+
+                        fragMapToUse = fragMap;
                     } else {
                         // use default map
-                        fragMap = fragmentCalculation;
+                        fragMapToUse = fragmentCalculation;
                     }
 
 
-                    bp1 = randomizePos(fragMap, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
-                    bp2 = randomizePos(fragMap, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
+                    bp1 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;

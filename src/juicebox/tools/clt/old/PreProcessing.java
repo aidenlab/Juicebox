@@ -61,6 +61,8 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -a <1, 2, 3> filter based on inner, outer, or tandem pairs respectively\n"
                 + "           : --randomize_position randomize positions between fragment sites\n"
                 + "           : --random_seed seed for random generator\n"
+                + "           : --randomize_pos_maps fragment maps for randomization\n"
+
 
         );
     }
