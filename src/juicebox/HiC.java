@@ -1225,8 +1225,17 @@ public class HiC {
         }
     }
 
-    public SuperAdapter getSuperAdaptor() {
-        return superAdapter;
+    public String[] getNormalizationOptions() {
+        if (dataset.getVersion() < HiCGlobals.minVersion) {
+            return new String[]{NormalizationHandler.NONE.getDescription()};
+        } else {
+            ArrayList<String> tmp = new ArrayList<>();
+            tmp.add(NormalizationHandler.NONE.getDescription());
+            for (NormalizationType t : dataset.getNormalizationTypes()) {
+                tmp.add(t.getDescription());
+            }
+            return tmp.toArray(new String[tmp.size()]);
+        }
     }
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {

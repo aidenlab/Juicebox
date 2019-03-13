@@ -33,10 +33,11 @@ import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
-import juicebox.state.ImportFileDialog;
+import juicebox.state.ImportStateFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
+import juicebox.tools.utils.original.norm.CustomNormVectorFileHandler;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.*;
@@ -153,7 +154,7 @@ public class SuperAdapter {
     }
 
     public void launchImportState(File fileForExport) {
-        new ImportFileDialog(fileForExport, mainWindow);
+        new ImportStateFileDialog(fileForExport, mainWindow);
     }
 
     public void launchLoadStateFromXML(String mapPath) {
@@ -446,19 +447,7 @@ public class SuperAdapter {
                 hic.setChromosomeHandler(dataset.getChromosomeHandler());
                 mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
-                String[] normalizationOptions;
-                if (dataset.getVersion() < HiCGlobals.minVersion) {
-                    normalizationOptions = new String[]{NormalizationHandler.NONE.getDescription()};
-                } else {
-                    ArrayList<String> tmp = new ArrayList<>();
-                    tmp.add(NormalizationHandler.NONE.getDescription());
-                    for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                        tmp.add(t.getDescription());
-                    }
-
-                    normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                }
-
+                String[] normalizationOptions = hic.getNormalizationOptions();
                 mainViewPanel.setEnabledForNormalization(normalizationOptions,
                         hic.getDataset().getVersion() >= HiCGlobals.minVersion);
 
@@ -1058,5 +1047,27 @@ public class SuperAdapter {
             resetAnnotationLayers();
             return true;
         }
+    }
+
+    public void safeLaunchImportNormalizations() {
+
+        final File[] files = FileDialogUtils.chooseMultiple("Choose custom normalization file(s)",
+                LoadDialog.LAST_LOADED_HIC_FILE_PATH, null);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                if (files != null && files.length > 0) {
+                    LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
+
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
+                    String[] normalizationOptions = hic.getNormalizationOptions();
+                    mainViewPanel.setEnabledForNormalization(normalizationOptions,
+                            hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                    repaint();
+                }
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "safe add custom norms");
+
     }
 }

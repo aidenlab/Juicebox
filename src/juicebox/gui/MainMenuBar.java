@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -508,6 +508,17 @@ public class MainMenuBar extends JMenuBar {
     viewMenu.add(saveToSVG);
 
     final JMenu devMenu = new JMenu("Dev");
+
+    final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
+    addCustomNorms.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchImportNormalizations();
+      }
+    });
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(addCustomNorms);
+    }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
     displayTiles.addActionListener(new ActionListener() {

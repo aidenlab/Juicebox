@@ -737,7 +737,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
         if (no == null) {
-            throw new IOException("Normalization type is null");
+            throw new IOException("Norm " + no + " is null");
         } else if (no.equals(NormalizationHandler.NONE)) {
             return readBlock(blockNumber, zd);
         } else {
@@ -745,8 +745,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
 
             if (nv1 == null || nv2 == null) {
-                if (HiCGlobals.printVerboseComments) {
-                    System.err.println("Normalization missing for: " + zd.getDescription());
+                if (true || HiCGlobals.printVerboseComments) {
+                    System.err.println("Norm " + no + " missing for: " + zd.getDescription());
+                    System.err.println(nv1 + " - " + nv2);
                 }
                 return null;
             }
