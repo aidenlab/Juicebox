@@ -479,11 +479,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 normFactors.put(chrIdx, normFactor);
             }
 
-            ExpectedValueFunction df = new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors);
-            expectedValuesMap.put(key, df);
-            dataset.setExpectedValueFunctionMap(expectedValuesMap);
-
+            expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors));
         }
+        dataset.setExpectedValueFunctionMap(expectedValuesMap);
 
         // Normalized expected values (v6 and greater only)
 
@@ -526,7 +524,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
                 ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, values, normFactors);
                 expectedValuesMap.put(key, df);
-
             }
 
             // Normalization vectors (indexed)

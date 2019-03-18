@@ -130,10 +130,9 @@ public class NormVectorUpdater {
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);
             BufferedByteWriter buffer = new BufferedByteWriter();
-            System.out.println("Writing expected");
             writeExpectedValues(buffer, expectedValueCalculations);
             writeExpectedToBuffer(raf, buffer, filePosition);
-            writeNormsToBuffer(buffer, raf, normVectorIndex, normVectorBuffer);
+            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffer);
         }
     }
 
@@ -143,10 +142,9 @@ public class NormVectorUpdater {
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);
             BufferedByteWriter buffer = new BufferedByteWriter();
-            System.out.println("Writing expected");
             writeExpectedValues(buffer, expectedValueFunctionMap);
             writeExpectedToBuffer(raf, buffer, filePosition);
-            writeNormsToBuffer(buffer, raf, normVectorIndex, normVectorBuffer);
+            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffer);
         }
     }
 
@@ -179,10 +177,9 @@ public class NormVectorUpdater {
         }
     }
 
-    private static void writeNormsToBuffer(BufferedByteWriter buffer, RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
-        System.out.println("Writing norms");
+    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
         // Get the size of the index in bytes, to compute an offset for the actual entries.
-        buffer = new BufferedByteWriter();
+        BufferedByteWriter buffer = new BufferedByteWriter();
         writeNormIndex(buffer, normVectorIndex);
         long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
 

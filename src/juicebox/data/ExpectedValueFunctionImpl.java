@@ -90,11 +90,15 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
             normFactor = normFactors.get(chrIdx);
         }
 
-        if (distance >= expectedValues.length) {
-
-            return expectedValues[expectedValues.length - 1] / normFactor;
+        if (expectedValues.length > 0) {
+            if (distance >= expectedValues.length) {
+                return expectedValues[expectedValues.length - 1] / normFactor;
+            } else {
+                return expectedValues[distance] / normFactor;
+            }
         } else {
-            return expectedValues[distance] / normFactor;
+            System.err.println("Expected values array is empty");
+            return -1;
         }
     }
 

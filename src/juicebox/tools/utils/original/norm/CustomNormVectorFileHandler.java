@@ -88,7 +88,6 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private static NormVectorInfo completeCalculationsNecessaryForUpdatingCustomNormalizations(
@@ -110,21 +109,12 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         }
 
         // Loop through resolutions
-        for (HiCZoom zoom : resolutions) {
-
-            Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
-
-            // Loop through chromosomes
-            for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-
-                Matrix matrix = ds.getMatrix(chr, chr);
-
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
-
-                if (true || overwriteHicFileFooter) {
-                    // Get existing norm vectors so we don't lose them
-                    for (NormalizationType type : NormalizationHandler.getAllNormTypes()) {
+        if (overwriteHicFileFooter) {
+            for (HiCZoom zoom : resolutions) {
+                for (NormalizationType type : NormalizationHandler.getAllNormTypes()) {
+                    // Loop through chromosomes
+                    for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+                        // Get existing norm vectors so we don't lose them
                         NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                         if (existingNorm != null) {
                             int position = normVectorBuffer.bytesWritten();
@@ -135,17 +125,29 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                         }
                     }
                 }
+            }
+        }
 
-                // add in all the new vectors
-                for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
-                    ExpectedValueCalculation evLoaded = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, customNormType);
-                    if (true || overwriteHicFileFooter) {
-                        handleLoadedVector(customNormType, chr.getIndex(), zoom, normalizationVectorMap.get(customNormType),
+        for (HiCZoom zoom : resolutions) {
+            Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
+
+            for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
+
+                ExpectedValueCalculation evLoaded = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, customNormType);
+                String key = ExpectedValueFunctionImpl.getKey(zoom, customNormType);
+
+                // Loop through chromosomes
+                for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+
+                    Matrix matrix = ds.getMatrix(chr, chr);
+
+                    if (matrix == null) continue;
+                    MatrixZoomData zd = matrix.getZoomData(zoom);
+
+                    handleLoadedVector(customNormType, chr.getIndex(), zoom, normalizationVectorMap.get(customNormType),
                                 normVectorBuffer, normVectorIndices, zd, evLoaded);
-                    }
-                    String key = ExpectedValueFunctionImpl.getKey(zoom, customNormType);
-                    expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
                 }
+                expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
             }
         }
 
