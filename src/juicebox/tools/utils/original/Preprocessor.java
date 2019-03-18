@@ -659,6 +659,10 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         HashSet<String> writtenMatrices = new HashSet<>();
         String currentMatrixKey = null;
 
+        // randomization error/ambiguity stats
+        long noMapFoundCount = 0;
+        long mapDifferentCount = 0;
+
         while (iter.hasNext()) {
             AlignmentPair pair = iter.next();
             // skip pairs that mapped to contigs
@@ -699,16 +703,23 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 if (fragmentCalculation != null && allowPositionsRandomization) {
                     FragmentCalculation fragMapToUse;
                     if (randomizeFragMaps != null) {
-                        FragmentCalculation fragMap = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
-                        if (fragMap == null) {
-                            fragMap = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp2, frag2);
-                            if (fragMap == null) {
-                                System.err.println("Cannot find fragment file, skipping");
-                                continue;
-                            }
+                        FragmentCalculation fragMap1 = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
+                        FragmentCalculation fragMap2 = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
+
+                        if (fragMap1 == null && fragMap2 == null) {
+                            noMapFoundCount += 1;
+                            continue;
+                        } else if (fragMap1 != null && fragMap2 != null && fragMap1 != fragMap2) {
+                            mapDifferentCount += 1;
+                            continue;
                         }
 
-                        fragMapToUse = fragMap;
+                        if (fragMap1 != null) {
+                            fragMapToUse = fragMap1;
+                        } else {
+                            fragMapToUse = fragMap2;
+                        }
+
                     } else {
                         // use default map
                         fragMapToUse = fragmentCalculation;
@@ -747,6 +758,9 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
             }
         }
+
+        System.out.println(String.format("Randomization errors encountered: %d no map found, " +
+                "%d two different maps found", noMapFoundCount, mapDifferentCount));
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
