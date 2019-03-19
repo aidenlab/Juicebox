@@ -25,6 +25,8 @@
 package juicebox.tools.utils.original.norm;
 
 import juicebox.data.ExpectedValueFunction;
+import juicebox.data.NormalizationVector;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.util.List;
@@ -32,12 +34,14 @@ import java.util.Map;
 
 class NormVectorInfo {
 
-    private BufferedByteWriter normVectorBuffer;
-    private List<NormalizationVectorIndexEntry> normVectorIndices;
-    private Map<String, ExpectedValueFunction> expectedValueFunctionMap;
+    private final BufferedByteWriter normVectorBuffer;
+    private final List<NormalizationVectorIndexEntry> normVectorIndices;
+    private final Map<String, ExpectedValueFunction> expectedValueFunctionMap;
+    private final Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorsMap;
 
-    NormVectorInfo(BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndices,
+    NormVectorInfo(Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorsMap, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndices,
                    Map<String, ExpectedValueFunction> expectedValueFunctionMap) {
+        this.normalizationVectorsMap = normalizationVectorsMap;
         this.normVectorBuffer = normVectorBuffer;
         this.normVectorIndices = normVectorIndices;
         this.expectedValueFunctionMap = expectedValueFunctionMap;
@@ -54,5 +58,9 @@ class NormVectorInfo {
 
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
         return expectedValueFunctionMap;
+    }
+
+    public Map<NormalizationType, Map<String, NormalizationVector>> getNormalizationVectorsMap() {
+        return normalizationVectorsMap;
     }
 }

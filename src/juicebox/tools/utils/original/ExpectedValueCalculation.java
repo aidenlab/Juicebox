@@ -27,14 +27,13 @@ package juicebox.tools.utils.original;
 
 import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.tools.utils.original.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -313,6 +312,20 @@ public class ExpectedValueCalculation {
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
         return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
+    }
+
+    // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
+    public void addDistancesFromIterator(int chrIndx, Iterator<ContactRecord> iter, double[] vector) {
+        while (iter.hasNext()) {
+            ContactRecord cr = iter.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+            if (NormVectorUpdater.isValidNormValue(vector[x]) & NormVectorUpdater.isValidNormValue(vector[y])) {
+                double value = counts / (vector[x] * vector[y]);
+                addDistance(chrIndx, x, y, value);
+            }
+        }
     }
 }
 

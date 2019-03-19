@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,10 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.tools.utils.original.norm.ZeroScale;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 /**
  * @author jrobinso
@@ -40,6 +43,7 @@ public class NormalizationVector {
     private final HiC.Unit unit;
     private final int resolution;
     private final double[] data;
+    private boolean needsToBeScaledTo = false;
 
     public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, double[] data) {
         this.type = type;
@@ -47,6 +51,11 @@ public class NormalizationVector {
         this.unit = unit;
         this.resolution = resolution;
         this.data = data;
+    }
+
+    public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, double[] data, boolean needsToBeScaledTo) {
+        this(type, chrIdx, unit, resolution, data);
+        this.needsToBeScaledTo = needsToBeScaledTo;
     }
 
     public static String getKey(NormalizationType type, int chrIdx, String unit, int resolution) {
@@ -59,5 +68,22 @@ public class NormalizationVector {
 
     public double[] getData() {
         return data;
+    }
+
+    public boolean doesItNeedToBeScaledTo() {
+        return needsToBeScaledTo;
+    }
+
+    public NormalizationVector mmbaScaleToVector(Dataset ds) {
+
+        Chromosome chromosome = ds.getChromosomeHandler().getChromosomeFromIndex(chrIdx);
+
+        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+        if (matrix == null) return null;
+        MatrixZoomData zd = matrix.getZoomData(new HiCZoom(unit, resolution));
+        if (matrix == null) return null;
+
+        double[] newNormVector = ZeroScale.scale(zd, data);
+        return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);
     }
 }

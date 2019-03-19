@@ -48,8 +48,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         String[] vectorPaths = vectorPath.split(",");
-        Map<NormalizationType, Map<String, NormalizationVector>> allNormVectors = readVectorFile(vectorPaths, ds.getChromosomeHandler(), ds.getNormalizationHandler());
-        NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, allNormVectors, true);
+        NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, vectorPaths, true);
         writeNormsToUpdateFile(reader, path, false, null, normVectorInfo.getExpectedValueFunctionMap(),
                 normVectorInfo.getNormVectorIndices(), normVectorInfo.getNormVectorBuffer(), "Finished adding another normalization.");
 
@@ -69,14 +68,11 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         }
 
         try {
-            Map<NormalizationType, Map<String, NormalizationVector>> allNormVectors = readVectorFile(filePaths,
-                    ds.getChromosomeHandler(), ds.getNormalizationHandler());
+            NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, filePaths, false);
 
-            completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, allNormVectors, false);
-
-            for (NormalizationType customNormType : allNormVectors.keySet()) {
+            for (NormalizationType customNormType : normVectorInfo.getNormalizationVectorsMap().keySet()) {
                 ds.addNormalizationType(customNormType);
-                for (NormalizationVector normalizationVector : allNormVectors.get(customNormType).values()) {
+                for (NormalizationVector normalizationVector : normVectorInfo.getNormalizationVectorsMap().get(customNormType).values()) {
                     if (normalizationVector == null) {
                         System.out.println("error encountered");
                     }
@@ -91,7 +87,10 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
     }
 
     private static NormVectorInfo completeCalculationsNecessaryForUpdatingCustomNormalizations(
-            Dataset ds, Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorMap, boolean overwriteHicFileFooter) throws IOException {
+            Dataset ds, String[] filePaths, boolean overwriteHicFileFooter) throws IOException {
+
+        Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorMap = readVectorFile(filePaths,
+                ds.getChromosomeHandler(), ds.getNormalizationHandler());
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         Map<String, Integer> fragCountMap = ds.getFragmentCounts();
@@ -108,13 +107,11 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             }
         }
 
-        // Loop through resolutions
+        // Get existing norm vectors so we don't lose them
         if (overwriteHicFileFooter) {
             for (HiCZoom zoom : resolutions) {
                 for (NormalizationType type : NormalizationHandler.getAllNormTypes()) {
-                    // Loop through chromosomes
                     for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                        // Get existing norm vectors so we don't lose them
                         NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                         if (existingNorm != null) {
                             int position = normVectorBuffer.bytesWritten();
@@ -124,6 +121,18 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                                     type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
                         }
                     }
+                }
+            }
+        }
+
+        for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
+
+            Map<String, NormalizationVector> normVectorsByChrAndZoom = normalizationVectorMap.get(customNormType);
+            for (String key : normVectorsByChrAndZoom.keySet()) {
+                NormalizationVector nv = normVectorsByChrAndZoom.get(key);
+                if (nv.doesItNeedToBeScaledTo()) {
+                    NormalizationVector newScaledVector = nv.mmbaScaleToVector(ds);
+                    normVectorsByChrAndZoom.put(key, newScaledVector);
                 }
             }
         }
@@ -152,7 +161,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         }
 
         ds.setExpectedValueFunctionMap(expectedValueFunctionMap);
-        return new NormVectorInfo(normVectorBuffer, normVectorIndices, expectedValueFunctionMap);
+        return new NormVectorInfo(normalizationVectorMap, normVectorBuffer, normVectorIndices, expectedValueFunctionMap);
     }
 
     private static void handleLoadedVector(NormalizationType customNormType, final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
@@ -170,22 +179,10 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         normVectorIndex.add(new NormalizationVectorIndexEntry(
                 customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
-        // Calculate the expected values
-        Iterator<ContactRecord> iter = zd.contactRecordIterator();
-
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
-            if (isValidNormValue(vector.getData()[x]) & isValidNormValue(vector.getData()[y])) {
-                double value = counts / (vector.getData()[x] * vector.getData()[y]);
-                evLoaded.addDistance(chrIndx, x, y, value);
-            }
-        }
+        evLoaded.addDistancesFromIterator(chrIndx, zd.contactRecordIterator(), vector.getData());
     }
 
-    protected static Map<NormalizationType, Map<String, NormalizationVector>> readVectorFile(String[] fnames, ChromosomeHandler chromosomeHandler, NormalizationHandler normalizationHandler) throws IOException {
+    private static Map<NormalizationType, Map<String, NormalizationVector>> readVectorFile(String[] fnames, ChromosomeHandler chromosomeHandler, NormalizationHandler normalizationHandler) throws IOException {
 
         Map<NormalizationType, Map<String, NormalizationVector>> normVectors = new HashMap<>();
 
@@ -205,6 +202,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             int resolution = -1;
             HiC.Unit unit = null;
             NormalizationType customNormType = null;
+            boolean needsToBeScaledTo = false;
 
             String nextLine = vectorReader.readLine();
             while (nextLine != null) {
@@ -221,6 +219,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     customNormType = normalizationHandler.getNormTypeFromString(tokens[1]);
                     resolution = Integer.valueOf(tokens[3]);
                     unit = HiC.Unit.valueOf(tokens[4]);
+                    needsToBeScaledTo = tokens[0].toLowerCase().contains("scale");
                 }
                 if (chr != null && customNormType != null) {
                     if (HiCGlobals.printVerboseComments) {
@@ -248,11 +247,11 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     if (!normVectors.containsKey(customNormType)) {
                         normVectors.put(customNormType, new HashMap<String, NormalizationVector>());
                     }
-                    NormalizationVector vector = new NormalizationVector(customNormType, chr.getIndex(), unit, resolution, data);
+                    NormalizationVector vector = new NormalizationVector(customNormType, chr.getIndex(), unit, resolution, data, needsToBeScaledTo);
                     normVectors.get(customNormType).put(vector.getKey(), vector);
 
                 } else {
-                    System.err.println("Chromosome null"); // this shouldn't happen due to continue above
+                    System.err.println("Chromosome vector null"); // this shouldn't happen due to continue above
                 }
             }
         }

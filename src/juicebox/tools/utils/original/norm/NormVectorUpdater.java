@@ -40,8 +40,8 @@ import java.util.Map;
 
 public class NormVectorUpdater {
 
-    protected static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
-                                                          int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
+    static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
+                                                int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
         int position = normVectorBuffer.bytesWritten();
         putArrayValuesIntoBuffer(normVectorBuffer, vec);
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
@@ -49,18 +49,18 @@ public class NormVectorUpdater {
 
     }
 
-    protected static boolean isValidNormValue(double v) {
+    public static boolean isValidNormValue(double v) {
         return v > 0 && !Double.isNaN(v);
     }
 
-    protected static void putArrayValuesIntoBuffer(BufferedByteWriter buffer, double[] array) throws IOException {
+    static void putArrayValuesIntoBuffer(BufferedByteWriter buffer, double[] array) throws IOException {
         buffer.putInt(array.length);
         for (double val : array) {
             buffer.putDouble(val);
         }
     }
 
-    protected static void putMapValuesIntoBuffer(BufferedByteWriter buffer, Map<Integer, Double> hashmap) throws IOException {
+    private static void putMapValuesIntoBuffer(BufferedByteWriter buffer, Map<Integer, Double> hashmap) throws IOException {
         buffer.putInt(hashmap.size());
         for (Map.Entry<Integer, Double> keyValuePair : hashmap.entrySet()) {
             buffer.putInt(keyValuePair.getKey());
@@ -68,13 +68,13 @@ public class NormVectorUpdater {
         }
     }
 
-    protected static void writeExpectedToBuffer(RandomAccessFile raf, BufferedByteWriter buffer, long filePosition) throws IOException {
+    private static void writeExpectedToBuffer(RandomAccessFile raf, BufferedByteWriter buffer, long filePosition) throws IOException {
         byte[] evBytes = buffer.getBytes();
         raf.getChannel().position(filePosition);
         raf.write(evBytes);
     }
 
-    protected static void handleVersionSix(RandomAccessFile raf, int version) throws IOException {
+    private static void handleVersionSix(RandomAccessFile raf, int version) throws IOException {
         if (version < 6) {
             // Update version
             // Master index
@@ -92,7 +92,7 @@ public class NormVectorUpdater {
      * @param buffer          Buffer to write to
      * @param normVectorIndex Normalization index to write
      */
-    protected static void writeNormIndex(BufferedByteWriter buffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+    static void writeNormIndex(BufferedByteWriter buffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
         buffer.putInt(normVectorIndex.size());
         for (NormalizationVectorIndexEntry entry : normVectorIndex) {
             buffer.putNullTerminatedString(entry.type);
@@ -104,11 +104,11 @@ public class NormVectorUpdater {
         }
     }
 
-    protected static void writeNormsToUpdateFile(DatasetReaderV2 reader, String path, boolean useCalcNotFunc,
-                                                 List<ExpectedValueCalculation> expectedValueCalculations,
-                                                 Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                                                 List<NormalizationVectorIndexEntry> normVectorIndices,
-                                                 BufferedByteWriter normVectorBuffer, String message) throws IOException {
+    static void writeNormsToUpdateFile(DatasetReaderV2 reader, String path, boolean useCalcNotFunc,
+                                       List<ExpectedValueCalculation> expectedValueCalculations,
+                                       Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                                       List<NormalizationVectorIndexEntry> normVectorIndices,
+                                       BufferedByteWriter normVectorBuffer, String message) throws IOException {
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
         reader.close();
@@ -136,8 +136,8 @@ public class NormVectorUpdater {
         }
     }
 
-    protected static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                                 List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
+    static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                       List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
 
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);

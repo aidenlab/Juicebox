@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,78 +22,63 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.optimization;
+package juicebox.tools.utils.original.norm;
+
+import juicebox.data.ContactRecord;
+import juicebox.data.MatrixZoomData;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class ZeroScale {
 
-    /********************************************************************************************************************
-     *
-     *	This function allows more that 2^31 - 1 nonzero entries. It acceptc a list of c arrays where array i contains m[i] elements
-     *
-     *	numArrays is the number of arrays
-     *	numElementsForArrays is array containing the number of elements of the c arrays
-     *	i and j are lists of c 0-based arrays each containing the row and column indices of the nonzero bins
-     *	x is a list of c arrays containing the nonzero matrix entries
-     *
-     *	indxI, indxJ, and matrixVals define the upper triangle of the (squarre symmetric) matrix
-     *
-     *	targetVector is the "target" vector, i.e. we want rows (and columns) sums to be equal to z
-     *	on exit b will hold the scaling vector, i.e. by multiplying the rows and columns of the original matrix
-     by b we get the scaled matrix;
-     *	on exit report contains the relative error after each iteration
-     *
-     *	below are arguments having default values
-     *
-     *	verb indicates whether the function needs to output the progress; 1 means report, 0 means run silent
-     *	tolerance is the desired relative error
-     *	perc is the percentage of low rows sums to be excluded (i.e. 0.01, 0.02, etc.)
-     *	perc1 is the percentage of low and high values of z to ignore
-     *	maxiter is the maximum number of iterations allowed
-     *	del and trial are for determining that the convergence is too slow and early termination (before maxiter iteration): if
-     the relative error decreased by less than del for trials consecuitive iterations the call is terminated and -iter is
-     returned (where iter is the number of iterations); calling function can check the return value and know whether convergence
-     was reached
-     *
-     *	Note that making any optional argument negative causes the default value to be used
-     *
-     *
-     *
-     * defaults
-     * verb = 0
-     * tolerance = 1e-3
-     * perc 1e-2
-     * perc1 0.25e-2
-     * maxiter =200
-     * del=1.0e-2
-     * trials=5
-     *
-     *
-     ***********************************************************************************************************************/
+    public static double[] scale(MatrixZoomData zd, double[] data) {
+        // if the regular call fails, loosen parameters
+        double[] newVector = launchScalingWithDiffTolerances(zd, data, .01, 0);
+        if (newVector == null) {
+            newVector = launchScalingWithDiffTolerances(zd, data, .04, .01);
+        }
+        return newVector;
+    }
 
-    private static boolean verbose = false;
-    private static double tolerance = 1.0e-3;
-    private static double percentLowRowSumExcluded = 1.0e-2;
-    private static double percentZValsToIgnore = 0.25e-2;
-    private static int maxIter = 200;
-    private static double del = 1.0e-2;
-    private static int trials = 5;
+    private static double[] launchScalingWithDiffTolerances(MatrixZoomData zd, double[] data, double percentLowRowSumExcludedInitial,
+                                                            double percentZValsToIgnoreInitial) {
+        double tolerance = 1.0e-3;
+        int maxIter = 200;
+        double del = 1.0e-2;
+        double percentLowRowSumExcluded = percentLowRowSumExcludedInitial;
+        double percentZValsToIgnore = percentZValsToIgnoreInitial;
+        int maxOverallAttempts = 3;
+        int numTrialsWithinScalingRun = 5;
 
+        double[] newVector = scaleToTargetVector(zd, data, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
-    public static double[] scale(int numArrays, int[] numElementsForArrays, int[][] indxI, int[][] indxJ, double[][] matrixVals, double[] targetVector) {
+        int count = 0;
+        while (newVector == null && count++ < maxOverallAttempts) {
+            System.out.println("Did not converge!");
+            percentLowRowSumExcluded = 1.5 * percentLowRowSumExcluded;
+            percentZValsToIgnore = 1.5 * percentZValsToIgnore;
+            System.out.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
+
+            newVector = scaleToTargetVector(zd, data, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
+
+        }
+
+        if (newVector == null) {
+            System.err.println("Scaling result still null; vector did not converge");
+        }
+        return newVector;
+    }
+
+    private static double[] scaleToTargetVector(MatrixZoomData zd, double[] targetVectorInitial, double tolerance,
+                                                double percentLowRowSumExcluded, double percentZValsToIgnore,
+                                                int maxIter, double del, int numTrials) {
 
         double high, low, err;
         int lind, hind;
 
         //	find the matrix dimensions
-        int k = 0;
-        for (int ic = 0; ic < numArrays; ic++) {
-            for (int p = 0; p < numElementsForArrays[ic]; p++) {
-                if (indxJ[ic][p] > k) k = indxJ[ic][p];
-            }
-        }
-        k++;
+        int k = zd.getXGridAxis().getBinCount() + 1;
 
         double[] current = new double[k];
         double[] r = new double[k];
@@ -103,6 +88,7 @@ public class ZeroScale {
         double[] one = new double[k];
         double[] s = new double[k];
         double[] zz = new double[k];
+        double[] targetVector = targetVectorInitial.clone();
 
         int l = 0;
         for (int p = 0; p < k; p++) {
@@ -129,17 +115,22 @@ public class ZeroScale {
         for (int p = 0; p < k; p++) {
             r[p] = 0;
         }
-        for (int ic = 0; ic < numArrays; ic++) {
-            for (int p = 0; p < numElementsForArrays[ic]; p++) {
-                r[indxI[ic][p]] += matrixVals[ic][p] * one[indxJ[ic][p]];
-                if (indxI[ic][p] < indxJ[ic][p]) {
-                    r[indxJ[ic][p]] += matrixVals[ic][p] * one[indxI[ic][p]];
-                }
+
+        Iterator<ContactRecord> iterator = zd.contactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+
+            r[x] += counts * one[y];
+            if (x < y) {
+                r[y] += counts * one[x];
             }
         }
 
         //	find relevant percentiles
-        for (int p = 0; p < k; p++) r0[p] = r[p];
+        System.arraycopy(r, 0, r0, 0, k);
 
         Arrays.sort(r0);
 
@@ -151,7 +142,7 @@ public class ZeroScale {
         if (lind < 0) lind = 0;
         if (hind >= k) hind = k - 1;
         low = r0[lind];
-        high = r0[hind];
+        high = r0[hind]; //todo ask moshe/neva if bug
         r0 = null;
 
         //	find the "bad" rows and exclude them
@@ -161,7 +152,6 @@ public class ZeroScale {
                 targetVector[p] = 1.0;
             } else bad[p] = 0;
         }
-
 
         double[] calculatedVector = new double[k];
         double[][] errorForIteration = new double[maxIter][2];
@@ -187,7 +177,7 @@ public class ZeroScale {
         int iter = 0;
         int stuck = 0;
         double ber;
-        for (int p = 0; p < k; p++) current[p] = calculatedVector[p];
+        System.arraycopy(calculatedVector, 0, current, 0, k);
         while (err > tolerance && iter++ < maxIter) {
             for (int p = 0; p < k; p++) {
                 if (bad1[p] == 1) r[p] = 1.0;
@@ -200,14 +190,20 @@ public class ZeroScale {
             }
 
             for (int p = 0; p < k; p++) r[p] = 0;
-            for (int ic = 0; ic < numArrays; ic++) {
-                for (int p = 0; p < numElementsForArrays[ic]; p++) {
-                    r[indxI[ic][p]] += matrixVals[ic][p] * calculatedVector[indxJ[ic][p]];
-                    if (indxI[ic][p] < indxJ[ic][p]) {
-                        r[indxJ[ic][p]] += matrixVals[ic][p] * calculatedVector[indxI[ic][p]];
-                    }
+
+            iterator = zd.contactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float counts = cr.getCounts();
+
+                r[x] += counts * calculatedVector[y];
+                if (x < y) {
+                    r[y] += counts * calculatedVector[x];
                 }
             }
+
             for (int p = 0; p < k; p++) {
                 r[p] *= calculatedVector[p];
             }
@@ -223,14 +219,12 @@ public class ZeroScale {
             }
             errorForIteration[iter - 1][0] = err;
             errorForIteration[iter - 1][1] = ber;
-            if (verbose) System.out.printf("%d: %30.15lf %30.15lf\n", iter, err, ber);
-            for (int p = 0; p < k; p++) {
-                current[p] = calculatedVector[p];
-            }
-            if (iter < trials + 2) continue;
+
+            System.arraycopy(calculatedVector, 0, current, 0, k);
+            if (iter < numTrials + 2) continue;
             if (err > (1.0 - del) * errorForIteration[iter - 2][0]) stuck++;
             else stuck = 0;
-            if (stuck >= trials) break;
+            if (stuck >= numTrials) break;
         }
         for (int p = 0; p < k; p++) {
             if (bad[p] == 1) {
@@ -238,27 +232,9 @@ public class ZeroScale {
             }
         }
 
-        /*
         if (err > tolerance){
-            return new ScaledVectorData(calculatedVector, errorForIteration, -iter);
+            return null;
         }
-        else{
-            return new ScaledVectorData(calculatedVector, errorForIteration, iter);
-        }
-        */
         return calculatedVector;
-    }
-
-
-    static class ScaledVectorData {
-        double[] b;
-        double[][] report;
-        int iter;
-
-        public ScaledVectorData(double[] b, double[][] report, int iter) {
-            this.b = b;
-            this.report = report;
-            this.iter = iter;
-        }
     }
 }

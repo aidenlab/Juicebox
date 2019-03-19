@@ -161,17 +161,6 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
 
-        Iterator<ContactRecord> iter = zd.contactRecordIterator();
-        // TODO: this is inefficient, we have all of the contact records when we leave normcalculations, should do this there if possible
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
-            if (isValidNormValue(vec[x]) & isValidNormValue(vec[y])) {
-                double value = counts / (vec[x] * vec[y]);
-                ev.addDistance(chrIdx, x, y, value);
-            }
-        }
+        ev.addDistancesFromIterator(chrIdx, zd.contactRecordIterator(), vec);
     }
 }
