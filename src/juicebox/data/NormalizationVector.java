@@ -31,6 +31,8 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
+import java.util.Iterator;
+
 /**
  * @author jrobinso
  *         Date: 2/10/13
@@ -83,7 +85,52 @@ public class NormalizationVector {
         MatrixZoomData zd = matrix.getZoomData(new HiCZoom(unit, resolution));
         if (matrix == null) return null;
 
-        double[] newNormVector = ZeroScale.scale(zd, data);
+        double[] newNormVector = ZeroScale.scale(zd, data, getKey());
+
+        if (newNormVector != null) {
+            newNormVector = normalizeVectorByScaleFactor(newNormVector, zd);
+        }
+
         return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);
+    }
+
+    private double[] normalizeVectorByScaleFactor(double[] newNormVector, MatrixZoomData zd) {
+
+        for (int k = 0; k < newNormVector.length; k++) {
+            if (newNormVector[k] <= 0 || Double.isNaN(newNormVector[k])) {
+                newNormVector[k] = Double.NaN;
+            } else {
+                newNormVector[k] = 1 / newNormVector[k];
+            }
+        }
+
+        double normalizedSumTotal = 0, sumTotal = 0;
+
+        Iterator<ContactRecord> iterator = zd.contactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+
+            if (!Double.isNaN(newNormVector[x]) && !Double.isNaN(newNormVector[y])) {
+                double normalizedValue = counts / (newNormVector[x] * newNormVector[y]);
+                normalizedSumTotal += normalizedValue;
+                sumTotal += counts;
+                if (x != y) {
+                    normalizedSumTotal += normalizedValue;
+                    sumTotal += counts;
+                }
+            }
+        }
+
+        double scaleFactor = Math.sqrt(normalizedSumTotal / sumTotal);
+
+        for (int k = 0; k < newNormVector.length; k++) {
+            if (!Double.isNaN(newNormVector[k])) {
+                newNormVector[k] = scaleFactor * newNormVector[k];
+            }
+        }
+        return newNormVector;
     }
 }

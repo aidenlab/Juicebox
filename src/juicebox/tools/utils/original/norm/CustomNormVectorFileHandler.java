@@ -38,6 +38,8 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
 public class CustomNormVectorFileHandler extends NormVectorUpdater {
@@ -87,7 +89,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
     }
 
     private static NormVectorInfo completeCalculationsNecessaryForUpdatingCustomNormalizations(
-            Dataset ds, String[] filePaths, boolean overwriteHicFileFooter) throws IOException {
+            final Dataset ds, String[] filePaths, boolean overwriteHicFileFooter) throws IOException {
 
         Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorMap = readVectorFile(filePaths,
                 ds.getChromosomeHandler(), ds.getNormalizationHandler());
@@ -125,16 +127,32 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             }
         }
 
+        ExecutorService executor = Executors.newFixedThreadPool(10);
         for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
-
-            Map<String, NormalizationVector> normVectorsByChrAndZoom = normalizationVectorMap.get(customNormType);
-            for (String key : normVectorsByChrAndZoom.keySet()) {
-                NormalizationVector nv = normVectorsByChrAndZoom.get(key);
+            final Map<String, NormalizationVector> normVectorsByChrAndZoom = normalizationVectorMap.get(customNormType);
+            for (final String key : normVectorsByChrAndZoom.keySet()) {
+                final NormalizationVector nv = normVectorsByChrAndZoom.get(key);
                 if (nv.doesItNeedToBeScaledTo()) {
-                    NormalizationVector newScaledVector = nv.mmbaScaleToVector(ds);
-                    normVectorsByChrAndZoom.put(key, newScaledVector);
+
+                    Runnable worker = new Runnable() {
+                        @Override
+                        public void run() {
+                            NormalizationVector newScaledVector = nv.mmbaScaleToVector(ds);
+                            if (newScaledVector != null) {
+                                normVectorsByChrAndZoom.put(key, newScaledVector);
+                            } else {
+                                normVectorsByChrAndZoom.remove(key);
+                            }
+                        }
+                    };
+                    executor.execute(worker);
                 }
             }
+        }
+
+        executor.shutdown();
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
         }
 
         for (HiCZoom zoom : resolutions) {

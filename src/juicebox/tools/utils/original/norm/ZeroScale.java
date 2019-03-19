@@ -32,17 +32,17 @@ import java.util.Iterator;
 
 public class ZeroScale {
 
-    public static double[] scale(MatrixZoomData zd, double[] data) {
+    public static double[] scale(MatrixZoomData zd, double[] data, String key) {
         // if the regular call fails, loosen parameters
-        double[] newVector = launchScalingWithDiffTolerances(zd, data, .01, 0);
+        double[] newVector = launchScalingWithDiffTolerances(zd, data, .01, 0, key);
         if (newVector == null) {
-            newVector = launchScalingWithDiffTolerances(zd, data, .04, .01);
+            newVector = launchScalingWithDiffTolerances(zd, data, .04, .01, key);
         }
         return newVector;
     }
 
     private static double[] launchScalingWithDiffTolerances(MatrixZoomData zd, double[] data, double percentLowRowSumExcludedInitial,
-                                                            double percentZValsToIgnoreInitial) {
+                                                            double percentZValsToIgnoreInitial, String key) {
         double tolerance = 1.0e-3;
         int maxIter = 200;
         double del = 1.0e-2;
@@ -55,17 +55,17 @@ public class ZeroScale {
 
         int count = 0;
         while (newVector == null && count++ < maxOverallAttempts) {
-            System.out.println("Did not converge!");
+            System.err.println("Did not converge for " + key);
             percentLowRowSumExcluded = 1.5 * percentLowRowSumExcluded;
             percentZValsToIgnore = 1.5 * percentZValsToIgnore;
-            System.out.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
+            System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
 
             newVector = scaleToTargetVector(zd, data, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
         }
 
         if (newVector == null) {
-            System.err.println("Scaling result still null; vector did not converge");
+            System.err.println("Scaling result still null for " + key + "; vector did not converge");
         }
         return newVector;
     }
@@ -78,7 +78,7 @@ public class ZeroScale {
         int lind, hind;
 
         //	find the matrix dimensions
-        int k = zd.getXGridAxis().getBinCount() + 1;
+        int k = Math.min(zd.getXGridAxis().getBinCount() + 1, targetVectorInitial.length);
 
         double[] current = new double[k];
         double[] r = new double[k];

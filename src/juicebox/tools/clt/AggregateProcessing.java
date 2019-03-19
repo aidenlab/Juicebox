@@ -41,8 +41,8 @@ class AggregateProcessing {
 
 
         String[] ll51231123 = {"addnorm", "-d", "-F",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec8.hic",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/new_vectors.vec"};
+                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec11.hic",
+                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr1.vec"};
 
         HiCTools.main(ll51231123);
 
