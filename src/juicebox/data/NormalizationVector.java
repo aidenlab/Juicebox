@@ -64,6 +64,14 @@ public class NormalizationVector {
         return type + "_" + chrIdx + "_" + unit + "_" + resolution;
     }
 
+    public int getChrIdx() {
+        return chrIdx;
+    }
+
+    public int getResolution() {
+        return resolution;
+    }
+
     public String getKey() {
         return NormalizationVector.getKey(type, chrIdx, unit.toString(), resolution);
     }
@@ -83,10 +91,14 @@ public class NormalizationVector {
         Matrix matrix = ds.getMatrix(chromosome, chromosome);
         if (matrix == null) return null;
         MatrixZoomData zd = matrix.getZoomData(new HiCZoom(unit, resolution));
-        if (matrix == null) return null;
+        if (zd == null) return null;
+
+        return mmbaScaleToVector(zd);
+    }
+
+    public NormalizationVector mmbaScaleToVector(MatrixZoomData zd) {
 
         double[] newNormVector = ZeroScale.scale(zd, data, getKey());
-
         if (newNormVector != null) {
             newNormVector = normalizeVectorByScaleFactor(newNormVector, zd);
         }

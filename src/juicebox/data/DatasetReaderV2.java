@@ -549,7 +549,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     @Override
-    public Matrix readMatrix(String key) throws IOException {
+    public synchronized Matrix readMatrix(String key) throws IOException {
         Preprocessor.IndexEntry idx = masterIndex.get(key);
         if (idx == null) {
             return null;
@@ -813,8 +813,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
         if (allNaN) return null;
         else return new NormalizationVector(type, chrIdx, unit, binSize, values);
-
-
     }
 
     public Map<String, Preprocessor.IndexEntry> getNormVectorIndex()  { return normVectorIndex;}

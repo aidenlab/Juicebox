@@ -60,6 +60,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         // Keep track of chromosomes that fail to converge, so we don't try them at higher resolutions.
         Set<Chromosome> krBPFailedChromosomes = new HashSet<>();
         Set<Chromosome> krFragFailedChromosomes = new HashSet<>();
+        Set<Chromosome> mmbaBPFailedChromosomes = new HashSet<>();
+        Set<Chromosome> mmbaFragFailedChromosomes = new HashSet<>();
 
         BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
         List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
@@ -79,13 +81,16 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
             if (noFrag && zoom.getUnit() == HiC.Unit.FRAG) continue;
 
-            Set<Chromosome> failureSet = zoom.getUnit() == HiC.Unit.FRAG ? krFragFailedChromosomes : krBPFailedChromosomes;
+            Set<Chromosome> failureSetKR = zoom.getUnit() == HiC.Unit.FRAG ? krFragFailedChromosomes : krBPFailedChromosomes;
+            Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? mmbaFragFailedChromosomes : mmbaBPFailedChromosomes;
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
             ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
             ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
+            ExpectedValueCalculation evMMBA = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.MMBA);
+
 
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -118,21 +123,30 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                     System.out.println("\nVC normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
                 }
                 currentTime = System.currentTimeMillis();
+
                 // KR normalization
-
-
-                if (!failureSet.contains(chr)) {
-
+                if (!failureSetKR.contains(chr)) {
                     double[] kr = nc.computeKR();
                     if (kr == null) {
-                        failureSet.add(chr);
+                        failureSetKR.add(chr);
                     } else {
-
                         updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
-
                     }
                     if (HiCGlobals.printVerboseComments) {
                         System.out.println("KR normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                    }
+                }
+
+                // MMBA normalization
+                if (!failureSetMMBA.contains(chr)) {
+                    double[] mmba = nc.computeMMBA();
+                    if (mmba == null) {
+                        failureSetMMBA.add(chr);
+                    } else {
+                        updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.MMBA, zoom, zd, evMMBA, normVectorBuffer, normVectorIndices);
+                    }
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("MMBA normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
                     }
                 }
             }
@@ -145,6 +159,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             }
             if (evKR.hasData()) {
                 expectedValueCalculations.add(evKR);
+            }
+            if (evMMBA.hasData()) {
+                expectedValueCalculations.add(evMMBA);
             }
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,

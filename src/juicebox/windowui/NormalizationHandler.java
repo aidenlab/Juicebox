@@ -36,6 +36,7 @@ public class NormalizationHandler {
     public static final NormalizationType INTER_KR = new NormalizationType("INTER_KR", "Inter balanced");
     public static final NormalizationType GW_VC = new NormalizationType("GW_VC", "Genome-wide coverage");
     public static final NormalizationType INTER_VC = new NormalizationType("INTER_VC", "Inter coverage");//,
+    public static final NormalizationType MMBA = new NormalizationType("MMBSA", "Fast Balancing MMBSA");
 
     private final static List<NormalizationType> currentlyAvailableNorms = new ArrayList<>();
 

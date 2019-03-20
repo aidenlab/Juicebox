@@ -130,18 +130,31 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         ExecutorService executor = Executors.newFixedThreadPool(10);
         for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
             final Map<String, NormalizationVector> normVectorsByChrAndZoom = normalizationVectorMap.get(customNormType);
-            for (final String key : normVectorsByChrAndZoom.keySet()) {
-                final NormalizationVector nv = normVectorsByChrAndZoom.get(key);
-                if (nv.doesItNeedToBeScaledTo()) {
+            final Set<String> keySet = new HashSet<>(normVectorsByChrAndZoom.keySet());
+            final Map<Integer, Integer> chrAndResolutionWhichFailed = new HashMap<>();
 
+            for (final String key : keySet) {
+                final NormalizationVector nv = normVectorsByChrAndZoom.get(key);
+                if (chrAndResolutionWhichFailed.containsKey(nv.getChrIdx()) && nv.getResolution() < chrAndResolutionWhichFailed.get(nv.getChrIdx())) {
+                    normVectorsByChrAndZoom.remove(key);
+                    continue;
+                }
+                if (nv.doesItNeedToBeScaledTo()) {
                     Runnable worker = new Runnable() {
                         @Override
                         public void run() {
                             NormalizationVector newScaledVector = nv.mmbaScaleToVector(ds);
-                            if (newScaledVector != null) {
-                                normVectorsByChrAndZoom.put(key, newScaledVector);
-                            } else {
-                                normVectorsByChrAndZoom.remove(key);
+                            synchronized (normVectorsByChrAndZoom) {
+                                if (newScaledVector != null) {
+                                    normVectorsByChrAndZoom.put(key, newScaledVector);
+                                } else {
+                                    normVectorsByChrAndZoom.remove(key);
+                                    int currResolution = nv.getResolution();
+                                    int chrIndx = nv.getChrIdx();
+                                    if (currResolution < chrAndResolutionWhichFailed.get(chrIndx)) {
+                                        chrAndResolutionWhichFailed.put(chrIndx, currResolution);
+                                    }
+                                }
                             }
                         }
                     };
@@ -187,17 +200,19 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                                            MatrixZoomData zd, ExpectedValueCalculation evLoaded) throws IOException {
 
         String key = NormalizationVector.getKey(customNormType, chrIndx, zoom.getUnit().toString(), zoom.getBinSize());
-        NormalizationVector vector = normVectors.get(key);
-        if (vector == null) return;
-        // Write loaded norm
-        int position = normVectorBuffer.bytesWritten();
-        putArrayValuesIntoBuffer(normVectorBuffer, vector.getData());
+        if (normVectors.containsKey(key)) {
+            NormalizationVector vector = normVectors.get(key);
+            if (vector == null || vector.getData() == null) return;
+            // Write custom norm
+            int position = normVectorBuffer.bytesWritten();
+            putArrayValuesIntoBuffer(normVectorBuffer, vector.getData());
 
-        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-        normVectorIndex.add(new NormalizationVectorIndexEntry(
-                customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
+            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+            normVectorIndex.add(new NormalizationVectorIndexEntry(
+                    customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
-        evLoaded.addDistancesFromIterator(chrIndx, zd.contactRecordIterator(), vector.getData());
+            evLoaded.addDistancesFromIterator(chrIndx, zd.contactRecordIterator(), vector.getData());
+        }
     }
 
     private static Map<NormalizationType, Map<String, NormalizationVector>> readVectorFile(String[] fnames, ChromosomeHandler chromosomeHandler, NormalizationHandler normalizationHandler) throws IOException {

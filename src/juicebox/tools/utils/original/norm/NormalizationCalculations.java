@@ -26,6 +26,7 @@ package juicebox.tools.utils.original.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.NormalizationVector;
 import juicebox.matrix.SparseSymmetricMatrix;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -53,12 +54,14 @@ public class NormalizationCalculations {
     private ArrayList<ContactRecord> list;
     private int totSize;
     private boolean isEnoughMemory = false;
+    private MatrixZoomData zd = null;
 
     NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
+        this.zd = zd;
         Iterator<ContactRecord> iter1 = zd.contactRecordIterator();
         int count = 0;
         while (iter1.hasNext()) {
@@ -345,7 +348,7 @@ public class NormalizationCalculations {
         return Math.sqrt(norm_sum / matrix_sum);
     }
 
-
+    // todo rewrite to use iterator rather than sparse matrix
     double[] computeKR() {
 
         boolean recalculate = true;
@@ -475,5 +478,18 @@ public class NormalizationCalculations {
                 A.setEntry(offset[x], offset[y], value);
             }
         }
+    }
+
+    public double[] computeMMBA() {
+
+        double[] tempData = new double[totSize];
+        for (int k = 0; k < totSize; k++) {
+            tempData[k] = 1;
+        }
+
+        NormalizationVector tempVector = new NormalizationVector(NormalizationHandler.MMBA, zd.getChr1Idx(),
+                zd.getZoom().getUnit(), zd.getBinSize(), tempData);
+        tempVector.mmbaScaleToVector(zd);
+        return tempVector.getData();
     }
 }
