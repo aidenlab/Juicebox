@@ -137,6 +137,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                     }
                 }
 
+                currentTime = System.currentTimeMillis();
                 // MMBA normalization
                 if (!failureSetMMBA.contains(chr)) {
                     double[] mmba = nc.computeMMBA();

@@ -494,7 +494,7 @@ public class NormalizationCalculations {
 
         NormalizationVector tempVector = new NormalizationVector(NormalizationHandler.MMBA, zd.getChr1Idx(),
                 zd.getZoom().getUnit(), zd.getBinSize(), tempData);
-        tempVector.mmbaScaleToVector(zd);
+        tempVector = tempVector.mmbaScaleToVector(zd);
         return tempVector.getData();
     }
 }

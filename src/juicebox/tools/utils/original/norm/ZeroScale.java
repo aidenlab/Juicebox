@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.original.norm;
 
+import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 
@@ -55,16 +56,19 @@ public class ZeroScale {
 
         int count = 0;
         while (newVector == null && count++ < maxOverallAttempts) {
-            System.err.println("Did not converge for " + key);
+
             percentLowRowSumExcluded = 1.5 * percentLowRowSumExcluded;
             percentZValsToIgnore = 1.5 * percentZValsToIgnore;
-            System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
 
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Did not converge for " + key);
+                System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
+            }
             newVector = scaleToTargetVector(zd, data, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
         }
 
-        if (newVector == null) {
+        if (newVector == null && HiCGlobals.printVerboseComments) {
             System.err.println("Scaling result still null for " + key + "; vector did not converge");
         }
         return newVector;
