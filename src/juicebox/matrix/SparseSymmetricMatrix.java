@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@
 package juicebox.matrix;
 
 
+import juicebox.data.ContactRecord;
 import org.broad.igv.util.collections.FloatArrayList;
 import org.broad.igv.util.collections.IntArrayList;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
@@ -53,6 +55,17 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         rows1 = new IntArrayList(numValsEstimate);
         cols1 = new IntArrayList(numValsEstimate);
         values1 = new FloatArrayList(numValsEstimate);
+    }
+
+    public void populateMatrix(List<ContactRecord> list, int[] offset) {
+        for (ContactRecord cr : list) {
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            float value = cr.getCounts();
+            if (offset[x] != -1 && offset[y] != -1) {
+                setEntry(offset[x], offset[y], value);
+            }
+        }
     }
 
     public double[] multiply(double[] vector) {

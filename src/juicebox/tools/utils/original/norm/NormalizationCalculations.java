@@ -27,7 +27,6 @@ package juicebox.tools.utils.original.norm;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
-import juicebox.matrix.SparseSymmetricMatrix;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
@@ -138,7 +137,7 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static double[] computeKRNormVector(SparseSymmetricMatrix A, double tol, double[] x0, double delta) {
+    private static double[] computeKRNormVector(int[] offset, ArrayList<ContactRecord> list, double tol, double[] x0, double delta) {
 
         int n = x0.length;
         double[] e = new double[n];
@@ -150,7 +149,7 @@ public class NormalizationCalculations {
 
         double rt = Math.pow(tol, 2);
 
-        double[] v = A.multiply(x0);
+        double[] v = sparseMultiplyFromContactRecords(offset, list, x0);
         double[] rk = new double[v.length];
         for (int i = 0; i < v.length; i++) {
             v[i] = v[i] * x0[i];
@@ -199,7 +198,7 @@ public class NormalizationCalculations {
                 for (int i = 0; i < tmp.length; i++) {
                     tmp[i] = x0[i] * p[i];
                 }
-                tmp = A.multiply(tmp);
+                tmp = sparseMultiplyFromContactRecords(offset, list, tmp);
                 alpha = 0;
                 // Update search direction efficiently.
                 for (int i = 0; i < tmp.length; i++) {
@@ -240,7 +239,7 @@ public class NormalizationCalculations {
             for (int i = 0; i < x0.length; i++) {
                 x0[i] = x0[i] * y[i];
             }
-            v = A.multiply(x0);
+            v = sparseMultiplyFromContactRecords(offset, list, x0);
             rho_km1 = 0;
             for (int i = 0; i < v.length; i++) {
                 v[i] = v[i] * x0[i];
@@ -267,6 +266,28 @@ public class NormalizationCalculations {
             return null;
         }
         return x0;
+    }
+
+    private static double[] sparseMultiplyFromContactRecords(int[] offset, ArrayList<ContactRecord> list, double[] vector) {
+        double[] result = new double[vector.length];
+
+        for (ContactRecord cr : list) {
+            int row = cr.getBinX();
+            int col = cr.getBinY();
+            float value = cr.getCounts();
+
+            row = offset[row];
+            col = offset[col];
+
+            if (row != -1 && col != -1) {
+                result[row] += vector[col] * value;
+                if (row != col) {
+                    result[col] += vector[row] * value;
+                }
+            }
+        }
+
+        return result;
     }
 
     boolean isEnoughMemory() {
@@ -348,7 +369,6 @@ public class NormalizationCalculations {
         return Math.sqrt(norm_sum / matrix_sum);
     }
 
-    // todo rewrite to use iterator rather than sparse matrix
     double[] computeKR() {
 
         boolean recalculate = true;
@@ -357,11 +377,7 @@ public class NormalizationCalculations {
         int iteration = 1;
 
         while (recalculate && iteration <= 6) {
-            // create new matrix upon every iteration, because we've thrown out rows
-
-            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix(Math.max(100, list.size()));
-            populateMatrix(sparseMatrix, offset);
-
+            // create new matrix indices upon every iteration, because we've thrown out rows
             // newSize is size of new sparse matrix (non-sparse rows)
             int newSize = 0;
             for (int offset1 : offset) {
@@ -372,7 +388,7 @@ public class NormalizationCalculations {
             double[] x0 = new double[newSize];
             for (int i = 0; i < x0.length; i++) x0[i] = 1;
 
-            x0 = computeKRNormVector(sparseMatrix, 0.000001, x0, 0.1);
+            x0 = computeKRNormVector(offset, list, 0.000001, x0, 0.1);
 
             // assume all went well and we don't need to recalculate
             recalculate = false;
@@ -467,17 +483,6 @@ public class NormalizationCalculations {
 
         return offset;
 
-    }
-
-    private void populateMatrix(SparseSymmetricMatrix A, int[] offset) {
-        for (ContactRecord cr : list) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            if (offset[x] != -1 && offset[y] != -1) {
-                A.setEntry(offset[x], offset[y], value);
-            }
-        }
     }
 
     public double[] computeMMBA() {
