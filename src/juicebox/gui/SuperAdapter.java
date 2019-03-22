@@ -31,7 +31,7 @@ import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
-import juicebox.mapcolorui.HiCColorScale;
+import juicebox.mapcolorui.PearsonColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
 import juicebox.state.ImportStateFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
@@ -77,7 +77,7 @@ public class SuperAdapter {
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
     private AssemblyStateTracker assemblyStateTracker;
-    private HiCColorScale pearsonColorScale;
+    private PearsonColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
     public static boolean assemblyModeCurrentlyActive = false;
@@ -917,7 +917,7 @@ public class SuperAdapter {
         return n - 1 - currIndex;
     }
 
-    public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
+    public void setPearsonColorScale(PearsonColorScale pearsonColorScale) {
         this.pearsonColorScale = pearsonColorScale;
     }
 

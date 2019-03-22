@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,8 +44,8 @@ import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso
@@ -53,14 +53,14 @@ import java.util.List;
  */
 class HeatmapRenderer {
 
-    private final HiCColorScale pearsonColorScale;
+    private final PearsonColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
     private final PreDefColorScale preDefColorScale;
 
     public HeatmapRenderer() {
 
-        pearsonColorScale = new HiCColorScale();
+        pearsonColorScale = new PearsonColorScale();
 
         preDefColorScale = new PreDefColorScale("Template",
                 new Color[]{
@@ -162,6 +162,54 @@ class HeatmapRenderer {
         int maxY = y + height - 1;
 
         switch (displayOption) {
+            case NORM2: {
+
+                String key = zd.getColorScaleKey(displayOption);
+
+                BasicMatrix bm = zd.getNormSquared(normalizationType);
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm, percentile);
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
+
+                break;
+            }
+            case NORM2CTRL: {
+
+                String key = zd.getColorScaleKey(displayOption);
+
+                BasicMatrix bm = controlZD.getNormSquared(normalizationType);
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm, percentile);
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
+
+                break;
+            }
+            case NORM2OBSVSCTRL: {
+
+                if (controlDF == null) {
+                    System.err.println("Control DF is NULL");
+                    return false;
+                }
+
+                BasicMatrix bm1 = zd.getNormSquared(normalizationType);
+                BasicMatrix bm2 = controlZD.getNormSquared(normalizationType);
+
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm1, percentile) + computePercentile(bm2, percentile);
+
+
+                String key = zd.getColorScaleKey(displayOption);
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm1, bm2, originX, originY, width, height, null, key, g, cs);
+                break;
+            }
             case PEARSON: {
 
                 String key = zd.getColorScaleKey(displayOption);
@@ -172,7 +220,7 @@ class HeatmapRenderer {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
 
-                renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
 
                 break;
             }
@@ -189,7 +237,7 @@ class HeatmapRenderer {
                 if (pearsonColorScale.doesNotContainKey(key)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
-                renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
 
                 break;
             }
@@ -210,7 +258,7 @@ class HeatmapRenderer {
                     pearsonColorScale.setMinMax(key, min, max);
                 }
 
-                renderPearsonMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g, null);
                 break;
             }
             default:
@@ -244,7 +292,7 @@ class HeatmapRenderer {
                     if (controlZD != null && ctrlBlocks != null) {
 
                         String key = controlZD.getColorScaleKey(displayOption);
-                        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks);
+                        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
                         for (Block b : ctrlBlocks) {
 
@@ -299,7 +347,7 @@ class HeatmapRenderer {
                     if (comboBlocks.isEmpty()) return false;
 
                     String key = zd.getColorScaleKey(displayOption);
-                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
+                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
 
                     double averageCount = zd.getAverageCount();
                     double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -390,7 +438,7 @@ class HeatmapRenderer {
                     }
 
                     String key = zd.getColorScaleKey(displayOption);
-                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
+                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
                     double averageCount = zd.getAverageCount();
                     double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -482,7 +530,7 @@ class HeatmapRenderer {
     }
 
 
-    private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
+    private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks, float givenMax) {
 
         if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE
                 || displayOption == MatrixType.OECTRL || displayOption == MatrixType.OEVS
@@ -503,7 +551,10 @@ class HeatmapRenderer {
                 ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
                 if (observedColorScale == null) {
                     double percentile = wholeGenome ? 99 : 95;
-                    float max = computePercentile(blocks, percentile);
+                    float max = givenMax;
+                    if (blocks != null) {
+                        max = computePercentile(blocks, percentile);
+                    }
 
                     //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                     if (HiCGlobals.isDarkulaModeEnabled) {
@@ -563,6 +614,18 @@ class HeatmapRenderer {
         return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
     }
 
+    private float computePercentile(BasicMatrix bm, double p) {
+        DoubleArrayList dal = new DoubleArrayList(10000);
+
+        for (int i = 0; i < bm.getRowDimension(); i++) {
+            for (int j = i + 1; j < bm.getColumnDimension(); j++) {
+                dal.add(bm.getEntry(i, j));
+            }
+        }
+
+        return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
+    }
+
 
     /**
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
@@ -571,12 +634,12 @@ class HeatmapRenderer {
      * @param bm2         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
-     * @param pearsonColorScale color scale to apply
+     * @param colorScale color scale to apply
      * @param key
      * @param g          graphics to render matrix into
      */
-    private void renderPearsonMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
-                                     HiCColorScale pearsonColorScale, String key, Graphics2D g) {
+    private void renderDenseMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
+                                   PearsonColorScale colorScale, String key, Graphics2D g, ColorScale cs) {
         int endX = Math.min(originX + width, bm1.getColumnDimension());
         int endY = Math.min(originY + height, bm1.getRowDimension());
 
@@ -585,7 +648,7 @@ class HeatmapRenderer {
             for (int col = originX; col < endX; col++) {
 
                 float score = bm1.getEntry(row, col);
-                Color color = getPearsonColor(key, score, pearsonColorScale);
+                Color color = getDenseMatrixColor(key, score, colorScale, cs);
                 int px = col - originX;
                 int py = row - originY;
                 g.setColor(color);
@@ -596,7 +659,7 @@ class HeatmapRenderer {
                 if (col != row) {
                     if (bm2 != null) {
                         float controlScore = bm2.getEntry(row, col);
-                        Color controlColor = getPearsonColor(key, controlScore, pearsonColorScale);
+                        Color controlColor = getDenseMatrixColor(key, controlScore, colorScale, cs);
                         px = row - originX;
                         py = col - originY;
                         g.setColor(controlColor);
@@ -611,12 +674,16 @@ class HeatmapRenderer {
         }
     }
 
-    private Color getPearsonColor(String key, float score, HiCColorScale colorScale) {
+    private Color getDenseMatrixColor(String key, float score, PearsonColorScale pearsonColorScale, ColorScale genericColorScale) {
         Color color;
         if (Float.isNaN(score)) {
             color = Color.gray;
         } else {
-            color = score == 0 ? Color.black : colorScale.getColor(key, score);
+            if (pearsonColorScale != null) {
+                color = score == 0 ? Color.black : pearsonColorScale.getColor(key, score);
+            } else {
+                color = genericColorScale.getColor(score);
+            }
         }
         return color;
     }
@@ -671,7 +738,7 @@ class HeatmapRenderer {
         }
     }
 
-    public HiCColorScale getPearsonColorScale() {
+    public PearsonColorScale getPearsonColorScale() {
         return pearsonColorScale;
     }
 }

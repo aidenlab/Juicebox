@@ -332,6 +332,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return checkBoxList;
     }
 
+    @Override
+    public NormalizationVector getNormalizationVector(int chr1Idx, HiCZoom zoom, NormalizationType normalizationType) {
+        return dataset.getNormalizationVector(chr1Idx, zoom, normalizationType);
+    }
+
     private String readGraphs(String graphFileName) throws IOException {
         String graphs;
         BufferedReader reader = null;
