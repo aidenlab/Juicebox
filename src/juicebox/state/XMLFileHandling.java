@@ -70,7 +70,7 @@ public class XMLFileHandling {
 
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
-                hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getNormalizationType().getLabel()
+                hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getObsNormalizationType().getLabel()
                 + "$$" + colorVals + "$$" + colorRangeScaleFactor;
 
         if (currentTracks != null && !currentTracks.isEmpty()) {
@@ -81,7 +81,7 @@ public class XMLFileHandling {
                 currentTrackName.append(track.getName()).append(", ");
                 track.getLocator().getColor();
                 try {
-                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType(), false);
+                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getObsNormalizationType(), false);
                     HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, track.getLocator(), source);
 
                     configTrackInfo = track.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","

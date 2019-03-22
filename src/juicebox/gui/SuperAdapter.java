@@ -441,15 +441,16 @@ public class SuperAdapter {
             if (control) {
                 hic.setControlDataset(dataset);
                 options = HiCGlobals.enabledMatrixTypesWithControl;
+                mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomeHandler(dataset.getChromosomeHandler());
                 mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
-                String[] normalizationOptions = hic.getNormalizationOptions();
-                mainViewPanel.setEnabledForNormalization(normalizationOptions,
-                        hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
                     options = HiCGlobals.enabledMatrixTypesWithControl;
@@ -555,10 +556,10 @@ public class SuperAdapter {
         return retVal[0];
     }
 
-    void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
+    void safeNormalizationComboBoxActionPerformed(final ActionEvent e, final boolean isForControl) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeNormalizationComboBoxActionPerformed();
+                unsafeNormalizationComboBoxActionPerformed(isForControl);
             }
         };
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
@@ -728,10 +729,16 @@ public class SuperAdapter {
         mainViewPanel.updateTrackPanel(hic.getLoadedTracks().size() > 0);
     }
 
-    private void unsafeNormalizationComboBoxActionPerformed() {
-        String value = (String) mainViewPanel.getNormalizationComboBox().getSelectedItem();
-        hic.setNormalizationType(value);
-        refreshMainOnly();
+    private void unsafeNormalizationComboBoxActionPerformed(boolean isForControl) {
+        if (isForControl) {
+            String value = (String) mainViewPanel.getControlNormalizationComboBox().getSelectedItem();
+            hic.setControlNormalizationType(value);
+            refreshMainOnly();
+        } else {
+            String value = (String) mainViewPanel.getObservedNormalizationComboBox().getSelectedItem();
+            hic.setObsNormalizationType(value);
+            refreshMainOnly();
+        }
     }
 
     public MainViewPanel getMainViewPanel() {
@@ -1060,8 +1067,7 @@ public class SuperAdapter {
                     LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
 
                     CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
-                    String[] normalizationOptions = hic.getNormalizationOptions();
-                    mainViewPanel.setEnabledForNormalization(normalizationOptions,
+                    mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
                             hic.getDataset().getVersion() >= HiCGlobals.minVersion);
                     repaint();
                 }

@@ -117,8 +117,8 @@ class HeatmapRenderer {
         );
     }
 
-    public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption) {
-        return zd.getColorScaleKey(displayOption);
+    public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption, NormalizationType obsNorm, NormalizationType ctrlNorm) {
+        return zd.getColorScaleKey(displayOption, obsNorm, ctrlNorm);
     }
 
     public boolean render(int originX,
@@ -128,7 +128,8 @@ class HeatmapRenderer {
                           final MatrixZoomData zd,
                           final MatrixZoomData controlZD,
                           final MatrixType displayOption,
-                          final NormalizationType normalizationType,
+                          final NormalizationType observedNormalizationType,
+                          final NormalizationType controlNormalizationType,
                           final ExpectedValueFunction df,
                           final ExpectedValueFunction controlDF,
                           Graphics2D g,
@@ -161,12 +162,12 @@ class HeatmapRenderer {
         int maxX = x + width - 1;
         int maxY = y + height - 1;
 
+        String key = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
+        String controlKey = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
+
         switch (displayOption) {
             case NORM2: {
-
-                String key = zd.getColorScaleKey(displayOption);
-
-                BasicMatrix bm = zd.getNormSquared(normalizationType);
+                BasicMatrix bm = zd.getNormSquared(observedNormalizationType);
                 double percentile = isWholeGenome ? 99 : 95;
                 float max = computePercentile(bm, percentile);
 
@@ -177,43 +178,34 @@ class HeatmapRenderer {
                 break;
             }
             case NORM2CTRL: {
-
-                String key = zd.getColorScaleKey(displayOption);
-
-                BasicMatrix bm = controlZD.getNormSquared(normalizationType);
+                BasicMatrix bm = controlZD.getNormSquared(controlNormalizationType);
                 double percentile = isWholeGenome ? 99 : 95;
                 float max = computePercentile(bm, percentile);
 
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+                ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, null, max);
 
                 renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
 
                 break;
             }
             case NORM2OBSVSCTRL: {
-
                 if (controlDF == null) {
                     System.err.println("Control DF is NULL");
                     return false;
                 }
 
-                BasicMatrix bm1 = zd.getNormSquared(normalizationType);
-                BasicMatrix bm2 = controlZD.getNormSquared(normalizationType);
+                BasicMatrix bm1 = zd.getNormSquared(observedNormalizationType);
+                BasicMatrix bm2 = controlZD.getNormSquared(controlNormalizationType);
 
                 double percentile = isWholeGenome ? 99 : 95;
                 float max = computePercentile(bm1, percentile) + computePercentile(bm2, percentile);
 
-
-                String key = zd.getColorScaleKey(displayOption);
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
 
                 renderDenseMatrix(bm1, bm2, originX, originY, width, height, null, key, g, cs);
                 break;
             }
             case PEARSON: {
-
-                String key = zd.getColorScaleKey(displayOption);
-
                 BasicMatrix bm = zd.getPearsons(df);
 
                 if (pearsonColorScale.doesNotContainKey(key)) {
@@ -225,7 +217,6 @@ class HeatmapRenderer {
                 break;
             }
             case PEARSONCTRL: {
-
                 if (controlDF == null) {
                     System.err.println("Control DF is NULL");
                     return false;
@@ -233,8 +224,7 @@ class HeatmapRenderer {
 
                 BasicMatrix bm = controlZD.getPearsons(controlDF);
 
-                String key = controlZD.getColorScaleKey(displayOption);
-                if (pearsonColorScale.doesNotContainKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(controlKey)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
                 renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
@@ -251,7 +241,6 @@ class HeatmapRenderer {
                 BasicMatrix bm1 = zd.getPearsons(df);
                 BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
-                String key = zd.getColorScaleKey(displayOption);
                 if (pearsonColorScale.doesNotContainKey(key)) {
                     float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
                     float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
@@ -269,7 +258,7 @@ class HeatmapRenderer {
                 List<Block> blocks = null;
                 try {
                     if (zd != null)
-                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, observedNormalizationType, isImportant);
                 } catch (Exception ignored) {
                     System.err.println("problems with MZD");
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
@@ -278,7 +267,7 @@ class HeatmapRenderer {
                 List<Block> ctrlBlocks = null;
                 try {
                     if (controlZD != null)
-                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, controlNormalizationType, isImportant);
                 } catch (Exception ignored) {
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
                 }
@@ -291,8 +280,7 @@ class HeatmapRenderer {
                 if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
                     if (controlZD != null && ctrlBlocks != null) {
 
-                        String key = controlZD.getColorScaleKey(displayOption);
-                        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+                        ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
                         for (Block b : ctrlBlocks) {
 
@@ -346,7 +334,6 @@ class HeatmapRenderer {
                     if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
                     if (comboBlocks.isEmpty()) return false;
 
-                    String key = zd.getColorScaleKey(displayOption);
                     ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
 
                     double averageCount = zd.getAverageCount();
@@ -433,11 +420,10 @@ class HeatmapRenderer {
                     Map<String, Block> controlBlocks = new HashMap<>();
                     if (hasControl) {
                         for (Block b : ctrlBlocks) {
-                            controlBlocks.put(b.getUniqueRegionID(), b);
+                            controlBlocks.put(controlZD.getNormLessBlockKey(b), b);
                         }
                     }
 
-                    String key = zd.getColorScaleKey(displayOption);
                     ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
                     double averageCount = zd.getAverageCount();
@@ -451,10 +437,10 @@ class HeatmapRenderer {
 
                             Map<String, ContactRecord> controlRecords = new HashMap<>();
                             if (hasControl) {
-                                Block cb = controlBlocks.get(b.getUniqueRegionID());
+                                Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
                                 if (cb != null) {
                                     for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                                        controlRecords.put(ctrlRec.getKey(), ctrlRec);
+                                        controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
                                     }
                                 }
                             }
@@ -484,16 +470,16 @@ class HeatmapRenderer {
                                         score = expected;
                                     }
                                 } else if (displayOption == MatrixType.RATIO && hasControl) {
-                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
-                                        score = rec.getCounts() / ctrlRecord.getCounts();
-                                       // System.err.println(ctrlAverageCount + " " + averageCount);
+                                        //score = rec.getCounts() / ctrlRecord.getCounts();
+                                        // System.err.println(ctrlAverageCount + " " + averageCount);
                                         score = num / den;
                                     }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {
-                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;

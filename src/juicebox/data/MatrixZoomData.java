@@ -181,12 +181,16 @@ public class MatrixZoomData {
         return getKey() + "_" + blockNumber + "_" + no;
     }
 
+    public String getNormLessBlockKey(Block block) {
+        return getKey() + "_" + block.getNumber() + "_";
+    }
+
     private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
         return getKey(chr1, chr2) + "_" + blockNumber + "_" + no;
     }
 
-    public String getColorScaleKey(MatrixType displayOption) {
-        return getKey() + displayOption;
+    public String getColorScaleKey(MatrixType displayOption, NormalizationType n1, NormalizationType n2) {
+        return getKey() + displayOption + "_" + n1 + "_" + n2;
     }
 
     public String getTileKey(int tileRow, int tileColumn, MatrixType displayOption) {
