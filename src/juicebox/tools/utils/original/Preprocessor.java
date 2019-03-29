@@ -80,7 +80,7 @@ public class Preprocessor {
     private Set<String> randomizeFragMapFiles = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
-    private ArrayList<FragmentCalculation> randomizeFragMaps = null;
+    private ArrayList<FragmentCalculation> fragmentCalculationsForRandomization = null;
     private Alignment alignmentFilter;
     private static final Random random = new Random();
     private static boolean allowPositionsRandomization = false;
@@ -310,11 +310,11 @@ public class Preprocessor {
 
             if (allowPositionsRandomization) {
                 if (randomizeFragMapFiles != null) {
-                    randomizeFragMaps = new ArrayList<>();
+                    fragmentCalculationsForRandomization = new ArrayList<>();
                     for (String fragmentFileName : randomizeFragMapFiles) {
                         try {
                             FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
-                            randomizeFragMaps.add(fragmentCalculation);
+                            fragmentCalculationsForRandomization.add(fragmentCalculation);
                             System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
                             System.err.println(String.format("Warning: Unable to process fragment file %s. Randomization will continue without fragment file %s.", fragmentFileName, fragmentFileName));
@@ -660,8 +660,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         String currentMatrixKey = null;
 
         // randomization error/ambiguity stats
-        long noMapFoundCount = 0;
-        long mapDifferentCount = 0;
+        int noMapFoundCount = 0;
+        int mapDifferentCount = 0;
 
         while (iter.hasNext()) {
             AlignmentPair pair = iter.next();
@@ -702,9 +702,9 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 // Randomize
                 if (fragmentCalculation != null && allowPositionsRandomization) {
                     FragmentCalculation fragMapToUse;
-                    if (randomizeFragMaps != null) {
-                        FragmentCalculation fragMap1 = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
-                        FragmentCalculation fragMap2 = findFragMap(randomizeFragMaps, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
+                    if (fragmentCalculationsForRandomization != null) {
+                        FragmentCalculation fragMap1 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
+                        FragmentCalculation fragMap2 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
 
                         if (fragMap1 == null && fragMap2 == null) {
                             noMapFoundCount += 1;
