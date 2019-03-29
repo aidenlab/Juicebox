@@ -25,7 +25,6 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import org.jfree.ui.Align;
 
 import java.util.Arrays;
 import java.util.HashSet;
