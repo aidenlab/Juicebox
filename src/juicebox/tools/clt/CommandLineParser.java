@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import org.jfree.ui.Align;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -180,7 +181,9 @@ public class CommandLineParser extends CmdLineParser {
         } else if (alignmentInt == 2) {
             return Alignment.OUTER;
         } else if (alignmentInt == 3) {
-            return Alignment.TANDEM;
+            return Alignment.LL;
+        } else if (alignmentInt == 4) {
+            return Alignment.RR;
         } else {
             throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
         }
@@ -212,7 +215,7 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public enum Alignment {
-        INNER, OUTER, TANDEM
+        INNER, OUTER, LL, RR;
     }
 
     /**
