@@ -559,8 +559,13 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     }
 
     private static Alignment calculateAlignment(AlignmentPair pair) {
+
         if (pair.getStrand1() == pair.getStrand2()) {
-            return Alignment.TANDEM;
+            if (pair.getStrand1()) {
+                return Alignment.RR;
+            } else {
+                return Alignment.LL;
+            }
         } else if (pair.getStrand1()) {
             if (pair.getPos1() < pair.getPos2()) {
                 return Alignment.INNER;
