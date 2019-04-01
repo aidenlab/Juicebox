@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,8 @@ public class CommandLineParser extends CmdLineParser {
     // sets of strings
     private static Option multipleChromosomesOption = null;
     private static Option resolutionOption = null;
+    private static Option randomizePositionMapsOption = null;
+
 
     //filter option based on directionality
     private static Option alignmentFilterOption = null;
@@ -104,6 +106,8 @@ public class CommandLineParser extends CmdLineParser {
         alignmentFilterOption = addIntegerOption('a', "alignment");
         randomizePositionOption = addBooleanOption("randomize_position");
         randomSeedOption = addLongOption("random_seed");
+        randomizePositionMapsOption = addStringOption("randomize_pos_maps");
+
     }
 
 
@@ -242,4 +246,6 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public Set<String> getResolutionOption() { return optionToStringSet(resolutionOption);}
+
+    public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
 }

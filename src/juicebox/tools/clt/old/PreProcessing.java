@@ -61,6 +61,8 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -a <1, 2, 3, 4> filter based on inner, outer, left-left, right-right pairs respectively\n"
                 + "           : --randomize_position randomize positions between fragment sites\n"
                 + "           : --random_seed seed for random generator\n"
+                + "           : --randomize_pos_maps fragment maps for randomization\n"
+
 
         );
     }
@@ -103,6 +105,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
         preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
         preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+        preprocessor.setRandomizeFragMaps(parser1.getRandomizePositionMaps());
 
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();
