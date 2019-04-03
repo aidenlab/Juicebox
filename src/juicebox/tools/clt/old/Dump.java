@@ -95,7 +95,7 @@ public class Dump extends JuiceboxCLT {
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
             }
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
                 pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
@@ -131,7 +131,7 @@ public class Dump extends JuiceboxCLT {
 
                 if (matrix == null) continue;
                 MatrixZoomData zd = matrix.getZoomData(zoom);
-                Iterator<ContactRecord> iter = zd.contactRecordIterator();
+                Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
                 while (iter.hasNext()) {
                     ContactRecord cr = iter.next();
                     int x = cr.getBinX();

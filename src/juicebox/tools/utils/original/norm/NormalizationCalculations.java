@@ -26,7 +26,6 @@ package juicebox.tools.utils.original.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
-import juicebox.data.NormalizationVector;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
@@ -50,18 +49,17 @@ import java.util.Iterator;
  */
 public class NormalizationCalculations {
 
-    private ArrayList<ContactRecord> list;
+    private ArrayList<ContactRecord> contactRecords;
     private int totSize;
     private boolean isEnoughMemory = false;
-    private MatrixZoomData zd = null;
 
     NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
-        this.zd = zd;
-        Iterator<ContactRecord> iter1 = zd.contactRecordIterator();
+
+        Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
         int count = 0;
         while (iter1.hasNext()) {
             iter1.next();
@@ -70,18 +68,18 @@ public class NormalizationCalculations {
         if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
-            this.list = new ArrayList<>();
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            this.contactRecords = new ArrayList<>();
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
-                list.add(cr);
+                contactRecords.add(cr);
             }
             this.totSize = zd.getXGridAxis().getBinCount();
         }
     }
 
     public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
-        this.list = list;
+        this.contactRecords = list;
         this.totSize = totSize;
     }
 
@@ -296,18 +294,30 @@ public class NormalizationCalculations {
 
     public double[] getNorm(NormalizationType normOption) {
         double[] norm;
-        String normLabel = normOption.getLabel().toUpperCase();
-        if (normLabel.endsWith("KR")) {
-            norm = computeKR();
-        } else if (normLabel.endsWith("VC")) {
-            norm = computeVC();
-        } else if (normLabel.endsWith("NONE")) {
-            norm = new double[totSize];
-            Arrays.fill(norm, 1);
-            return norm;
-        } else {
-            System.err.println("Not supported for normalization " + normOption);
-            return null;
+        switch (normOption.getLabel().toUpperCase()) {
+            case NormalizationHandler.strKR:
+            case NormalizationHandler.strGW_KR:
+            case NormalizationHandler.strINTER_KR:
+                norm = computeKR();
+                break;
+            case NormalizationHandler.strVC:
+            case NormalizationHandler.strVC_SQRT:
+            case NormalizationHandler.strGW_VC:
+            case NormalizationHandler.strINTER_VC:
+                norm = computeVC();
+                break;
+            case NormalizationHandler.strSCALE:
+            case NormalizationHandler.strGW_SCALE:
+            case NormalizationHandler.strINTER_SCALE:
+                norm = computeMMBA();
+                break;
+            case NormalizationHandler.strNONE:
+                norm = new double[totSize];
+                Arrays.fill(norm, 1);
+                return norm;
+            default:
+                System.err.println("Not supported for normalization " + normOption);
+                return null;
         }
 
         double factor = getSumFactor(norm);
@@ -327,7 +337,7 @@ public class NormalizationCalculations {
 
         for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
 
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -350,7 +360,7 @@ public class NormalizationCalculations {
     double getSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -388,7 +398,7 @@ public class NormalizationCalculations {
             double[] x0 = new double[newSize];
             for (int i = 0; i < x0.length; i++) x0[i] = 1;
 
-            x0 = computeKRNormVector(offset, list, 0.000001, x0, 0.1);
+            x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
 
             // assume all went well and we don't need to recalculate
             recalculate = false;
@@ -451,7 +461,7 @@ public class NormalizationCalculations {
 
         for (int i = 0; i < rowSums.length; i++) rowSums[i] = 0;
 
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -487,14 +497,11 @@ public class NormalizationCalculations {
 
     public double[] computeMMBA() {
 
-        double[] tempData = new double[totSize];
+        double[] tempTargetVector = new double[totSize];
         for (int k = 0; k < totSize; k++) {
-            tempData[k] = 1;
+            tempTargetVector[k] = 1;
         }
 
-        NormalizationVector tempVector = new NormalizationVector(NormalizationHandler.MMBA, zd.getChr1Idx(),
-                zd.getZoom().getUnit(), zd.getBinSize(), tempData);
-        tempVector = tempVector.mmbaScaleToVector(zd);
-        return tempVector.getData();
+        return ZeroScale.mmbaScaleToVector(contactRecords, tempTargetVector);
     }
 }

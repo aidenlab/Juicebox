@@ -25,16 +25,18 @@
 package juicebox.tools.clt;
 
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
+import juicebox.data.*;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.tools.utils.original.norm.ZeroScale;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
@@ -90,6 +92,28 @@ class UnitTests {
         finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
         System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
                 outputMergedFile.getAbsolutePath());
+    }
+
+    public static void testCustomFastScaling() {
+        ArrayList<String> files = new ArrayList<>();
+        files.add("/Users/muhammad/Desktop/testtemp/imr90_intra_nofrag_30.hic");
+        Dataset ds = HiCFileTools.extractDatasetForCLT(files, false);
+        Chromosome chr1 = ds.getChromosomeHandler().getAutosomalChromosomesArray()[0];
+        Matrix matrix = ds.getMatrix(chr1, chr1);
+
+        MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, 50000));
+
+        double[] targetVectorInitial = new double[(chr1.getLength() / 50000) + 1];
+        for (int i = 0; i < targetVectorInitial.length; i++) {
+            targetVectorInitial[i] = 1;
+        }
+
+        HiCGlobals.printVerboseComments = true;
+
+        double[] result = ZeroScale.launchScalingWithDiffTolerances(zd.getContactRecordList(), targetVectorInitial,
+                .04, .01, matrix.getKey());
+
+        System.out.println(Arrays.toString(result));
     }
 
     public void runUnitTests() {

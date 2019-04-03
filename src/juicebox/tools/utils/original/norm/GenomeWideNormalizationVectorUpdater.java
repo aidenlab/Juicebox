@@ -67,11 +67,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             // TODO make this dependent on memory, do as much as possible
             if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
 
-                // do all four genome-wide normalizations
-                NormalizationType[] types = {NormalizationHandler.GW_KR, NormalizationHandler.GW_VC,
-                        NormalizationHandler.INTER_KR, NormalizationHandler.INTER_VC};
-
-                for (NormalizationType normType : types) {
+                for (NormalizationType normType : NormalizationHandler.getAllGWNormTypes()) {
 
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
 
@@ -99,9 +95,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 Matrix matrix = ds.getMatrix(chr, chr);
 
                 if (matrix == null) continue;
-                NormalizationType[] possibleNorms = new NormalizationType[]{NormalizationHandler.VC, NormalizationHandler.VC_SQRT, NormalizationHandler.KR};
 
-                for (NormalizationType normType : possibleNorms) {
+                for (NormalizationType normType : NormalizationHandler.getAllNormTypes()) {
                     NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
                     if (vector != null) {
                         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vector.getData(), chr.getIndex(), normType, zoom);
@@ -129,7 +124,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                                                                                                      NormalizationType norm) {
 
         boolean includeIntra = false;
-        if (norm.equals(NormalizationHandler.GW_KR) || norm.equals(NormalizationHandler.GW_VC)) {
+        if (NormalizationHandler.isGenomeWideNorm(norm)) {
             includeIntra = true;
         }
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
@@ -155,7 +150,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
             if (matrix == null) continue;
             MatrixZoomData zd = matrix.getZoomData(zoom);
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
                 int x = cr.getBinX();
@@ -199,7 +194,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     if (matrix != null) {
                         MatrixZoomData zd = matrix.getZoomData(zoom);
                         if (zd != null) {
-                            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+                            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
                             while (iter.hasNext()) {
                                 ContactRecord cr = iter.next();
                                 int binX = cr.getBinX() + addX;
@@ -220,11 +215,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
     public static void updateHicFileForGW(Dataset ds, HiCZoom zoom, List<NormalizationVectorIndexEntry> normVectorIndices,
                                           BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
-        // do all four genome-wide normalizations
-        NormalizationType[] types = {NormalizationHandler.GW_KR, NormalizationHandler.GW_VC,
-                NormalizationHandler.INTER_KR, NormalizationHandler.INTER_VC};
-
-        for (NormalizationType normType : types) {
+        for (NormalizationType normType : NormalizationHandler.getAllGWNormTypes()) {
 
             Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
 

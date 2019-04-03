@@ -47,10 +47,12 @@ class AggregateProcessing {
                 "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr_all.vec"};
 
         //String[] ll51231123 = {"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz","/Users/muhammad/Desktop/pre_jars/scaled74.hic","hg19"};
+
+        ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
+
         HiCTools.main(ll51231123);
 
-        time = (System.currentTimeMillis() - time) / 1000;
-        System.out.println(time);
+        UnitTests.testCustomFastScaling();
 
     }
 

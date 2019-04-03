@@ -89,7 +89,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
             ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
-            ExpectedValueCalculation evMMBA = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.MMBA);
+            ExpectedValueCalculation evMMBA = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.SCALE);
 
 
             // Loop through chromosomes
@@ -138,16 +138,16 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 }
 
                 currentTime = System.currentTimeMillis();
-                // MMBA normalization
+                // Fast scaling normalization
                 if (!failureSetMMBA.contains(chr)) {
                     double[] mmba = nc.computeMMBA();
                     if (mmba == null) {
                         failureSetMMBA.add(chr);
                     } else {
-                        updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.MMBA, zoom, zd, evMMBA, normVectorBuffer, normVectorIndices);
+                        updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.SCALE, zoom, zd, evMMBA, normVectorBuffer, normVectorIndices);
                     }
                     if (HiCGlobals.printVerboseComments) {
-                        System.out.println("MMBA normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                        System.out.println("Fast scaling normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
                     }
                 }
             }
@@ -179,6 +179,6 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
 
-        ev.addDistancesFromIterator(chrIdx, zd.contactRecordIterator(), vec);
+        ev.addDistancesFromIterator(chrIdx, zd.getNewContactRecordIterator(), vec);
     }
 }

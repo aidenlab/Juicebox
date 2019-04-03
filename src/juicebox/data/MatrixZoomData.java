@@ -728,7 +728,7 @@ public class MatrixZoomData {
         double[][] vectors = new double[dim][];
 
         // Loop through all contact records
-        Iterator<ContactRecord> iter = contactRecordIterator();
+        Iterator<ContactRecord> iter = getNewContactRecordIterator();
         while (iter.hasNext()) {
 
             ContactRecord record = iter.next();
@@ -1127,8 +1127,18 @@ public class MatrixZoomData {
      *
      * @return iterator for contact records
      */
-    public Iterator<ContactRecord> contactRecordIterator() {
+    public Iterator<ContactRecord> getNewContactRecordIterator() {
         return new ContactRecordIterator();
+    }
+
+    public List<ContactRecord> getContactRecordList() {
+        List<ContactRecord> records = new ArrayList<>();
+        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            records.add(cr);
+        }
+        return records;
     }
 
     public void clearCache() {
@@ -1210,7 +1220,4 @@ public class MatrixZoomData {
             throw new RuntimeException("remove() is not supported");
         }
     }
-//    public void preloadSlides(){
-
-//    }
 }

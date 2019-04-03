@@ -31,7 +31,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author jrobinso
@@ -98,51 +98,12 @@ public class NormalizationVector {
 
     public NormalizationVector mmbaScaleToVector(MatrixZoomData zd) {
 
-        double[] newNormVector = ZeroScale.scale(zd, data, getKey());
+        List<ContactRecord> contactRecordList = zd.getContactRecordList();
+        double[] newNormVector = ZeroScale.scale(contactRecordList, data, getKey());
         if (newNormVector != null) {
-            newNormVector = normalizeVectorByScaleFactor(newNormVector, zd);
+            newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, contactRecordList);
         }
 
         return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);
-    }
-
-    private double[] normalizeVectorByScaleFactor(double[] newNormVector, MatrixZoomData zd) {
-
-        for (int k = 0; k < newNormVector.length; k++) {
-            if (newNormVector[k] <= 0 || Double.isNaN(newNormVector[k])) {
-                newNormVector[k] = Double.NaN;
-            } else {
-                newNormVector[k] = 1 / newNormVector[k];
-            }
-        }
-
-        double normalizedSumTotal = 0, sumTotal = 0;
-
-        Iterator<ContactRecord> iterator = zd.contactRecordIterator();
-        while (iterator.hasNext()) {
-            ContactRecord cr = iterator.next();
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
-
-            if (!Double.isNaN(newNormVector[x]) && !Double.isNaN(newNormVector[y])) {
-                double normalizedValue = counts / (newNormVector[x] * newNormVector[y]);
-                normalizedSumTotal += normalizedValue;
-                sumTotal += counts;
-                if (x != y) {
-                    normalizedSumTotal += normalizedValue;
-                    sumTotal += counts;
-                }
-            }
-        }
-
-        double scaleFactor = Math.sqrt(normalizedSumTotal / sumTotal);
-
-        for (int k = 0; k < newNormVector.length; k++) {
-            if (!Double.isNaN(newNormVector[k])) {
-                newNormVector[k] = scaleFactor * newNormVector[k];
-            }
-        }
-        return newNormVector;
     }
 }

@@ -82,11 +82,12 @@ class UnusedFunctions {
                 for (HiCZoom zoom : zooms) {
 
                     MatrixZoomData zd2 = ds.getMatrix(chr1, chr2).getZoomData(zoom);
-                    Iterator<ContactRecord> iter2 = zd2.contactRecordIterator();
+                    Iterator<ContactRecord> iter2 = zd2.getNewContactRecordIterator();
 
                     getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
                     getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
                     getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.SCALE, chr1, chr2, zoom);
                 }
             }
         }
