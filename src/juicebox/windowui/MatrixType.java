@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,16 +31,19 @@ public enum MatrixType {
     EXPECTED("Expected"),
     OE("Observed/Expected"),
     PEARSON("Observed Pearson"),
+    NORM2("Observed Norm^2"),
     CONTROL("Control"),
     OECTRL("Control/Expected"),
     PEARSONCTRL("Control Pearson"),
+    NORM2CTRL("Control Norm^2"),
     RATIO("Observed/Control"),
     VS("Observed vs Control"),
     OEVS("Observed/Expected vs Control/Expected"),
     PEARSONVS("Observed Pearson vs Control Pearson"),
     DIFF("Observed-Control"),
     NORM("Norm"),
-    EIGENVECTOR("Eigenvector");
+    EIGENVECTOR("Eigenvector"),
+    NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
     private final String value;
 
     MatrixType(String value) {
@@ -74,7 +77,7 @@ public enum MatrixType {
      * @return true is the option is generally available all maps or resolutions
      */
     public static boolean isSimpleType(MatrixType option) {
-        return isSimpleObservedOrControlType(option) || option == EXPECTED;
+        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
     /**
@@ -90,7 +93,7 @@ public enum MatrixType {
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
-        return isComparisonType(option) || isSimpleObservedOrControlType(option);
+        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
 

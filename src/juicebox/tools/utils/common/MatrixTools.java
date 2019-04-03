@@ -652,9 +652,7 @@ public class MatrixTools {
 
     public static void copyFromAToBRegion(double[][] region, double[][] aggregator, int rowOffSet, int colOffSet) {
         for (int i = 0; i < region.length; i++) {
-            for (int j = 0; j < region[0].length; j++) {
-                aggregator[i + rowOffSet][j + colOffSet] = region[i][j];
-            }
+            System.arraycopy(region[i], 0, aggregator[i + rowOffSet], 0 + colOffSet, region[0].length);
         }
     }
 }

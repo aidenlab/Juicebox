@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,7 +86,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
         if (givenChromosomes != null)
             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds1.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
 

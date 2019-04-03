@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
@@ -70,7 +71,7 @@ public class HiC {
     private String xPosition;
     private String yPosition;
     private MatrixType displayOption;
-    private NormalizationType normalizationType;
+    private NormalizationType obsNormalizationType, ctrlNormalizationType;
     private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
     private Dataset controlDataset;
@@ -127,7 +128,8 @@ public class HiC {
         controlEigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
-        normalizationType = NormalizationType.NONE;
+        obsNormalizationType = NormalizationHandler.NONE;
+        ctrlNormalizationType = NormalizationHandler.NONE;
         zoomActionTracker.clear();
         clearFeatures();
     }
@@ -243,7 +245,8 @@ public class HiC {
         trackManager.unsafeLoadTrackDirectPath(path);
     }
 
-    public void loadCoverageTrack(NormalizationType no) {
+    public void loadCoverageTrack(String label) {
+        NormalizationType no = dataset.getNormalizationHandler().getNormTypeFromString(label);
         trackManager.loadCoverageTrack(no, false);
         if (isControlLoaded()) {
             trackManager.loadCoverageTrack(no, true);
@@ -561,13 +564,26 @@ public class HiC {
         return false;
     }
 
-    public NormalizationType getNormalizationType() {
-        return normalizationType;
+    public NormalizationType getObsNormalizationType() {
+        return obsNormalizationType;
     }
 
-    public void setNormalizationType(NormalizationType option) {
-        if (this.normalizationType != option) {
-            this.normalizationType = option;
+    public void setObsNormalizationType(String label) {
+        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
+        if (this.obsNormalizationType != option) {
+            this.obsNormalizationType = option;
+            setNormalizationTypeChanged();
+        }
+    }
+
+    public NormalizationType getControlNormalizationType() {
+        return ctrlNormalizationType;
+    }
+
+    public void setControlNormalizationType(String label) {
+        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
+        if (this.ctrlNormalizationType != option) {
+            this.ctrlNormalizationType = option;
             setNormalizationTypeChanged();
         }
     }
@@ -578,35 +594,51 @@ public class HiC {
             if (controlDataset == null) return null;
 
             Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
-            return controlDataset.getEigenvector(chr, currentZoom, n, normalizationType);
+            return controlDataset.getEigenvector(chr, currentZoom, n, ctrlNormalizationType);
         } else {
             if (dataset == null) return null;
 
             Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
-            return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
+            return dataset.getEigenvector(chr, currentZoom, n, obsNormalizationType);
         }
     }
 
     public ExpectedValueFunction getExpectedValues() {
         if (dataset == null) return null;
-        return dataset.getExpectedValues(currentZoom, normalizationType);
+        return dataset.getExpectedValues(currentZoom, obsNormalizationType);
     }
 
     public ExpectedValueFunction getExpectedControlValues() {
         if (controlDataset == null) return null;
-        return controlDataset.getExpectedValues(currentZoom, normalizationType);
+        return controlDataset.getExpectedValues(currentZoom, ctrlNormalizationType);
     }
 
     public NormalizationVector getNormalizationVector(int chrIdx) {
         if (dataset == null) return null;
-        return dataset.getNormalizationVector(chrIdx, currentZoom, normalizationType);
+        return dataset.getNormalizationVector(chrIdx, currentZoom, obsNormalizationType);
+    }
+
+    public NormalizationVector getControlNormalizationVector(int chrIdx) {
+        if (controlDataset == null) return null;
+        return controlDataset.getNormalizationVector(chrIdx, currentZoom, ctrlNormalizationType);
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
     public float getNormalizedObservedValue(int binX, int binY) {
         float val = Float.NaN;
         try {
-            val = getZd().getObservedValue(binX, binY, normalizationType);
+            val = getZd().getObservedValue(binX, binY, obsNormalizationType);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return val;
+    }
+
+    public float getNormalizedControlValue(int binX, int binY) {
+        float val = Float.NaN;
+        try {
+            val = getControlZd().getObservedValue(binX, binY, ctrlNormalizationType);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1084,7 +1116,7 @@ public class HiC {
 
             zd.dump1DTrackFromCrossHairAsWig(printWriter, binStartPosition,
                     chromosomeForPosition.getIndex() == chromosome.getIndex(), regionIndices,
-                    normalizationType, displayOption);
+                    obsNormalizationType, displayOption);
         }
     }
 
@@ -1108,22 +1140,22 @@ public class HiC {
         try {
             if (isControl) {
                 MatrixZoomData cZd = getControlZd();
-                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), normalizationType)) == null;
+                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), ctrlNormalizationType)) == null;
             } else {
                 MatrixZoomData zd = getZd();
-                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
+                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), obsNormalizationType)) == null;
             }
         } catch (Exception e) {
             return true;
         }
     }
 
+    // todo remove / replace with above?
     public boolean isPearsonsNotAvailable(HiCZoom zoom) {
         try {
             MatrixZoomData zd = getMatrix().getZoomData(zoom);
-            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
-        }
-        catch (Exception e) {
+            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), obsNormalizationType)) == null;
+        } catch (Exception e) {
             return true;
         }
     }
@@ -1154,7 +1186,7 @@ public class HiC {
                 case CONTROL:
                 case OECTRL:
                 case PEARSONCTRL:
-                    return getControlZd().getColorScaleKey(displayOption);
+                    return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
                 case OE:
                 case RATIO:
                 case OBSERVED:
@@ -1164,7 +1196,7 @@ public class HiC {
                 case PEARSON:
                 case PEARSONVS:
                 default:
-                    return getZd().getColorScaleKey(displayOption);
+                    return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
             }
         } catch (Exception ignored) {
         }
@@ -1200,7 +1232,7 @@ public class HiC {
         return this.zoomActionTracker;
     }
 
-  public void clearAllMatrixZoomDataCache() {
+    public void clearAllMatrixZoomDataCache() {
         clearAllCacheForDataset(dataset);
         if (isControlLoaded()) {
             clearAllCacheForDataset(controlDataset);
@@ -1222,9 +1254,32 @@ public class HiC {
         }
     }
 
-    public SuperAdapter getSuperAdaptor() {
-        return superAdapter;
+    public String[] getNormalizationOptions(boolean isControl) {
+        if (isControl) {
+            if (controlDataset == null || controlDataset.getVersion() < HiCGlobals.minVersion) {
+                return new String[]{NormalizationHandler.NONE.getDescription()};
+            } else {
+                ArrayList<String> tmp = new ArrayList<>();
+                tmp.add(NormalizationHandler.NONE.getDescription());
+                for (NormalizationType t : controlDataset.getNormalizationTypes()) {
+                    tmp.add(t.getDescription());
+                }
+                return tmp.toArray(new String[tmp.size()]);
+            }
+        } else {
+            if (dataset.getVersion() < HiCGlobals.minVersion) {
+                return new String[]{NormalizationHandler.NONE.getDescription()};
+            } else {
+                ArrayList<String> tmp = new ArrayList<>();
+                tmp.add(NormalizationHandler.NONE.getDescription());
+                for (NormalizationType t : dataset.getNormalizationTypes()) {
+                    tmp.add(t.getDescription());
+                }
+                return tmp.toArray(new String[tmp.size()]);
+            }
+        }
     }
+
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {
         STANDARD, DRAG, DIRECT, INITIAL, REVERSE

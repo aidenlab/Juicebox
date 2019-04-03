@@ -31,6 +31,7 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.*;
 
 class SectionParser {
-
 
     public static void buildLoopSlicesRandom(final String savepath, String loopListPath, final int maxk, String hicFilePaths) {
         final Random generator = new Random();
@@ -57,7 +57,7 @@ class SectionParser {
 
         final Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFilePaths.split("\\+")), false);
         final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        final NormalizationType norm = NormalizationType.KR;
+        final NormalizationType norm = NormalizationHandler.KR;
 
         final int resolution = 5000;
 
@@ -152,7 +152,7 @@ class SectionParser {
 
         final Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFilePaths.split("\\+")), false);
         final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        final NormalizationType norm = NormalizationType.KR;
+        final NormalizationType norm = NormalizationHandler.KR;
 
         final int resolution = 5000;
 
@@ -323,7 +323,7 @@ class SectionParser {
 
             Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFilePaths.split("\\+")), false);
             ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-            NormalizationType norm = NormalizationType.KR;
+            NormalizationType norm = NormalizationHandler.KR;
 
             int resolution = 5000;
 

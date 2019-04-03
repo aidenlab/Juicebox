@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,48 +22,27 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.windowui;
+package juicebox.tools.utils.original.norm;
 
+class NormalizationVectorIndexEntry {
+    final String type;
+    final int chrIdx;
+    final String unit;
+    final int resolution;
+    final int sizeInBytes;
+    long position;
 
-/**
- * @author jrobinso Date: 8/31/13  9:47 PM
- */
-public class NormalizationType {
-    //LOADED("Loaded");
-    private final String label;
-    private final String description;
-
-    public NormalizationType(String label, String description) {
-        this.label = label.toUpperCase();
-        this.description = description;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public String getDescription() {
-        return description;
+    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
+        this.type = type;
+        this.chrIdx = chrIdx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.position = position;
+        this.sizeInBytes = sizeInBytes;
     }
 
     @Override
     public String toString() {
-        return label;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj instanceof NormalizationType) {
-            NormalizationType norm2 = (NormalizationType) obj;
-            return label.equalsIgnoreCase(norm2.getLabel());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return label.hashCode() + 31 * description.hashCode();
+        return type + " " + chrIdx + " " + unit + " " + resolution + " " + position + " " + sizeInBytes;
     }
 }

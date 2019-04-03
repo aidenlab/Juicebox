@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.utils.original.norm.GenomeWideNormalizationVectorUpdater;
 
 
 public class AddGWNorm extends JuiceboxCLT {
@@ -56,7 +56,7 @@ public class AddGWNorm extends JuiceboxCLT {
     @Override
     public void run() {
         try {
-            NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
+            GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
         } catch (Exception e) {
             e.printStackTrace();
         }

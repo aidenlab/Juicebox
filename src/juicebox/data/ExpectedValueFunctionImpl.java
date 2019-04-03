@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Map;
@@ -52,6 +53,10 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
         this.binSize = binSize;
         this.normFactors = normFactors;
         this.expectedValues = expectedValues;
+    }
+
+    public static String getKey(HiCZoom zoom, NormalizationType normType) {
+        return zoom.getKey() + "_" + normType;
     }
 
     // This is exposed for testing, should not use directly
@@ -85,11 +90,15 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
             normFactor = normFactors.get(chrIdx);
         }
 
-        if (distance >= expectedValues.length) {
-
-            return expectedValues[expectedValues.length - 1] / normFactor;
+        if (expectedValues.length > 0) {
+            if (distance >= expectedValues.length) {
+                return expectedValues[expectedValues.length - 1] / normFactor;
+            } else {
+                return expectedValues[distance] / normFactor;
+            }
         } else {
-            return expectedValues[distance] / normFactor;
+            System.err.println("Expected values array is empty");
+            return -1;
         }
     }
 

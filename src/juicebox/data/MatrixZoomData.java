@@ -33,12 +33,14 @@ import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
+import juicebox.matrix.RealMatrixWrapper;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
@@ -74,6 +76,7 @@ public class MatrixZoomData {
     // Cache the last 20 blocks loaded
     private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
+    private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
@@ -124,6 +127,7 @@ public class MatrixZoomData {
         }
 
         pearsonsMap = new HashMap<>();
+        normSquaredMaps = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
 
@@ -177,12 +181,16 @@ public class MatrixZoomData {
         return getKey() + "_" + blockNumber + "_" + no;
     }
 
+    public String getNormLessBlockKey(Block block) {
+        return getKey() + "_" + block.getNumber() + "_";
+    }
+
     private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
         return getKey(chr1, chr2) + "_" + blockNumber + "_" + no;
     }
 
-    public String getColorScaleKey(MatrixType displayOption) {
-        return getKey() + displayOption;
+    public String getColorScaleKey(MatrixType displayOption, NormalizationType n1, NormalizationType n2) {
+        return getKey() + displayOption + "_" + n1 + "_" + n2;
     }
 
     public String getTileKey(int tileRow, int tileColumn, MatrixType displayOption) {
@@ -612,6 +620,34 @@ public class MatrixZoomData {
 
     }
 
+    public BasicMatrix getNormSquared(NormalizationType normalizationType) {
+
+        if (normSquaredMaps.containsKey(normalizationType) && normSquaredMaps.get(normalizationType) != null) {
+            return normSquaredMaps.get(normalizationType);
+        }
+
+        // otherwise calculate
+        BasicMatrix normSquared = computeNormSquared(normalizationType);
+        normSquaredMaps.put(normalizationType, normSquared);
+        return normSquared;
+    }
+
+    // todo only compute local region at high resolution otherwise memory gets exceeded
+    private BasicMatrix computeNormSquared(NormalizationType normalizationType) {
+        double[] nv1Data = reader.getNormalizationVector(getChr1Idx(), getZoom(), normalizationType).getData();
+        double[] nv2Data = reader.getNormalizationVector(getChr2Idx(), getZoom(), normalizationType).getData();
+
+        double[][] matrix = new double[nv1Data.length][nv2Data.length];
+        for (int i = 0; i < nv1Data.length; i++) {
+            for (int j = 0; j < nv2Data.length; j++) {
+                int diff = Math.max(1, Math.abs(i - j));
+                matrix[i][j] = 1 / (nv1Data[i] * nv2Data[j] * diff * diff * diff * diff);
+            }
+        }
+
+        return new RealMatrixWrapper(new Array2DRowRealMatrix(matrix));
+    }
+
     /**
      * Returns the Pearson's matrix; read if available (currently commented out), calculate if small enough.
      *
@@ -692,7 +728,7 @@ public class MatrixZoomData {
         double[][] vectors = new double[dim][];
 
         // Loop through all contact records
-        Iterator<ContactRecord> iter = contactRecordIterator();
+        Iterator<ContactRecord> iter = getNewContactRecordIterator();
         while (iter.hasNext()) {
 
             ContactRecord record = iter.next();
@@ -1091,8 +1127,18 @@ public class MatrixZoomData {
      *
      * @return iterator for contact records
      */
-    public Iterator<ContactRecord> contactRecordIterator() {
+    public Iterator<ContactRecord> getNewContactRecordIterator() {
         return new ContactRecordIterator();
+    }
+
+    public List<ContactRecord> getContactRecordList() {
+        List<ContactRecord> records = new ArrayList<>();
+        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            records.add(cr);
+        }
+        return records;
     }
 
     public void clearCache() {
@@ -1136,12 +1182,12 @@ public class MatrixZoomData {
 
                         // Optionally check the cache
                         // TODO why is this always NONE, should trace to ensure hard coding doesn't cause bug?
-                        String key = getBlockKey(blockNumber, NormalizationType.NONE);
+                        String key = getBlockKey(blockNumber, NormalizationHandler.NONE);
                         Block nextBlock;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             nextBlock = blockCache.get(key);
                         } else {
-                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationType.NONE);
+                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationHandler.NONE);
                         }
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;
@@ -1174,7 +1220,4 @@ public class MatrixZoomData {
             throw new RuntimeException("remove() is not supported");
         }
     }
-//    public void preloadSlides(){
-
-//    }
 }

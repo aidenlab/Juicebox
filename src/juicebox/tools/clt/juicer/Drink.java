@@ -71,9 +71,6 @@ public class Drink extends JuicerCLT {
 
         determineNumClusters(juicerParser);
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
-        if (preferredNorm != null) norm = preferredNorm;
-
         if (whichApproachtoUse == 0) {
             for (String path : args[1].split("\\+")) {
                 List<String> paths = new ArrayList<>();
@@ -85,6 +82,9 @@ public class Drink extends JuicerCLT {
             ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
         }
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
+        if (preferredNorm != null) norm = preferredNorm;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {

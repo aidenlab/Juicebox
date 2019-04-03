@@ -103,7 +103,7 @@ public class SubcompartmentInterval extends SimpleInterval {
                 int n2 = idToCentroidMap.get(indx2).length;
                 Pair<Integer, Integer> keyPair1 = new Pair<>(indx1, indx2);
                 Pair<Integer, Integer> keyPair2 = new Pair<>(indx2, indx1);
-                if (n1 == n2 && indx1 != indx2 && !differences.containsKey(keyPair1)) {
+                if (n1 == n2 && !indx1.equals(indx2) && !differences.containsKey(keyPair1)) {
                     double distance = ArrayTools.euclideanDistance(idToCentroidMap.get(indx1), idToCentroidMap.get(indx2));
                     differences.put(keyPair1, distance);
                     differences.put(keyPair2, distance);

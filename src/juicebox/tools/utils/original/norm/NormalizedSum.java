@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,22 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.original.norm;
 
-class externalNormalizationVectorLoader {
+class NormalizedSum {
+    final String type;
+    final int chr1Idx;
+    final int chr2Idx;
+    final String unit;
+    final int resolution;
+    final double value;
+
+    public NormalizedSum(String type, int chr1Idx, int chr2Idx, String unit, int resolution, double value) {
+        this.type = type;
+        this.chr1Idx = chr1Idx;
+        this.chr2Idx = chr2Idx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.value = value;
+    }
 }

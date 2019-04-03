@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 
 package juicebox.data;
+
+import juicebox.windowui.NormalizationType;
 
 /**
  * @author jrobinso
@@ -82,9 +84,9 @@ public class ContactRecord implements Comparable<ContactRecord> {
         return "" + binX + " " + binY + " " + counts;
     }
 
-    public String getKey() {
+    public String getKey(NormalizationType normalizationType) {
         if (key == null) {
-            key = binX + "_" + binY;
+            key = binX + "_" + binY + "_" + normalizationType;
         }
         return key;
     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -40,7 +41,7 @@ import java.util.Set;
  */
 public abstract class JuicerCLT extends JuiceboxCLT {
 
-    protected NormalizationType norm = NormalizationType.KR;
+    protected NormalizationType norm = NormalizationHandler.KR;
     protected Set<String> givenChromosomes = null; //TODO set to protected
 
     protected JuicerCLT(String usage) {

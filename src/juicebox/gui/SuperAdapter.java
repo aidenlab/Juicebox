@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,13 @@ import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
-import juicebox.mapcolorui.HiCColorScale;
+import juicebox.mapcolorui.PearsonColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
-import juicebox.state.ImportFileDialog;
+import juicebox.state.ImportStateFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
+import juicebox.tools.utils.original.norm.CustomNormVectorFileHandler;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.*;
@@ -76,7 +77,7 @@ public class SuperAdapter {
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
     private AssemblyStateTracker assemblyStateTracker;
-    private HiCColorScale pearsonColorScale;
+    private PearsonColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
     public static boolean assemblyModeCurrentlyActive = false;
@@ -153,7 +154,7 @@ public class SuperAdapter {
     }
 
     public void launchImportState(File fileForExport) {
-        new ImportFileDialog(fileForExport, mainWindow);
+        new ImportStateFileDialog(fileForExport, mainWindow);
     }
 
     public void launchLoadStateFromXML(String mapPath) {
@@ -440,27 +441,16 @@ public class SuperAdapter {
             if (control) {
                 hic.setControlDataset(dataset);
                 options = HiCGlobals.enabledMatrixTypesWithControl;
+                mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomeHandler(dataset.getChromosomeHandler());
                 mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
-                String[] normalizationOptions;
-                if (dataset.getVersion() < HiCGlobals.minVersion) {
-                    normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                } else {
-                    ArrayList<String> tmp = new ArrayList<>();
-                    tmp.add(NormalizationType.NONE.getLabel());
-                    for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                        tmp.add(t.getLabel());
-                    }
-
-                    normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                }
-
-                mainViewPanel.setEnabledForNormalization(normalizationOptions,
-                        hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
                     options = HiCGlobals.enabledMatrixTypesWithControl;
@@ -566,10 +556,10 @@ public class SuperAdapter {
         return retVal[0];
     }
 
-    void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
+    void safeNormalizationComboBoxActionPerformed(final ActionEvent e, final boolean isForControl) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeNormalizationComboBoxActionPerformed();
+                unsafeNormalizationComboBoxActionPerformed(isForControl);
             }
         };
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
@@ -739,18 +729,16 @@ public class SuperAdapter {
         mainViewPanel.updateTrackPanel(hic.getLoadedTracks().size() > 0);
     }
 
-    private void unsafeNormalizationComboBoxActionPerformed() {
-        String value = (String) mainViewPanel.getNormalizationComboBox().getSelectedItem();
-        NormalizationType chosen = null;
-        for (NormalizationType type : NormalizationType.values()) {
-            if (type.getLabel().equals(value)) {
-                chosen = type;
-                break;
-            }
+    private void unsafeNormalizationComboBoxActionPerformed(boolean isForControl) {
+        if (isForControl) {
+            String value = (String) mainViewPanel.getControlNormalizationComboBox().getSelectedItem();
+            hic.setControlNormalizationType(value);
+            refreshMainOnly();
+        } else {
+            String value = (String) mainViewPanel.getObservedNormalizationComboBox().getSelectedItem();
+            hic.setObsNormalizationType(value);
+            refreshMainOnly();
         }
-        final NormalizationType passChosen = chosen;
-        hic.setNormalizationType(passChosen);
-        refreshMainOnly();
     }
 
     public MainViewPanel getMainViewPanel() {
@@ -936,7 +924,7 @@ public class SuperAdapter {
         return n - 1 - currIndex;
     }
 
-    public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
+    public void setPearsonColorScale(PearsonColorScale pearsonColorScale) {
         this.pearsonColorScale = pearsonColorScale;
     }
 
@@ -1066,5 +1054,26 @@ public class SuperAdapter {
             resetAnnotationLayers();
             return true;
         }
+    }
+
+    public void safeLaunchImportNormalizations() {
+
+        final File[] files = FileDialogUtils.chooseMultiple("Choose custom normalization file(s)",
+                LoadDialog.LAST_LOADED_HIC_FILE_PATH, null);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                if (files != null && files.length > 0) {
+                    LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
+
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
+                    mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
+                            hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                    repaint();
+                }
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "safe add custom norms");
+
     }
 }
