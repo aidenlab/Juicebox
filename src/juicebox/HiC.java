@@ -980,6 +980,7 @@ public class HiC {
         binSizeDictionary.put("10000", 10000);
         binSizeDictionary.put("5000", 5000);
         binSizeDictionary.put("1000", 1000);
+        binSizeDictionary.put("500", 500);
 
         //FRAG Bin size:
         binSizeDictionary.put("500f", 500);

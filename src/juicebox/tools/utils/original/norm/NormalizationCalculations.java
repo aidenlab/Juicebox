@@ -320,9 +320,11 @@ public class NormalizationCalculations {
                 return null;
         }
 
-        double factor = getSumFactor(norm);
-        for (int i = 0; i < norm.length; i++) {
-            norm[i] = norm[i] * factor;
+        if (norm != null) {
+            double factor = getSumFactor(norm);
+            for (int i = 0; i < norm.length; i++) {
+                norm[i] = norm[i] * factor;
+            }
         }
         return norm;
     }

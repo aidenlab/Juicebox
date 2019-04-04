@@ -75,7 +75,10 @@ public class NormalizationHandler {
         return norm.equals(GW_KR) || norm.equals(GW_VC) || norm.equals(GW_SCALE);
     }
 
-    public static NormalizationType[] getAllGWNormTypes() {
+    public static NormalizationType[] getAllGWNormTypes(boolean isUseOnlyScalingDefaults) {
+        if (isUseOnlyScalingDefaults) {
+            return new NormalizationType[]{GW_SCALE};
+        }
         return new NormalizationType[]{GW_KR, GW_VC, GW_SCALE, INTER_KR, INTER_VC, INTER_SCALE};
     }
 

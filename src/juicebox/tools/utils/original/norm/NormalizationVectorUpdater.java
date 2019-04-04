@@ -71,9 +71,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         // Loop through resolutions
         for (HiCZoom zoom : resolutions) {
 
-            // Optionally compute genome-wide normalizaton
-            if (genomeWideResolution > 0 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
-                GenomeWideNormalizationVectorUpdater.updateHicFileForGW(ds, zoom, normVectorIndices, normVectorBuffer, expectedValueCalculations);
+            // compute genome-wide normalizaton but just for scaling
+            if (zoom.getUnit() == HiC.Unit.BP) {// genomeWideResolution > 0 &&  && zoom.getBinSize() >= genomeWideResolution) {
+                GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreOnly(ds, zoom, normVectorIndices, normVectorBuffer, expectedValueCalculations);
             }
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);

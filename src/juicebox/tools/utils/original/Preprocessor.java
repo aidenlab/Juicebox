@@ -86,7 +86,7 @@ public class Preprocessor {
     private static boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
-    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
+    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
 
     // Fragment resolutions
     private int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
@@ -1860,6 +1860,4 @@ public class Preprocessor {
             }
         }
     }
-
-
 }

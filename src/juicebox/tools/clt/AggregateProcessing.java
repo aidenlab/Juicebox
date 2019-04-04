@@ -50,9 +50,12 @@ class AggregateProcessing {
 
         ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
 
+        ll51231123 = new String[]{"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
+                "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
+
         HiCTools.main(ll51231123);
 
-        UnitTests.testCustomFastScaling();
+        //UnitTests.testCustomFastScaling();
 
     }
 
