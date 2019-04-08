@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 
 public class BPToFragment extends JuiceboxCLT {
 
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings();
     private String fragFile, inputBedFile, outputFile;
 
     public BPToFragment() {

@@ -28,6 +28,7 @@ import juicebox.HiC;
 import org.broad.igv.feature.LocusScore;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.DataTrack;
+import org.broad.igv.track.LoadedDataInterval;
 import org.broad.igv.track.WindowFunction;
 
 import java.awt.*;
@@ -100,8 +101,9 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
 
     protected List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
         igvTrack.setWindowFunction(windowFunction);
-        List<LocusScore> scores = igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
+        org.broad.igv.track.LoadedDataInterval<List<LocusScore>> scores = igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
         // Problems with human not having the "chr".  Return scores if not 0, otherwise try adding "chr"
-        return scores.size() != 0 ? scores : igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom);
+        if (scores.getFeatures().size() > 0) return scores.getFeatures();
+        else return igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom).getFeatures(); 
     }
 }
