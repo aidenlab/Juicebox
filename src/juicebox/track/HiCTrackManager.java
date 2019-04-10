@@ -301,13 +301,22 @@ public class HiCTrackManager {
                 genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";
             }
 
+
             try {
                 genome = GenomeManager.getInstance().loadGenome(genomePath, null);
-            } catch (IOException e) {
-                System.err.println("Error loading genome: " + genomePath + " " + e.getLocalizedMessage());
+            } catch (Exception e) {
+                System.err.println("Error loading genome. Tried " + genomePath);
+                //System.err.println(e.getLocalizedMessage());
+            }
+            if (genome == null) {
+                if (hic.getDataset() != null) {
+                    genome = new Genome(hic.getDataset().getGenomeId(), Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                }
             }
 
         }
+
+        
         /**
          * TODO potential fix for ASSEMBLY vs assembly @sa501428
          List<Chromosome> cleanedChromosomes = new ArrayList<>();
