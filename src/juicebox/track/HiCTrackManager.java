@@ -30,6 +30,7 @@ import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
@@ -292,28 +293,21 @@ public class HiCTrackManager {
             if (hic.getDataset() != null) {
                 if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
                     genomePath = Private.getGenome();
-                } else if (hic.getDataset().getGenomeId().equals("dMel")) {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
+                    try {
+                        genome = GenomeManager.getInstance().loadGenome(genomePath, null);
+                    } catch (Exception e) {
+                        System.err.println("Error loading genome. Tried " + genomePath);
+                        //System.err.println(e.getLocalizedMessage());
+                    }
                 } else {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
-                }
-            } else {
-                genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";
-            }
-
-
-            try {
-                genome = GenomeManager.getInstance().loadGenome(genomePath, null);
-            } catch (Exception e) {
-                System.err.println("Error loading genome. Tried " + genomePath);
-                //System.err.println(e.getLocalizedMessage());
-            }
-            if (genome == null) {
-                if (hic.getDataset() != null) {
-                    genome = new Genome(hic.getDataset().getGenomeId(), Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                    ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                    Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
+                    if (chrMT != null) {
+                        chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
+                    }
+                    genome = new Genome(hic.getDataset().getGenomeId(), chrList);
                 }
             }
-
         }
 
         
