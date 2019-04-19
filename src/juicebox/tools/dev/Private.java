@@ -30,13 +30,6 @@ import juicebox.gui.SuperAdapter;
  * Created by muhammadsaadshamim on 8/15/16.
  */
 public class Private {
-    public static boolean assessGenomeID(String genomeId) {
-        return genomeId.equalsIgnoreCase("assembly");
-    }
-
-    public static String getGenome() {
-        return "http://hicfiles.s3.amazonaws.com/internal/assembly.genome";
-    }
 
     public static boolean assessGenomeForRE(String genomeId) {
         return genomeId.equalsIgnoreCase("anasPlat1");

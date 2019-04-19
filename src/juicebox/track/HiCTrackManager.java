@@ -287,42 +287,18 @@ public class HiCTrackManager {
     */
 
     private Genome loadGenome() {
-        String genomePath;
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
-                    genomePath = Private.getGenome();
-                    try {
-                        genome = GenomeManager.getInstance().loadGenome(genomePath, null);
-                    } catch (Exception e) {
-                        System.err.println("Error loading genome. Tried " + genomePath);
-                        //System.err.println(e.getLocalizedMessage());
-                    }
-                } else {
-                    ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
-                    Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
-                    if (chrMT != null) {
-                        chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
-                    }
-                    genome = new Genome(hic.getDataset().getGenomeId(), chrList);
+                ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
+                if (chrMT != null) {
+                    chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
                 }
+                genome = new Genome(hic.getDataset().getGenomeId(), chrList);
+
             }
         }
-
-        
-        /**
-         * TODO potential fix for ASSEMBLY vs assembly @sa501428
-         List<Chromosome> cleanedChromosomes = new ArrayList<>();
-         for(String name : genome.getAllChromosomeNames()){
-         Chromosome chr = genome.getChromosome(name);
-         //cleanedChromosomes.add(chr);
-         cleanedChromosomes.add(new Chromosome(chr.getIndex(), ChromosomeHandler.cleanUpName(name), chr.getLength()));
-         }
-
-
-         Genome finalGenome = new Genome(genome.getId(), cleanedChromosomes);
-         */
 
         return genome;
     }
