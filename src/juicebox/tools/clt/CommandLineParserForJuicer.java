@@ -172,6 +172,24 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return retrieveNormalization(optionToString(normalizationTypeOption), normalizationHandler);
     }
 
+    public NormalizationType[] getBothNormalizationTypeOption(NormalizationHandler normHandler1,
+                                                              NormalizationHandler normHandler2) {
+        NormalizationType[] normalizationTypes = new NormalizationType[2];
+        String normStrings = optionToString(normalizationTypeOption);
+        String[] bothNorms = normStrings.split(",");
+        if (bothNorms.length > 2 || bothNorms.length < 1) {
+            System.err.println("Invalid norm syntax: " + normStrings);
+            return null;
+        } else if (bothNorms.length == 2) {
+            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+            normalizationTypes[1] = retrieveNormalization(bothNorms[1], normHandler2);
+        } else if (bothNorms.length == 1) {
+            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+            normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
+        }
+        return normalizationTypes;
+    }
+
     private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
         if (norm == null || norm.length() < 1)
             return null;
