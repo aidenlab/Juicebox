@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+  ~ Copyright (c) 2011-2019 Broad Institute, Aiden Lab
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -168,7 +168,7 @@
 
     <path id="juicebox.module.bootclasspath">
         <!-- Paths to be included in compilation bootclasspath -->
-        <pathelement location="${jdk.home.1.7}/jre/lib"/>
+        <pathelement location="${jdk.home.1.8}/jre/lib"/>
     </path>
 
     <path id="juicebox.module.production.classpath">
@@ -279,7 +279,7 @@
             <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
@@ -288,6 +288,9 @@
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
         </jar>
         <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
     </target>
@@ -304,13 +307,18 @@
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"
+                        excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar"
+                        excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
         </jar>
         <copy file="${temp.jar.path.juicer_tools.jar}"
               tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>

@@ -181,8 +181,8 @@ public class IGVFeatureCopy implements IGVFeature {
         return score;
     }
 
-    public String getValueString(double var1, WindowFunction var3) {
-        return origFeat.getValueString(var1, var3);
+    public String getValueString(double var1, int mouseX, WindowFunction var3) {
+        return origFeat.getValueString(var1, mouseX, var3);
     }
 
     public String getContig() {

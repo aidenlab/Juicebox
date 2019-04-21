@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 public class FragmentToBed extends JuiceboxCLT {
 
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings();
     private String filename;
 
     public FragmentToBed() {
