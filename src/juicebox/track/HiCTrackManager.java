@@ -30,6 +30,7 @@ import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
@@ -286,40 +287,18 @@ public class HiCTrackManager {
     */
 
     private Genome loadGenome() {
-        String genomePath;
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
-                    genomePath = Private.getGenome();
-                } else if (hic.getDataset().getGenomeId().equals("dMel")) {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
-                } else {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
+                ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
+                if (chrMT != null) {
+                    chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
                 }
-            } else {
-                genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";
-            }
+                genome = new Genome(hic.getDataset().getGenomeId(), chrList);
 
-            try {
-                genome = GenomeManager.getInstance().loadGenome(genomePath, null);
-            } catch (IOException e) {
-                System.err.println("Error loading genome: " + genomePath + " " + e.getLocalizedMessage());
             }
-
         }
-        /**
-         * TODO potential fix for ASSEMBLY vs assembly @sa501428
-         List<Chromosome> cleanedChromosomes = new ArrayList<>();
-         for(String name : genome.getAllChromosomeNames()){
-         Chromosome chr = genome.getChromosome(name);
-         //cleanedChromosomes.add(chr);
-         cleanedChromosomes.add(new Chromosome(chr.getIndex(), ChromosomeHandler.cleanUpName(name), chr.getLength()));
-         }
-
-
-         Genome finalGenome = new Genome(genome.getId(), cleanedChromosomes);
-         */
 
         return genome;
     }
