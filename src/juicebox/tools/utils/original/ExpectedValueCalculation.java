@@ -29,7 +29,7 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
-import juicebox.tools.utils.original.norm.NormVectorUpdater;
+import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 

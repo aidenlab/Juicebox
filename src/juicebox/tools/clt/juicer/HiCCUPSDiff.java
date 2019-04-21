@@ -173,15 +173,15 @@ public class HiCCUPSDiff extends JuicerCLT {
                 thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, Double.NaN);
             }
 
-            int numThreads = juicerParser.getNumThreads();
+            updateNumberOfCPUThreads(juicerParser);
 
             System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
             hiccups1.initializeDirectly(ds1, outputDirectory + File.separator + "file1", args[4],
-                    norm1, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
+                    norm1, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
             hiccups2.initializeDirectly(ds2, outputDirectory + File.separator + "file2", args[3],
-                    norm2, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, numThreads);
+                    norm2, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
         }
     }
 

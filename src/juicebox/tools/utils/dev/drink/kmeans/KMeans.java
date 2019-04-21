@@ -22,36 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.dev.drink.kmeans;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.NormalizationCalculations;
+/**
+ * Simple K-Means clustering interface.
+ */
+interface KMeans extends Runnable {
 
+    /**
+     * Adds a KMeansListener to be notified of significant happenings.
+     *
+     * @param l the listener to be added.
+     */
+    void addKMeansListener(KMeansListener l);
 
-public class CalcKR extends JuiceboxCLT {
+    /**
+     * Removes a KMeansListener from the listener list.
+     *
+     * @param l the listener to be removed.
+     */
+    void removeKMeansListener(KMeansListener l);
 
-    private String infile = null;
+    /**
+     * Get the clusters computed by the algorithm.  This method should
+     * not be called until clustering has completed successfully.
+     *
+     * @return an array of Cluster objects.
+     */
+    Cluster[] getClusters();
 
-    public CalcKR() {
-        super("calcKR <input_?_file>");
-    }
-
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsageAndExit();
-        }
-        infile = args[1];
-    }
-
-    @Override
-    public void run() {
-        try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
+

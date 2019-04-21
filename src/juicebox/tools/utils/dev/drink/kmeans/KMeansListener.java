@@ -22,36 +22,36 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
-
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.NormalizationCalculations;
+package juicebox.tools.utils.dev.drink.kmeans;
 
 
-public class CalcKR extends JuiceboxCLT {
+/**
+ * Defines object which register with implementation of <code>KMeans</code>
+ * to be notified of significant events during clustering.
+ */
+public interface KMeansListener {
 
-    private String infile = null;
+    /**
+     * A message has been received.
+     *
+     * @param message
+     */
+    void kmeansMessage(String message);
 
-    public CalcKR() {
-        super("calcKR <input_?_file>");
-    }
+    /**
+     * KMeans is complete.
+     *
+     * @param clusters      the output of clustering.
+     * @param executionTime the time in milliseconds taken to cluster.
+     */
+    void kmeansComplete(Cluster[] clusters, long executionTime);
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsageAndExit();
-        }
-        infile = args[1];
-    }
+    /**
+     * An error occurred during KMeans clustering.
+     *
+     * @param t
+     */
+    void kmeansError(Throwable t);
 
-    @Override
-    public void run() {
-        try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
+

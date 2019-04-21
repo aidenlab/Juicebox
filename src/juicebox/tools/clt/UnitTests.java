@@ -30,7 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.tools.utils.original.norm.ZeroScale;
+import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;

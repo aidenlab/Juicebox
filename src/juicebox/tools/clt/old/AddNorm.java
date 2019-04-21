@@ -27,8 +27,8 @@ package juicebox.tools.clt.old;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.norm.CustomNormVectorFileHandler;
-import juicebox.tools.utils.original.norm.NormalizationVectorUpdater;
+import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
+import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 
 
 public class AddNorm extends JuiceboxCLT {

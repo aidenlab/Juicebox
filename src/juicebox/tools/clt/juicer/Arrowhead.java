@@ -114,7 +114,6 @@ public class Arrowhead extends JuicerCLT {
     private int resolution = 10000;
     private Dataset ds;
     private boolean checkMapDensityThreshold = true;
-    private static int numCPUThreads = 4;
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
@@ -162,13 +161,7 @@ public class Arrowhead extends JuicerCLT {
             checkMapDensityThreshold = false;
         }
 
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        }
-        System.out.println("Using " + numCPUThreads + " CPU threads");
+        updateNumberOfCPUThreads(juicerParser);
 
         List<String> t = juicerParser.getThresholdOptions();
         if (t != null && t.size() == 6) {

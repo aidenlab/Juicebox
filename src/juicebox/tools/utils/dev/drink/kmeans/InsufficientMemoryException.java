@@ -22,36 +22,25 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.dev.drink.kmeans;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.NormalizationCalculations;
+/**
+ * Exception thrown when insufficient memory is available to
+ * perform an operation.  Designed to be throw before doing
+ * something that would cause a <code>java.lang.OutOfMemoryError</code>.
+ */
+class InsufficientMemoryException extends Exception {
 
+    private static final long serialVersionUID = 72138634L;
 
-public class CalcKR extends JuiceboxCLT {
-
-    private String infile = null;
-
-    public CalcKR() {
-        super("calcKR <input_?_file>");
+    /**
+     * Constructor.
+     *
+     * @param message an explanatory message.
+     */
+    public InsufficientMemoryException(String message) {
+        super(message);
     }
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsageAndExit();
-        }
-        infile = args[1];
-    }
-
-    @Override
-    public void run() {
-        try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
+

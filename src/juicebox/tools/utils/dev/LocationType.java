@@ -22,36 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.dev;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.NormalizationCalculations;
+/**
+ * Created by muhammadsaadshamim on 9/9/15.
+ */
+public enum LocationType {
+    TL("TopLeft"),
+    BR("BottomRight"),
+    CENTER("Center");
+    private final String label;
 
-
-public class CalcKR extends JuiceboxCLT {
-
-    private String infile = null;
-
-    public CalcKR() {
-        super("calcKR <input_?_file>");
+    LocationType(String label) {
+        this.label = label;
     }
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsageAndExit();
+    public static LocationType enumValueFromString(String text) {
+        if (text != null) {
+            for (LocationType region : LocationType.values()) {
+                if (text.equalsIgnoreCase(region.label)) {
+                    return region;
+                }
+            }
         }
-        infile = args[1];
+        return null;
     }
 
-    @Override
-    public void run() {
-        try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String getLabel() {
+        return label;
     }
+
 }

@@ -171,7 +171,6 @@ public class HiCCUPS extends JuicerCLT {
     public static double oeThreshold3 = 2;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private static int numCPUThreads = 4;
     private boolean configurationsSetByUser = false;
     private String featureListPath;
     private boolean listGiven = false;
@@ -244,13 +243,7 @@ public class HiCCUPS extends JuicerCLT {
             System.out.println(CPU_VERSION_WARNING);
         }
 
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        }
-        System.out.println("Using " + numCPUThreads + " CPU threads");
+        updateNumberOfCPUThreads(juicerParser);
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
@@ -273,7 +266,7 @@ public class HiCCUPS extends JuicerCLT {
                                    String featureListPath, NormalizationType preferredNorm, int matrixSize,
                                    ChromosomeHandler providedCommonChromosomeHandler,
                                    List<HiCCUPSConfiguration> configurations, double[] thresholds,
-                                   boolean usingCPUVersion, int numThreads) {
+                                   boolean usingCPUVersion) {
         this.ds = dataset;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -304,10 +297,6 @@ public class HiCCUPS extends JuicerCLT {
         if (usingCPUVersion) {
             useCPUVersionHiCCUPS = true;
             restrictSearchRegions = true;
-        }
-
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
         }
     }
 

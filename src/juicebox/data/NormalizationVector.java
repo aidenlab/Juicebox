@@ -26,7 +26,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
-import juicebox.tools.utils.original.norm.ZeroScale;
+import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
