@@ -57,6 +57,7 @@ public class Drink extends JuicerCLT {
     private final int connectedComponentThreshold = 50;
     private final int whichApproachtoUse = 0;
     private final List<Dataset> datasetList = new ArrayList<>();
+    private List<String> inputHicFilePaths = new ArrayList<>();
 
     public Drink() {
         super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
@@ -73,9 +74,11 @@ public class Drink extends JuicerCLT {
 
         if (whichApproachtoUse == 0) {
             for (String path : args[1].split("\\+")) {
-                List<String> paths = new ArrayList<>();
-                paths.add(path);
-                datasetList.add(HiCFileTools.extractDatasetForCLT(paths, true));
+                System.out.println("Extracting " + path);
+                inputHicFilePaths.add(path);
+                List<String> tempList = new ArrayList<>();
+                tempList.add(path);
+                datasetList.add(HiCFileTools.extractDatasetForCLT(tempList, true));
             }
             ds = datasetList.get(0);
         } else {
@@ -107,7 +110,7 @@ public class Drink extends JuicerCLT {
         if (whichApproachtoUse == 0 && datasetList.size() > 0) {
 
             Clustering.extractAllComparativeIntraSubcompartments(datasetList, chromosomeHandler, resolution, norm, logThreshold,
-                    maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory);
+                    maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory, inputHicFilePaths);
 
 
         } else {
@@ -118,7 +121,7 @@ public class Drink extends JuicerCLT {
             File outputFile = new File(outputDirectory, "result_intra_initial.bed");
             intraSubcompartments.simpleExport(outputFile);
 
-            SubcompartmentInterval.collapseGWList(intraSubcompartments);
+            DrinkUtils.collapseGWList(intraSubcompartments);
 
             File outputFile2 = new File(outputDirectory, "result_intra_initial_collapsed.bed");
             intraSubcompartments.simpleExport(outputFile2);
@@ -131,7 +134,7 @@ public class Drink extends JuicerCLT {
                 File outputFile3 = new File(outputDirectory, "gw_result_initial.bed");
                 finalSubcompartments.simpleExport(outputFile3);
 
-                SubcompartmentInterval.collapseGWList(finalSubcompartments);
+                DrinkUtils.collapseGWList(finalSubcompartments);
 
                 File outputFile4 = new File(outputDirectory, "gw_result_collapsed.bed");
                 finalSubcompartments.simpleExport(outputFile4);

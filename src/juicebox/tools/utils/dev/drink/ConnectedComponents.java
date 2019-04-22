@@ -179,9 +179,9 @@ class ConnectedComponents {
             }
         });
 
-        SubcompartmentInterval.reSort(finalList);
+        DrinkUtils.reSort(finalList);
 
-        SubcompartmentInterval.collapseGWList(finalList);
+        DrinkUtils.collapseGWList(finalList);
 
         return finalList;
     }

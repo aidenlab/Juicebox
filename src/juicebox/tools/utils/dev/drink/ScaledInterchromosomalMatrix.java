@@ -218,7 +218,7 @@ class ScaledInterchromosomalMatrix {
             }
         }
 
-        SubcompartmentInterval.reSort(subcompartments);
+        DrinkUtils.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
     }
 

@@ -32,7 +32,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import java.io.IOException;
 import java.util.List;
 
-class ExtractingOEDataUtils {
+public class ExtractingOEDataUtils {
 
     public static RealMatrix extractLocalThresholdedLogOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                                        int binYStart, int binYEnd, int numRows, int numCols,

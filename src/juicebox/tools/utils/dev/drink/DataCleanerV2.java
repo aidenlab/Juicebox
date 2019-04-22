@@ -116,7 +116,7 @@ class DataCleanerV2 extends DataCleaner {
         }
 
         for (int i = 0; i < numDatasets; i++) {
-            SubcompartmentInterval.reSort(subcompartmentsLists.get(i));
+            DrinkUtils.reSort(subcompartmentsLists.get(i));
             subcompartmentsLists.get(i).addAll(subcompartmentIntervals.get(i));
         }
     }

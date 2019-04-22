@@ -27,6 +27,7 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -493,5 +494,28 @@ public class HiCFileTools {
     public static String cleanUpDropboxURL(String url) {
         return url.replace("?dl=0", "")
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
+    }
+
+    public static RealMatrix getRealMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
+        // skip these matrices
+        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+        if (matrix == null) return null;
+
+        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+        final MatrixZoomData zd = matrix.getZoomData(zoom);
+        if (zd == null) return null;
+
+        ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+        if (df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
+            System.exit(14);
+        }
+
+        int maxBin = chromosome.getLength() / resolution + 1;
+        int maxSize = maxBin;
+
+        return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
+                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
+
     }
 }

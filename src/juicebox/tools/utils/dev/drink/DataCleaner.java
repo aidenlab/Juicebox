@@ -145,7 +145,7 @@ class DataCleaner {
             }
         }
 
-        SubcompartmentInterval.reSort(subcompartments);
+        DrinkUtils.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
     }
 

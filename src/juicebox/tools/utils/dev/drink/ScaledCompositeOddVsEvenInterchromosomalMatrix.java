@@ -231,7 +231,7 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
             }
         }
 
-        SubcompartmentInterval.reSort(subcompartments);
+        DrinkUtils.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
     }
 

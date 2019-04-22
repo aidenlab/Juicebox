@@ -35,7 +35,6 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -131,53 +130,35 @@ public class Clustering {
 
     public static void extractAllComparativeIntraSubcompartments(
             List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm, double logThreshold,
-            double maxPercentAllowedToBeZeroThreshold, int numClusters, int maxIters, File outputDirectory) {
+            double maxPercentAllowedToBeZeroThreshold, int numClusters, int maxIters, File outputDirectory, List<String> inputHicFilePaths) {
 
-        final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
-        //GenomeWideList<>(chromosomeHandler);
         final AtomicInteger numRunsToExpect = new AtomicInteger();
         final AtomicInteger numRunsDone = new AtomicInteger();
 
+        // save the kmeans centroid of each cluster
         final Map<Integer, double[]> idToCentroidMap = new HashMap<>();
 
-        for (Dataset ds : datasets) {
-            // each ds will need a respective list of assigned subcompartments
+        // each ds will need a respective list of assigned subcompartments
+        final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
+        for (int i = 0; i < datasets.size(); i++) {
             comparativeSubcompartments.add(new GenomeWideList<SubcompartmentInterval>(chromosomeHandler));
         }
 
         for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
             try {
-
                 List<double[][]> matrices = new ArrayList<>();
 
                 for (Dataset ds : datasets) {
-                    // skip these matrices
-                    Matrix matrix = ds.getMatrix(chromosome, chromosome);
-                    if (matrix == null) continue;
 
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-                    if (zd == null) continue;
-
-                    ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-                    if (df == null) {
-                        System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-                        System.exit(14);
+                    RealMatrix localizedRegionData = HiCFileTools.getRealMatrixForChromosome(ds, chromosome, resolution, norm, logThreshold);
+                    if (localizedRegionData != null) {
+                        matrices.add(localizedRegionData.getData());
                     }
-
-                    int maxBin = chromosome.getLength() / resolution + 1;
-                    int maxSize = maxBin;
-
-                    RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                            0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
-
-                    matrices.add(localizedRegionData.getData());
                 }
 
                 // e.g. diploid Y chromosome; can't assess vs non existent map
                 if (matrices.size() != datasets.size()) continue;
-
 
                 final DataCleanerV2 dataCleanerV2 = new DataCleanerV2(matrices, chromosome.getIndex(),
                         maxPercentAllowedToBeZeroThreshold, resolution, outputDirectory, new ArrayList<Integer>());
@@ -188,7 +169,6 @@ public class Clustering {
                     File outputFile2 = new File(outputDirectory, "allFilesChr"+chromosome.getIndex()+".txt");
                     MatrixTools.exportData(dataCleanerV2.getCleanedData(), outputFile2);
                     */
-
 
                     ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleanerV2.getCleanedData(), numClusters,
                             maxIters, 128971L);
@@ -220,6 +200,7 @@ public class Clustering {
                 e.printStackTrace();
             }
         }
+
         while (numRunsDone.get() < numRunsToExpect.get()) {
             System.out.println("Wait another minute");
             try {
@@ -230,41 +211,14 @@ public class Clustering {
         }
 
         for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
-            SubcompartmentInterval.reSort(gwList);
+            DrinkUtils.reSort(gwList);
         }
 
         // process differences for diff vector
-        //SubcompartmentInterval.extractDiffVectors(comparativeSubcompartments, idToCentroidMap, outputDirectory);
+        DrinkUtils.writeDiffVectorsRelativeToBaselineToFiles(comparativeSubcompartments, idToCentroidMap, outputDirectory, inputHicFilePaths, chromosomeHandler, resolution);
 
-        GenomeWideList<SubcompartmentInterval> consensus = SubcompartmentInterval.calculateConsensus(comparativeSubcompartments);
+        DrinkUtils.writeConsensusSubcompartmentsToFile(comparativeSubcompartments, outputDirectory);
 
-        for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
-            SubcompartmentInterval.collapseGWList(gwList);
-        }
-
-        for (int i = 0; i < datasets.size(); i++) {
-            File outputFile2 = new File(outputDirectory, "result_intra_compare_file" + i + ".bed");
-            comparativeSubcompartments.get(i).simpleExport(outputFile2);
-        }
-
-        File outputFile3 = new File(outputDirectory, "consensus_result_intra_compare_file.bed");
-        consensus.simpleExport(outputFile3);
-    }
-
-    // todo mss
-    // variableStep chrom=chr2 span=5
-    // 300701  12.5
-    private void writeClusterCenterToWig(Chromosome chromosome, double[] center, File file, int resolution) {
-        try {
-            final FileWriter fw = new FileWriter(file);
-            fw.write("fixedStep chrom=chr" + chromosome.getName() + " start=1" + " step=" + resolution + "\n");
-            for (double d : center) {
-                fw.write(d + "\n");
-            }
-            fw.close();
-
-        } catch (Exception e) {
-            System.err.println("Unable to make file for exporting center");
-        }
+        DrinkUtils.writeFinalSubcompartmentsToFiles(comparativeSubcompartments, outputDirectory, inputHicFilePaths);
     }
 }

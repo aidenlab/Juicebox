@@ -176,7 +176,7 @@ class ScaledGenomeWideMatrix {
         }
         System.out.println("Cluster counter0 at " + UniqueSubcompartmentClusterID.tempInitialClusterID.get());
 
-        SubcompartmentInterval.reSort(subcompartments);
+        DrinkUtils.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
     }
 
