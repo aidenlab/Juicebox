@@ -32,7 +32,6 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
-import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
@@ -387,7 +386,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                     location1, location2, hic.getScaleFactor(),
                     HiC.ZoomCallType.STANDARD, "Assembly Goto", true);
             superAdapter.setNormalizationDisplayState();
-        } catch (UninitializedObjectException e) {
+        } catch (NullPointerException e) {
             System.err.println("Cannot recognize scaffold name");
         }
 

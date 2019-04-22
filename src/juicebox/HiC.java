@@ -36,7 +36,6 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
@@ -57,7 +56,7 @@ import java.util.List;
  * @since 4/8/12
  */
 public class HiC {
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings();
 
     //private final MainWindow mainWindow;
     //private final Feature2DHandler feature2DHandler;
@@ -301,12 +300,12 @@ public class HiC {
         return currentZoom;
     }
 
-    public MatrixZoomData getZd() throws UninitializedObjectException {
+    public MatrixZoomData getZd() throws NullPointerException {
         Matrix matrix = getMatrix();
         if (matrix == null) {
-            throw new UninitializedObjectException("Uninitialized matrix");
+            throw new NullPointerException("Uninitialized matrix");
         } else if (currentZoom == null) {
-            throw new UninitializedObjectException("Uninitialized zoom");
+            throw new NullPointerException("Uninitialized zoom");
         } else {
             return matrix.getZoomData(currentZoom);
         }

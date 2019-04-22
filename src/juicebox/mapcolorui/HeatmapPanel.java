@@ -43,7 +43,6 @@ import juicebox.track.feature.Feature2DGuiContainer;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -2342,7 +2341,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
           try {
             lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() /
                 hic.getZd().getBinSize();
-          } catch (UninitializedObjectException e1) {
+          } catch (NullPointerException e1) {
             e1.printStackTrace();
           }
           int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
