@@ -184,16 +184,31 @@ public class DrinkUtils {
     // todo mss
     // variableStep chrom=chr2 span=5
     // 300701  12.5
-    private static void writeClusterCenterToWig(Chromosome chromosome, double[] data, final FileWriter fw, int resolution, double threshold) {
+    private static void writeClusterCenterToWigAndBed(Chromosome chromosome, double[] data, List<SubcompartmentInterval> featureList,
+                                                      final FileWriter fwWig, final FileWriter fwBed, int resolution, double threshold) {
         try {
-            fw.write("fixedStep chrom=chr" + chromosome.getName() + " start=1" + " step=" + resolution + " span=" + resolution + "\n");
+            // write to wig file
+            fwWig.write("fixedStep chrom=chr" + chromosome.getName() + " start=1" + " step=" + resolution + " span=" + resolution + "\n");
             for (double d : data) {
                 if (d > threshold) {
-                    fw.write(d + "\n");
+                    fwWig.write(d + "\n");
                 } else {
-                    fw.write("0.0\n");
+                    fwWig.write("0.0\n");
                 }
             }
+
+            // write to bed file
+            try {
+                for (int k = 0; k < data.length; k++) {
+                    SubcompartmentInterval interval = featureList.get(k);
+                    if (interval.getDifferenceFromControl() > threshold) {
+                        fwBed.write("chr" + chromosome.getName() + "\t" + interval.getX1() + "\t" + interval.getX2() + "\n");
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -201,21 +216,26 @@ public class DrinkUtils {
 
     public static void writeDiffVectorsRelativeToBaselineToFiles(List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments,
                                                                  Map<Integer, double[]> idToCentroidMap, File outputDirectory, final List<String> inputHicFilePaths,
-                                                                 final ChromosomeHandler chromosomeHandler, final int resolution) {
+                                                                 final ChromosomeHandler chromosomeHandler, final int resolution, String uniqueString) {
         // get all differences
         Map<String, Double> distanceMatrix = calculateVectorDifferencesMatrix(idToCentroidMap);
 
         calculateDifferences(comparativeSubcompartments, distanceMatrix);
 
         for (int i = 1; i < comparativeSubcompartments.size(); i++) {
-            File outputWigFile = new File(outputDirectory, "cluster_differences_" + cleanUpPath(inputHicFilePaths.get(i)) + "__VS__" + cleanUpPath(inputHicFilePaths.get(0)) + ".wig");
-            File outputStringentWigFile = new File(outputDirectory, "top_cluster_differences_" + cleanUpPath(inputHicFilePaths.get(i)) + "__VS__" + cleanUpPath(inputHicFilePaths.get(0)) + ".wig");
-            File outputStringentBEDFile = new File(outputDirectory, "top_cluster_differences_" + cleanUpPath(inputHicFilePaths.get(i)) + "__VS__" + cleanUpPath(inputHicFilePaths.get(0)) + ".bed");
+
+            String whichFiles = cleanUpPath(inputHicFilePaths.get(i)) + "__VS__" + cleanUpPath(inputHicFilePaths.get(0));
+
+            File outputWigFile = new File(outputDirectory, uniqueString + whichFiles + ".wig");
+            File outputBEDFile = new File(outputDirectory, uniqueString + whichFiles + ".bed");
+            File outputStringentWigFile = new File(outputDirectory, "top_" + uniqueString + whichFiles + ".wig");
+            File outputStringentBEDFile = new File(outputDirectory, "top_" + uniqueString + whichFiles + ".bed");
 
 
             try {
-                final FileWriter fw = new FileWriter(outputWigFile);
-                final FileWriter fwStringent = new FileWriter(outputStringentWigFile);
+                final FileWriter fwWIG = new FileWriter(outputWigFile);
+                final FileWriter fwBED = new FileWriter(outputBEDFile);
+                final FileWriter fwStringentWIG = new FileWriter(outputStringentWigFile);
                 final FileWriter fwStringentBED = new FileWriter(outputStringentBEDFile);
 
                 comparativeSubcompartments.get(i).processLists(new FeatureFunction<SubcompartmentInterval>() {
@@ -228,27 +248,15 @@ public class DrinkUtils {
                         }
                         Chromosome chromosome = chromosomeHandler.getChromosomeFromIndex(Integer.valueOf(chr));
 
-                        writeClusterCenterToWig(chromosome, differences, fw, resolution, 0);
+                        writeClusterCenterToWigAndBed(chromosome, differences, featureList, fwWIG, fwBED, resolution, 0);
                         double avgThreshold = calculateTopThreshold(differences);
-                        writeClusterCenterToWig(chromosome, differences, fwStringent, resolution, avgThreshold);
-
-
-                        // write to bed file
-                        try {
-                            for (int k = 0; k < differences.length; k++) {
-                                SubcompartmentInterval interval = featureList.get(k);
-                                if (interval.getDifferenceFromControl() > avgThreshold) {
-                                    fwStringentBED.write("chr" + chromosome.getName() + "\t" + interval.getX1() + "\t" + interval.getX2() + "\n");
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        writeClusterCenterToWigAndBed(chromosome, differences, featureList, fwStringentWIG, fwStringentBED, resolution, avgThreshold);
 
                     }
                 });
-                fw.close();
-                fwStringent.close();
+                fwWIG.close();
+                fwBED.close();
+                fwStringentWIG.close();
                 fwStringentBED.close();
 
             } catch (IOException e) {

@@ -215,7 +215,8 @@ public class Clustering {
         }
 
         // process differences for diff vector
-        DrinkUtils.writeDiffVectorsRelativeToBaselineToFiles(comparativeSubcompartments, idToCentroidMap, outputDirectory, inputHicFilePaths, chromosomeHandler, resolution);
+        DrinkUtils.writeDiffVectorsRelativeToBaselineToFiles(comparativeSubcompartments, idToCentroidMap, outputDirectory,
+                inputHicFilePaths, chromosomeHandler, resolution, "drink_r_" + resolution + "_k_" + numClusters + "_diffs");
 
         DrinkUtils.writeConsensusSubcompartmentsToFile(comparativeSubcompartments, outputDirectory);
 
