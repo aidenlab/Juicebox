@@ -37,7 +37,7 @@ import juicebox.state.ImportStateFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
-import juicebox.tools.utils.original.norm.CustomNormVectorFileHandler;
+import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.*;

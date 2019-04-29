@@ -26,7 +26,7 @@ package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.norm.GenomeWideNormalizationVectorUpdater;
+import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
 
 
 public class AddGWNorm extends JuiceboxCLT {

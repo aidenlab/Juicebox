@@ -25,8 +25,6 @@
 
 package juicebox;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.gui.SuperAdapter;
@@ -56,10 +54,7 @@ import java.util.List;
  * @since 4/8/12
  */
 public class HiC {
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings();
 
-    //private final MainWindow mainWindow;
-    //private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<>();
     private final SuperAdapter superAdapter;
