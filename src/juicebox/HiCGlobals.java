@@ -38,7 +38,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.00.00";
+    public static final String versionNum = "1.10.12";
 
 
     // Changes Data Output Mode

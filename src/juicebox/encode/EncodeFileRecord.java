@@ -115,7 +115,7 @@ public class EncodeFileRecord {
      */
     public boolean hasMetaData() {
 
-        return (attributes.containsKey("cell")) || (attributes.containsKey("antibody"));
+        return (attributes.containsKey("cell")) || (attributes.containsKey("antibody") || attributes.containsKey("Biosample"));
 
     }
 }
