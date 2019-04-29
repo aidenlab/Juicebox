@@ -222,7 +222,11 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
         for (NormalizationType normType : NormalizationHandler.getAllGWNormTypes(true)) {
 
+            long currentTime = System.currentTimeMillis();
             Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("\n" + normType.getLabel() + " normalization genome wide at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+            }
 
             if (wgVectors != null) {
                 Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();

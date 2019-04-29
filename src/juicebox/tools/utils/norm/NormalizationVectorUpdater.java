@@ -118,36 +118,31 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
                 updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
                 updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
-
-                if (HiCGlobals.printVerboseComments) {
-                    System.out.println("\nVC normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
-                }
-                currentTime = System.currentTimeMillis();
+                printNormTiming("VC and VC_SQRT", chr, zoom, currentTime);
 
                 // KR normalization
+                currentTime = System.currentTimeMillis();
                 if (!failureSetKR.contains(chr)) {
                     double[] kr = nc.computeKR();
                     if (kr == null) {
                         failureSetKR.add(chr);
+                        printNormTiming("FAILED KR", chr, zoom, currentTime);
                     } else {
                         updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
-                    }
-                    if (HiCGlobals.printVerboseComments) {
-                        System.out.println("KR normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                        printNormTiming("KR", chr, zoom, currentTime);
                     }
                 }
 
-                currentTime = System.currentTimeMillis();
                 // Fast scaling normalization
+                currentTime = System.currentTimeMillis();
                 if (!failureSetMMBA.contains(chr)) {
                     double[] mmba = nc.computeMMBA();
                     if (mmba == null) {
                         failureSetMMBA.add(chr);
+                        printNormTiming("FAILED SCALE", chr, zoom, currentTime);
                     } else {
                         updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.SCALE, zoom, zd, evMMBA, normVectorBuffer, normVectorIndices);
-                    }
-                    if (HiCGlobals.printVerboseComments) {
-                        System.out.println("Fast scaling normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                        printNormTiming("SCALE", chr, zoom, currentTime);
                     }
                 }
             }
@@ -169,6 +164,11 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 normVectorBuffer, "Finished writing norms");
     }
 
+    private static void printNormTiming(String norm, Chromosome chr, HiCZoom zoom, long currentTime) {
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println(norm + " normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+        }
+    }
 
     private static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
                                                              ExpectedValueCalculation ev, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
