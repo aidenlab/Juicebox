@@ -40,6 +40,7 @@ public class AddNorm extends JuiceboxCLT {
     private int genomeWideResolution = -100;
 
     private String file;
+    private static boolean doNotSkipKRNorm = true;
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -69,6 +70,7 @@ public class AddNorm extends JuiceboxCLT {
         }
         noFragNorm = parser1.getNoFragNormOption();
         genomeWideResolution = parser1.getGenomeWideOption();
+        doNotSkipKRNorm = parser1.getDoNotSkipKROption();
         file = args[1];
 
     }
@@ -82,9 +84,9 @@ public class AddNorm extends JuiceboxCLT {
             else {
                 boolean useGenomeWideResolution = genomeWideResolution != -100;
                 if (useGenomeWideResolution)
-                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
+                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm, doNotSkipKRNorm);
                 else
-                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm);
+                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm, doNotSkipKRNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();

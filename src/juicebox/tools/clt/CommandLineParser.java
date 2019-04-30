@@ -40,6 +40,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option helpOption = null;
     private static Option removeCacheMemoryOption = null;
     private static Option verboseOption = null;
+    private static Option skipKROption = null;
     private static Option noNormOption = null;
     private static Option allPearsonsOption = null;
     private static Option versionOption = null;
@@ -105,6 +106,7 @@ public class CommandLineParser extends CmdLineParser {
 
         alignmentFilterOption = addIntegerOption('a', "alignment");
         randomizePositionOption = addBooleanOption("randomize_position");
+        skipKROption = addBooleanOption("skip-kr");
         randomSeedOption = addLongOption("random_seed");
         randomizePositionMapsOption = addStringOption("randomize_pos_maps");
 
@@ -134,6 +136,10 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
+
+    public boolean getDoNotSkipKROption() {
+        return !optionToBoolean(skipKROption);
+    }
 
     public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
 
@@ -218,7 +224,7 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public enum Alignment {
-        INNER, OUTER, LL, RR;
+        INNER, OUTER, LL, RR
     }
 
     /**

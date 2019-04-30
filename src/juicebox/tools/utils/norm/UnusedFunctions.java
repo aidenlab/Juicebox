@@ -54,7 +54,7 @@ class UnusedFunctions {
         if (args.length == 2) {
             CustomNormVectorFileHandler.updateHicFile(path, args[1]);
         } else {
-            NormalizationVectorUpdater.updateHicFile(path, -100, false);
+            NormalizationVectorUpdater.updateHicFile(path, -100, false, true);
         }
 
      /*   if (args.length > 1) {

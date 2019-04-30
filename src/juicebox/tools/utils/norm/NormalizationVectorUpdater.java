@@ -45,7 +45,7 @@ import java.util.*;
  */
 public class NormalizationVectorUpdater extends NormVectorUpdater {
 
-    public static void updateHicFile(String path, int genomeWideResolution, boolean noFrag) throws IOException {
+    public static void updateHicFile(String path, int genomeWideResolution, boolean noFrag, boolean doNotSkipKRNorm) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
@@ -121,15 +121,17 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 printNormTiming("VC and VC_SQRT", chr, zoom, currentTime);
 
                 // KR normalization
-                currentTime = System.currentTimeMillis();
-                if (!failureSetKR.contains(chr)) {
-                    double[] kr = nc.computeKR();
-                    if (kr == null) {
-                        failureSetKR.add(chr);
-                        printNormTiming("FAILED KR", chr, zoom, currentTime);
-                    } else {
-                        updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
-                        printNormTiming("KR", chr, zoom, currentTime);
+                if (doNotSkipKRNorm) {
+                    currentTime = System.currentTimeMillis();
+                    if (!failureSetKR.contains(chr)) {
+                        double[] kr = nc.computeKR();
+                        if (kr == null) {
+                            failureSetKR.add(chr);
+                            printNormTiming("FAILED KR", chr, zoom, currentTime);
+                        } else {
+                            updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
+                            printNormTiming("KR", chr, zoom, currentTime);
+                        }
                     }
                 }
 
@@ -153,8 +155,10 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             if (evVCSqrt.hasData()) {
                 expectedValueCalculations.add(evVCSqrt);
             }
-            if (evKR.hasData()) {
-                expectedValueCalculations.add(evKR);
+            if (doNotSkipKRNorm) {
+                if (evKR.hasData()) {
+                    expectedValueCalculations.add(evKR);
+                }
             }
             if (evMMBA.hasData()) {
                 expectedValueCalculations.add(evMMBA);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,9 @@
 package juicebox.tools.utils.original;
 
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
@@ -44,7 +43,6 @@ import java.util.zip.GZIPInputStream;
  */
 public class AsciiPairIterator implements PairIterator {
 
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.breakingWhitespace()).trimResults().omitEmptyStrings();
     /**
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
      * in perm space, which is rather limited and can cause us to run out of memory.
@@ -106,7 +104,7 @@ public class AsciiPairIterator implements PairIterator {
             String nextLine;
             if ((nextLine = reader.readLine()) != null) {
                 //String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+                List<String> tokens = JuiceboxCLT.MY_SPLITTER.splitToList(nextLine);
 
                 int nTokens = tokens.size();
 
