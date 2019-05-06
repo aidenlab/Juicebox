@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,20 @@ package juicebox.track;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.SuperAdapter;
+import juicebox.tools.utils.common.ArrayTools;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.DoubleArrayList;
+import org.broad.igv.util.collections.LRUCache;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,16 +51,17 @@ import java.util.Map;
  */
 public class EigenvectorTrack extends HiCTrack {
 
-
-    private final Map<Integer, double[]> dataCache = new HashMap<>();
-    private final Map<Integer, Double> dataMaxCache = new HashMap<>();
-    private final Map<Integer, Double> medianCache = new HashMap<>();
+    // actual dataset object saves more; we will just save 6 most recent ones here
+    private final LRUCache<String, double[]> dataCache = new LRUCache<>(6);
+    //private final Map<String, double[]> dataCache = new HashMap<>();
+    private final Map<String, Double> dataMaxCache = new HashMap<>();
+    private final Map<String, Double> medianCache = new HashMap<>();
+    private final Map<String, Integer> flippingRecordCache = new HashMap<>();
     private final HiC hic;
 
-    private int currentZoom = -1;
+    private int currentZoomBinSize = -1;
     private String name;
     private boolean isControl = false;
-    private int isCtrlInt = 0;
 
 
     public EigenvectorTrack(String id, String name, HiC hic, boolean isControl) {
@@ -62,18 +69,27 @@ public class EigenvectorTrack extends HiCTrack {
         this.hic = hic;
         this.name = name;
         this.isControl = isControl;
-        if (isControl) {
-            isCtrlInt = 1000;
-            // there aren't any organisms I'm aware of with 1000 chromosomes, we should be safe with this offset
-            // could probably multiply by -1 as well, would not work for all by all (-0 = 0)
-            // but genomewide doesn't have an eigenvector todo consider if *(-1) is a better option
-        }
-
     }
 
-    private void setData(int chrIdx, double[] data) {
+    private double[] loadData(int chrIdxPreCtrlInt, int zoomBinSize) {
+
+        double[] data = hic.getEigenvector(chrIdxPreCtrlInt, 0, isControl);
+        currentZoomBinSize = zoomBinSize;
+        String cacheKey = getCacheKey(chrIdxPreCtrlInt, zoomBinSize);
 
         if (data != null && data.length > 0) {
+            int flipVal = 1;
+            if (flippingRecordCache.containsKey(cacheKey)) {
+                flipVal = flippingRecordCache.get(cacheKey);
+                if (flipVal == -1) {
+                    data = ArrayTools.flipArrayValues(data);
+                }
+            } else {
+                flippingRecordCache.put(cacheKey, flipVal);
+            }
+
+            dataCache.put(cacheKey, data);
+
             DoubleArrayList tmp = new DoubleArrayList(data.length);
 
             for (double datum : data) {
@@ -82,28 +98,24 @@ public class EigenvectorTrack extends HiCTrack {
                 }
             }
 
-
-            /*
-            for (int i = 0; i < data.length; i++) {
-                if (!Double.isNaN(data[i])) {
-                    tmp.add(data[i]);
-                }
-            }
-            */
             double[] tmpArray = tmp.toArray();
-            medianCache.put(chrIdx + isCtrlInt, StatUtils.percentile(tmpArray, 50));
+            medianCache.put(cacheKey, StatUtils.percentile(tmpArray, 50));
+
             double max = 0;
             for (double aData : tmpArray) {
                 if (Math.abs(aData) > max) max = Math.abs(aData);
             }
-            dataMaxCache.put(chrIdx + isCtrlInt, max);
+            dataMaxCache.put(cacheKey, max);
         }
+        return data;
     }
 
-    private void clearDataCache() {
-        dataCache.clear();
-        dataMaxCache.clear();
-        medianCache.clear();
+    private String getCacheKey(int chrIdx, int zoomBinSize) {
+        String key = "observed_";
+        if (isControl) {
+            key = "control_";
+        }
+        return key + chrIdx + "_" + zoomBinSize;
     }
 
     @Override
@@ -118,6 +130,37 @@ public class EigenvectorTrack extends HiCTrack {
 //        return bin < data.length ? String.valueOf(data[bin]) : null;
 
     }
+
+    @Override
+    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter, final TrackPanel.Orientation orientation) {
+
+        JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter, orientation);
+        menu.addSeparator();
+
+        JMenuItem menuItem = new JMenuItem("Flip Eigenvector");
+        menuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MatrixZoomData zd = getAppropriateZD();
+                if (zd == null) return;
+
+                int chrIdx = orientation == TrackPanel.Orientation.X ? zd.getChr1Idx() : zd.getChr2Idx();
+                flipEigenvector(chrIdx, superAdapter.getHiC().getZoom().getBinSize());
+                hic.refreshEigenvectorTrackIfExists();
+            }
+        });
+        menu.add(menuItem);
+
+        return menu;
+
+    }
+
+    protected void flipEigenvector(int chrIdx, int zoomBinSize) {
+        String cacheKey = getCacheKey(chrIdx, zoomBinSize);
+        int currFlipVal = flippingRecordCache.get(cacheKey);
+        flippingRecordCache.put(cacheKey, -1 * currFlipVal);
+    }
+
 
     /**
      * Render the track in the supplied rectangle.  It is the responsibility of the track to draw within the
@@ -138,28 +181,16 @@ public class EigenvectorTrack extends HiCTrack {
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
 
-        MatrixZoomData zd;
-        try {
-            if (isControl) {
-                zd = hic.getControlZd();
-            } else {
-                zd = hic.getZd();
-            }
-        } catch (Exception e) {
-            return;
-        }
+        MatrixZoomData zd = getAppropriateZD();
+        if (zd == null) return;
 
-        int zoom = zd.getZoom().getBinSize();
-        if (zoom != currentZoom) {
-            clearDataCache();
-        }
+        int zoomBinSize = hic.getZoom().getBinSize();
 
         int chrIdx = orientation == TrackPanel.Orientation.X ? zd.getChr1Idx() : zd.getChr2Idx();
-        double[] eigen = dataCache.get(chrIdx + isCtrlInt);
+        String cacheKey = getCacheKey(chrIdx, zoomBinSize);
+        double[] eigen = dataCache.get(cacheKey);
         if (eigen == null) {
-            eigen = hic.getEigenvector(chrIdx, 0, isControl);
-            currentZoom = zoom;
-            setData(chrIdx, eigen);
+            eigen = loadData(chrIdx, zoomBinSize);
         }
 
 
@@ -177,9 +208,8 @@ public class EigenvectorTrack extends HiCTrack {
             return;
         }
 
-        double dataMax = dataMaxCache.get(chrIdx + isCtrlInt);
-        double median = medianCache.get(chrIdx + isCtrlInt);
-
+        double dataMax = dataMaxCache.get(cacheKey);
+        double median = medianCache.get(cacheKey);
 
         int h = height / 2;
 
@@ -212,6 +242,18 @@ public class EigenvectorTrack extends HiCTrack {
 
     }
 
+    private MatrixZoomData getAppropriateZD() {
+        try {
+            if (isControl) {
+                return hic.getControlZd();
+            } else {
+                return hic.getZd();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String getName() {
         return name;
     }
@@ -225,9 +267,11 @@ public class EigenvectorTrack extends HiCTrack {
         return null;  //TODO change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void forceRefresh() {
-        currentZoom = -1;
-        clearDataCache();
+    public void forceRefreshCache() {
+        currentZoomBinSize = -1;
+        dataCache.clear();
+        dataMaxCache.clear();
+        medianCache.clear();
     }
 
     private void drawRotatedString(Graphics2D g2, String string, float x, float y) {

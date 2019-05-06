@@ -198,12 +198,12 @@ public class HiC {
         }
     }
 
-    private void refreshEigenvectorTrackIfExists() {
+    public void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
-            eigenvectorTrack.forceRefresh();
+            eigenvectorTrack.forceRefreshCache();
         }
         if (controlEigenvectorTrack != null) {
-            controlEigenvectorTrack.forceRefresh();
+            controlEigenvectorTrack.forceRefreshCache();
         }
     }
 
