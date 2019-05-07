@@ -104,17 +104,16 @@ public class EncodeFileBrowser extends JDialog {
         InputStream is = null;
 
         try {
-
-            is = EncodeFileBrowser.class.getResourceAsStream("encode." + genomeId + ".txt");
-            if (is == null) {
-                try {
-                    is = ParsingUtils.openInputStream("https://s3.amazonaws.com/igv.org.app/encode/" + getEncodeGenomeId(genomeId) + ".txt.gz");
-                    urlVersion = true;
-                }
-                catch (Exception error) {
-                    return null;
-                }
+            //is = EncodeFileBrowser.class.getResourceAsStream("encode." + genomeId + ".txt");
+            //if (is == null) {
+            try {
+                is = ParsingUtils.openInputStream("https://s3.amazonaws.com/igv.org.app/encode/" + getEncodeGenomeId(genomeId) + ".txt.gz");
+                urlVersion = true;
             }
+            catch (Exception error) {
+                return null;
+            }
+            //}
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
 
             String[] headers = Globals.tabPattern.split(reader.readLine());
