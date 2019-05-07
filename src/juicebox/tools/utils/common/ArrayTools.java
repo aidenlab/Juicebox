@@ -214,6 +214,14 @@ public class ArrayTools {
         return inverses;
     }
 
+    public static double[] flipArrayValues(double[] array) {
+        double[] flipped = new double[array.length];
+        for (int i = 0; i < array.length; i++) {
+            flipped[i] = -1 * array[i];
+        }
+        return flipped;
+    }
+
     /**
      * Print out a given vector in wig style format to the specified writer
      * @param vector
