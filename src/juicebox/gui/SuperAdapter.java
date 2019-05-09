@@ -230,6 +230,7 @@ public class SuperAdapter {
     public void repaint() {
         mainWindow.revalidate();
         mainWindow.repaint();
+        if (layersPanel != null) layersPanel.repaint();
     }
 
     public void safeLoadFromURLActionPerformed(final Runnable refresh1DLayers) {
@@ -643,6 +644,7 @@ public class SuperAdapter {
 
     public void revalidate() {
         mainWindow.revalidate();
+        if (layersPanel != null) layersPanel.revalidate();
     }
 
     public void updateMainViewPanelToolTipText(String text) {

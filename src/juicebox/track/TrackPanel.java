@@ -79,6 +79,7 @@ public class TrackPanel extends JPanel {
         hic.removeTrack(track);
         superAdapter.revalidate();
         superAdapter.repaint();
+        superAdapter.getLayersPanel().redraw1DLayerPanels(superAdapter);
     }
 
     public void moveTrackUp(HiCTrack track) {
