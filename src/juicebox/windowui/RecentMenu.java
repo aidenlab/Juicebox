@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,7 @@ public abstract class RecentMenu extends JMenu {
     private final File JuiceboxStatesXML = new File(DirectoryManager.getHiCDirectory(), "JuiceboxStatesXML.txt");
     private final HiCGlobals.menuType myType;
     private List<String> m_items = new ArrayList<>();
+    public static final String delimiter = "@@";
 
     public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type) {
         super(name);
@@ -124,6 +125,17 @@ public abstract class RecentMenu extends JMenu {
         add(clearMapList);
     }
 
+    public static String[] encodeSafeDelimeterSplit(String path) {
+        String pathProtected = path.replaceAll("@@Download", "@PROTECT@");
+        pathProtected = pathProtected.replaceAll("@@download", "@PROTECT@");
+
+        String[] splitString = pathProtected.split(RecentMenu.delimiter);
+        for (int i = 0; i < splitString.length; i++) {
+            splitString[i] = splitString[i].replaceAll("@PROTECT@", "@@download");
+        }
+        return splitString;
+    }
+
     /**
      * Add new recent entry, update file and menu
      *
@@ -144,9 +156,8 @@ public abstract class RecentMenu extends JMenu {
 
         //add items back to the menu
         for (String m_item : this.m_items) {
-            String delimiter = "@@";
-            String[] temp;
-            temp = m_item.split(delimiter);
+
+            String[] temp = encodeSafeDelimeterSplit(m_item);
 
             if (!temp[0].equals("")) {
                 String truncatedName = HiCFileTools.getTruncatedText(temp[0], maxLengthEntryName);

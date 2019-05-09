@@ -489,7 +489,7 @@ public class SuperAdapter {
     }
 
     public void safeLoad(final List<String> files, final boolean control, final String title) {
-        addRecentMapMenuEntry(title.trim() + "@@" + files.get(0), true);
+        addRecentMapMenuEntry(title.trim() + RecentMenu.delimiter + files.get(0), true);
         Runnable runnable = new Runnable() {
             public void run() {
                 boolean isRestorenMode = false;

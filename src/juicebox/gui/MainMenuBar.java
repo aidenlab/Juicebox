@@ -148,10 +148,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 4202L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
-//                initProperties();         // don't know why we're doing this here
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
       }
     };
@@ -164,13 +161,11 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 42012L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
-        //initProperties();         // don't know why we're doing this here
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
       }
     };
+
     //recentControlMapMenu.setMnemonic('r');
     recentControlMapMenu.setEnabled(false);
     fileMenu.add(recentControlMapMenu);
@@ -282,7 +277,7 @@ public class MainMenuBar extends JMenuBar {
         String stateString = superAdapter.getLocationDescription();
         String stateDescription = superAdapter.getDescription("location");
         if (stateDescription != null && stateDescription.length() > 0) {
-          addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+            addRecentStateMenuEntry(stateDescription + RecentMenu.delimiter + stateString, true);
           recentLocationMenu.setEnabled(true);
         }
       }
@@ -321,9 +316,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 4204L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
         superAdapter.setNormalizationDisplayState();
 
