@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
-import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
@@ -155,14 +154,14 @@ public class HiCTrackManager {
                 HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
                 loadedTracks.add(hicTrack);
             }
-        } else if (pathLC.endsWith(".bb")) {
+        } else if (pathLC.endsWith(".bb") || pathLC.endsWith(".bigbed")) {
             try {
                 BigWigDataSource src = new BigWigDataSource(new BBFileReader(locator.getPath()), genome);
                 HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
                 track.setName(locator.getTrackName());
                 loadedTracks.add(track);
             } catch (Exception e) {
-                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
+                System.err.println("Error loading bb track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
@@ -172,7 +171,7 @@ public class HiCTrackManager {
 
                 loadedTracks.addAll(tracks);
             } catch (Exception e) {
-                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
+                System.err.println("Error loading tribble track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
            /* FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
