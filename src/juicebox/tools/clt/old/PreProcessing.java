@@ -102,6 +102,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
+        preprocessor.setGenome(parser1.getGenomeOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
         preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
         preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());

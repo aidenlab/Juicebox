@@ -51,6 +51,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option statsOption = null;
     private static Option graphOption = null;
     private static Option expectedVectorOption = null;
+    private static Option genomeIDOption = null;
 
     // ints
     private static Option countThresholdOption = null;
@@ -74,10 +75,10 @@ public class CommandLineParser extends CmdLineParser {
     public CommandLineParser() {
 
         // available
-        // beijklouy
+        // bijklou
 
         // used
-        // d h x v n p F V f t s g m q w c r z a
+        // d h x v n p F V f t s g m q w c r z a y
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
@@ -92,6 +93,7 @@ public class CommandLineParser extends CmdLineParser {
         tmpDirOption = addStringOption('t', "tmpDir");
         statsOption = addStringOption('s', "statistics");
         graphOption = addStringOption('g', "graphs");
+        genomeIDOption = addStringOption('y', "genome_id");
 
         countThresholdOption = addIntegerOption('m', "min_count");
         mapqOption = addIntegerOption('q', "mapq");
@@ -170,6 +172,8 @@ public class CommandLineParser extends CmdLineParser {
     public String getGraphOption() {
         return optionToString(graphOption);
     }
+
+    public String getGenomeOption() { return optionToString(genomeIDOption); }
 
     public String getTmpdirOption() {
         return optionToString(tmpDirOption);

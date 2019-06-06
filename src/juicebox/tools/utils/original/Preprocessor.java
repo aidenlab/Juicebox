@@ -61,12 +61,14 @@ public class Preprocessor {
     public static final String SOFTWARE = "software";
     private static final String NVI_INDEX = "nviIndex";
     private static final String NVI_LENGTH = "nviLength";
+    private static final String CHROMOSOME_PATH = "chromosomePath";
 
     private final ChromosomeHandler chromosomeHandler;
     private final Map<String, Integer> chromosomeIndexes;
     private final File outputFile;
     private final Map<String, IndexEntry> matrixPositions;
-    private final String genomeId;
+    private String genomeId;
+    private String chromosomePath;
     private final Deflater compressor;
     private LittleEndianOutputStream los;
     private long masterIndexPosition;
@@ -157,6 +159,13 @@ public class Preprocessor {
 
     public void setGraphFile(String graphFileName) {
         this.graphFileName = graphFileName;
+    }
+
+    public void setGenome(String genome) {
+        if (genome != null) {
+            this.chromosomePath = genomeId;
+            this.genomeId = genome;
+        }
     }
 
     public void setResolutions(Set<String> resolutions) {
@@ -449,6 +458,7 @@ public class Preprocessor {
         int nAttributes = 1;
         if (stats != null) nAttributes += 1;
         if (graphs != null) nAttributes += 1;
+        if (chromosomePath != null) nAttributes += 1;
         if (hicFileScaling != null) nAttributes += 1;
         nAttributes += 2; // NVI info
 
@@ -462,6 +472,10 @@ public class Preprocessor {
         if (graphs != null) {
             los.writeString(GRAPHS);
             los.writeString(graphs.toString());
+        }
+        if (chromosomePath != null) {
+            los.writeString(CHROMOSOME_PATH);
+            los.writeString(chromosomePath);
         }
         if (hicFileScaling != null) {
             los.writeString(HIC_FILE_SCALING);
