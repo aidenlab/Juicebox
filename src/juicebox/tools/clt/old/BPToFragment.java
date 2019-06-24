@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
 
 package juicebox.tools.clt.old;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import htsjdk.samtools.util.Locatable;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
@@ -42,7 +40,6 @@ import java.util.regex.Pattern;
 
 public class BPToFragment extends JuiceboxCLT {
 
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
     private String fragFile, inputBedFile, outputFile;
 
     public BPToFragment() {

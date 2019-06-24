@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ import juicebox.track.feature.Feature2DGuiContainer;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -172,7 +171,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     g.clearRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
 
     if (HiCGlobals.isDarkulaModeEnabled) {
-      g.setColor(Color.BLACK);
+      g.setColor(Color.darkGray);
       g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
     }
 
@@ -227,7 +226,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     //System.out.println("tileX "+tLeft+" "+tRight+" tileY "+tTop+" "+tBottom);
 
     MatrixType displayOption = hic.getDisplayOption();
-    NormalizationType normalizationType = hic.getNormalizationType();
+      NormalizationType observedNormalizationType = hic.getObsNormalizationType();
+      NormalizationType controlNormalizationType = hic.getControlNormalizationType();
 
     boolean allTilesNull = true;
     for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
@@ -235,7 +235,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         ImageTile tile;
         try {
-          tile = getImageTile(zd, controlZd, tileRow, tileColumn, displayOption, normalizationType);
+            tile = getImageTile(zd, controlZd, tileRow, tileColumn, displayOption, observedNormalizationType, controlNormalizationType);
         } catch (Exception e) {
           return;
         }
@@ -298,7 +298,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1);
               }
               bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn,
-                  displayOption, normalizationType,
+                      displayOption, observedNormalizationType, controlNormalizationType,
                   xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
               //processedExportRegions.add(newKey);
             } catch (Exception e2) {
@@ -322,7 +322,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
         //In case tender is called as a result of zoom change event, check if
         //We need to update slider with map range:
-        String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption);
+          String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
         renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
         //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
       }
@@ -377,7 +377,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         //Cover gray background for the empty parts of the matrix:
         if (HiCGlobals.isDarkulaModeEnabled) {
-          g.setColor(Color.black);
+          g.setColor(Color.darkGray);
         } else {
           g.setColor(Color.white);
         }
@@ -547,7 +547,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
   }
 
   private void bypassTileAndDirectlyDrawOnGraphics(Graphics2D g, MatrixZoomData zd, int tileRow, int tileColumn,
-                                                   MatrixType displayOption, NormalizationType normalizationType,
+                                                   MatrixType displayOption, NormalizationType observedNormalizationType,
+                                                   NormalizationType controlNormalizationType,
                                                    int xDest0, int yDest0, int xDest1, int yDest1, int xSrc0,
                                                    int ySrc0, int xSrc1, int ySrc1) {
 
@@ -586,7 +587,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         zd,
         hic.getControlZd(),
         displayOption,
-        normalizationType,
+            observedNormalizationType,
+            controlNormalizationType,
         hic.getExpectedValues(),
         hic.getExpectedControlValues(),
         g, false);
@@ -614,7 +616,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
   }
 
   public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
-                                 NormalizationType normalizationType) {
+                                 NormalizationType observedNormalizationType, NormalizationType controlNormalizationType) {
     if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
       JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
       return null;
@@ -629,7 +631,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     BufferedImage image = (BufferedImage) createImage(wh, wh);
     Graphics2D g = image.createGraphics();
     if (HiCGlobals.isDarkulaModeEnabled) {
-      g.setColor(Color.BLACK);
+      g.setColor(Color.darkGray);
       g.fillRect(0, 0, wh, wh);
     }
 
@@ -640,7 +642,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         zd0,
         ctrl0,
         displayOption,
-        normalizationType,
+            observedNormalizationType,
+            controlNormalizationType,
         hic.getExpectedValues(),
         hic.getExpectedControlValues(),
         g, false);
@@ -661,7 +664,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
    * @return image tile
    */
   private ImageTile getImageTile(MatrixZoomData zd, MatrixZoomData controlZd, int tileRow, int tileColumn, MatrixType displayOption,
-                                 NormalizationType normalizationType) {
+                                 NormalizationType obsNormalizationType, NormalizationType ctrlNormalizationType) {
 
     String key = zd.getTileKey(tileRow, tileColumn, displayOption);
     ImageTile tile = tileCache.get(key);
@@ -681,7 +684,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       BufferedImage image = (BufferedImage) createImage(imageWidth, imageHeight);
       Graphics2D g2D = (Graphics2D) image.getGraphics();
       if (HiCGlobals.isDarkulaModeEnabled) {
-        g2D.setColor(Color.BLACK);
+        g2D.setColor(Color.darkGray);
         g2D.fillRect(0, 0, imageWidth, imageHeight);
       }
 
@@ -697,7 +700,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
           zd,
           controlZd,
           displayOption,
-          normalizationType,
+              obsNormalizationType,
+              ctrlNormalizationType,
           hic.getExpectedValues(),
           hic.getExpectedControlValues(),
           g2D, true)) {
@@ -1200,7 +1204,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     if (clickedBinX > clickedBinY) {
 
-      final JMenuItem jumpToDiagonalLeft = new JMenuItem(Character.toString('\u25C0') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalLeft = new JMenuItem('\u25C0' + "  Jump To Diagonal");
       jumpToDiagonalLeft.setSelected(straightEdgeEnabled);
       jumpToDiagonalLeft.addActionListener(new ActionListener() {
         @Override
@@ -1216,7 +1220,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(jumpToDiagonalLeft);
 
-      final JMenuItem jumpToDiagonalDown = new JMenuItem(Character.toString('\u25BC') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalDown = new JMenuItem('\u25BC' + "  Jump To Diagonal");
       jumpToDiagonalDown.setSelected(straightEdgeEnabled);
       jumpToDiagonalDown.addActionListener(new ActionListener() {
         @Override
@@ -1234,7 +1238,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     } else if (clickedBinX < clickedBinY) {
 
-      final JMenuItem jumpToDiagonalUp = new JMenuItem(Character.toString('\u25B2') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalUp = new JMenuItem('\u25B2' + "  Jump To Diagonal");
       jumpToDiagonalUp.setSelected(straightEdgeEnabled);
       jumpToDiagonalUp.addActionListener(new ActionListener() {
         @Override
@@ -1250,7 +1254,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       });
       menu.add(jumpToDiagonalUp);
 
-      final JMenuItem jumpToDiagonalRight = new JMenuItem(Character.toString('\u25B6') + "  Jump To Diagonal");
+      final JMenuItem jumpToDiagonalRight = new JMenuItem('\u25B6' + "  Jump To Diagonal");
       jumpToDiagonalRight.setSelected(straightEdgeEnabled);
       jumpToDiagonalRight.addActionListener(new ActionListener() {
         @Override
@@ -1376,14 +1380,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
         txt += "</span></html>";
 
         if (xChrom.getName().toLowerCase().contains("chr")) {
-          hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+          hic.setXPosition(xChrom.getName() + ":" + xChromPos);
         } else {
-          hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+          hic.setXPosition("chr" + xChrom.getName() + ":" + xChromPos);
         }
         if (yChrom.getName().toLowerCase().contains("chr")) {
-          hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+          hic.setYPosition(yChrom.getName() + ":" + yChromPos);
         } else {
-          hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+          hic.setYPosition("chr" + yChrom.getName() + ":" + yChromPos);
         }
         return txt;
       }
@@ -1456,7 +1460,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       txt.append("</span><span style='font-family: arial; font-size: 12pt;'>");
 
       if (hic.isInPearsonsMode()) {
-        float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
+          float value = zd.getPearsonValue(binX, binY, hic.getObsNormalizationType());
         if (!Float.isNaN(value)) {
 
           txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
@@ -1489,7 +1493,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         MatrixZoomData controlZD = hic.getControlZd();
         if (controlZD != null) {
-          float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
+            float controlValue = hic.getNormalizedControlValue(binX, binY);
           txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
           txt.append("control value (C) = ");
           txt.append(getFloatString(controlValue));
@@ -2337,7 +2341,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
           try {
             lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() /
                 hic.getZd().getBinSize();
-          } catch (UninitializedObjectException e1) {
+          } catch (NullPointerException e1) {
             e1.printStackTrace();
           }
           int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);

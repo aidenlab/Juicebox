@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
@@ -139,17 +140,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             masterIndexPos = dis.readLong();
             position += 8;
 
+            // will set genomeId below
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
-            // need to get rid of front part too
-            int chromSizes1 = genomeId.lastIndexOf(File.separatorChar);
-            int chromSizes2 = genomeId.indexOf(".chrom.sizes");
-
-            if (chromSizes2 < 0) {
-                chromSizes2 = genomeId.length();
-            }
-            genomeId = genomeId.substring(chromSizes1+1,chromSizes2);
-            dataset.setGenomeId(genomeId);
 
             Map<String, String> attributes = new HashMap<>();
             // Attributes  (key-value pairs)
@@ -188,6 +181,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 chromosomes.add(new Chromosome(i, ChromosomeHandler.cleanUpName(name), size));
             }
             dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes));
+            // guess genomeID from chromosomes
+            String genomeId1 = dataset.getChromosomeHandler().getGenomeId();
+            // if cannot find matching genomeID, set based on file
+            dataset.setGenomeId(genomeId1==null?genomeId:genomeId1);
 
             int nBpResolutions = dis.readInt();
             position += 4;
@@ -335,6 +332,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return checkBoxList;
     }
 
+    @Override
+    public NormalizationVector getNormalizationVector(int chr1Idx, HiCZoom zoom, NormalizationType normalizationType) {
+        return dataset.getNormalizationVector(chr1Idx, zoom, normalizationType);
+    }
+
     private String readGraphs(String graphFileName) throws IOException {
         String graphs;
         BufferedReader reader = null;
@@ -462,7 +464,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int nExpectedValues = dis.readInt();
         for (int i = 0; i < nExpectedValues; i++) {
 
-            NormalizationType no = NormalizationType.NONE;
+            NormalizationType no = NormalizationHandler.NONE;
             String unitString = dis.readString();
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
@@ -482,11 +484,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 normFactors.put(chrIdx, normFactor);
             }
 
-            ExpectedValueFunction df = new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors);
-            expectedValuesMap.put(key, df);
-            dataset.setExpectedValueFunctionMap(expectedValuesMap);
-
+            expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors));
         }
+        dataset.setExpectedValueFunctionMap(expectedValuesMap);
 
         // Normalized expected values (v6 and greater only)
 
@@ -526,10 +526,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     normFactors.put(chrIdx, normFactor);
                 }
 
-                NormalizationType type = NormalizationType.valueOf(typeString);
+                NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
                 ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, values, normFactors);
                 expectedValuesMap.put(key, df);
-
             }
 
             // Normalization vectors (indexed)
@@ -538,7 +537,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             normVectorIndex = new HashMap<>(nEntries * 2);
             for (int i = 0; i < nEntries; i++) {
 
-                NormalizationType type = NormalizationType.valueOf(dis.readString());
+                NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(dis.readString());
                 int chrIdx = dis.readInt();
                 String unit = dis.readString();
                 int resolution = dis.readInt();
@@ -551,13 +550,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                 normVectorIndex.put(key, new Preprocessor.IndexEntry(filePosition, sizeInBytes));
             }
-
-
         }
     }
 
     @Override
-    public Matrix readMatrix(String key) throws IOException {
+    public synchronized Matrix readMatrix(String key) throws IOException {
         Preprocessor.IndexEntry idx = masterIndex.get(key);
         if (idx == null) {
             return null;
@@ -726,13 +723,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                             throw new RuntimeException("Unknown block type: " + type);
                     }
                 }
-                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationType.NONE));
+                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
             }
         }
 
         // If no block exists, mark with an "empty block" to prevent further attempts
         if (b == null) {
-            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationType.NONE));
+            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
         }
         return b;
     }
@@ -742,16 +739,17 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
         if (no == null) {
-            throw new IOException("Normalization type is null");
-        } else if (no == NormalizationType.NONE) {
+            throw new IOException("Norm " + no + " is null");
+        } else if (no.equals(NormalizationHandler.NONE)) {
             return readBlock(blockNumber, zd);
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
 
             if (nv1 == null || nv2 == null) {
-                if (HiCGlobals.printVerboseComments) {
-                    System.err.println("Normalization missing for: " + zd.getDescription());
+                if (true || HiCGlobals.printVerboseComments) {
+                    System.err.println("Norm " + no + " missing for: " + zd.getDescription());
+                    System.err.println(nv1 + " - " + nv2);
                 }
                 return null;
             }
@@ -820,8 +818,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
         if (allNaN) return null;
         else return new NormalizationVector(type, chrIdx, unit, binSize, values);
-
-
     }
 
     public Map<String, Preprocessor.IndexEntry> getNormVectorIndex()  { return normVectorIndex;}

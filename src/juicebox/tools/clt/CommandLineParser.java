@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option helpOption = null;
     private static Option removeCacheMemoryOption = null;
     private static Option verboseOption = null;
+    private static Option skipKROption = null;
     private static Option noNormOption = null;
     private static Option allPearsonsOption = null;
     private static Option versionOption = null;
@@ -49,6 +50,8 @@ public class CommandLineParser extends CmdLineParser {
     private static Option tmpDirOption = null;
     private static Option statsOption = null;
     private static Option graphOption = null;
+    private static Option expectedVectorOption = null;
+    private static Option genomeIDOption = null;
 
     // ints
     private static Option countThresholdOption = null;
@@ -60,14 +63,22 @@ public class CommandLineParser extends CmdLineParser {
     // sets of strings
     private static Option multipleChromosomesOption = null;
     private static Option resolutionOption = null;
+    private static Option randomizePositionMapsOption = null;
+
+
+    //filter option based on directionality
+    private static Option alignmentFilterOption = null;
+
+    private static Option randomizePositionOption = null;
+    private static Option randomSeedOption = null;
 
     public CommandLineParser() {
 
         // available
-        // abeijklouy
+        // bijklou
 
         // used
-        // d h x v n p F V f t s g m q w c r z
+        // d h x v n p F V f t s g m q w c r z a y
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
@@ -82,6 +93,7 @@ public class CommandLineParser extends CmdLineParser {
         tmpDirOption = addStringOption('t', "tmpDir");
         statsOption = addStringOption('s', "statistics");
         graphOption = addStringOption('g', "graphs");
+        genomeIDOption = addStringOption('y', "genome_id");
 
         countThresholdOption = addIntegerOption('m', "min_count");
         mapqOption = addIntegerOption('q', "mapq");
@@ -91,8 +103,17 @@ public class CommandLineParser extends CmdLineParser {
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         resolutionOption = addStringOption('r', "resolutions");
 
+        expectedVectorOption = addStringOption('e', "expected_vector_file");
         hicFileScalingOption = addDoubleOption('z', "scale");
+
+        alignmentFilterOption = addIntegerOption('a', "alignment");
+        randomizePositionOption = addBooleanOption("randomize_position");
+        skipKROption = addBooleanOption("skip-kr");
+        randomSeedOption = addLongOption("random_seed");
+        randomizePositionMapsOption = addStringOption("randomize_pos_maps");
+
     }
+
 
     /**
      * boolean flags
@@ -118,11 +139,19 @@ public class CommandLineParser extends CmdLineParser {
 
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
 
+    public boolean getDoNotSkipKROption() {
+        return !optionToBoolean(skipKROption);
+    }
+
     public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
 
     public boolean getNoFragNormOption() { return optionToBoolean(noFragNormOption); }
 
     public boolean getVersionOption() { return optionToBoolean(versionOption); }
+
+    public boolean getRandomizePositionsOption() {
+        return optionToBoolean(randomizePositionOption);
+    }
 
     /**
      * String flags
@@ -144,8 +173,33 @@ public class CommandLineParser extends CmdLineParser {
         return optionToString(graphOption);
     }
 
+    public String getGenomeOption() { return optionToString(genomeIDOption); }
+
     public String getTmpdirOption() {
         return optionToString(tmpDirOption);
+    }
+
+    public String getExpectedVectorOption() {
+        return optionToString(expectedVectorOption);
+    }
+
+    public Alignment getAlignmentOption() {
+        int alignmentInt = optionToInt(alignmentFilterOption);
+
+        if (alignmentInt == 0) {
+            return null;
+        }
+        if (alignmentInt == 1) {
+            return Alignment.INNER;
+        } else if (alignmentInt == 2) {
+            return Alignment.OUTER;
+        } else if (alignmentInt == 3) {
+            return Alignment.LL;
+        } else if (alignmentInt == 4) {
+            return Alignment.RR;
+        } else {
+            throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
+        }
     }
 
     /**
@@ -160,12 +214,22 @@ public class CommandLineParser extends CmdLineParser {
         return optionToInt(countThresholdOption);
     }
 
-    public int getMapqThresholdOption() {
-        return optionToInt(mapqOption);
-    }
+    public int getMapqThresholdOption() { return optionToInt(mapqOption); }
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
+    private long optionToLong(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? 0 : ((Number) opt).longValue();
+    }
+
+    public long getRandomPositionSeedOption() {
+        return optionToLong(randomSeedOption);
+    }
+
+    public enum Alignment {
+        INNER, OUTER, LL, RR
+    }
 
     /**
      * double flags
@@ -192,4 +256,6 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public Set<String> getResolutionOption() { return optionToStringSet(resolutionOption);}
+
+    public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
 }

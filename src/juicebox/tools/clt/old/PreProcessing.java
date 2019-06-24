@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
 
 import java.io.File;
@@ -44,6 +44,7 @@ public class PreProcessing extends JuiceboxCLT {
     private boolean noNorm = false;
     private boolean noFragNorm = false;
     private int genomeWide;
+    private static boolean doNotSkipKRNorm = true;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -58,6 +59,12 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
                 + "           : -z <double> scale factor for hic file\n"
+                + "           : -a <1, 2, 3, 4> filter based on inner, outer, left-left, right-right pairs respectively\n"
+                + "           : --randomize_position randomize positions between fragment sites\n"
+                + "           : --random_seed seed for random generator\n"
+                + "           : --randomize_pos_maps fragment maps for randomization\n"
+
+
         );
     }
 
@@ -91,13 +98,21 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
         preprocessor.setFragmentFile(parser1.getFragmentOption());
+        preprocessor.setExpectedVectorFile(parser1.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
+        preprocessor.setGenome(parser1.getGenomeOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
+        preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
+        preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
+        preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+        preprocessor.setRandomizeFragMaps(parser1.getRandomizePositionMaps());
+
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();
         noFragNorm = parser1.getNoFragNormOption();
+        doNotSkipKRNorm = parser1.getDoNotSkipKROption();
     }
 
     @Override
@@ -109,7 +124,7 @@ public class PreProcessing extends JuiceboxCLT {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
-                NormalizationVectorUpdater.updateHicFile(outputFile, genomeWide, noFragNorm);
+                NormalizationVectorUpdater.updateHicFile(outputFile, genomeWide, noFragNorm, doNotSkipKRNorm);
             }
             else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");

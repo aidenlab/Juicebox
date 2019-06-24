@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -108,8 +108,9 @@ import java.util.*;
  */
 public class APA extends JuicerCLT {
     private boolean saveAllData = false;
-    private String hicFilePaths, loopListPath;
+    private String loopListPath;
     private File outputDirectory;
+    private Dataset ds;
 
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
@@ -138,7 +139,9 @@ public class APA extends JuicerCLT {
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int[] resolutions,double
             minPeakDist, double maxPeakDist){
         this.resolutions=resolutions;
-        this.hicFilePaths=inputHiCFileName;
+
+        List<String> summedHiCFiles = Arrays.asList(inputHiCFileName.split("\\+"));
+        ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         this.loopListPath=inputPeaksFile;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -157,11 +160,13 @@ public class APA extends JuicerCLT {
             printUsageAndExit();
         }
 
-        hicFilePaths = args[1];
         loopListPath = args[2];
         outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        List<String> summedHiCFiles = Arrays.asList(args[1].split("\\+"));
+        ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
 
@@ -208,13 +213,10 @@ public class APA extends JuicerCLT {
 
     public APARegionStatistics runWithReturn() {
 
-        APARegionStatistics result=null;
+        APARegionStatistics result = null;
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;
-        List<String> summedHiCFiles = Arrays.asList(hicFilePaths.split("\\+"));
-
-        Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             Integer[] gwPeakNumbers = new Integer[3];

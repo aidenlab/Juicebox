@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
 
 import java.io.*;
@@ -38,53 +37,25 @@ import java.util.List;
 class AggregateProcessing {
 
 
-    public static void main(String[] argv) throws CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
-
-        String hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
-        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
-
-        /*
-        APAvsDistance test= new APAvsDistance();
-        test.run();
-
-        */
+    public static void main(String[] argv) throws Exception {
 
 
+        Long time = System.currentTimeMillis();
 
+        String[] ll51231123 = {"addnorm", "-d", "-F",
+                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec13.hic",
+                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr_all.vec"};
 
-/*
+        //String[] ll51231123 = {"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz","/Users/muhammad/Desktop/pre_jars/scaled74.hic","hg19"};
 
-        String hicpath = "/Users/muhammadsaadshamim/Desktop/Aiden Lab/local_hic/gm12878_intra_nofrag_30.hic";
-        String respath = "/Users/muhammadsaadshamim/Desktop/result_hiccups";
+        ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
 
-
-        //writeMergedNoDupsFromTimeSeq(seqPath, newPath);
-
-        String[] ll51231123 = {"hiccups", "--cpu",
-                hicpath,respath};
-
-                */
-        String[] ll51231123 = {"compare", "0", "hg19",
-                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
-                //"/Users/muhammadsaadshamim/Desktop/MBR19_loops.txt",
-                "/Users/muhammadsaadshamim/Desktop/result_hiccups/merged_loops.bedpe",
-                "/Users/muhammadsaadshamim/Desktop/result_25kb_hiccups_compare.bedpe"};
+        ll51231123 = new String[]{"pre", "--verbose", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
+                "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
 
         HiCTools.main(ll51231123);
-//        started 9:20
 
-
-
-        /*
-        String[] ll51231123 = {"motifs",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
-
-
-        HiCTools.main(ll51231123);
-*/
+        //UnitTests.testCustomFastScaling();
 
     }
 

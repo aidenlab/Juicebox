@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,8 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
@@ -66,7 +66,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
 
-        System.out.println(properties);
+        //System.out.println(properties);
         if (properties != null) {
 
             if (!createNodes(top, properties)) {
@@ -261,7 +261,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             final String[] values = value.split(",");
             if (values.length != 3 && values.length != 2) {
                 JOptionPane.showMessageDialog(this, "Improperly formatted properties file; incorrect # of fields", "Error", JOptionPane.ERROR_MESSAGE);
-                return false;
+                return true;
             }
             if (values.length == 2) {
                 node = new DefaultMutableTreeNode(new ItemInfo(key, values[0], values[1]));

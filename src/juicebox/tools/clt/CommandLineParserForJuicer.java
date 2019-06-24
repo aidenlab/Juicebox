@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -115,7 +116,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes") || cmd.equals("apa_vs_distance");
+                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle");
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
@@ -166,16 +168,34 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToString(relativeLocationOption);
     }
 
-    public NormalizationType getNormalizationTypeOption() {
-        return retrieveNormalization(optionToString(normalizationTypeOption));
+    public NormalizationType getNormalizationTypeOption(NormalizationHandler normalizationHandler) {
+        return retrieveNormalization(optionToString(normalizationTypeOption), normalizationHandler);
     }
 
-    private NormalizationType retrieveNormalization(String norm) {
+    public NormalizationType[] getBothNormalizationTypeOption(NormalizationHandler normHandler1,
+                                                              NormalizationHandler normHandler2) {
+        NormalizationType[] normalizationTypes = new NormalizationType[2];
+        String normStrings = optionToString(normalizationTypeOption);
+        String[] bothNorms = normStrings.split(",");
+        if (bothNorms.length > 2 || bothNorms.length < 1) {
+            System.err.println("Invalid norm syntax: " + normStrings);
+            return null;
+        } else if (bothNorms.length == 2) {
+            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+            normalizationTypes[1] = retrieveNormalization(bothNorms[1], normHandler2);
+        } else if (bothNorms.length == 1) {
+            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+            normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
+        }
+        return normalizationTypes;
+    }
+
+    private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
         if (norm == null || norm.length() < 1)
             return null;
 
         try {
-            return NormalizationType.valueOf(norm);
+            return normalizationHandler.getNormTypeFromString(norm);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
             System.exit(7);

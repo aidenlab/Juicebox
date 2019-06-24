@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,8 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static org.broad.igv.util.ResourceLocator.AttributeType.*;
 
@@ -54,6 +54,9 @@ import static org.broad.igv.util.ResourceLocator.AttributeType.*;
  */
 public class ResourceTree {
 
+    private static final String EIGENVECTOR = "Eigenvector";
+    private static final String SUBCOMPARTMENTS = "Subcompartments";
+    private static final String GLOBAL = "Global";
     private final List<CheckableResource> leafResources = new ArrayList<>();
     private final JTree dialogTree;
     private final Set<ResourceLocator> loadedLocators;
@@ -240,7 +243,7 @@ public class ResourceTree {
     public boolean addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
         Boolean localFilesAdded = Boolean.FALSE;
 
-        File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
+        File[] oneDfiles = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
 
         if (oneDfiles != null && oneDfiles.length > 0) {
             for (File file : oneDfiles) {
@@ -408,7 +411,7 @@ public class ResourceTree {
 
                 for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
 
-                    String label = t.getLabel();
+                    String label = t.getDescription();
                     locator = new ResourceLocator(label);
                     locator.setType("norm");
                     locator.setName(label);
@@ -425,12 +428,12 @@ public class ResourceTree {
         }
 
 
-        locator = new ResourceLocator("Eigenvector");
-        locator.setType("eigenvector");
-        locator.setName("Eigenvector");
-        CheckableResource resource = new CheckableResource("Eigenvector", false, locator);
+        locator = new ResourceLocator(EIGENVECTOR);
+        locator.setType(EIGENVECTOR.toLowerCase());
+        locator.setName(EIGENVECTOR);
+        CheckableResource resource = new CheckableResource(EIGENVECTOR, false, locator);
 
-        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("Eigenvector");
+        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(EIGENVECTOR);
         oneDFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
         resource.setEnabled(resourceTree.dialogTree.isEnabled());
@@ -439,9 +442,9 @@ public class ResourceTree {
 
         locator = hic.getDataset().getSubcompartments();
         if (locator != null) {
-            resource = new CheckableResource("Subcompartments", false, locator);
+            resource = new CheckableResource(SUBCOMPARTMENTS, false, locator);
 
-            treeNode = new DefaultMutableTreeNode("Subcompartments");
+            treeNode = new DefaultMutableTreeNode(SUBCOMPARTMENTS);
             oneDFeatureRoot.add(treeNode);
             treeNode.setUserObject(resource);
             resource.setEnabled(resourceTree.dialogTree.isEnabled());
@@ -455,14 +458,14 @@ public class ResourceTree {
     private DefaultMutableTreeNode createTreeFromDOM(Document document) {
 
         Element rootElement =
-                (Element) document.getElementsByTagName("Global").item(0);
+                (Element) document.getElementsByTagName(GLOBAL).item(0);
 
         if (rootElement == null) {
             return new DefaultMutableTreeNode("");
         }
 
         String nodeName = rootElement.getNodeName();
-        if (!nodeName.equalsIgnoreCase("Global")) {
+        if (!nodeName.equalsIgnoreCase(GLOBAL)) {
             throw new RuntimeException(rootElement +
                     " is not the root of the xml document!");
         }

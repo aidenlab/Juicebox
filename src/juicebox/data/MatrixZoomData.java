@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,15 +31,16 @@ import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
-import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
+import juicebox.matrix.RealMatrixWrapper;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
@@ -75,6 +76,7 @@ public class MatrixZoomData {
     // Cache the last 20 blocks loaded
     private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
+    private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
@@ -125,6 +127,7 @@ public class MatrixZoomData {
         }
 
         pearsonsMap = new HashMap<>();
+        normSquaredMaps = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
 
@@ -169,20 +172,25 @@ public class MatrixZoomData {
         return chr1.getName() + "_" + chr2.getName() + "_" + zoom.getKey();
     }
 
-    public String getKey(int chr1, int chr2) {
-        return "2_2" + "_" + zoom.getKey();
+    // i think this is how it should be? todo sxxgrc please confirm use case
+    private String getKey(int chr1, int chr2) {
+        return chr1 + "_" + chr2 + "_" + zoom.getKey();
     }
 
     public String getBlockKey(int blockNumber, NormalizationType no) {
         return getKey() + "_" + blockNumber + "_" + no;
     }
 
-    public String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
+    public String getNormLessBlockKey(Block block) {
+        return getKey() + "_" + block.getNumber() + "_";
+    }
+
+    private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
         return getKey(chr1, chr2) + "_" + blockNumber + "_" + no;
     }
 
-    public String getColorScaleKey(MatrixType displayOption) {
-        return getKey() + displayOption;
+    public String getColorScaleKey(MatrixType displayOption, NormalizationType n1, NormalizationType n2) {
+        return getKey() + displayOption + "_" + n1 + "_" + n2;
     }
 
     public String getTileKey(int tileRow, int tileColumn, MatrixType displayOption) {
@@ -204,9 +212,9 @@ public class MatrixZoomData {
                                                       boolean isImportant) {
         final List<Block> blockList = new ArrayList<>();
         Block b = new Block(1, getBlockKey(1, no));
-        if (MainViewPanel.assemblyMatCheck) {
+        if (HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no, 1, 1);
-        } else if (SuperAdapter.assemblyModeCurrentlyActive && !MainViewPanel.assemblyMatCheck) {
+        } else if (SuperAdapter.assemblyModeCurrentlyActive && !HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
         } else {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
@@ -443,14 +451,12 @@ public class MatrixZoomData {
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
-                                         final NormalizationType no, int chr1Id, int chr2Id) {
+                                         final NormalizationType no, final int chr1Id, final int chr2Id) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         ExecutorService service = Executors.newFixedThreadPool(200);
 
         final int binSize = getBinSize();
-        final int chr1Index = chr1.getIndex();
-        final int chr2Index = chr2.getIndex();
 
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
@@ -464,7 +470,7 @@ public class MatrixZoomData {
                         }
                         //Run out of memory if do it here
                         if (SuperAdapter.assemblyModeCurrentlyActive) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index);
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Id, chr2Id);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -614,6 +620,34 @@ public class MatrixZoomData {
 
     }
 
+    public BasicMatrix getNormSquared(NormalizationType normalizationType) {
+
+        if (normSquaredMaps.containsKey(normalizationType) && normSquaredMaps.get(normalizationType) != null) {
+            return normSquaredMaps.get(normalizationType);
+        }
+
+        // otherwise calculate
+        BasicMatrix normSquared = computeNormSquared(normalizationType);
+        normSquaredMaps.put(normalizationType, normSquared);
+        return normSquared;
+    }
+
+    // todo only compute local region at high resolution otherwise memory gets exceeded
+    private BasicMatrix computeNormSquared(NormalizationType normalizationType) {
+        double[] nv1Data = reader.getNormalizationVector(getChr1Idx(), getZoom(), normalizationType).getData();
+        double[] nv2Data = reader.getNormalizationVector(getChr2Idx(), getZoom(), normalizationType).getData();
+
+        double[][] matrix = new double[nv1Data.length][nv2Data.length];
+        for (int i = 0; i < nv1Data.length; i++) {
+            for (int j = 0; j < nv2Data.length; j++) {
+                int diff = Math.max(1, Math.abs(i - j));
+                matrix[i][j] = 1 / (nv1Data[i] * nv2Data[j] * diff * diff * diff * diff);
+            }
+        }
+
+        return new RealMatrixWrapper(new Array2DRowRealMatrix(matrix));
+    }
+
     /**
      * Returns the Pearson's matrix; read if available (currently commented out), calculate if small enough.
      *
@@ -694,7 +728,7 @@ public class MatrixZoomData {
         double[][] vectors = new double[dim][];
 
         // Loop through all contact records
-        Iterator<ContactRecord> iter = contactRecordIterator();
+        Iterator<ContactRecord> iter = getNewContactRecordIterator();
         while (iter.hasNext()) {
 
             ContactRecord record = iter.next();
@@ -887,6 +921,7 @@ public class MatrixZoomData {
                                     printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
                                 }
                             } else {
+                                // TODO I suspect this is wrong - should be writing xActual - but this is for binary dumping and we never use it
                                 if (matrixType == MatrixType.OBSERVED) {
                                     les.writeInt(x);
                                     les.writeInt(y);
@@ -1092,8 +1127,18 @@ public class MatrixZoomData {
      *
      * @return iterator for contact records
      */
-    public Iterator<ContactRecord> contactRecordIterator() {
+    public Iterator<ContactRecord> getNewContactRecordIterator() {
         return new ContactRecordIterator();
+    }
+
+    public List<ContactRecord> getContactRecordList() {
+        List<ContactRecord> records = new ArrayList<>();
+        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            records.add(cr);
+        }
+        return records;
     }
 
     public void clearCache() {
@@ -1137,12 +1182,12 @@ public class MatrixZoomData {
 
                         // Optionally check the cache
                         // TODO why is this always NONE, should trace to ensure hard coding doesn't cause bug?
-                        String key = getBlockKey(blockNumber, NormalizationType.NONE);
+                        String key = getBlockKey(blockNumber, NormalizationHandler.NONE);
                         Block nextBlock;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             nextBlock = blockCache.get(key);
                         } else {
-                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationType.NONE);
+                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationHandler.NONE);
                         }
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;
@@ -1175,7 +1220,4 @@ public class MatrixZoomData {
             throw new RuntimeException("remove() is not supported");
         }
     }
-//    public void preloadSlides(){
-
-//    }
 }

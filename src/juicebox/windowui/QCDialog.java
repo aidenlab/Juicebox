@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -287,8 +287,14 @@ public class QCDialog extends JDialog {
             }
         }
 
-        final ExpectedValueFunction df = dataset.getExpectedValues(hic.getZoom(),
-                hic.getNormalizationType());
+        final ExpectedValueFunction df;
+        if (isControl) {
+            df = dataset.getExpectedValues(hic.getZoom(), hic.getControlNormalizationType());
+        } else {
+            df = dataset.getExpectedValues(hic.getZoom(), hic.getObsNormalizationType());
+        }
+
+
         if (df != null) {
             double[] expected = df.getExpectedValues();
             final XYSeriesCollection collection = new XYSeriesCollection();
@@ -297,7 +303,7 @@ public class QCDialog extends JDialog {
                 if (expected[i] > 0) expectedValues.add(i + 1, expected[i]);
             }
             collection.addSeries(expectedValues);
-            String title1 = "Expected at " + hic.getZoom() + " norm " + hic.getNormalizationType();
+            String title1 = "Expected at " + hic.getZoom() + " norm " + hic.getObsNormalizationType();
             final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
                     title1,          // chart title
                     "Distance between reads (log)",               // domain axis label

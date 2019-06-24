@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.tools.utils.common;
 import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -52,18 +53,15 @@ class HiCFileUtils {
 
     public static void main(String[] args) throws IOException {
         HiCFileUtils utils = new HiCFileUtils(args[0]);
-        utils.dumpNormalizationVectors(HiCFileTools.KR, "1", HiC.Unit.BP, 250000);
-        utils.dumpExpectedVectors(HiCFileTools.KR, HiC.Unit.BP, 1000000);
+        utils.dumpNormalizationVectors(NormalizationHandler.KR, "1", HiC.Unit.BP, 250000);
+        utils.dumpExpectedVectors(NormalizationHandler.KR, HiC.Unit.BP, 1000000);
     }
 
-    private void dumpNormalizationVectors(String type, String chrName, HiC.Unit unit, int binSize) {
-
-        NormalizationType no = NormalizationType.valueOf(type);
-
+    private void dumpNormalizationVectors(NormalizationType normType, String chrName, HiC.Unit unit, int binSize) {
         Chromosome chromosome = findChromosome(chrName);
         HiCZoom zoom = new HiCZoom(unit, binSize);
-        NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, no);
-        String label = "Normalization vector: type = " + type + " chr = " + chrName +
+        NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, normType);
+        String label = "Normalization vector: type = " + normType.getLabel() + " chr = " + chrName +
                 " resolution = " + binSize + " " + unit;
         System.out.println(label);
         double[] data = nv.getData();
@@ -77,14 +75,14 @@ class HiCFileUtils {
         }
     }
 
-    private void dumpExpectedVectors(String type, HiC.Unit unit, int binSize) {
+    private void dumpExpectedVectors(NormalizationType normType, HiC.Unit unit, int binSize) {
 
         Map<String, ExpectedValueFunction> expValFunMap = dataset.getExpectedValueFunctionMap();
         for (Map.Entry<String, ExpectedValueFunction> entry : expValFunMap.entrySet()) {
 
             ExpectedValueFunctionImpl ev = (ExpectedValueFunctionImpl) entry.getValue();
 
-            if (ev.getUnit().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().getLabel().equals(type)) {
+            if (ev.getUnit().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().equals(normType)) {
                 String label = ev.getNormalizationType() + "\t" + ev.getUnit() + "\t" + ev.getBinSize();
 
                 System.out.println("Norm factors: " + label);

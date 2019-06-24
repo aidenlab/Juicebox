@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -152,7 +152,7 @@ public class JColorRangePanel extends JPanel {
                 String key = "";
                 try {
                     if (hic != null && hic.getZd() != null && hic.getDisplayOption() != null) {
-                        key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption());
+                        key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption(), hic.getObsNormalizationType(), hic.getControlNormalizationType());
                     }
                 } catch (Exception ignored) {
                     if (HiCGlobals.printVerboseComments) {

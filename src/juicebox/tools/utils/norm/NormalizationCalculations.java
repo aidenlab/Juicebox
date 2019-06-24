@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
-import org.broad.igv.util.collections.FloatArrayList;
-import org.broad.igv.util.collections.IntArrayList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,7 +49,7 @@ import java.util.Iterator;
  */
 public class NormalizationCalculations {
 
-    private ArrayList<ContactRecord> list;
+    private ArrayList<ContactRecord> contactRecords;
     private int totSize;
     private boolean isEnoughMemory = false;
 
@@ -59,7 +58,8 @@ public class NormalizationCalculations {
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
-        Iterator<ContactRecord> iter1 = zd.contactRecordIterator();
+
+        Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
         int count = 0;
         while (iter1.hasNext()) {
             iter1.next();
@@ -68,18 +68,18 @@ public class NormalizationCalculations {
         if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
-            this.list = new ArrayList<>();
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            this.contactRecords = new ArrayList<>();
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
-                list.add(cr);
+                contactRecords.add(cr);
             }
             this.totSize = zd.getXGridAxis().getBinCount();
         }
     }
 
     public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
-        this.list = list;
+        this.contactRecords = list;
         this.totSize = totSize;
     }
 
@@ -108,7 +108,7 @@ public class NormalizationCalculations {
             if (binY > maxBin) maxBin = binY;
         }
         NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin + 1);
-        double[] norm = nc.getNorm(NormalizationType.KR);
+        double[] norm = nc.getNorm(NormalizationHandler.KR);
         for (double d : norm) {
             System.out.println(d);
         }
@@ -135,8 +135,7 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static double[] computeKRNormVector(SparseSymmetricMatrix A, double tol, double[] x0, double delta) {
-
+    private static double[] computeKRNormVector(int[] offset, ArrayList<ContactRecord> list, double tol, double[] x0, double delta) {
 
         int n = x0.length;
         double[] e = new double[n];
@@ -148,7 +147,7 @@ public class NormalizationCalculations {
 
         double rt = Math.pow(tol, 2);
 
-        double[] v = A.multiply(x0);
+        double[] v = sparseMultiplyFromContactRecords(offset, list, x0);
         double[] rk = new double[v.length];
         for (int i = 0; i < v.length; i++) {
             v[i] = v[i] * x0[i];
@@ -197,7 +196,7 @@ public class NormalizationCalculations {
                 for (int i = 0; i < tmp.length; i++) {
                     tmp[i] = x0[i] * p[i];
                 }
-                tmp = A.multiply(tmp);
+                tmp = sparseMultiplyFromContactRecords(offset, list, tmp);
                 alpha = 0;
                 // Update search direction efficiently.
                 for (int i = 0; i < tmp.length; i++) {
@@ -238,7 +237,7 @@ public class NormalizationCalculations {
             for (int i = 0; i < x0.length; i++) {
                 x0[i] = x0[i] * y[i];
             }
-            v = A.multiply(x0);
+            v = sparseMultiplyFromContactRecords(offset, list, x0);
             rho_km1 = 0;
             for (int i = 0; i < v.length; i++) {
                 v[i] = v[i] * x0[i];
@@ -267,24 +266,52 @@ public class NormalizationCalculations {
         return x0;
     }
 
+    private static double[] sparseMultiplyFromContactRecords(int[] offset, ArrayList<ContactRecord> list, double[] vector) {
+        double[] result = new double[vector.length];
+
+        for (ContactRecord cr : list) {
+            int row = cr.getBinX();
+            int col = cr.getBinY();
+            float value = cr.getCounts();
+
+            row = offset[row];
+            col = offset[col];
+
+            if (row != -1 && col != -1) {
+                result[row] += vector[col] * value;
+                if (row != col) {
+                    result[col] += vector[row] * value;
+                }
+            }
+        }
+
+        return result;
+    }
+
     boolean isEnoughMemory() {
         return isEnoughMemory;
     }
 
     public double[] getNorm(NormalizationType normOption) {
         double[] norm;
-        switch (normOption) {
-            case KR:
-            case GW_KR:
-            case INTER_KR:
+        switch (normOption.getLabel().toUpperCase()) {
+            case NormalizationHandler.strKR:
+            case NormalizationHandler.strGW_KR:
+            case NormalizationHandler.strINTER_KR:
                 norm = computeKR();
                 break;
-            case VC:
-            case GW_VC:
-            case INTER_VC:
+            case NormalizationHandler.strVC:
+            case NormalizationHandler.strVC_SQRT:
+            case NormalizationHandler.strGW_VC:
+            case NormalizationHandler.strINTER_VC:
                 norm = computeVC();
                 break;
-            case NONE:
+            case NormalizationHandler.strSCALE:
+            case NormalizationHandler.strGW_SCALE:
+            case NormalizationHandler.strINTER_SCALE:
+                norm = computeMMBA();
+                break;
+            case NormalizationHandler.strNONE:
                 norm = new double[totSize];
                 Arrays.fill(norm, 1);
                 return norm;
@@ -293,9 +320,11 @@ public class NormalizationCalculations {
                 return null;
         }
 
-        double factor = getSumFactor(norm);
-        for (int i = 0; i < norm.length; i++) {
-            norm[i] = norm[i] * factor;
+        if (norm != null) {
+            double factor = getSumFactor(norm);
+            for (int i = 0; i < norm.length; i++) {
+                norm[i] = norm[i] * factor;
+            }
         }
         return norm;
     }
@@ -310,7 +339,7 @@ public class NormalizationCalculations {
 
         for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
 
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -333,7 +362,7 @@ public class NormalizationCalculations {
     double getSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -352,7 +381,6 @@ public class NormalizationCalculations {
         return Math.sqrt(norm_sum / matrix_sum);
     }
 
-
     double[] computeKR() {
 
         boolean recalculate = true;
@@ -361,11 +389,7 @@ public class NormalizationCalculations {
         int iteration = 1;
 
         while (recalculate && iteration <= 6) {
-            // create new matrix upon every iteration, because we've thrown out rows
-
-            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix();
-            populateMatrix(sparseMatrix, offset);
-
+            // create new matrix indices upon every iteration, because we've thrown out rows
             // newSize is size of new sparse matrix (non-sparse rows)
             int newSize = 0;
             for (int offset1 : offset) {
@@ -376,7 +400,7 @@ public class NormalizationCalculations {
             double[] x0 = new double[newSize];
             for (int i = 0; i < x0.length; i++) x0[i] = 1;
 
-            x0 = computeKRNormVector(sparseMatrix, 0.000001, x0, 0.1);
+            x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
 
             // assume all went well and we don't need to recalculate
             recalculate = false;
@@ -421,7 +445,6 @@ public class NormalizationCalculations {
                 // if (recalculate) System.out.print(" " + rowsTossed);
             }
             iteration++;
-            sparseMatrix = null;
             System.gc();
         }
         if (iteration > 6 && recalculate) {
@@ -440,7 +463,7 @@ public class NormalizationCalculations {
 
         for (int i = 0; i < rowSums.length; i++) rowSums[i] = 0;
 
-        for (ContactRecord cr : list) {
+        for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             float value = cr.getCounts();
@@ -474,104 +497,13 @@ public class NormalizationCalculations {
 
     }
 
-    private void populateMatrix(SparseSymmetricMatrix A, int[] offset) {
-        for (ContactRecord cr : list) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            if (offset[x] != -1 && offset[y] != -1) {
-                A.set(offset[x], offset[y], value);
-            }
+    public double[] computeMMBA() {
+
+        double[] tempTargetVector = new double[totSize];
+        for (int k = 0; k < totSize; k++) {
+            tempTargetVector[k] = 1;
         }
+
+        return ZeroScale.mmbaScaleToVector(contactRecords, tempTargetVector);
     }
-
-    /**
-     * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
-     * add an x,y value twice, or to add both x,y and y,x, although this is not checked.   The class is designed
-     * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
-     * matrix class.   It is not private only so it can be unit tested
-     */
-    // TODO - should we make this its own class? able to do Pearson's and gradient?
-    static class SparseSymmetricMatrix {
-
-        IntArrayList rows1 = null;
-        IntArrayList cols1 = null;
-        FloatArrayList values1 = null;
-        IntArrayList rows2 = null;
-        IntArrayList cols2 = null;
-        FloatArrayList values2 = null;
-
-
-        SparseSymmetricMatrix() {
-            rows1 = new IntArrayList();
-            cols1 = new IntArrayList();
-            values1 = new FloatArrayList();
-        }
-
-        void set(int row, int col, float v) {
-
-            if (!Float.isNaN(v)) {
-                if (rows2 == null) {
-                    try {
-                        rows1.add(row);
-                        cols1.add(col);
-                        values1.add(v);
-                    } catch (NegativeArraySizeException error) {
-                        rows2 = new IntArrayList();
-                        cols2 = new IntArrayList();
-                        values2 = new FloatArrayList();
-                        rows2.add(row);
-                        cols2.add(col);
-                        values2.add(v);
-                    }
-                } else {
-                    rows2.add(row);
-                    cols2.add(col);
-                    values2.add(v);
-                }
-            }
-        }
-
-
-        double[] multiply(double[] vector) {
-
-            double[] result = new double[vector.length];
-            Arrays.fill(result, 0);
-
-            int[] rowArray1 = rows1.toArray();
-            int[] colArray1 = cols1.toArray();
-            float[] valueArray1 = values1.toArray();
-
-            int n = rowArray1.length;
-            for (int i = 0; i < n; i++) {
-                int row = rowArray1[i];
-                int col = colArray1[i];
-                float value = valueArray1[i];
-                result[row] += vector[col] * value;
-
-                if (row != col) {
-                    result[col] += vector[row] * value;
-                }
-            }
-            if (rows2 != null) {
-                int[] rowArray2 = rows2.toArray();
-                int[] colArray2 = cols2.toArray();
-                float[] valueArray2 = values2.toArray();
-                int n2 = rowArray2.length;
-                for (int j = 0; j < n2; j++) {
-                    int row = rowArray2[j];
-                    int col = colArray2[j];
-                    float value = valueArray2[j];
-                    result[row] += vector[col] * value;
-
-                    if (row != col) {
-                        result[col] += vector[row] * value;
-                    }
-                }
-            }
-
-            return result;
-        }
-    }
-
 }

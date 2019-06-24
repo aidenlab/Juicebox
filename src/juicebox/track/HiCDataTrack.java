@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -263,9 +263,9 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
-    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter) {
+    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter, TrackPanel.Orientation orientation) {
 
-        JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter);
+        JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter, orientation);
         menu.addSeparator();
 
         JMenuItem menuItem = new JMenuItem("Configure track...");

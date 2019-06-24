@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,38 +24,46 @@
 
 package juicebox.windowui;
 
+
 /**
  * @author jrobinso Date: 8/31/13  9:47 PM
  */
-public enum NormalizationType {
-    NONE("None"),
-    VC("Coverage"),
-    VC_SQRT("Coverage (Sqrt)"),
-    KR("Balanced"),
-    GW_KR("Genome-wide balanced"),
-    INTER_KR("Inter balanced"),
-    GW_VC("Genome-wide coverage"),
-    INTER_VC("Inter coverage"),
-    LOADED("Loaded");
+public class NormalizationType {
+    //LOADED("Loaded");
     private final String label;
+    private final String description;
 
-    NormalizationType(String label) {
-        this.label = label;
-    }
-
-    public static NormalizationType enumValueFromString(String text) {
-        if (text != null) {
-            for (NormalizationType norm : NormalizationType.values()) {
-                if (text.equalsIgnoreCase(norm.label) || text.equalsIgnoreCase(norm.name())) {
-                    return norm;
-                }
-            }
-        }
-        return null;
+    public NormalizationType(String label, String description) {
+        this.label = label.toUpperCase();
+        this.description = description;
     }
 
     public String getLabel() {
         return label;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public String toString() {
+        return label;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj instanceof NormalizationType) {
+            NormalizationType norm2 = (NormalizationType) obj;
+            return label.equalsIgnoreCase(norm2.getLabel());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return label.hashCode() + 31 * description.hashCode();
+    }
 }

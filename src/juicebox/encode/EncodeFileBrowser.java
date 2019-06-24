@@ -29,7 +29,9 @@ import com.jidesoft.swing.JideBoxLayout;
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.IGV;
+import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.Pair;
+import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -44,6 +46,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.*;
 import java.util.List;
@@ -58,7 +61,6 @@ public class EncodeFileBrowser extends JDialog {
     private static final long serialVersionUID = 3049287764412827292L;
     private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
-    private static final HashSet<String> supportedGenomes = new HashSet<>(Arrays.asList("hg19", "mm9", "hic"));
     private final EncodeTableModel model;
     private JTable table;
     private JTextField filterTextField;
@@ -90,53 +92,47 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-    private synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
-        EncodeFileBrowser instance = instanceMap.get("hic");
-        if (instance == null) {
-            Pair<String[], List<EncodeFileRecord>> records = getEncodeFileRecords("hic");
-            if (records == null) {
-                return null;
-            }
-            Frame parent = IGV.hasInstance() ? IGV.getMainFrame() : null;
-            instance = new EncodeFileBrowser(parent, new EncodeTableModel(records.getFirst(), records.getSecond()));
-            instanceMap.put("hic", instance);
-        }
-        return instance;
-    }
-
-    private static boolean genomeSupported(String genomeId) {
-        return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
-    }
 
     private static String getEncodeGenomeId(String genomeId) {
         if (genomeId.equals("b37") || genomeId.equals("1kg_v37")) return "hg19";
+        else if (genomeId.equals("hg38")) return "GRCh38";
         else return genomeId;
     }
 
     private static Pair<String[], List<EncodeFileRecord>> getEncodeFileRecords(String genomeId) throws IOException {
-
+        boolean urlVersion = false;
         InputStream is = null;
 
         try {
-
-            is = EncodeFileBrowser.class.getResourceAsStream("encode." + genomeId + ".txt");
-            if (is == null) {
+            //is = EncodeFileBrowser.class.getResourceAsStream("encode." + genomeId + ".txt");
+            //if (is == null) {
+            try {
+                is = ParsingUtils.openInputStream("https://s3.amazonaws.com/igv.org.app/encode/" + getEncodeGenomeId(genomeId) + ".txt.gz");
+                urlVersion = true;
+            }
+            catch (Exception error) {
                 return null;
             }
+            //}
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
 
             String[] headers = Globals.tabPattern.split(reader.readLine());
 
             List<EncodeFileRecord> records = new ArrayList<>(20000);
             String nextLine;
+            int pathLocation = 0;
+            if (urlVersion) {
+                pathLocation = Arrays.asList(headers).indexOf("HREF");
+            }
             while ((nextLine = reader.readLine()) != null) {
                 if (!nextLine.startsWith("#")) {
 
                     String[] tokens = Globals.tabPattern.split(nextLine, -1);
-                    String path = tokens[0];
+                    String path = tokens[pathLocation];
 
                     // Filter BAMs for hic
                     if (path == null || path.endsWith("bam")) continue;
+                    if (urlVersion) path = "https://www.encodeproject.org" + path;
 
                     Map<String, String> attributes = new HashMap<>();
                     for (int i = 0; i < headers.length; i++) {

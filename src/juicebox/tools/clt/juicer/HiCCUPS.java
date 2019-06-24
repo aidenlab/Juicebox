@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -45,8 +46,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -170,7 +171,6 @@ public class HiCCUPS extends JuicerCLT {
     public static double oeThreshold3 = 2;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private static int numCPUThreads = 4;
     private boolean configurationsSetByUser = false;
     private String featureListPath;
     private boolean listGiven = false;
@@ -225,7 +225,7 @@ public class HiCCUPS extends JuicerCLT {
             featureListPath = args[3];
         }
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
 
@@ -243,10 +243,7 @@ public class HiCCUPS extends JuicerCLT {
             System.out.println(CPU_VERSION_WARNING);
         }
 
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        }
+        updateNumberOfCPUThreads(juicerParser);
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
@@ -256,7 +253,7 @@ public class HiCCUPS extends JuicerCLT {
     /**
      * Used by hiccups diff to set the properties of hiccups directly without resorting to command line usage
      *
-     * @param inputHiCFileName
+     * @param dataset
      * @param outputDirectoryPath
      * @param featureListPath
      * @param preferredNorm
@@ -265,12 +262,12 @@ public class HiCCUPS extends JuicerCLT {
      * @param configurations
      * @param thresholds
      */
-    public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath,
+    public void initializeDirectly(Dataset dataset, String outputDirectoryPath,
                                    String featureListPath, NormalizationType preferredNorm, int matrixSize,
                                    ChromosomeHandler providedCommonChromosomeHandler,
                                    List<HiCCUPSConfiguration> configurations, double[] thresholds,
-                                   boolean usingCPUVersion, int numThreads) {
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+                                   boolean usingCPUVersion) {
+        this.ds = dataset;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
         if (featureListPath != null) {
@@ -301,17 +298,13 @@ public class HiCCUPS extends JuicerCLT {
             useCPUVersionHiCCUPS = true;
             restrictSearchRegions = true;
         }
-
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        }
     }
 
     @Override
     public void run() {
 
         try {
-            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
             double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.

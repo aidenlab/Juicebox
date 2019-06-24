@@ -1,10 +1,10 @@
 --------------
 About Juicebox
 --------------
-Juicebox is visualization software for Hi-C data.  This distribution includes the source code for Juicebox, <a href="https://github.com/theaidenlab/juicer/wiki/Download">Juicer Tools</a>, and <a href="http://aidenlab.org/assembly/">Assembly Tools</a>.  <a href="https://github.com/theaidenlab/juicebox/wiki/Download">Download Juicebox here</a>, or use <a href="http://aidenlab.org/juicebox">Juicebox on the web</a>.  Detailed documentation is available <a href="https://github.com/theaidenlab/juicebox/wiki">on the wiki</a>. Instructions below pertain primarily to usage of command line tools and the Juicebox jar files.
+Juicebox is visualization software for Hi-C data.  This distribution includes the source code for Juicebox, <a href="https://github.com/theaidenlab/juicer/wiki/Download">Juicer Tools</a>, and <a href="https://aidenlab.org/assembly/">Assembly Tools</a>.  <a href="https://github.com/theaidenlab/juicebox/wiki/Download">Download Juicebox here</a>, or use <a href="https://aidenlab.org/juicebox">Juicebox on the web</a>.  Detailed documentation is available <a href="https://github.com/theaidenlab/juicebox/wiki">on the wiki</a>. Instructions below pertain primarily to usage of command line tools and the Juicebox jar files.
 
 Juicebox can now be used to visualize and interactively (re)assemble genomes. 
-Check out the Juicebox Assembly Tools Module website http://aidenlab.org/assembly for 
+Check out the Juicebox Assembly Tools Module website https://aidenlab.org/assembly for 
 more details on how to use Juicebox for assembly.
 
 
@@ -17,7 +17,7 @@ Ongoing development work is carried out by <a href="https://github.com/nchernia"
 Questions?
 --------------
 
-For FAQs, or for asking new questions, please see our forum: <a href="http://aidenlab.org/forum.html">aidenlab.org/forum.html</a>.
+For FAQs, or for asking new questions, please see our forum: <a href="https://aidenlab.org/forum.html">aidenlab.org/forum.html</a>.
 
 --------------
 IntelliJ Setup
@@ -44,7 +44,7 @@ The former turns on all warnings, the latter gives some flexibility since some p
 * For the GUI under VM Options:
 
         -Xmx2000m
-        -Djnlp.loadMenu="http://hicfiles.tc4ga.com/juicebox.properties"
+        -Djnlp.loadMenu="https://hicfiles.tc4ga.com/juicebox.properties"
 
 * For the CLT use
 
@@ -64,8 +64,8 @@ The minimum software requirement to run Juicebox is a working Java installation
 (version > 1.6) on Windows, Linux, and Mac OSX.  We recommend using the latest
 Java version available, but please do not use the Java Beta Version. Minimum
 system requirements for running Java can be found at
-http://java.com/en/download/help/sysreq.xml. To download and install the latest
-Java Runtime Environment (JRE), please go to http://www.java.com/download.
+https://java.com/en/download/help/sysreq.xml. To download and install the latest
+Java Runtime Environment (JRE), please go to https://www.java.com/download.
 
 We recommend having at least 2GB free RAM for the best user experience with
 Juicebox.
@@ -84,7 +84,7 @@ We have extensive documentation for how to use Juicebox at
 https://github.com/theaidenlab/juicebox/wiki including a video, a Quick Start Guide, and a
 detailed tutorial.
 
-For using Juicebox to assemble genomes see http://www.aidenlab.org/assembly/.
+For using Juicebox to assemble genomes see https://www.aidenlab.org/assembly/.
 
 ------------------------
 Command Line Tools Usage
@@ -110,9 +110,9 @@ Compiling Jars from Source Files
 * Installing Java 1.8 JDK
 
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
-http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 (Alternative) For Ubuntu/LinuxMint
-http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
+https://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
 
 * Installing Apache Ant
 Mac
@@ -122,14 +122,14 @@ Mac
   If Ant is not on your Mac, install it via homebrew. At the command prompt, type
     brew update
     brew install ant
-  You may need to install Homebrew (http://brew.sh/) on your machine
+  You may need to install Homebrew (https://brew.sh/) on your machine
   See the following Stackoverflow post for more details:
-  http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
+  https://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
 
 Windows
   Installing Ant requires some minor changes to your system environment. Follow
   the instructions in this article:
-  http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
+  https://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
 
 Linux
   In the command prompt, type
