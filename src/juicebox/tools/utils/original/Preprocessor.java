@@ -82,7 +82,7 @@ public class Preprocessor {
     private Set<String> includedChromosomes;
     private ArrayList<FragmentCalculation> fragmentCalculationsForRandomization = null;
     private Alignment alignmentFilter;
-    private static final Random random = new Random();
+    private static final Random random = new Random(5);
     private static boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
@@ -710,8 +710,7 @@ public class Preprocessor {
                     continue;
                 }
 
-                // Randomize
-                // Randomize
+                // Randomize position within fragment site
                 if (fragmentCalculation != null && allowPositionsRandomization) {
                     FragmentCalculation fragMapToUse;
                     if (fragmentCalculationsForRandomization != null) {
@@ -736,7 +735,6 @@ public class Preprocessor {
                         // use default map
                         fragMapToUse = fragmentCalculation;
                     }
-
 
                     bp1 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
                     bp2 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
@@ -771,8 +769,10 @@ public class Preprocessor {
             }
         }
 
-        System.out.println(String.format("Randomization errors encountered: %d no map found, " +
-                "%d two different maps found", noMapFoundCount, mapDifferentCount));
+        if (fragmentCalculation != null && allowPositionsRandomization) {
+            System.out.println(String.format("Randomization errors encountered: %d no map found, " +
+                    "%d two different maps found", noMapFoundCount, mapDifferentCount));
+        }
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
