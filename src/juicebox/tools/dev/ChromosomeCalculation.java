@@ -31,14 +31,14 @@ import org.broad.igv.feature.Chromosome;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 
 public class ChromosomeCalculation {
 
-    public ArrayList<Float> sum(String filePath) {
+    public HashMap<Integer, Float> sum(String filePath) {
         ArrayList<String> files = new ArrayList<>();
-        ArrayList<Float> res = new ArrayList<>();
+        HashMap<Integer, Float> res = new HashMap<>();
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
         Chromosome[] chromosomes = ds.getChromosomeHandler().getAutosomalChromosomesArray();
@@ -49,22 +49,32 @@ public class ChromosomeCalculation {
                 Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
                 MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, 1000000)); // 1,000,000 resolution
                 // do the summing, iterate over contact records in matrixZoomData object
-                res.add(helper(zd));
+                res = sumColumn(zd, res);
             }
         }
         // save result
         return res;
     }
 
-    private float helper(MatrixZoomData m) {
+    private HashMap<Integer, Float> sumColumn(MatrixZoomData m, HashMap<Integer, Float> d) {
         float total = 0;
         final List<ContactRecord> contactRecordList  = m.getContactRecordList();
         for (ContactRecord contact: contactRecordList) {
-            total += contact.getCounts();
+            float count = contact.getCounts();
+            int x = contact.getBinX();
+            int y = contact.getBinY();
+            if (x == y) { // if x == y, we only need to add the count value to the xth column
+                d.put(x, d.get(x) + count);
+            }
+            else { // else, we need to add it both to the xth column and the yth column
+                d.put(y, d.get(y) + count);
+                d.put(x, d.get(x) + count);
+
+            }
 
         }
 
-        return total;
+        return d;
 
 
     }
