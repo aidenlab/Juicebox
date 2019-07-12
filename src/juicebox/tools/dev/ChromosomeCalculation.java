@@ -57,7 +57,6 @@ public class ChromosomeCalculation {
     }
 
     private HashMap<Integer, Float> sumColumn(MatrixZoomData m, HashMap<Integer, Float> d) {
-        float total = 0;
         final List<ContactRecord> contactRecordList  = m.getContactRecordList();
         for (ContactRecord contact: contactRecordList) {
             float count = contact.getCounts();
