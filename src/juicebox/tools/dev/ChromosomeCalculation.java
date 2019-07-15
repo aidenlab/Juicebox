@@ -27,53 +27,61 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
+import org.apache.commons.io.FileUtils;
 import org.broad.igv.feature.Chromosome;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class ChromosomeCalculation {
 
-    public HashMap<Integer, Float> sum(String filePath) {
+    public void sum(String filePath) {
         ArrayList<String> files = new ArrayList<>();
-        HashMap<Integer, Float> res = new HashMap<>();
+
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
         Chromosome[] chromosomes = ds.getChromosomeHandler().getAutosomalChromosomesArray();
         for (int i = 0; i < chromosomes.length; i++) {
             Chromosome chromosome1 = chromosomes[i];
             for (int j = i; j < chromosomes.length; j++) {
+                HashMap<Integer, Float> res = new HashMap<>();
                 Chromosome chromosome2 = chromosomes[j];
                 Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
                 MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, 1000000)); // 1,000,000 resolution
                 // do the summing, iterate over contact records in matrixZoomData object
-                res = sumColumn(zd, res);
+                sumColumn(zd, res);
+                try { // write result to text file for every pair of chromosome
+                    FileUtils.writeStringToFile(new File("ChromosomeCalculationResult.txt"), res.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        // save result
-        return res;
+
     }
 
-    private HashMap<Integer, Float> sumColumn(MatrixZoomData m, HashMap<Integer, Float> d) {
+    private void sumColumn(MatrixZoomData m, HashMap<Integer, Float> map) {
         final List<ContactRecord> contactRecordList  = m.getContactRecordList();
         for (ContactRecord contact: contactRecordList) {
             float count = contact.getCounts();
             int x = contact.getBinX();
             int y = contact.getBinY();
             if (x == y) { // if x == y, we only need to add the count value to the xth column
-                d.put(x, d.get(x) + count);
+                map.put(x, map.get(x) + count);
             }
             else { // else, we need to add it both to the xth column and the yth column
-                d.put(y, d.get(y) + count);
-                d.put(x, d.get(x) + count);
+                map.put(y, map.get(y) + count);
+                map.put(x, map.get(x) + count);
 
             }
 
         }
 
-        return d;
+
 
 
     }
