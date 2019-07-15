@@ -41,6 +41,7 @@ public class ChromosomeCalculation {
 
     public void sum(String filePath) {
         ArrayList<String> files = new ArrayList<>();
+        File file = new File("ChromosomeCalculationResult.txt");
 
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
@@ -55,7 +56,7 @@ public class ChromosomeCalculation {
                 // do the summing, iterate over contact records in matrixZoomData object
                 sumColumn(zd, res);
                 try { // write result to text file for every pair of chromosome
-                    FileUtils.writeStringToFile(new File("ChromosomeCalculationResult.txt"), res.toString());
+                    FileUtils.writeStringToFile(file, res.toString());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
