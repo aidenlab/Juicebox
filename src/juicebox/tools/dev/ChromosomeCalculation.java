@@ -27,12 +27,10 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
-import org.apache.commons.io.FileUtils;
 import org.broad.igv.feature.Chromosome;
 
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,49 +39,108 @@ public class ChromosomeCalculation {
 
     public void sum(String filePath) {
         ArrayList<String> files = new ArrayList<>();
-        File file = new File("ChromosomeCalculationResult.txt");
+        File outputFile = new File("ChromosomeCalculationResult.txt");
 
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
         Chromosome[] chromosomes = ds.getChromosomeHandler().getAutosomalChromosomesArray();
-        for (int i = 0; i < chromosomes.length; i++) {
-            Chromosome chromosome1 = chromosomes[i];
-            for (int j = i; j < chromosomes.length; j++) {
-                HashMap<Integer, Float> res = new HashMap<>();
-                Chromosome chromosome2 = chromosomes[j];
-                Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
-                MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, 1000000)); // 1,000,000 resolution
-                // do the summing, iterate over contact records in matrixZoomData object
-                sumColumn(zd, res);
-                try { // write result to text file for every pair of chromosome
-                    FileUtils.writeStringToFile(file, res.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
+        HashMap<Chromosome, HashMap<Integer, Float>> chromosomeToColumnSumsMap = new HashMap<>();
+        int resolution = 1000000;
+
+        BufferedWriter bw = null;
+        try {
+            bw = new BufferedWriter((new OutputStreamWriter((new FileOutputStream(outputFile)))));
+
+
+            for (int i = 0; i < chromosomes.length; i++) {
+                Chromosome chromosome1 = chromosomes[i];
+                for (int j = i; j < chromosomes.length; j++) {
+
+                    Chromosome chromosome2 = chromosomes[j];
+                    Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
+                    MatrixZoomData
+                        zd =
+                        matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
+                    // do the summing, iterate over contact records in matrixZoomData object
+                    sumColumn(zd, chromosomeToColumnSumsMap, chromosome1, chromosome2);
+                    for (Chromosome key : chromosomeToColumnSumsMap.keySet()) {
+                        for (int index : chromosomeToColumnSumsMap.get(key).keySet()) {
+
+                            String
+                                s =
+                                key.getName() +
+                                    "/t" +
+                                    (index - 1) * 1000000 +
+                                    "/t" +
+                                    (index) * 1000000 +
+                                    "/t" +
+                                    chromosomeToColumnSumsMap.get(key);
+                            try {
+                                bw.write(s);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                bw.newLine();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                    try {
+                        bw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
                 }
             }
         }
-
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void sumColumn(MatrixZoomData m, HashMap<Integer, Float> map) {
+
+
+
+    private void sumColumn(MatrixZoomData m, HashMap<Chromosome, HashMap<Integer, Float>> map, Chromosome chrI, Chromosome chrJ) {
         final List<ContactRecord> contactRecordList  = m.getContactRecordList();
-        for (ContactRecord contact: contactRecordList) {
-            float count = contact.getCounts();
-            int x = contact.getBinX();
-            int y = contact.getBinY();
-            if (x == y) { // if x == y, we only need to add the count value to the xth column
-                map.put(x, map.get(x) + count);
+
+            if (chrI.getIndex() == chrJ.getIndex()) {
+                HashMap<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
+                for (ContactRecord contact: contactRecordList) {
+                    float count = contact.getCounts();
+                    int x = contact.getBinX();
+                    int y = contact.getBinY();
+                    if (x == y) {
+                        subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+
+
+                    }
+                    else {
+                        subMap.put(x, subMap.getOrDefault(x,  count));
+                        subMap.put(y, subMap.getOrDefault(y, 0f) + count);
+
+                    }
+                }
+                map.put(chrI, subMap);
             }
-            else { // else, we need to add it both to the xth column and the yth column
-                map.put(y, map.get(y) + count);
-                map.put(x, map.get(x) + count);
-
+            else {
+                HashMap<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
+                HashMap<Integer, Float> subMap2 = map.getOrDefault(chrJ, new HashMap<>());
+                for (ContactRecord contact: contactRecordList) {
+                    float count = contact.getCounts();
+                    int x = contact.getBinX();
+                    int y = contact.getBinY();
+                    subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+                    subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
+                }
+                map.put(chrI, subMap);
+                map.put(chrJ, subMap2);
             }
-
-        }
-
-
-
 
     }
 
