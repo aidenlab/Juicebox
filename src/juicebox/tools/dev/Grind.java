@@ -33,6 +33,7 @@ import juicebox.windowui.NormalizationType;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Generating Regions of Interest for Network Discovery
@@ -43,7 +44,7 @@ public class Grind extends JuicerCLT {
     private int x, y, z;
     private boolean useObservedOverExpected = false;
     private boolean denseMatrix = false;
-    private String chromosomes = null;
+    private Set<String> chromosome = null;
     private int resolution;
     private File outputDirectory;
 
@@ -56,6 +57,8 @@ public class Grind extends JuicerCLT {
         if (args.length != 3) {
             printUsageAndExit();
         }
+
+        chromosome = this.givenChromosomes;
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
@@ -70,7 +73,7 @@ public class Grind extends JuicerCLT {
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         denseMatrix = juicerParser.getDenseMatrixOption();
 
-        outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -78,8 +81,8 @@ public class Grind extends JuicerCLT {
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
-            int resolution = Integer.parseInt(possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Grind\nUsing " + possibleResolutions.get(0));
+            resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }
 
