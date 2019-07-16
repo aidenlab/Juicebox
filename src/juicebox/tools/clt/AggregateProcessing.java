@@ -53,7 +53,10 @@ class AggregateProcessing {
         ll51231123 = new String[]{"pre", "--verbose", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
                 "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
 
-        HiCTools.main(ll51231123);
+        String[] testrun = {"afa", "-u", "-r", "25000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
+        "C:/Users/Dat/Desktop/Juicebox/aparesulttest"};
+
+        HiCTools.main(testrun);
 
         //UnitTests.testCustomFastScaling();
 

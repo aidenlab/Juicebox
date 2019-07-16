@@ -33,6 +33,7 @@ import juicebox.tools.dev.GeneFinder;
 import juicebox.tools.dev.Shuffle;
 import juicebox.tools.utils.Benchmark;
 
+
 /**
  * Factory for command line tools to call different functions
  *
@@ -136,6 +137,8 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
+        } else if (cmd.equals("afa")) { //added command for afa
+            return new AFA ();
         }
 
         return null;

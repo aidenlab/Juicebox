@@ -66,7 +66,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option randomizePositionMapsOption = null;
 
 
-    //filter option based on directionality
+    //filter optrectionalion based on diity
     private static Option alignmentFilterOption = null;
 
     private static Option randomizePositionOption = null;
