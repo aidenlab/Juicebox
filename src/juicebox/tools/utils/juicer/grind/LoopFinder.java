@@ -25,6 +25,7 @@
 package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.Dataset;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -32,7 +33,7 @@ import java.util.Set;
 
 public class LoopFinder implements RegionFinder {
 
-    public LoopFinder(Dataset ds, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public LoopFinder(Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
                       boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
     }
 

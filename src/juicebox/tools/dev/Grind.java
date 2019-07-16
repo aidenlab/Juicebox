@@ -29,6 +29,8 @@ import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.grind.DomainFinder;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -92,8 +94,10 @@ public class Grind extends JuicerCLT {
     @Override
     public void run() {
 
+        Feature2DList features = Feature2DParser.loadFeatures("loopListPath", ds.getChromosomeHandler(), false, null, false);
+
         // use these as inputs
-        DomainFinder domainFinder = new DomainFinder(ds, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        DomainFinder domainFinder = new DomainFinder(ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
         // read in any additional data required
 
