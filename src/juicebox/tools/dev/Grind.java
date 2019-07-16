@@ -24,13 +24,11 @@
 
 package juicebox.tools.dev;
 
-import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.windowui.NormalizationType;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,7 +57,7 @@ public class Grind extends JuicerCLT {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        
+
         // split on commas
         // save the dimensions
         String[] dimensions = args[3].split(",");
@@ -72,6 +70,7 @@ public class Grind extends JuicerCLT {
         denseMatrix = juicerParser.getDenseMatrixOption();
 
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
