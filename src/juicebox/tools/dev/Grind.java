@@ -43,7 +43,7 @@ public class Grind extends JuicerCLT {
     private int x, y, z;
     private boolean useObservedOverExpected = false;
     private boolean denseMatrix = false;
-    private String chromosomes;
+    private String chromosomes = null;
     private int resolution;
     private File outputDirectory;
 
@@ -60,7 +60,12 @@ public class Grind extends JuicerCLT {
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
         // split on commas
-      
+        // save the dimensions
+        String[] dimensions = args[2].split(",");
+        x = Integer.parseInt(dimensions[0]);
+        y = Integer.parseInt(dimensions[1]);
+        z = Integer.parseInt(dimensions[2]);
+
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         denseMatrix = juicerParser.getDenseMatrixOption();
