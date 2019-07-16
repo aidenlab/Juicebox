@@ -49,7 +49,7 @@ public class Grind extends JuicerCLT {
     private File outputDirectory;
 
     protected Grind(String usage) {
-        super("grind [hic file] [x,y,z] [directory]");
+        super("grind [hic file] [bedpe positions] [x,y,z] [directory]");
     }
 
     @Override
@@ -62,9 +62,10 @@ public class Grind extends JuicerCLT {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
+
         // split on commas
         // save the dimensions
-        String[] dimensions = args[2].split(",");
+        String[] dimensions = args[3].split(",");
         x = Integer.parseInt(dimensions[0]);
         y = Integer.parseInt(dimensions[1]);
         z = Integer.parseInt(dimensions[2]);
@@ -88,6 +89,21 @@ public class Grind extends JuicerCLT {
 
     @Override
     public void run() {
+
+        // read in any additional data required
+
+
+        // iterate over regions of interest and save them to a directory
+
+
+        // oe
+
+        //RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
+        //        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
+
+
+
+
 
     }
 }
