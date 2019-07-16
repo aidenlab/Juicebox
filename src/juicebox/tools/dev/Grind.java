@@ -24,11 +24,13 @@
 
 package juicebox.tools.dev;
 
+import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.windowui.NormalizationType;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,6 +42,10 @@ public class Grind extends JuicerCLT {
 
     private int x, y, z;
     private boolean useObservedOverExpected = false;
+    private boolean denseMatrix = false;
+    private String chromosomes = null;
+    private int resolution;
+    private File outputDirectory;
 
     protected Grind(String usage) {
         super("grind [hic file] [x,y,z] [directory]");
@@ -50,14 +56,19 @@ public class Grind extends JuicerCLT {
         if (args.length != 3) {
             printUsageAndExit();
         }
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
         // split on commas
         // save the dimensions
-        arg[2];
+        String[] dimensions = args[2].split(",");
+        x = Integer.parseInt(dimensions[0]);
+        y = Integer.parseInt(dimensions[1]);
+        z = Integer.parseInt(dimensions[2]);
 
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+        denseMatrix = juicerParser.getDenseMatrixOption();
 
         outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
@@ -67,7 +78,7 @@ public class Grind extends JuicerCLT {
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Grind\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }

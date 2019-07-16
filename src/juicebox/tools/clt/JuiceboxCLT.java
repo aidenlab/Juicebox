@@ -41,7 +41,7 @@ public abstract class JuiceboxCLT {
     private static String usage;
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
-    public static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    public static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.whitespace()).trimResults().omitEmptyStrings();
 
 
     protected JuiceboxCLT(String usage) {
