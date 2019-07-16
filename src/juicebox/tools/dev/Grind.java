@@ -59,10 +59,10 @@ public class Grind extends JuicerCLT {
 
         // split on commas
         // save the dimensions
-        args[2].split(",");
-        x = args[2].charAt(0);
-        y = args[2].charAt(1);
-        z = args[2].charAt(2);
+        String[] dimensions = args[2].split(",");
+        x = Integer.parseInt(dimensions[0]);
+        y = Integer.parseInt(dimensions[1]);
+        z = Integer.parseInt(dimensions[2]);
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
 
