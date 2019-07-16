@@ -42,8 +42,10 @@ public class Grind extends JuicerCLT {
 
     private int x, y, z;
     private boolean useObservedOverExpected = false;
-    private String chromosome = null;
+    private boolean denseMatrix = false;
+    private String chromosomes;
     private int resolution;
+    private File outputDirectory;
 
     protected Grind(String usage) {
         super("grind [hic file] [x,y,z] [directory]");
@@ -58,15 +60,12 @@ public class Grind extends JuicerCLT {
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
         // split on commas
-        // save the dimensions
-        String[] dimensions = args[2].split(",");
-        x = Integer.parseInt(dimensions[0]);
-        y = Integer.parseInt(dimensions[1]);
-        z = Integer.parseInt(dimensions[2]);
+      
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+        denseMatrix = juicerParser.getDenseMatrixOption();
 
-        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+        outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -74,8 +73,8 @@ public class Grind extends JuicerCLT {
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Grind\nUsing " + possibleResolutions.get(0));
-            resolution = Integer.parseInt(possibleResolutions.get(0));
+                System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
+            int resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }
 
