@@ -24,8 +24,6 @@
 
 package juicebox.tools.clt;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
@@ -41,11 +39,13 @@ public abstract class JuiceboxCLT {
     private static String usage;
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
-    public static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.whitespace()).trimResults().omitEmptyStrings();
-
 
     protected JuiceboxCLT(String usage) {
         setUsage(usage);
+    }
+
+    public static String[] splitToList(String nextLine) {
+        return nextLine.trim().split("\\s+");
     }
 
     public abstract void readArguments(String[] args, CmdLineParser parser);
