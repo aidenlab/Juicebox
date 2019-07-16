@@ -24,22 +24,53 @@
 
 package juicebox.tools.dev;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.data.HiCFileTools;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
+import juicebox.windowui.NormalizationType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Generating Regions of Interest for Network Discovery
  */
 
-public class Grind extends JuiceboxCLT {
+public class Grind extends JuicerCLT {
+
+    private int x, y, z;
+    private boolean useObservedOverExpected = false;
 
     protected Grind(String usage) {
-        super("grind [hic file] [specifications]");
+        super("grind [hic file] [x,y,z] [directory]");
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
+        if (args.length != 3) {
+            printUsageAndExit();
+        }
 
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+
+        // split on commas
+        // save the dimensions
+        arg[2];
+
+
+        useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+
+        outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
+        if (preferredNorm != null) norm = preferredNorm;
+
+        List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
+        if (possibleResolutions != null) {
+            if (possibleResolutions.size() > 1)
+                System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
+            resolution = Integer.parseInt(possibleResolutions.get(0));
+        }
     }
 
     @Override
