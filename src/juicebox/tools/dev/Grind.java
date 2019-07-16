@@ -49,6 +49,8 @@ public class Grind extends JuicerCLT {
     private boolean useObservedOverExpected = false;
     Dataset ds;
     private boolean useDenseLabels = false;
+    private Set<String> chromosome = null;
+    private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
 
@@ -64,7 +66,7 @@ public class Grind extends JuicerCLT {
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        
+
         // split on commas
         // save the dimensions
         String[] dimensions = args[3].split(",");
