@@ -45,6 +45,7 @@ public class Grind extends JuicerCLT {
     private boolean useObservedOverExpected = false;
     private boolean denseMatrix = false;
     private Set<String> chromosome = null;
+    private boolean wholeGenome = false;
     private int resolution;
     private File outputDirectory;
 
@@ -60,6 +61,7 @@ public class Grind extends JuicerCLT {
 
         chromosome = this.givenChromosomes;
 
+
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
 
@@ -72,7 +74,8 @@ public class Grind extends JuicerCLT {
 
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
-        denseMatrix = juicerParser.getDenseMatrixOption();
+        denseMatrix = juicerParser.getDenseLabelsOption();
+
 
         File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
