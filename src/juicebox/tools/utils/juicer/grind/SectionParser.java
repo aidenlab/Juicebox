@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.apa;
+package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.tools.utils.common.MatrixTools;
