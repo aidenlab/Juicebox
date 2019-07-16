@@ -32,6 +32,7 @@ import juicebox.windowui.NormalizationType;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,11 +44,10 @@ public class Grind extends JuicerCLT {
 
     private int x, y, z;
     private boolean useObservedOverExpected = false;
-    private boolean denseMatrix = false;
-    private Set<String> chromosome = null;
-    private boolean wholeGenome = false;
-    private int resolution;
+    Dataset ds;
+    private boolean useDenseLabels = false;
     private File outputDirectory;
+    private Set<Integer> resolutions = new HashSet<>();
 
     protected Grind(String usage) {
         super("grind [hic file] [bedpe positions] [x,y,z] [directory]");
@@ -59,12 +59,9 @@ public class Grind extends JuicerCLT {
             printUsageAndExit();
         }
 
-        chromosome = this.givenChromosomes;
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
-
-
+        
         // split on commas
         // save the dimensions
         String[] dimensions = args[3].split(",");
@@ -74,24 +71,29 @@ public class Grind extends JuicerCLT {
 
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
-        denseMatrix = juicerParser.getDenseLabelsOption();
+        useDenseLabels = juicerParser.getDenseLabelsOption();
 
-
-        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+        outputDirectory = HiCFileTools.createValidDirectory(args[4]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
-            if (possibleResolutions.size() > 1)
-                System.err.println("Only one resolution can be specified for Grind\nUsing " + possibleResolutions.get(0));
-            resolution = Integer.parseInt(possibleResolutions.get(0));
+            for (String num : possibleResolutions) {
+                resolutions.add(Integer.parseInt(num));
+            }
+        } else {
+            resolutions.add(10000);
         }
     }
 
     @Override
     public void run() {
+
+        // use these as inputs
+        // ds, outputDirectory, givenChromosomes, norm,
+        // useObservedOverExpected, useDenseLabels, resolutions
 
         // read in any additional data required
 
