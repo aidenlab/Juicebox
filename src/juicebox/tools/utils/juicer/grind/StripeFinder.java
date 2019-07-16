@@ -85,7 +85,6 @@ public class StripeFinder implements RegionFinder {
 
         final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        final int resolution = (int) resolutions.toArray()[0];
 
         final int halfWidthI = x / 2;
         final int halfWidthJ = y / 2;
@@ -99,60 +98,68 @@ public class StripeFinder implements RegionFinder {
             features.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
+                    for (Object resolution : resolutions.toArray()) {
 
-                    //String chr = (String)givenChromosomes.toArray()[0];
+                        int res = (int) resolution;
 
-                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
-                    System.out.println("Currently on: " + chr);
+                        for (Object chrom_name : givenChromosomes.toArray()) {
 
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
+                            String chrom_name_str = (String) chrom_name;
 
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
+                            Chromosome chrom = chromosomeHandler.getChromosomeFromName(chrom_name_str);
+                            System.out.println("Currently on: " + chrom_name_str);
 
-                    if (zd == null) return;
+                            Matrix matrix = ds.getMatrix(chrom, chrom);
+                            if (matrix == null) return;
 
-                    for (Feature2D feature2D : feature2DList) {
-                        int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
-                        int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
+                            HiCZoom zoom = ds.getZoomForBPResolution(res);
+                            final MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                        for (int k = 0; k < maxk; k++) {
+                            if (zd == null) return;
 
-                            int di = 10 - generator.nextInt(21);
-                            while (di == 0) {
-                                di = 10 - generator.nextInt(21);
-                            }
+                            for (Feature2D feature2D : feature2DList) {
+                                int i0 = feature2D.getMidPt1();
+                                int j0 = feature2D.getMidPt2();
 
-                            int dj = 10 - generator.nextInt(21);
-                            while (dj == 0) {
-                                dj = 10 - generator.nextInt(21);
-                            }
+                                for (int k = 0; k < maxk; k++) {
 
-                            int i = i0 + di;
-                            int j = j0 + dj;
+                                    int di = 10 - generator.nextInt(21);
+                                    while (di == 0) {
+                                        di = 10 - generator.nextInt(21);
+                                    }
 
-                            try {
-                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                                        i, i + x,
-                                        j, j + y, x, y, norm);
-                                if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
+                                    int dj = 10 - generator.nextInt(21);
+                                    while (dj == 0) {
+                                        dj = 10 - generator.nextInt(21);
+                                    }
 
-                                    String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
+                                    int i = i0 + di;
+                                    int j = j0 + dj;
 
-                                    //process
-                                    //DescriptiveStatistics yStats = statistics(localizedRegionData.getData());
-                                    //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
-                                    //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
+                                    try {
+                                        RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                                                i, i + x,
+                                                j, j + y, x, y, norm);
+                                        if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
-                                    saveMatrixText2(path + exactFileName, localizedRegionData);
-                                    writer.write(exactFileName + "\n");
+                                            String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
+
+                                            //process
+                                            //DescriptiveStatistics yStats = statistics(localizedRegionData.getData());
+                                            //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
+                                            //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
+
+                                            saveMatrixText2(path + exactFileName, localizedRegionData);
+                                            writer.write(exactFileName + "\n");
+                                        }
+                                    } catch (Exception e) {
+
+                                    }
                                 }
-                            } catch (Exception e) {
-
                             }
                         }
                     }
+
 
                 }
             });

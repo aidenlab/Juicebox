@@ -79,6 +79,7 @@ public class Grind extends JuicerCLT {
         useDenseLabels = juicerParser.getDenseLabelsOption();
         wholeGenome = juicerParser.getUseWholeGenome();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
