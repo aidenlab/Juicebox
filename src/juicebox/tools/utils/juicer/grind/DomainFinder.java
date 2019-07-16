@@ -40,12 +40,12 @@ public class DomainFinder implements RegionFinder {
 
 
     @Override
-    public void makePositiveExamples(String savepath, String loopListPath, int maxk, String hicFilePaths) {
+    public void makePositiveExamples() {
 
     }
 
     @Override
-    public void makeNegativeExamples(String savepath, String loopListPath, int maxk, String hicFilePaths) {
+    public void makeNegativeExamples() {
 
     }
 }
