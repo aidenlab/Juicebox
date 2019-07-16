@@ -72,6 +72,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option relativeLocationOption = null;
     private static Option multipleAttributesOption = null;
 
+    // for GRIND
+    private static Option useObservedOverExpectedOption = null;
+    private static Option useDenseLabelsOption = null;
+    private static Option useWholeGenome = null;
+
     public CommandLineParserForJuicer() {
         // used flags
         // wmnxcrplafdptkqbvuhgjyz
@@ -111,17 +116,38 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         // previously for AFA
         relativeLocationOption = addStringOption('l', "location_type");
         multipleAttributesOption = addStringOption('a', "attributes");
+
+        // for GRIND
+        useObservedOverExpectedOption = addBooleanOption("obs/exp");
+        useDenseLabelsOption = addBooleanOption("dense_labels");
+        useWholeGenome = addBooleanOption("whole_genome");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
                 cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
-                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle");
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
         Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
+    }
+
+    // for GRIND
+    public boolean getUseObservedOverExpectedOption() {
+        Object opt = getOptionValue(useObservedOverExpectedOption);
+        return opt != null;
+    }
+
+    public boolean getUseWholeGenome() {
+        Object opt = getOptionValue(useWholeGenome);
+        return opt != null;
+    }
+
+    public boolean getDenseLabelsOption() {
+        Object opt = getOptionValue(useDenseLabelsOption);
         return opt != null;
     }
 

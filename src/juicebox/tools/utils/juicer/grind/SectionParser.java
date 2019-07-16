@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.apa;
+package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.tools.utils.common.MatrixTools;
@@ -65,17 +65,20 @@ class SectionParser {
         final int halfwidth = submatrixSize / 2;
 
         try {
-            final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(savepath + "all_file_names.txt"), StandardCharsets.UTF_8));
+            // create a writer for saving names of all the files which will contain data
+            // master list
+            final Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(savepath + "all_file_names.txt"), StandardCharsets.UTF_8));
 
+            // importing features of interest
             Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, false, null, false);
 
             features.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
 
-                    System.out.println("Doing " + chr);
-
                     Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+                    System.out.println("Currently handling chromosome: " + chrom.getName());
 
                     Matrix matrix = ds.getMatrix(chrom, chrom);
                     if (matrix == null) return;
@@ -388,11 +391,14 @@ class SectionParser {
         }
     }
 
-    private static void saveMatrixText2(String filename, RealMatrix realMatrix) {
+    public static void saveMatrixText2(String filename, RealMatrix realMatrix) {
+        saveMatrixText2(filename, realMatrix.getData());
+    }
+
+    public static void saveMatrixText2(String filename, double[][] matrix) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
-            double[][] matrix = realMatrix.getData();
             for (double[] row : matrix) {
                 String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
                 s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();

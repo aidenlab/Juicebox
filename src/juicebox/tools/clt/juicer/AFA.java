@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt.juicer;
 
+
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -45,68 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Aggregate Peak Analysis developed by mhuntley
- * <p/>
- * Implemented in Juicer by mshamim
- * <p/>
- * ---
- * APA
- * ---
- * The "apa" command takes three required arguments and a number of optional
- * arguments.
- * <p/>
- * apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
- * [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
- * <p/>
- * The required arguments are:
- * <p/>
- * <hic file(s)>: Address of HiC File(s) which should end with ".hic". This is the file you will
- * load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
- * use the '+' symbol between the addresses (no whitespace between addresses)
- * <PeaksFile>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
- * <SaveFolder>: Working directory where outputs will be saved
- * <p/>
- * The optional arguments are:
- * -n <int> minimum distance away from the diagonal. Used to filter peaks too close to the diagonal.
- * Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
- * within 30*(5000/sqrt(2)) units of the diagonal)
- * -x <int> maximum distance away from the diagonal. Used to filter peaks too far from the diagonal.
- * Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
- * further than 30*(5000/sqrt(2)) units of the diagonal)
- * -r <int(s)> resolution for APA; multiple resolutions can be specified using commas (e.g. 5000,10000)
- * -c <String(s)> Chromosome(s) on which APA will be run. The number/letter for the chromosome can be
- * used with or without appending the "chr" string. Multiple chromosomes can be specified using
- * commas (e.g. 1,chr2,X,chrY)
- * -k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally,
- * KR (Knight-Ruiz) balancing should be used when available.
- * <p/>
- * Default settings of optional arguments:
- * -n 30
- * -x (infinity)
- * -r 25000,10000
- * -c (all_chromosomes)
- * -k KR
- * <p/>
- * ------------
- * APA Examples
- * ------------
- * <p/>
- * apa HIC006.hic all_loops.txt results1
- * > This command will run APA on HIC006 using loops from the all_loops files
- * > and save them under the results1 folder.
- * <p/>
- * apa https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
- * all_loops.txt results1
- * > This command will run APA on the GM12878 mega map using loops from the all_loops
- * > files and save them under the results1 folder.
- * <p/>
- * apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
- * > This command will run APA at 50 kB resolution on chromosomes 17 and 18 for the
- * > summed HiC maps (HIC006 and HIC007) using loops from the all_loops files
- * > and save them under the results folder
- */
-public class APA extends JuicerCLT {
+public class AFA extends JuicerCLT {
     private boolean saveAllData = false;
     private String loopListPath;
     private File outputDirectory;
@@ -123,37 +63,31 @@ public class APA extends JuicerCLT {
     private boolean includeInterChr = false;
 
     /**
-     * Usage for APA
+     * Usage for AFA
      */
-    public APA() {
-        super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
+    public AFA() {
+        super("afa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false;
     }
 
     public static String getBasicUsage() {
-        return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
+        return "afa <hicFile(s)> <PeaksFile> <SaveFolder>";
     }
 
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int[] resolutions,double
-            minPeakDist, double maxPeakDist){
-        this.resolutions=resolutions;
+            minPeakDist, double maxPeakDist) {
+        this.resolutions = resolutions;
 
         List<String> summedHiCFiles = Arrays.asList(inputHiCFileName.split("\\+"));
         ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
-        this.loopListPath=inputPeaksFile;
+        this.loopListPath = inputPeaksFile;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
-        this.minPeakDist=minPeakDist;
-        this.maxPeakDist=maxPeakDist;
-
-        //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
-        // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
-
-
+        this.minPeakDist = minPeakDist;
+        this.maxPeakDist = maxPeakDist;
     }
-
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
@@ -216,7 +150,7 @@ public class APA extends JuicerCLT {
         APARegionStatistics result = null;
 
         //Calculate parameters that will need later
-        int L = 2 * window + 1;
+        int L = 100;
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             Integer[] gwPeakNumbers = new Integer[3];
@@ -237,14 +171,14 @@ public class APA extends JuicerCLT {
                 currentRegionWidth = resolution == 5000 ? 3 : 6;
             }
 
-            System.out.println("Processing APA for resolution " + resolution);
+            System.out.println("Processing AFA for resolution " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             ChromosomeHandler handler = ds.getChromosomeHandler();
             if (givenChromosomes != null) //_where was this var declared?
                 handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
-            // Metrics resulting from apa filtering
+            // Metrics resulting from afa filtering
             final Map<String, Integer[]> filterMetrics = new HashMap<>();
             //looplist is empty here why??
             Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
@@ -274,6 +208,7 @@ public class APA extends JuicerCLT {
                     for (Chromosome chr2 : handler.getChromosomeArrayWithoutAllByAll()) {
                         if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
                             APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
+                            APADataStack testDataStack = new APADataStack (L, outputDirectory, "test" + resolution);
 
                             Matrix matrix = ds.getMatrix(chr1, chr2);
                             if (matrix == null) continue;
@@ -300,18 +235,25 @@ public class APA extends JuicerCLT {
                             for (int i = 0; i < peakNumbers.length; i++) {
                                 gwPeakNumbers[i] += peakNumbers[i];
                             }
-
-                            for (Feature2D loop : loops) {
+                            //Stacking matrices
+                            /*for (Feature2D loop : loops) {
                                 try {
-                                    apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
+                                    apaDataStack.addData(APAUtils.matrixResize(APAUtils.extractLocalizedDataForAFA(zd, loop, L, resolution, window, norm), 100, 100));
                                 } catch (IOException e) {
                                     System.err.println("Unable to find data for loop: " + loop);
                                 }
-                            }
+                            }*/
+                            try {
+                                //testDataStack.addData(APAUtils.matrixResize(APAUtils.extractLocalizedDataForAFA(zd, loops.get(0), L, resolution, window, norm), 100, 100));
 
+                                testDataStack.addData(APAUtils.matrixScaling(APAUtils.extractLocalizedDataForAFA(zd, loops.get(0), L, resolution, window, norm), 100, 100));
+                            } catch (IOException e) {
+                                System.err.println("Unable to find data for loop: " + loops.get(0));
+                            }
                             apaDataStack.updateGenomeWideData();
                             if (saveAllData) {
                                 apaDataStack.exportDataSet(chr1.getName() + 'v' + chr2.getName(), peakNumbers, currentRegionWidth, saveAllData);
+                                testDataStack.exportDataSet(chr1.getName() + 'v' + chr2.getName(), peakNumbers, currentRegionWidth, saveAllData);
                             }
                             if (chr2.getIndex() == chr1.getIndex()) {
                                 System.out.print(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
@@ -319,17 +261,18 @@ public class APA extends JuicerCLT {
                         }
                     }
                 }
-                System.out.println("Exporting APA results...");
+                System.out.println("Exporting AFA results...");
                 //save data as int array
-                result= APADataStack.retrieveDataStatistics(currentRegionWidth); //should retrieve data
+                /*result= APADataStack.retrieveDataStatistics(currentRegionWidth); //should retrieve data
                 APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth, saveAllData);
-                APADataStack.clearAllData();
+                APADataStack.clearAllData();*/
+
             } else {
                 System.err.println("Loop list is empty or incorrect path provided.");
                 System.exit(3);
             }
         }
-        System.out.println("APA complete");
+        System.out.println("AFA complete");
         return result;
         //if no data return null
     }
