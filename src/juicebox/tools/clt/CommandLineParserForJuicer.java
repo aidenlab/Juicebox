@@ -74,6 +74,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     // for GRIND
     private static Option useObservedOverExpectedOption = null;
+    private static Option getDenseMatrixOption = null;
 
     public CommandLineParserForJuicer() {
         // used flags
@@ -133,6 +134,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getUseObservedOverExpectedOption() {
         Object opt = getOptionValue(useObservedOverExpectedOption);
+        return opt != null;
+    }
+
+    public boolean getDenseMatrixOption() {
+        Object opt = getOptionValue(getDenseMatrixOption);
         return opt != null;
     }
 
