@@ -38,13 +38,14 @@ public class DomainFinder implements RegionFinder {
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
     }
 
+
     @Override
-    public void makePositiveExamples() {
+    public void makePositiveExamples(String savepath, String loopListPath, int maxk, String hicFilePaths) {
 
     }
 
     @Override
-    public void makeNegativeExamples() {
+    public void makeNegativeExamples(String savepath, String loopListPath, int maxk, String hicFilePaths) {
 
     }
 }
