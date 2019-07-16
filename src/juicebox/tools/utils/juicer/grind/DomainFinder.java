@@ -25,6 +25,7 @@
 package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -43,7 +44,7 @@ import java.util.Set;
 import static juicebox.tools.utils.juicer.grind.SectionParser.saveMatrixText2;
 
 public class DomainFinder implements RegionFinder {
-    Exception ex
+
     private int x;
     private int y;
     private int z;
@@ -59,9 +60,7 @@ public class DomainFinder implements RegionFinder {
     private int x_dim;
     private int y_dim;
 
-    {
-        ex.printStackTrace();
-    } catch(
+
 
     public DomainFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
@@ -79,10 +78,10 @@ public class DomainFinder implements RegionFinder {
         this.useDenseLabels = useDenseLabels;
         this.resolutions = resolutions;
         //this.x_dim = ds;
-    })
+    }
 
     @Override
-    public void makePositiveExamples(String savepath, String loopListPath, String hicFilePaths) {
+    public void makePositiveExamples() {
         final Random generator = new Random();
 
         //String loopListPath = "";
@@ -104,62 +103,79 @@ public class DomainFinder implements RegionFinder {
         try {
             final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"), StandardCharsets.UTF_8));
 
+            final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
+
+
+
+
+
             // Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, false, null, false);
 
             features.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
 
-                    System.out.println("Currently on: " + chr);
 
-                    Chromosome chrom = chromosomeHandler.getChromosomeFromName((String) givenChromosomes.g);
+                    for (String chromName : givenChromosomes) {
+                        System.out.println("Currently on: " + chromName);
+                        Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chromName);
 
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
+                        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+                        if (matrix == null) continue;
 
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
+                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                        final MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                    if (zd == null) return;
+                        if (zd == null) continue;
+
+                        for (int rowIndex = 0; rowIndex < chromosome.getLength() / resolution; rowIndex++) {
+                            for (int colIndex = rowIndex; colIndex < chromosome.getLength() / resolution; colIndex++) {
+
+                                // todo is far from diagonal, continue
+
+                                try {
+                                    RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                                            rowIndex, rowIndex + x, colIndex, colIndex + y, x, y, norm);
+
+                                    if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
+
+                                        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowIndex * resolution,
+                                                y * resolution, (rowIndex + x) * resolution, (colIndex + y) * resolution);
+
+                                        List<Feature2D> inputListFoundFeatures = feature2DHandler.getIntersectingFeatures(chromosome.getIndex(), chromosome.getIndex(),
+                                                currentWindow, true);
+
+                                        double[][] labelsMatrix = new double[x][y];
+
+                                        for (Feature2D feature2D : inputListFoundFeatures) {
+                                            labelsMatrix[feature2D.getStart1() / resolution - rowIndex][feature2D.getEnd2() / resolution - colIndex] = 1.0;
+                                        }
 
 
-                    for (Feature2D feature2D : feature2DList) {
-                        int i0 = feature2D.getStart1() / resolution;
-                        int j0 = feature2D.getEnd1() / resolution;
+                                        String exactFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".txt";
+                                        String exactLabelFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".label.txt";
+
+                                        saveMatrixText2(path + exactFileName, localizedRegionData);
+                                        saveMatrixText2(path + exactLabelFileName, labelsMatrix);
+                                        writer.write(exactFileName + "\n");
 
 
-                        try {
-                            RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                                    i, i + x,
-                                    j, j + y, x, y, norm);
-                            if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
-
-                                String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
-
-                                //process
-                                //DescriptiveStatistics yStats = statistics(localizedRegionData.getData());
-                                //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
-                                //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
-
-                                saveMatrixText2(path + exactFileName, localizedRegionData);
-                                writer.write(exactFileName + "\n");
+                                    }
+                                } catch (Exception e) {
+                                }
                             }
-                        } catch (Exception e) {
-
                         }
                     }
                 }
+            });
+            writer.close();
+        } catch (Exception e) {
 
-            }
-        })
-
-        writer.close();
-    }
-}
+        }
     }
 
     @Override
-    public void makeNegativeExamples(String savepath, String loopListPath, int maxk, String hicFilePaths) {
+    public void makeNegativeExamples() {
 
     }
 }

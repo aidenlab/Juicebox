@@ -53,19 +53,21 @@ public class Grind extends JuicerCLT {
     private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
+    private String loopListPath;
 
-    protected Grind(String usage) {
+    public Grind() {
         super("grind [hic file] [bedpe positions] [x,y,z] [directory]");
     }
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
-        if (args.length != 3) {
+        if (args.length != 5) {
             printUsageAndExit();
         }
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
+        loopListPath = args[2];
 
         // split on commas
         // save the dimensions
@@ -73,6 +75,7 @@ public class Grind extends JuicerCLT {
         x = Integer.parseInt(dimensions[0]);
         y = Integer.parseInt(dimensions[1]);
         z = Integer.parseInt(dimensions[2]);
+
 
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
@@ -97,7 +100,7 @@ public class Grind extends JuicerCLT {
     @Override
     public void run() {
 
-        Feature2DList features = Feature2DParser.loadFeatures("loopListPath", ds.getChromosomeHandler(), false, null, false);
+        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, ds.getChromosomeHandler(), false, null, false);
 
         // use these as inputs
         LoopFinder loopFinder = new LoopFinder(x, y, z, ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);

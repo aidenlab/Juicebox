@@ -392,10 +392,13 @@ class SectionParser {
     }
 
     public static void saveMatrixText2(String filename, RealMatrix realMatrix) {
+        saveMatrixText2(filename, realMatrix.getData());
+    }
+
+    public static void saveMatrixText2(String filename, double[][] matrix) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
-            double[][] matrix = realMatrix.getData();
             for (double[] row : matrix) {
                 String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
                 s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();

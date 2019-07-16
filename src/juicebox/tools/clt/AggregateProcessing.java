@@ -40,18 +40,12 @@ class AggregateProcessing {
     public static void main(String[] argv) throws Exception {
 
 
-        Long time = System.currentTimeMillis();
-
-        String[] ll51231123 = {"addnorm", "-d", "-F",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec13.hic",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr_all.vec"};
-
-        //String[] ll51231123 = {"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz","/Users/muhammad/Desktop/pre_jars/scaled74.hic","hg19"};
-
-        ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
-
-        ll51231123 = new String[]{"pre", "--verbose", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
-                "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
+        String[] ll51231123 = new String[]{"grind",
+                "/Users/muhammad/Desktop/bin/local_hic_files/imr90_intra_nofrag_30.hic",
+                "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks_with_motifs.txt",
+                "40,40,20000",
+                "/Users/muhammad/Desktop/grind/exploration/"
+        };
 
         String[] testrun = {"afa", "-u", "-r", "25000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
         "C:/Users/Dat/Desktop/Juicebox/aparesulttest"};
