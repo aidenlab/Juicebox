@@ -34,7 +34,7 @@ import java.util.Set;
 public class DomainFinder implements RegionFinder {
 
 
-    public DomainFinder(Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public DomainFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
     }
 

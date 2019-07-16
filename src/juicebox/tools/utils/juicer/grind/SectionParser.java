@@ -391,7 +391,7 @@ class SectionParser {
         }
     }
 
-    private static void saveMatrixText2(String filename, RealMatrix realMatrix) {
+    public static void saveMatrixText2(String filename, RealMatrix realMatrix) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
