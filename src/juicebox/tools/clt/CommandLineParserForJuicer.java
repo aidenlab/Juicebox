@@ -74,7 +74,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     // for GRIND
     private static Option useObservedOverExpectedOption = null;
-    private static Option getDenseMatrixOption = null;
+    private static Option useDenseLabelsOption = null;
+    private static Option useWholeGenome = null;
 
     public CommandLineParserForJuicer() {
         // used flags
@@ -118,6 +119,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
         // for GRIND
         useObservedOverExpectedOption = addBooleanOption("obs/exp");
+        useDenseLabelsOption = addBooleanOption("dense_labels");
+        useWholeGenome = addBooleanOption("whole_genome");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -132,13 +135,19 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return opt != null;
     }
 
+    // for GRIND
     public boolean getUseObservedOverExpectedOption() {
         Object opt = getOptionValue(useObservedOverExpectedOption);
         return opt != null;
     }
 
-    public boolean getDenseMatrixOption() {
-        Object opt = getOptionValue(getDenseMatrixOption);
+    public boolean getUseWholeGenome() {
+        Object opt = getOptionValue(useWholeGenome);
+        return opt != null;
+    }
+
+    public boolean getDenseLabelsOption() {
+        Object opt = getOptionValue(useDenseLabelsOption);
         return opt != null;
     }
 
