@@ -28,7 +28,7 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.grind.DomainFinder;
+import juicebox.tools.utils.juicer.grind.LoopFinder;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
@@ -77,7 +77,7 @@ public class Grind extends JuicerCLT {
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         useDenseLabels = juicerParser.getDenseLabelsOption();
-
+        wholeGenome = juicerParser.getUseWholeGenome();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
         File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
@@ -100,8 +100,9 @@ public class Grind extends JuicerCLT {
         Feature2DList features = Feature2DParser.loadFeatures("loopListPath", ds.getChromosomeHandler(), false, null, false);
 
         // use these as inputs
-        DomainFinder domainFinder = new DomainFinder(ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        LoopFinder loopFinder = new LoopFinder(x, y, z, ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
+        loopFinder.makePositiveExamples();
         // read in any additional data required
 
 
