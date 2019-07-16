@@ -28,6 +28,7 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.juicer.grind.DomainFinder;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -92,8 +93,7 @@ public class Grind extends JuicerCLT {
     public void run() {
 
         // use these as inputs
-        // ds, outputDirectory, givenChromosomes, norm,
-        // useObservedOverExpected, useDenseLabels, resolutions
+        DomainFinder domainFinder = new DomainFinder(ds, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
         // read in any additional data required
 
