@@ -107,7 +107,7 @@ public class Grind extends JuicerCLT {
 
         StripeFinder stripeFinder = new StripeFinder(x, y, z, ds, stripeFeatures, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
-        stripeFinder.makePositiveExamples();
+        stripeFinder.makeSquaresForTrainingModelToLocalize();
 
         // read in any additional data required
 
