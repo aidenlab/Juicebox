@@ -39,20 +39,30 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws Exception {
 
-
-        String[] ll51231123 = new String[]{"grind",
-                "/Users/muhammad/Desktop/bin/local_hic_files/imr90_intra_nofrag_30.hic",
-                "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks_with_motifs.txt",
-                "40,40,20000",
-                "/Users/muhammad/Desktop/grind/exploration/"
+        String[] stripestestrun = new String[]{
+                "grind",
+                "https://s3.amazonaws.com/hicfiles/external/zoghbi/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
+                "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
+                "30,300,10",
+                "/Users/audreylu/Desktop/aidenlab"
         };
 
-        String[] testrun = {"afa", "-u", "-r", "25000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
-        "C:/Users/Dat/Desktop/Juicebox/aparesulttest"};
+        HiCTools.main(stripestestrun);
 
-        HiCTools.main(testrun);
 
-        //UnitTests.testCustomFastScaling();
+//        String[] ll51231123 = new String[]{"grind",
+//                "/Users/muhammad/Desktop/bin/local_hic_files/imr90_intra_nofrag_30.hic",
+//                "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks_with_motifs.txt",
+//                "40,40,20000",
+//                "/Users/muhammad/Desktop/grind/exploration/"
+//        };
+//
+//        String[] testrun = {"afa", "-u", "-r", "25000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
+//        "C:/Users/Dat/Desktop/Juicebox/aparesulttest"};
+//
+//        HiCTools.main(testrun);
+//
+//        //UnitTests.testCustomFastScaling();
 
     }
 

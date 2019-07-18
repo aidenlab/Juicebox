@@ -28,7 +28,7 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.grind.LoopFinder;
+import juicebox.tools.utils.juicer.grind.StripeFinder;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
@@ -49,11 +49,11 @@ public class Grind extends JuicerCLT {
     private boolean useObservedOverExpected = false;
     Dataset ds;
     private boolean useDenseLabels = false;
-    private Set<String> chromosome = null;
+    private Set<String> givenChromosome = null;
     private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
-    private String loopListPath;
+    private String featureListPath;
 
     public Grind() {
         super("grind [hic file] [bedpe positions] [x,y,z] [directory]");
@@ -67,7 +67,7 @@ public class Grind extends JuicerCLT {
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        loopListPath = args[2];
+        featureListPath = args[2];
 
         // split on commas
         // save the dimensions
@@ -82,7 +82,6 @@ public class Grind extends JuicerCLT {
         useDenseLabels = juicerParser.getDenseLabelsOption();
         wholeGenome = juicerParser.getUseWholeGenome();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
-        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -100,14 +99,24 @@ public class Grind extends JuicerCLT {
     @Override
     public void run() {
 
-        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, ds.getChromosomeHandler(), false, null, false);
+        //Feature2DList loopFeatures = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
 
         // use these as inputs
-        LoopFinder loopFinder = new LoopFinder(x, y, z, ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        //LoopFinder loopFinder = new LoopFinder(x, y, z, ds, loopFeatures, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
-        loopFinder.makePositiveExamples();
+        //loopFinder.makePositiveExamples();
+
+        Feature2DList stripeFeatures = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+
+        Set<String> stripesGivenChromosomes = new HashSet<String>();
+        stripesGivenChromosomes.add("chr6");
+        stripesGivenChromosomes.add("chr4");
+        stripesGivenChromosomes.add("chr3");
+        StripeFinder stripeFinder = new StripeFinder(x, y, z, ds, stripeFeatures, outputDirectory, stripesGivenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+
+        stripeFinder.makePositiveExamples();
+
         // read in any additional data required
-
 
         // iterate over regions of interest and save them to a directory
 
