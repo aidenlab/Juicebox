@@ -49,7 +49,6 @@ public class Grind extends JuicerCLT {
     private boolean useObservedOverExpected = false;
     Dataset ds;
     private boolean useDenseLabels = false;
-    private Set<String> givenChromosome = null;
     private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
@@ -75,8 +74,6 @@ public class Grind extends JuicerCLT {
         x = Integer.parseInt(dimensions[0]);
         y = Integer.parseInt(dimensions[1]);
         z = Integer.parseInt(dimensions[2]);
-
-
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         useDenseLabels = juicerParser.getDenseLabelsOption();
@@ -108,11 +105,7 @@ public class Grind extends JuicerCLT {
 
         Feature2DList stripeFeatures = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
 
-        Set<String> stripesGivenChromosomes = new HashSet<String>();
-        stripesGivenChromosomes.add("chr6");
-        stripesGivenChromosomes.add("chr4");
-        stripesGivenChromosomes.add("chr3");
-        StripeFinder stripeFinder = new StripeFinder(x, y, z, ds, stripeFeatures, outputDirectory, stripesGivenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        StripeFinder stripeFinder = new StripeFinder(x, y, z, ds, stripeFeatures, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
         stripeFinder.makePositiveExamples();
 

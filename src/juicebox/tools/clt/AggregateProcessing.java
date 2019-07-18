@@ -40,7 +40,7 @@ class AggregateProcessing {
     public static void main(String[] argv) throws Exception {
 
         String[] stripestestrun = new String[]{
-                "grind",
+                "grind", "-c", "3,6",
                 "https://s3.amazonaws.com/hicfiles/external/zoghbi/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
                 "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
                 "30,300,10",
