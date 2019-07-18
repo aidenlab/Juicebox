@@ -143,7 +143,7 @@ public class StripeFinder implements RegionFinder {
 
                                 List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chrom.getIndex(), chrom.getIndex(),
                                         currentWindow);
-                                System.out.println("size of input list found features: " + inputListFoundFeatures.size());
+                                //System.out.println("size of input list found features: " + inputListFoundFeatures.size());
 
                                 // if positive
                                 if (inputListFoundFeatures.size() > 0) {
@@ -155,7 +155,7 @@ public class StripeFinder implements RegionFinder {
                                         collen = collen / res;
 
 
-                                        System.out.println("row length: " + rowlen + "  col length: " + collen);
+                                        //System.out.println("row length: " + rowlen + "  col length: " + collen);
 
                                         int startRowOf1 = feature2D.getStart1() / res - rowIndex;
                                         int starColOf1 = feature2D.getEnd2() / res - colIndex;
@@ -171,29 +171,29 @@ public class StripeFinder implements RegionFinder {
                                     }
 
 
-                                    String exactFileName = chrom.getName() + "pos" + "_" + rowIndex + "_" + colIndex + ".txt";
+                                    String exactFileName = chrom.getName() + "pos_" + "_" + rowIndex + "_" + colIndex + "_matrix.txt";
                                     //System.out.println("saved " + exactFileName);
                                     saveMatrixText2(posPath + "/" + exactFileName, localizedRegionData);
-                                    posWriter.write(exactFileName + "\n" + "1");
+                                    posWriter.write(exactFileName + "\n");
 
-                                    String exactPosMatrixLabelFileName = chrom.getName() + "pos" + "_" + rowIndex + "_" + colIndex + "matrix.label.txt";
+                                    String exactPosMatrixLabelFileName = chrom.getName() + "pos" + "_" + rowIndex + "_" + colIndex + "_matrix.label.txt";
                                     //System.out.println("saved " + exactPosMatrixLabelFileName);
                                     saveMatrixText2(posPath + "/" + exactPosMatrixLabelFileName, labelsMatrix);
-                                    posLabelWriter.write(exactPosMatrixLabelFileName + "\n" + "1");
+                                    posLabelWriter.write(exactPosMatrixLabelFileName + "\n");
 
                                 }
                                 //else if negative
                                 else {
 
-                                    String exactFileName = chrom.getName() + "neg" + "_" + rowIndex + "_" + colIndex + ".txt";
+                                    String exactFileName = chrom.getName() + "neg_" + "_" + rowIndex + "_" + colIndex + "_matrix.txt";
                                     //System.out.println("saved " + exactFileName);
                                     saveMatrixText2(negPath + "/" + exactFileName, localizedRegionData);
-                                    negWriter.write(exactFileName + "\n" + "0");
+                                    negWriter.write(exactFileName + "\n");
                                 }
+                                System.out.print(".");
                             }
                         } catch (Exception e) {
                         }
-//                                }
                     }
                 }
             }
