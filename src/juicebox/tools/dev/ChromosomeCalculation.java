@@ -29,7 +29,6 @@ import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +36,9 @@ import java.util.List;
 
 public class ChromosomeCalculation {
 
-    public void sum(String filePath) {
+    public static void sum(String filePath) {
         ArrayList<String> files = new ArrayList<>();
-        File outputFile = new File("ChromosomeCalculationResult.txt");
+        File outputFile = new File("ChromosomeCalculationResult.bedgraph");
 
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
@@ -63,50 +62,44 @@ public class ChromosomeCalculation {
                         matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
                     // do the summing, iterate over contact records in matrixZoomData object
                     sumColumn(zd, chromosomeToColumnSumsMap, chromosome1, chromosome2);
+                    //linearize(chromosomeToColumnSumsMap);
                     for (Chromosome key : chromosomeToColumnSumsMap.keySet()) {
                         for (int index : chromosomeToColumnSumsMap.get(key).keySet()) {
 
                             String
                                 s =
                                 key.getName() +
-                                    "/t" +
-                                    (index - 1) * 1000000 +
-                                    "/t" +
-                                    (index) * 1000000 +
-                                    "/t" +
-                                    chromosomeToColumnSumsMap.get(key);
-                            try {
+                                    "\t" +
+                                    (index) * resolution +
+                                    "\t" +
+                                    (index + 1) * resolution +
+                                    "\t" +
+                                    chromosomeToColumnSumsMap.get(key).get(index);
+
                                 bw.write(s);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                bw.newLine();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+
+
+                            bw.newLine();
+
 
                         }
-                    }
-                    try {
-                        bw.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
 
 
                 }
             }
-        }
-        catch (FileNotFoundException e) {
+            bw.close();
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
-
-
-    private void sumColumn(MatrixZoomData m, HashMap<Chromosome, HashMap<Integer, Float>> map, Chromosome chrI, Chromosome chrJ) {
+    private static void sumColumn(MatrixZoomData m,
+                                  HashMap<Chromosome, HashMap<Integer, Float>> map,
+                                  Chromosome chrI,
+                                  Chromosome chrJ) {
         final List<ContactRecord> contactRecordList  = m.getContactRecordList();
 
             if (chrI.getIndex() == chrJ.getIndex()) {
@@ -142,6 +135,35 @@ public class ChromosomeCalculation {
                 map.put(chrJ, subMap2);
             }
 
+    }
+
+    public static void linearize(HashMap<Chromosome, HashMap<Integer, Float>> map) {
+
+        for (Chromosome key : map.keySet()) {
+            float currTotal = 0;
+            int count = 0;
+
+            for (int subKey : map.get(key).keySet()) {
+                currTotal += map.get(key).get(subKey);
+            }
+
+
+            float initialAverage = currTotal / map.get(key).keySet().size();
+
+            for (int subKey : map.get(key).keySet()) {
+                if (map.get(key).get(subKey) < initialAverage * 0.01) {
+                    count += 1;
+                    currTotal -= map.get(key).get(subKey);
+                }
+            }
+
+            float finalAverage = currTotal / (map.get(key).keySet().size() - count);
+
+            for (int subKey : map.get(key).keySet()) {
+                map.get(key).put(subKey, finalAverage);
+            }
+
+        }
     }
 
 
