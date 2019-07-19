@@ -188,7 +188,7 @@ public class StripeFinder implements RegionFinder {
             transformedData = new double[data[0].length][data.length];
             for (int i = 0; i < data.length; i++) {
                 for (int j = 0; j < data[0].length; j++) {
-                    transformedData[j][data.length - i] = data[i][j];
+                    transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
                 }
             }
         }
