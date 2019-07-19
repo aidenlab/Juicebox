@@ -41,10 +41,10 @@ class AggregateProcessing {
 
         String[] stripestestrun = new String[]{
                 "grind", "-c", "3,6",
-                "https://s3.amazonaws.com/hicfiles/external/zoghbi/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
-                "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
+                "/Users/muhammad/Desktop/locationofzoghbideephicmapsformachinelearninganaly/Stripes_DGWT_IB_3-4-6.bedpe",
                 "30,300,10000",
-                "/Users/audreylu/Desktop/aidenlab"
+                "/Users/muhammad/Desktop/stripes2"
         };
 
         HiCTools.main(stripestestrun);
