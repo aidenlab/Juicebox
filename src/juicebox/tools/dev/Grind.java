@@ -107,21 +107,7 @@ public class Grind extends JuicerCLT {
 
         StripeFinder stripeFinder = new StripeFinder(x, y, z, ds, stripeFeatures, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
 
-        stripeFinder.makeSquaresForTrainingModelToLocalize();
-
-        // read in any additional data required
-
-        // iterate over regions of interest and save them to a directory
-
-
-        // oe
-
-        //RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-        //        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
-
-
-
-
+        stripeFinder.makePositiveExamples();
 
     }
 }

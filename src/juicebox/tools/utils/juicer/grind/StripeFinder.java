@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -201,6 +200,7 @@ public class StripeFinder implements RegionFinder {
         writer.write(exactFileName + "\n");
     }
 
+    /*
     public void makeSquaresForTrainingModelToLocalize() {
 
         final String negPath = path + "/negative";
@@ -328,9 +328,11 @@ public class StripeFinder implements RegionFinder {
             ex.printStackTrace();
         }
     }
-
+*/
     @Override
     public void makeNegativeExamples() {
 
     }
+
+
 }

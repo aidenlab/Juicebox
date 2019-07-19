@@ -40,11 +40,11 @@ class AggregateProcessing {
     public static void main(String[] argv) throws Exception {
 
         String[] stripestestrun = new String[]{
-                "grind", "-c", "3,6",
+                "grind", "-c", "6", "-r", "25000",
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
                 "/Users/muhammad/Desktop/locationofzoghbideephicmapsformachinelearninganaly/Stripes_DGWT_IB_3-4-6.bedpe",
-                "30,300,10000",
-                "/Users/muhammad/Desktop/stripes2"
+                "16,128,1000000",
+                "/Users/muhammad/Desktop/stripes3"
         };
 
         HiCTools.main(stripestestrun);
