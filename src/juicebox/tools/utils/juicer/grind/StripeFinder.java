@@ -148,6 +148,8 @@ public class StripeFinder implements RegionFinder {
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                 rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm);
 
+        fillInAreaUnderDiagonal(localizedRegionData, isVerticalStripe);
+
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rectULX * resolution,
                 rectULY * resolution, rectLRX * resolution, rectLRY * resolution);
 
@@ -180,6 +182,25 @@ public class StripeFinder implements RegionFinder {
             saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.label.txt", posPath, labelsMatrix, posLabelWriter, isVerticalStripe);
         } else {
             saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
+        }
+    }
+
+    private void fillInAreaUnderDiagonal(RealMatrix localizedRegionData, boolean isVerticalStripe) {
+        if (isVerticalStripe) {
+            int numRows = localizedRegionData.getRowDimension();
+            int numCols = localizedRegionData.getColumnDimension();
+            int diagonalULIndex = numRows - numCols;
+            for (int i = diagonalULIndex; i < numRows; i++) {
+                for (int j = 0; j < (i - diagonalULIndex); j++) {
+                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(diagonalULIndex + j, i - diagonalULIndex));
+                }
+            }
+        } else {
+            for (int i = 0; i < localizedRegionData.getRowDimension(); i++) {
+                for (int j = 0; j < i; j++) {
+                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(j, i));
+                }
+            }
         }
     }
 

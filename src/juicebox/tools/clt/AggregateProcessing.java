@@ -44,7 +44,7 @@ class AggregateProcessing {
                 "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
                 "/Users/muhammad/Desktop/locationofzoghbideephicmapsformachinelearninganaly/Stripes_DGWT_IB_3-4-6.bedpe",
                 "16,128,1000000",
-                "/Users/muhammad/Desktop/stripes3"
+                "/Users/muhammad/Desktop/stripes4"
         };
 
         HiCTools.main(stripestestrun);
