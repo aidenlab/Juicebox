@@ -109,12 +109,10 @@ public class StripeFinder implements RegionFinder {
                     for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex++) {
                         getTrainingDataAndSaveToFile(zd, chrom, rowIndex, rowIndex, resolution, feature2DHandler, x, y,
                                 posPath, negPath, posWriter, posLabelWriter, negWriter, false);
-                        System.out.print(".");
                     }
                     for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex++) {
                         getTrainingDataAndSaveToFile(zd, chrom, rowIndex, rowIndex, resolution, feature2DHandler, x, y,
                                 posPath, negPath, posWriter, posLabelWriter, negWriter, true);
-                        System.out.print(".");
                     }
                 }
             }
@@ -156,26 +154,40 @@ public class StripeFinder implements RegionFinder {
         List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chrom.getIndex(), chrom.getIndex(),
                 currentWindow);
 
-        if (inputListFoundFeatures.size() > 0) {
-            double[][] labelsMatrix = new double[numRows][numCols];
-            for (Feature2D feature2D : inputListFoundFeatures) {
-                int rowLength = (feature2D.getEnd1() - feature2D.getStart1()) / resolution;
-                int colLength = (feature2D.getEnd2() - feature2D.getStart2()) / resolution;
+        boolean stripeIsFound = false;
+
+        double[][] labelsMatrix = new double[numRows][numCols];
+        for (Feature2D feature2D : inputListFoundFeatures) {
+            int rowLength = (feature2D.getEnd1() - feature2D.getStart1()) / resolution;
+            int colLength = (feature2D.getEnd2() - feature2D.getStart2()) / resolution;
+
+            if (stripeIsCorrectOrientation(rowLength, colLength, isVerticalStripe)) {
 
                 int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
-                int starColOf1 = feature2D.getEnd2() / resolution - rectULY;
-                for (int i = 0; i < rowLength; i++) {
-                    for (int j = 0; j < colLength; j++) {
+                int starColOf1 = feature2D.getStart2() / resolution - rectULY;
+                for (int i = 0; i < Math.min(rowLength, numRows); i++) {
+                    for (int j = 0; j < Math.min(colLength, numCols); j++) {
                         labelsMatrix[startRowOf1 + i][starColOf1 + j] = 1.0;
                     }
                 }
+                stripeIsFound = true;
             }
+        }
 
+        if (stripeIsFound) {
+            System.out.print(".");
             saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", posPath, localizedRegionData.getData(), posWriter, isVerticalStripe);
             saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.label.txt", posPath, labelsMatrix, posLabelWriter, isVerticalStripe);
-
         } else {
             saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
+        }
+    }
+
+    private boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
+        if (isVerticalStripe) {
+            return rowLength > colLength;
+        } else {
+            return colLength > rowLength;
         }
     }
 
