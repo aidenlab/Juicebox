@@ -164,8 +164,8 @@ public class StripeFinder implements RegionFinder {
 
                 int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
                 int starColOf1 = feature2D.getEnd2() / resolution - rectULY;
-                for (int i = 0; i < rowLength + 1; i++) {
-                    for (int j = 0; j < colLength + 1; j++) {
+                for (int i = 0; i < rowLength; i++) {
+                    for (int j = 0; j < colLength; j++) {
                         labelsMatrix[startRowOf1 + i][starColOf1 + j] = 1.0;
                     }
                 }
