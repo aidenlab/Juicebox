@@ -25,14 +25,16 @@
 package juicebox.tools.dev;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.util.*;
 
 public class ChromosomeCalculation {
 
@@ -40,131 +42,110 @@ public class ChromosomeCalculation {
         ArrayList<String> files = new ArrayList<>();
         File outputFile = new File("ChromosomeCalculationResult.bedgraph");
 
+        HiCGlobals.useCache = false;
+
         files.add(filePath); // replace with hic file paths
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
         Chromosome[] chromosomes = ds.getChromosomeHandler().getAutosomalChromosomesArray();
-        HashMap<Chromosome, HashMap<Integer, Float>> chromosomeToColumnSumsMap = new HashMap<>();
-        int resolution = 1000000;
+        Map<Chromosome, Map<Integer, Float>> chromosomeToColumnSumsMap = new HashMap<>();
+        int resolution = 2500000;
 
-        BufferedWriter bw = null;
+
+        for (int i = 0; i < chromosomes.length; i++) {
+            Chromosome chromosome1 = chromosomes[i];
+            for (int j = i; j < chromosomes.length; j++) {
+                Chromosome chromosome2 = chromosomes[j];
+                Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
+                MatrixZoomData zd =
+                    matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
+                // do the summing, iterate over contact records in matrixZoomData object
+                sumColumn(zd, chromosomeToColumnSumsMap, chromosome1, chromosome2);
+            }
+        }
+
+        linearize(chromosomeToColumnSumsMap);
+
         try {
-            bw = new BufferedWriter((new OutputStreamWriter((new FileOutputStream(outputFile)))));
+            BufferedWriter bw = new BufferedWriter((new OutputStreamWriter((new FileOutputStream(outputFile)))));
 
+            for (Chromosome key : chromosomeToColumnSumsMap.keySet()) {
+                List<Integer> indices = new ArrayList<>(chromosomeToColumnSumsMap.get(key).keySet());
+                Collections.sort(indices);
+                for (int index : indices) {
+                    String s = key.getName() + "\t" +
+                                   (index) * resolution + "\t" +
+                                   (index + 1) * resolution + "\t" +
+                                   chromosomeToColumnSumsMap.get(key).get(index);
 
-            for (int i = 0; i < chromosomes.length; i++) {
-                Chromosome chromosome1 = chromosomes[i];
-                for (int j = i; j < chromosomes.length; j++) {
-
-                    Chromosome chromosome2 = chromosomes[j];
-                    Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
-                    MatrixZoomData
-                        zd =
-                        matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
-                    // do the summing, iterate over contact records in matrixZoomData object
-                    sumColumn(zd, chromosomeToColumnSumsMap, chromosome1, chromosome2);
-                    //linearize(chromosomeToColumnSumsMap);
-                    for (Chromosome key : chromosomeToColumnSumsMap.keySet()) {
-                        for (int index : chromosomeToColumnSumsMap.get(key).keySet()) {
-
-                            String
-                                s =
-                                key.getName() +
-                                    "\t" +
-                                    (index) * resolution +
-                                    "\t" +
-                                    (index + 1) * resolution +
-                                    "\t" +
-                                    chromosomeToColumnSumsMap.get(key).get(index);
-
-                                bw.write(s);
-
-
-                            bw.newLine();
-
-
-                        }
-                    }
-
-
+                    bw.write(s);
+                    bw.newLine();
                 }
             }
-            bw.close();
 
-        } catch (IOException e) {
+            bw.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
     private static void sumColumn(MatrixZoomData m,
-                                  HashMap<Chromosome, HashMap<Integer, Float>> map,
+                                  Map<Chromosome, Map<Integer, Float>> map,
                                   Chromosome chrI,
                                   Chromosome chrJ) {
-        final List<ContactRecord> contactRecordList  = m.getContactRecordList();
 
-            if (chrI.getIndex() == chrJ.getIndex()) {
-                HashMap<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
-                for (ContactRecord contact: contactRecordList) {
-                    float count = contact.getCounts();
-                    int x = contact.getBinX();
-                    int y = contact.getBinY();
-                    if (x == y) {
-                        subMap.put(x, subMap.getOrDefault(x, 0f) + count);
-
-
-                    }
-                    else {
-                        subMap.put(x, subMap.getOrDefault(x,  count));
-                        subMap.put(y, subMap.getOrDefault(y, 0f) + count);
-
-                    }
-                }
-                map.put(chrI, subMap);
-            }
-            else {
-                HashMap<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
-                HashMap<Integer, Float> subMap2 = map.getOrDefault(chrJ, new HashMap<>());
-                for (ContactRecord contact: contactRecordList) {
-                    float count = contact.getCounts();
-                    int x = contact.getBinX();
-                    int y = contact.getBinY();
+        if (chrI.getIndex() == chrJ.getIndex()) {
+            Map<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
+            for (ContactRecord contact : m.getContactRecordList()) {
+                float count = contact.getCounts();
+                int x = contact.getBinX();
+                int y = contact.getBinY();
+                if (x == y) {
                     subMap.put(x, subMap.getOrDefault(x, 0f) + count);
-                    subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
+                } else {
+                    subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+                    subMap.put(y, subMap.getOrDefault(y, 0f) + count);
                 }
-                map.put(chrI, subMap);
-                map.put(chrJ, subMap2);
             }
+            map.put(chrI, subMap);
+        } else {
+            Map<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
+            Map<Integer, Float> subMap2 = map.getOrDefault(chrJ, new HashMap<>());
+            for (ContactRecord contact : m.getContactRecordList()) {
+                float count = contact.getCounts();
+                int x = contact.getBinX();
+                int y = contact.getBinY();
+                subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+                subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
+            }
+            map.put(chrI, subMap);
+            map.put(chrJ, subMap2);
+        }
 
     }
 
-    public static void linearize(HashMap<Chromosome, HashMap<Integer, Float>> map) {
+    public static void linearize(Map<Chromosome, Map<Integer, Float>> map) {
+        float total = 0;
+        int size = 0;
 
         for (Chromosome key : map.keySet()) {
-            float currTotal = 0;
-            int count = 0;
-
             for (int subKey : map.get(key).keySet()) {
-                currTotal += map.get(key).get(subKey);
-            }
-
-
-            float initialAverage = currTotal / map.get(key).keySet().size();
-
-            for (int subKey : map.get(key).keySet()) {
-                if (map.get(key).get(subKey) < initialAverage * 0.01) {
-                    count += 1;
-                    currTotal -= map.get(key).get(subKey);
+                float val = map.get(key).get(subKey);
+                if (val > 1) {
+                    total += val;
+                    size += 1;
                 }
             }
+        }
 
-            float finalAverage = currTotal / (map.get(key).keySet().size() - count);
+        float expectedVal = total / size;
 
+        System.out.println(expectedVal);
+        for (Chromosome key : map.keySet()) {
             for (int subKey : map.get(key).keySet()) {
-                map.get(key).put(subKey, finalAverage);
+                float newVal = (float) Math.log(map.get(key).get(subKey) / expectedVal);
+                map.get(key).put(subKey, newVal);
             }
-
         }
     }
-
-
 }
