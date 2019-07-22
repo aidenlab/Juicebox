@@ -27,11 +27,9 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
-import juicebox.tools.dev.APAvsDistance;
-import juicebox.tools.dev.Drink;
-import juicebox.tools.dev.GeneFinder;
-import juicebox.tools.dev.Shuffle;
+import juicebox.tools.dev.*;
 import juicebox.tools.utils.Benchmark;
+
 
 /**
  * Factory for command line tools to call different functions
@@ -114,6 +112,8 @@ public class CLTFactory {
             return new LoopDomains();
         } else if (cmd.equals("drink")) {
             return new Drink();
+        } else if (cmd.equals("grind")) {
+            return new Grind();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -136,6 +136,8 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
+        } else if (cmd.equals("afa")) { //added command for afa
+            return new AFA ();
         }
 
         return null;

@@ -29,7 +29,6 @@ import juicebox.HiCGlobals;
 import juicebox.tools.clt.JuiceboxCLT;
 
 import java.io.*;
-import java.util.List;
 import java.util.regex.Pattern;
 
 
@@ -60,13 +59,13 @@ public class FragmentToBed extends JuiceboxCLT {
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 //String[] tokens = pattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+                String[] tokens = splitToList(nextLine);
 
-                String chr = tokens.get(0);
+                String chr = tokens[0];
                 int fragNumber = 0;
-                int beg = Integer.parseInt(tokens.get(1)) - 1;  // 1 vs 0 based coords
-                for (int i = 2; i < tokens.size(); i++) {
-                    int end = Integer.parseInt(tokens.get(i)) - 1;
+                int beg = Integer.parseInt(tokens[1]) - 1;  // 1 vs 0 based coords
+                for (int i = 2; i < tokens.length; i++) {
+                    int end = Integer.parseInt(tokens[i]) - 1;
                     writer.println(chr + "\t" + beg + "\t" + end + "\t" + fragNumber);
                     beg = end;
                     fragNumber++;

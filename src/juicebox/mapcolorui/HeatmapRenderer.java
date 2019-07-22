@@ -24,10 +24,6 @@
 
 package juicebox.mapcolorui;
 
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Range;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
@@ -682,12 +678,12 @@ class HeatmapRenderer {
     private void updatePreDefColors() {
         int arrSize = MainViewPanel.preDefMapColorGradient.size();
 
-        ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
-        Integer[] arrTmp = set.toArray(new Integer[arrSize]);
+        //ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
+        //Integer[] arrTmp = new Integer[arrSize];//set.toArray(new Integer[arrSize]);
         final int[] arrScores = new int[arrSize];
 
         for (int idx = 0; idx < arrSize; idx++) {
-            arrScores[idx] = arrTmp[idx];
+            arrScores[idx] = idx;
         }
 
         preDefColorScale.updateColors(MainViewPanel.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
