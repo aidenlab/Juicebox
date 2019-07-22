@@ -27,6 +27,7 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.tools.utils.common.ArrayTools;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
@@ -38,9 +39,18 @@ import java.util.*;
 
 public class ChromosomeCalculation {
 
-    public static void sum(String filePath) {
+    public static void sum(int resolution, int slidingWindow, String filePath, String outputFolder) {
         ArrayList<String> files = new ArrayList<>();
-        File outputFile = new File("ChromosomeCalculationResult.bedgraph");
+        File outFolder = new File(outputFolder);
+        if (!outFolder.exists()) {
+            outFolder.mkdir();
+        }
+        File columnSumsFile = new File(outputFolder, "column_sum_file.bedgraph");
+        File diagValFile = new File(outputFolder, "diagonal_val_file.bedgraph");
+        File slidingAvgColumnSumsFile = new File(outputFolder, "slide_avg_column_sum_file.bedgraph");
+        File slidingAvgDiagValFile = new File(outputFolder, "slide_avg_diagonal_val_file.bedgraph");
+        File logEnrichColumnSumsFile = new File(outputFolder, "log_enrich_column_sum_file.bedgraph");
+        File logEnrichDiagValFile = new File(outputFolder, "log_enrich_diagonal_val_file.bedgraph");
 
         HiCGlobals.useCache = false;
 
@@ -48,7 +58,7 @@ public class ChromosomeCalculation {
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false); // see this class and its functions
         Chromosome[] chromosomes = ds.getChromosomeHandler().getAutosomalChromosomesArray();
         Map<Chromosome, Map<Integer, Float>> chromosomeToColumnSumsMap = new HashMap<>();
-        int resolution = 2500000;
+        Map<Chromosome, Map<Integer, Float>> chromosomeToDiagonalValueMap = new HashMap<>();
 
 
         for (int i = 0; i < chromosomes.length; i++) {
@@ -56,26 +66,66 @@ public class ChromosomeCalculation {
             for (int j = i; j < chromosomes.length; j++) {
                 Chromosome chromosome2 = chromosomes[j];
                 Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
-                MatrixZoomData zd =
-                    matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
+                if (matrix == null) continue;
+                MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
+                if (zd == null) continue;
                 // do the summing, iterate over contact records in matrixZoomData object
-                sumColumn(zd, chromosomeToColumnSumsMap, chromosome1, chromosome2);
+                sumColumn(zd, chromosomeToColumnSumsMap, chromosomeToDiagonalValueMap, chromosome1, chromosome2);
             }
         }
 
-        linearize(chromosomeToColumnSumsMap);
+        writeDataToFile(chromosomeToColumnSumsMap, columnSumsFile, resolution);
+        writeDataToFile(chromosomeToDiagonalValueMap, diagValFile, resolution);
 
+        slidingAverageAcrossData(slidingWindow, chromosomeToColumnSumsMap);
+        slidingAverageAcrossData(slidingWindow, chromosomeToDiagonalValueMap);
+
+        writeDataToFile(chromosomeToColumnSumsMap, slidingAvgColumnSumsFile, resolution);
+        writeDataToFile(chromosomeToDiagonalValueMap, slidingAvgDiagValFile, resolution);
+
+        //calculateLogEnrichmentOfObservedOverExpected(chromosomeToColumnSumsMap);
+        //calculateLogEnrichmentOfObservedOverExpected(chromosomeToDiagonalValueMap);
+
+        //writeDataToFile(chromosomeToColumnSumsMap, logEnrichColumnSumsFile, resolution);
+        //writeDataToFile(chromosomeToDiagonalValueMap, logEnrichDiagValFile, resolution);
+
+
+    }
+
+    public static void slidingAverageAcrossData(int slidingWindow, Map<Chromosome, Map<Integer, Float>> dataMap) {
+
+        for (Map<Integer, Float> dataMapForChromosome : dataMap.values()) {
+
+            int maxIndex = Collections.max(dataMapForChromosome.keySet());
+            float[] values = new float[maxIndex + 1];
+
+            for (int idx : dataMapForChromosome.keySet()) {
+                values[idx] = dataMapForChromosome.get(idx);
+            }
+
+            float[] newAvgAfterSliding = ArrayTools.runSlidingAverageOnArray(slidingWindow, values);
+
+            for (int idx : dataMapForChromosome.keySet()) {
+                if (values[idx] > 0) {
+                    dataMapForChromosome.put(idx, newAvgAfterSliding[idx]);
+                }
+            }
+        }
+    }
+
+    private static void writeDataToFile(Map<Chromosome, Map<Integer, Float>> dataHashMap, File outputFile, int resolution) {
         try {
             BufferedWriter bw = new BufferedWriter((new OutputStreamWriter((new FileOutputStream(outputFile)))));
 
-            for (Chromosome key : chromosomeToColumnSumsMap.keySet()) {
-                List<Integer> indices = new ArrayList<>(chromosomeToColumnSumsMap.get(key).keySet());
+
+            for (Chromosome key : dataHashMap.keySet()) {
+                List<Integer> indices = new ArrayList<>(dataHashMap.get(key).keySet());
                 Collections.sort(indices);
                 for (int index : indices) {
                     String s = key.getName() + "\t" +
-                                   (index) * resolution + "\t" +
-                                   (index + 1) * resolution + "\t" +
-                                   chromosomeToColumnSumsMap.get(key).get(index);
+                            (index) * resolution + "\t" +
+                            (index + 1) * resolution + "\t" +
+                            dataHashMap.get(key).get(index);
 
                     bw.write(s);
                     bw.newLine();
@@ -90,27 +140,31 @@ public class ChromosomeCalculation {
 
 
     private static void sumColumn(MatrixZoomData m,
-                                  Map<Chromosome, Map<Integer, Float>> map,
+                                  Map<Chromosome, Map<Integer, Float>> mapOfSums,
+                                  Map<Chromosome, Map<Integer, Float>> mapOfDiagValues,
                                   Chromosome chrI,
                                   Chromosome chrJ) {
 
         if (chrI.getIndex() == chrJ.getIndex()) {
-            Map<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
+            Map<Integer, Float> subMapOfSumsForChr = mapOfSums.getOrDefault(chrI, new HashMap<>());
+            Map<Integer, Float> subMapOfDiagForChr = mapOfDiagValues.getOrDefault(chrI, new HashMap<>());
             for (ContactRecord contact : m.getContactRecordList()) {
                 float count = contact.getCounts();
                 int x = contact.getBinX();
                 int y = contact.getBinY();
                 if (x == y) {
-                    subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+                    subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
+                    subMapOfDiagForChr.put(x, count);
                 } else {
-                    subMap.put(x, subMap.getOrDefault(x, 0f) + count);
-                    subMap.put(y, subMap.getOrDefault(y, 0f) + count);
+                    subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
+                    subMapOfSumsForChr.put(y, subMapOfSumsForChr.getOrDefault(y, 0f) + count);
                 }
             }
-            map.put(chrI, subMap);
+            mapOfSums.put(chrI, subMapOfSumsForChr);
+            mapOfDiagValues.put(chrI, subMapOfDiagForChr);
         } else {
-            Map<Integer, Float> subMap = map.getOrDefault(chrI, new HashMap<>());
-            Map<Integer, Float> subMap2 = map.getOrDefault(chrJ, new HashMap<>());
+            Map<Integer, Float> subMap = mapOfSums.getOrDefault(chrI, new HashMap<>());
+            Map<Integer, Float> subMap2 = mapOfSums.getOrDefault(chrJ, new HashMap<>());
             for (ContactRecord contact : m.getContactRecordList()) {
                 float count = contact.getCounts();
                 int x = contact.getBinX();
@@ -118,13 +172,13 @@ public class ChromosomeCalculation {
                 subMap.put(x, subMap.getOrDefault(x, 0f) + count);
                 subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
             }
-            map.put(chrI, subMap);
-            map.put(chrJ, subMap2);
+            mapOfSums.put(chrI, subMap);
+            mapOfSums.put(chrJ, subMap2);
         }
 
     }
 
-    public static void linearize(Map<Chromosome, Map<Integer, Float>> map) {
+    public static void calculateLogEnrichmentOfObservedOverExpected(Map<Chromosome, Map<Integer, Float>> map) {
         float total = 0;
         int size = 0;
 
@@ -138,12 +192,13 @@ public class ChromosomeCalculation {
             }
         }
 
-        float expectedVal = total / size;
+        float currentAverage = total / size;
 
-        System.out.println(expectedVal);
+        System.out.println(currentAverage);
+
         for (Chromosome key : map.keySet()) {
             for (int subKey : map.get(key).keySet()) {
-                float newVal = (float) Math.log(map.get(key).get(subKey) / expectedVal);
+                float newVal = (float) Math.log(map.get(key).get(subKey) / currentAverage);
                 map.get(key).put(subKey, newVal);
             }
         }
