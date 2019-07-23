@@ -160,16 +160,16 @@ public class StripeFinder implements RegionFinder {
 
         double[][] labelsMatrix = new double[numRows][numCols];
         for (Feature2D feature2D : inputListFoundFeatures) {
-            int rowLength = (feature2D.getEnd1() - feature2D.getStart1()) / resolution;
-            int colLength = (feature2D.getEnd2() - feature2D.getStart2()) / resolution;
+            int rowLength = Math.max((feature2D.getEnd1() - feature2D.getStart1()) / resolution, 1);
+            int colLength = Math.max((feature2D.getEnd2() - feature2D.getStart2()) / resolution, 1);
 
             if (stripeIsCorrectOrientation(rowLength, colLength, isVerticalStripe)) {
 
                 int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
-                int starColOf1 = feature2D.getStart2() / resolution - rectULY;
+                int startColOf1 = feature2D.getStart2() / resolution - rectULY;
                 for (int i = 0; i < Math.min(rowLength, numRows); i++) {
                     for (int j = 0; j < Math.min(colLength, numCols); j++) {
-                        labelsMatrix[startRowOf1 + i][starColOf1 + j] = 1.0;
+                        labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1.0;
                     }
                 }
                 stripeIsFound = true;
