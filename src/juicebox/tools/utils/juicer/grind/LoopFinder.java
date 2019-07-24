@@ -38,8 +38,8 @@ import org.broad.igv.feature.Chromosome;
 import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static juicebox.tools.utils.juicer.grind.SectionParser.saveMatrixText2;
 
@@ -216,57 +216,65 @@ public class LoopFinder implements RegionFinder {
             badlist.addByKey(Feature2DList.getKey(chromosome, chromosome), badFeaturesForChromosome);
         }
         Feature2D.tolerance = 100000;
-        List<Feature2D> featureList = (List<Feature2D>) Feature2DTools.subtract(badlist, features);
-        Chromosome chrom = chromosomeHandler.getChromosomeFromName(featureList.get(0).getChr1());
-        Matrix matrix = ds.getMatrix(chrom, chrom);
-        if (matrix == null) {
-            return;
-        }
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-        final MatrixZoomData zd = matrix.getZoomData(zoom);
-        if (zd == null) {
-            return;
-        }
-        for (Feature2D feature2D : featureList) {
-            int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
-            int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
+        Feature2DList featureList = Feature2DTools.subtract(badlist, features);
 
-            for (int k = 0; k < maxk; k++) {
+        featureList.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
 
-                int di = 10 - generator.nextInt(21);
-                while (di == 0) {
-                    di = 10 - generator.nextInt(21);
+                Chromosome chrom = chromosomeHandler.getChromosomeFromName(chr);
+                Matrix matrix = ds.getMatrix(chrom, chrom);
+                if (matrix == null) {
+                    return;
                 }
-
-                int dj = 10 - generator.nextInt(21);
-                while (dj == 0) {
-                    dj = 10 - generator.nextInt(21);
+                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                final MatrixZoomData zd = matrix.getZoomData(zoom);
+                if (zd == null) {
+                    return;
                 }
+                for (Feature2D feature2D : feature2DList) {
+                    int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
+                    int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
 
-                int i = i0 + di;
-                int j = j0 + dj;
+                    for (int k = 0; k < maxk; k++) {
 
-                try {
-                    RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                        i, i + x,
-                        j, j + y, x, y, norm);
-                    if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
+                        int di = 10 - generator.nextInt(21);
+                        while (di == 0) {
+                            di = 10 - generator.nextInt(21);
+                        }
 
-                        String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
+                        int dj = 10 - generator.nextInt(21);
+                        while (dj == 0) {
+                            dj = 10 - generator.nextInt(21);
+                        }
 
-                        //process
-                        //DescriptiveStatistics yStats = statistics(localizedRegionData.getData());
-                        //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
-                        //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
+                        int i = i0 + di;
+                        int j = j0 + dj;
 
-                        saveMatrixText2(path + exactFileName, localizedRegionData);
-                        writer.write(exactFileName + "\n");
+                        try {
+                            RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                                    i, i + x,
+                                    j, j + y, x, y, norm);
+                            if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
+
+                                String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
+
+                                //process
+                                //DescriptiveStatistics yStats = statistics(localizedRegionData.getData());
+                                //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
+                                //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
+
+                                saveMatrixText2(path + exactFileName, localizedRegionData);
+                                writer.write(exactFileName + "\n");
+                            }
+                        } catch (Exception e) {
+
+                        }
                     }
-                } catch (Exception e) {
-
                 }
+
             }
-        }
+        });
 
 
         try {
