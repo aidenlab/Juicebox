@@ -76,6 +76,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option useObservedOverExpectedOption = null;
     private static Option useDenseLabelsOption = null;
     private static Option useWholeGenome = null;
+    private static Option useStripeOption = null;
+    private static Option useDomainOption = null;
+    private static Option useLoopOption = null;
+
 
     public CommandLineParserForJuicer() {
         // used flags
@@ -121,6 +125,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         useObservedOverExpectedOption = addBooleanOption("obs/exp");
         useDenseLabelsOption = addBooleanOption("dense_labels");
         useWholeGenome = addBooleanOption("whole_genome");
+        useLoopOption = addBooleanOption("loops");
+        useDomainOption = addBooleanOption("domains");
+        useStripeOption = addBooleanOption("stripes");
+
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -128,6 +136,16 @@ public class CommandLineParserForJuicer extends CmdLineParser {
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
                 cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
+    }
+
+    public int getGrindDataSliceOption() {
+        Object opt = getOptionValue(useLoopOption);
+        if (opt != null) return 1;
+        opt = getOptionValue(useDomainOption);
+        if (opt != null) return 2;
+        opt = getOptionValue(useStripeOption);
+        if (opt != null) return 3;
+        return 0;
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
