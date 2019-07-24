@@ -68,7 +68,8 @@ public class Grind extends JuicerCLT {
             printUsageAndExit();
         }
 
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        ds = HiCFileTools.
+                extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
         featureListPath = args[2];
 
