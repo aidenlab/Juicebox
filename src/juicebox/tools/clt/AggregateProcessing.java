@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.HiCTools;
 import juicebox.tools.dev.ChromosomeCalculation;
 
 import java.io.*;
