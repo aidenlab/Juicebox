@@ -79,6 +79,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option useStripeOption = null;
     private static Option useDomainOption = null;
     private static Option useLoopOption = null;
+    private static Option cornerOffBy = null;
+    private static Option stride = null;
 
 
     public CommandLineParserForJuicer() {
@@ -128,7 +130,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         useLoopOption = addBooleanOption("loops");
         useDomainOption = addBooleanOption("domains");
         useStripeOption = addBooleanOption("stripes");
-
+        cornerOffBy = addIntegerOption("corner_off_by");
+        stride = addIntegerOption("stride");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -158,6 +161,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         Object opt = getOptionValue(useObservedOverExpectedOption);
         return opt != null;
     }
+
 
     public boolean getUseWholeGenome() {
         Object opt = getOptionValue(useWholeGenome);
@@ -257,6 +261,14 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
+    }
+
+    public int getCornerOffBy() {
+        return optionToInt(cornerOffBy);
+    }
+
+    public int getStride() {
+        return optionToInt(stride);
     }
 
     public int getMatrixSizeOption() {

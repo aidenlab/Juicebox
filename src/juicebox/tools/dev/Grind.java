@@ -57,6 +57,8 @@ public class Grind extends JuicerCLT {
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
     private String featureListPath;
+    private int corner_off_by = 0;
+    private int stride = 1;
 
     public Grind() {
         super("grind --loops --domains --stripes [hic file] [bedpe positions] [x,y,z] [directory]");
@@ -83,7 +85,10 @@ public class Grind extends JuicerCLT {
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         useDenseLabels = juicerParser.getDenseLabelsOption();
         wholeGenome = juicerParser.getUseWholeGenome();
+        corner_off_by = juicerParser.getCornerOffBy();
+        stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -110,7 +115,7 @@ public class Grind extends JuicerCLT {
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else {
-            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions, corner_off_by, stride);
         }
 
         finder.makePositiveExamples();
