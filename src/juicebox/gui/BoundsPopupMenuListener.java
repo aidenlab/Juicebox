@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -230,7 +230,7 @@ class BoundsPopupMenuListener<E> implements PopupMenuListener {
      */
     private void popupWider(BasicComboPopup popup) {
         @SuppressWarnings("unchecked")
-        JList<E> list = popup.getList();
+        JList<E> list = (JList<E>) popup.getList();
 
         //  Determine the maximimum width to use:
         //  a) determine the popup preferred width
@@ -301,7 +301,7 @@ class BoundsPopupMenuListener<E> implements PopupMenuListener {
      */
     private JScrollPane getScrollPane(BasicComboPopup popup) {
         @SuppressWarnings("unchecked")
-        JList<E> list = popup.getList();
+        JList<E> list = (JList<E>) popup.getList();
         Container c = SwingUtilities.getAncestorOfClass(JScrollPane.class, list);
 
         return (JScrollPane) c;
@@ -330,7 +330,7 @@ class BoundsPopupMenuListener<E> implements PopupMenuListener {
      */
     private boolean horizontalScrollBarWillBeVisible(BasicComboPopup popup, JScrollPane scrollPane) {
         @SuppressWarnings("unchecked")
-        JList<E> list = popup.getList();
+        JList<E> list = (JList<E>) popup.getList();
         int scrollBarWidth = getScrollBarWidth(popup, scrollPane);
         int popupWidth = list.getPreferredSize().width + scrollBarWidth;
 
