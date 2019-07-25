@@ -124,7 +124,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleAttributesOption = addStringOption('a', "attributes");
 
         // for GRIND
-        useObservedOverExpectedOption = addBooleanOption("obs/exp");
+        useObservedOverExpectedOption = addBooleanOption("obs_exp");
         useDenseLabelsOption = addBooleanOption("dense_labels");
         useWholeGenome = addBooleanOption("whole_genome");
         useLoopOption = addBooleanOption("loops");

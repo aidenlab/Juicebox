@@ -89,9 +89,6 @@ public class StripeFinder implements RegionFinder {
         makeDir(negPath);
         makeDir(posPath);
 
-
-        final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-
         try {
 
             final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_file_names.txt"), StandardCharsets.UTF_8));
