@@ -53,7 +53,7 @@ public class StripeFinder implements RegionFinder {
     private boolean useObservedOverExpected;
     private boolean useDenseLabels;
     private Set<Integer> resolutions;
-    private int corner_off_by;
+    private int cornerOffBy;
     private int stride;
 
     public StripeFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
@@ -69,7 +69,7 @@ public class StripeFinder implements RegionFinder {
         this.useObservedOverExpected = useObservedOverExpected;
         this.useDenseLabels = useDenseLabels;
         this.resolutions = resolutions;
-        this.corner_off_by = corner_off_by;
+        this.cornerOffBy = corner_off_by;
         this.stride = stride;
     }
 
@@ -111,13 +111,13 @@ public class StripeFinder implements RegionFinder {
 
                     // sliding along the diagonal
                     for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
-                        for (int colIndex = rowIndex - corner_off_by; colIndex < rowIndex; colIndex++) {
+                        for (int colIndex = rowIndex - cornerOffBy; colIndex < rowIndex; colIndex++) {
                             getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, false);
                         }
                     }
                     for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
-                        for (int colIndex = rowIndex - corner_off_by; colIndex < rowIndex; colIndex++) {
+                        for (int colIndex = rowIndex - cornerOffBy; colIndex < rowIndex; colIndex++) {
                             getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, true);
                         }
