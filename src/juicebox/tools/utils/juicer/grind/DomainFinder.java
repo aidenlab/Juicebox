@@ -52,7 +52,7 @@ public class DomainFinder implements RegionFinder {
     private Feature2DList features;
     private String path;
     private File outputDirectory;
-    private Set<String> givenChromosomes;
+    private ChromosomeHandler chromosomeHandler;
     private NormalizationType norm;
     private boolean useObservedOverExpected;
     private boolean useDenseLabels;
@@ -61,8 +61,7 @@ public class DomainFinder implements RegionFinder {
     private int y_dim;
 
 
-
-    public DomainFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public DomainFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
         this.x = x;
         this.y = y;
@@ -72,7 +71,7 @@ public class DomainFinder implements RegionFinder {
         this.path = outputDirectory.getPath();
         this.path = outputDirectory.getPath();
         this.outputDirectory = outputDirectory;
-        this.givenChromosomes = givenChromosomes;
+        this.chromosomeHandler = chromosomeHandler;
         this.norm = norm;
         this.useObservedOverExpected = useObservedOverExpected;
         this.useDenseLabels = useDenseLabels;
@@ -115,18 +114,15 @@ public class DomainFinder implements RegionFinder {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
 
-
-                    for (String chromName : givenChromosomes) {
-                        System.out.println("Currently on: " + chromName);
-                        Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chromName);
+                    Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chr);
 
                         Matrix matrix = ds.getMatrix(chromosome, chromosome);
-                        if (matrix == null) continue;
+                    if (matrix == null) return;
 
                         HiCZoom zoom = ds.getZoomForBPResolution(resolution);
                         final MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                        if (zd == null) continue;
+                    if (zd == null) return;
 
                         for (int rowIndex = 0; rowIndex < chromosome.getLength() / resolution; rowIndex++) {
                             for (int colIndex = rowIndex; colIndex < chromosome.getLength() / resolution; colIndex++) {
@@ -135,7 +131,7 @@ public class DomainFinder implements RegionFinder {
 
                                 try {
                                     RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                                            rowIndex, rowIndex + x, colIndex, colIndex + y, x, y, norm);
+                                            rowIndex, rowIndex + x, colIndex, colIndex + y, x, y, norm, true);
 
                                     if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
@@ -165,7 +161,6 @@ public class DomainFinder implements RegionFinder {
                                 }
                             }
                         }
-                    }
                 }
             });
             writer.close();

@@ -102,6 +102,6 @@ class AFAUtils {
         int binYStart = loopY - window;
         int binYEnd = loopY + (window + 1);
 
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm);
+        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
     }
 }

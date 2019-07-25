@@ -110,7 +110,7 @@ class SectionParser {
                             try {
                                 RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                         i, i + submatrixSize,
-                                        j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                        j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -189,7 +189,7 @@ class SectionParser {
                         try {
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + submatrixSize,
-                                    j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                    j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                             if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                 String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -358,7 +358,7 @@ class SectionParser {
                     for (int i = 0; i < maxBin; i += incrementSize) {
                         for (int j = i; j < 1600 + i; j += incrementSize) {
                             try {
-                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, i, i + submatrixSize, j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, i, i + submatrixSize, j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chromosome.getName() + "_" + i + "_" + j + ".txt";

@@ -152,13 +152,13 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
             double[][] allDataForRegion;
             if (needToFlip) {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
-                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold);
+                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
                 allDataForRegion = MatrixTools.transpose(allDataForRegion);
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold);
+                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false);
             }
 
             for (int i = 0; i < intervals1.size(); i++) {

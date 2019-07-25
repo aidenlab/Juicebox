@@ -24,6 +24,7 @@
 
 package juicebox.tools.dev;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -109,13 +110,18 @@ public class Grind extends JuicerCLT {
     public void run() {
         Feature2DList feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
 
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+        if (givenChromosomes != null)
+            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
+
+
         RegionFinder finder;
         if (sliceTypeOption == 1) {
-            finder = new LoopFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+            finder = new LoopFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 2) {
-            finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
+            finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else {
-            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions, cornerOffBy, stride);
+            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, cornerOffBy, stride);
         }
 
         finder.makePositiveExamples();

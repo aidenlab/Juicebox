@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -48,7 +49,7 @@ public class StripeFinder implements RegionFinder {
     private Dataset ds;
     private Feature2DList features;
     private String path;
-    private Set<String> givenChromosomes;
+    private ChromosomeHandler chromosomeHandler;
     private NormalizationType norm;
     private boolean useObservedOverExpected;
     private boolean useDenseLabels;
@@ -56,7 +57,7 @@ public class StripeFinder implements RegionFinder {
     private int cornerOffBy;
     private int stride;
 
-    public StripeFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public StripeFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int corner_off_by, int stride) {
         this.x = x;
         this.y = y;
@@ -64,7 +65,7 @@ public class StripeFinder implements RegionFinder {
         this.ds = ds;
         this.features = features;
         this.path = outputDirectory.getPath();
-        this.givenChromosomes = givenChromosomes;
+        this.chromosomeHandler = chromosomeHandler;
         this.norm = norm;
         this.useObservedOverExpected = useObservedOverExpected;
         this.useDenseLabels = useDenseLabels;
@@ -100,24 +101,27 @@ public class StripeFinder implements RegionFinder {
             final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
 
             for (int resolution : resolutions) {
-                for (String chrom_name : givenChromosomes) {
-                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(chrom_name);
+                for (Chromosome chrom : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                     Matrix matrix = ds.getMatrix(chrom, chrom);
                     if (matrix == null) continue;
                     HiCZoom zoom = ds.getZoomForBPResolution(resolution);
                     final MatrixZoomData zd = matrix.getZoomData(zoom);
                     if (zd == null) continue;
-                    System.out.println("Currently processing: " + chrom_name);
+                    System.out.println("Currently processing: " + chrom.getName());
 
                     // sliding along the diagonal
                     for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
-                        for (int colIndex = rowIndex - cornerOffBy; colIndex < rowIndex; colIndex++) {
+                        int startCol = Math.max(0, rowIndex - cornerOffBy);
+                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution) - y);
+                        for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                             getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, false);
                         }
                     }
                     for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
-                        for (int colIndex = rowIndex - cornerOffBy; colIndex < rowIndex; colIndex++) {
+                        int startCol = Math.max(y, rowIndex - cornerOffBy);
+                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution));
+                        for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                             getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, true);
                         }
@@ -153,10 +157,19 @@ public class StripeFinder implements RegionFinder {
             numCols = x;
         }
 
-        RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm);
-
-        fillInAreaUnderDiagonal(localizedRegionData, isVerticalStripe);
+        RealMatrix localizedRegionData;
+        if (useObservedOverExpected) {
+            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+            if (df == null) {
+                System.err.println("O/E data not available at " + zd.getZoom() + " " + norm);
+                return;
+            }
+            localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, rectULX, rectLRX,
+                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true);
+        } else {
+            localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                    rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm, true);
+        }
 
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rectULX * resolution,
                 rectULY * resolution, rectLRX * resolution, rectLRY * resolution);

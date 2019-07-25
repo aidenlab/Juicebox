@@ -54,8 +54,9 @@ public class LoopFinder implements RegionFinder {
     private NormalizationType norm;
     private Set<Integer> resolutions;
     private Writer writer = null;
+    private ChromosomeHandler chromosomeHandler;
 
-    public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
                       boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
         this.x = x;
         this.y = y;
@@ -65,6 +66,7 @@ public class LoopFinder implements RegionFinder {
         this.path = outputDirectory.getPath();
         this.norm = norm;
         this.resolutions = resolutions;
+        this.chromosomeHandler = chromosomeHandler;
         try {
             writer =
                 new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
@@ -84,9 +86,6 @@ public class LoopFinder implements RegionFinder {
         if (!file.isDirectory()) {
             file.mkdir();
         }
-
-
-        final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
         final int resolution = (int) resolutions.toArray()[0];
 
@@ -135,7 +134,7 @@ public class LoopFinder implements RegionFinder {
                             try {
                                 RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                         i, i + x,
-                                        j, j + y, x, y, norm);
+                                        j, j + y, x, y, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -254,7 +253,7 @@ public class LoopFinder implements RegionFinder {
                         try {
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + x,
-                                    j, j + y, x, y, norm);
+                                    j, j + y, x, y, norm, true);
                             if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                 String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
