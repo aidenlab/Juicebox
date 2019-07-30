@@ -127,9 +127,9 @@ public class LibraryComplexity extends JuiceboxCLT {
 
         } else {
             try {
-                uniqueReadPairs = Integer.valueOf(args[1]);
-                readPairs = Integer.valueOf(args[2]);
-                opticalDups = Integer.valueOf(args[3]);
+                uniqueReadPairs = Integer.parseInt(args[1]);
+                readPairs = Integer.parseInt(args[2]);
+                opticalDups = Integer.parseInt(args[3]);
                 filesNotYetCounted = false;
             } catch (NumberFormatException error) {
                 System.err.println("When called with three arguments, must be integers");
@@ -149,7 +149,7 @@ public class LibraryComplexity extends JuiceboxCLT {
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(3);
 
-                Callable<Long> taskOptDups = new Callable<Long>() {
+                Callable<Long> taskOptDups = new Callable<>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/opt_dups.txt");
@@ -170,7 +170,7 @@ public class LibraryComplexity extends JuiceboxCLT {
                     }
                 };
 
-                Callable<Long> taskUniqueReads = new Callable<Long>() {
+                Callable<Long> taskUniqueReads = new Callable<>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/merged_nodups.txt");
@@ -191,7 +191,7 @@ public class LibraryComplexity extends JuiceboxCLT {
                     }
                 };
 
-                Callable<Long> taskReadPairs = new Callable<Long>() {
+                Callable<Long> taskReadPairs = new Callable<>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/dups.txt");

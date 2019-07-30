@@ -182,15 +182,16 @@ public class APAUtils {
 
         return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
     }
-    public static RealMatrix extractLocalizedDataForAFA (MatrixZoomData zd, Feature2D loop,
-                                                  int L, int resolution, int window, NormalizationType norm) throws IOException {
+
+    public static RealMatrix extractLocalizedDataForAFA(MatrixZoomData zd, Feature2D loop,
+                                                        int resolution, int window, NormalizationType norm) throws IOException {
         int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopY;
         int binXEnd = loopX + (window + 1);
         int binYStart = loopY - window;
         int binYEnd = loopX + 1;
-        L = binXStart - binXEnd;
+        int L = binXStart - binXEnd;
         int dis = zd.getBinSize();
         /*int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;

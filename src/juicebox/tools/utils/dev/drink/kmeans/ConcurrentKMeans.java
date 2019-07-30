@@ -71,7 +71,7 @@ public class ConcurrentKMeans implements KMeans {
     private Cluster[] mClusters;
 
     // Listeners to be notified of significant happenings.
-    private final List<KMeansListener> mListeners = new ArrayList<KMeansListener>(1);
+    private final List<KMeansListener> mListeners = new ArrayList<>(1);
 
     /**
      * Constructor
@@ -447,7 +447,7 @@ public class ConcurrentKMeans implements KMeans {
         // Convert the proto-clusters to the final Clusters.
         //
         // - accumulate in a list.
-        List<Cluster> clusterList = new ArrayList<Cluster>(numClusters);
+        List<Cluster> clusterList = new ArrayList<>(numClusters);
         for (ProtoCluster pcluster : mProtoClusters) {
             if (pcluster.isNotEmpty()) {
                 Cluster cluster = new Cluster(pcluster.getMembership(), pcluster.getCenter());
@@ -949,8 +949,7 @@ public class ConcurrentKMeans implements KMeans {
                             // barrier.isBroken() will return true if either of these
                             // exceptions happens, so the SubtaskManager will detect
                             // the problem.
-                        } catch (InterruptedException ex) {
-                        } catch (BrokenBarrierException ex) {
+                        } catch (InterruptedException | BrokenBarrierException ignored) {
                         }
                     }
                 }

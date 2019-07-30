@@ -146,7 +146,7 @@ public class LoopFinder implements RegionFinder {
                                     MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
-                            } catch (Exception e) {
+                            } catch (Exception ignored) {
 
                             }
                         }
@@ -184,7 +184,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 100000);
                 int y1 = x1 + generator.nextInt(100000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -192,7 +192,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 5000000);
                 int y1 = x1 + generator.nextInt(5000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -200,7 +200,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 20000000);
                 int y1 = x1 + generator.nextInt(20000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -208,7 +208,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 40);
                 int y1 = x1 + generator.nextInt(chromosome.getLength() - x1);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
             badlist.addByKey(Feature2DList.getKey(chromosome, chromosome), badFeaturesForChromosome);
@@ -265,7 +265,7 @@ public class LoopFinder implements RegionFinder {
                                 MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
 
                         }
                     }

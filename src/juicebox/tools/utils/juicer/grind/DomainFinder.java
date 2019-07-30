@@ -156,14 +156,14 @@ public class DomainFinder implements RegionFinder {
 
 
                                     }
-                                } catch (Exception e) {
+                                } catch (Exception ignored) {
                                 }
                             }
                         }
                 }
             });
             writer.close();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
     }

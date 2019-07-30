@@ -165,14 +165,14 @@ class UnusedFunctions {
                 if (parts.length != 4) {
                     NormalizationType type = normalizationHandler.getNormTypeFromString(parts[0] + "_" + parts[1]);
                     strType = type.toString();
-                    chrIdx = Integer.valueOf(parts[2]);
+                    chrIdx = Integer.parseInt(parts[2]);
                     unit = parts[3];
-                    resolution = Integer.valueOf(parts[4]);
+                    resolution = Integer.parseInt(parts[4]);
                 } else {
                     strType = parts[0];
-                    chrIdx = Integer.valueOf(parts[1]);
+                    chrIdx = Integer.parseInt(parts[1]);
                     unit = parts[2];
-                    resolution = Integer.valueOf(parts[3]);
+                    resolution = Integer.parseInt(parts[3]);
                 }
                 NormalizationVectorIndexEntry newEntry = new NormalizationVectorIndexEntry(strType, chrIdx, unit, resolution, entry.getValue().position, entry.getValue().size);
                 normList.add(newEntry);

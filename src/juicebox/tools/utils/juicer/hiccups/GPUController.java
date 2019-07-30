@@ -305,7 +305,7 @@ public class GPUController {
                 int diagDist = Math.abs(t_row + diff - t_col);
                 int maxIndex = msize - buffer_width;
 
-                wsize = Math.min(wsize, (Math.abs(t_row + diff - t_col) - 1) / 2);
+                wsize = Math.min(wsize, (diagDist - 1) / 2);
                 if (wsize <= pwidth) {
                     wsize = pwidth + 1;
                 }
@@ -348,13 +348,14 @@ public class GPUController {
                                 if (!Double.isNaN(c[i][j])) {
                                     if (i + diff - j < 0) {
                                         Evalue_bl += c[i][j];
-                                        Edistvalue_bl += d[Math.abs(i + diff - j)];
+                                        int distVal = Math.abs(i + diff - j);
+                                        Edistvalue_bl += d[distVal];
                                         if (i >= t_row + 1) {
                                             if (i < t_row + pwidth + 1) {
                                                 if (j >= t_col - pwidth) {
                                                     if (j < t_col) {
                                                         Evalue_bl -= c[i][j];
-                                                        Edistvalue_bl -= d[Math.abs(i + diff - j)];
+                                                        Edistvalue_bl -= d[distVal];
                                                     }
                                                 }
                                             }
@@ -367,7 +368,7 @@ public class GPUController {
                         if (wsize >= buffer_width) {
                             break;
                         }
-                        if (2 * wsize >= Math.abs(t_row + diff - t_col)) {
+                        if (2 * wsize >= diagDist) {
                             break;
                         }
                     }
