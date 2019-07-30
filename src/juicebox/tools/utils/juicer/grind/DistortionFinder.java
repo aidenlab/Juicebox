@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -40,11 +39,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 
-public class StripeFinder implements RegionFinder {
+public class DistortionFinder implements RegionFinder {
 
-    private Integer x;
-    private Integer y;
-    private Integer z;
+
+    private Integer sliceRowSize;
+    private Integer sliceColSize;
+    private Integer numExamples;
     private Dataset ds;
     private Feature2DList features;
     private String path;
@@ -56,11 +56,12 @@ public class StripeFinder implements RegionFinder {
     private int cornerOffBy;
     private int stride;
 
-    public StripeFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                        boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int corner_off_by, int stride) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public DistortionFinder(int sliceRowSize, int sliceColSize, int numExamples, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
+                            boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int corner_off_by, int stride) {
+
+        this.sliceRowSize = sliceRowSize;
+        this.sliceColSize = sliceColSize;
+        this.numExamples = numExamples;
         this.ds = ds;
         this.features = features;
         this.path = outputDirectory.getPath();
@@ -106,19 +107,19 @@ public class StripeFinder implements RegionFinder {
                     System.out.println("Currently processing: " + chrom.getName());
 
                     // sliding along the diagonal
-                    for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
+                    for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - sliceColSize; rowIndex += stride) {
                         int startCol = Math.max(0, rowIndex - cornerOffBy);
-                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution) - y);
+                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution) - sliceColSize);
                         for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
+                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, false);
                         }
                     }
-                    for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
-                        int startCol = Math.max(y, rowIndex - cornerOffBy);
+                    for (int rowIndex = sliceColSize; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
+                        int startCol = Math.max(sliceColSize, rowIndex - cornerOffBy);
                         int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution));
                         for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
+                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
                                     posPath, negPath, posWriter, posLabelWriter, negWriter, true);
                         }
                     }
@@ -180,26 +181,21 @@ public class StripeFinder implements RegionFinder {
             int rowLength = Math.max((feature2D.getEnd1() - feature2D.getStart1()) / resolution, 1);
             int colLength = Math.max((feature2D.getEnd2() - feature2D.getStart2()) / resolution, 1);
 
-            if (stripeIsCorrectOrientation(rowLength, colLength, isVerticalStripe)) {
 
-                int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
-                int startColOf1 = feature2D.getStart2() / resolution - rectULY;
-                for (int i = 0; i < Math.min(rowLength, numRows); i++) {
-                    for (int j = 0; j < Math.min(colLength, numCols); j++) {
-                        labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1.0;
-                    }
+            int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
+            int startColOf1 = feature2D.getStart2() / resolution - rectULY;
+            for (int i = 0; i < Math.min(rowLength, numRows); i++) {
+                for (int j = 0; j < Math.min(colLength, numCols); j++) {
+                    labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1.0;
                 }
-                stripeIsFound = true;
             }
+            stripeIsFound = true;
+
         }
 
-        if (stripeIsFound) {
-            System.out.print(".");
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", posPath, localizedRegionData.getData(), posWriter, isVerticalStripe);
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.label.txt", posPath, labelsMatrix, posLabelWriter, isVerticalStripe);
-        } else {
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
-        }
+
+        //  MatrixTools.saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
+
     }
 
     private void fillInAreaUnderDiagonal(RealMatrix localizedRegionData, boolean isVerticalStripe) {
@@ -221,39 +217,8 @@ public class StripeFinder implements RegionFinder {
         }
     }
 
-    private void saveStripeMatrixDataToFile(Chromosome chrom, int rowIndex, int colIndex, String fileEnding, String path,
-                                            double[][] data, Writer writer, boolean isVerticalStripe) throws IOException {
-
-        double[][] transformedData = data;
-        if (isVerticalStripe) {
-            transformedData = new double[data[0].length][data.length];
-            for (int i = 0; i < data.length; i++) {
-                for (int j = 0; j < data[0].length; j++) {
-                    transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
-                }
-            }
-        }
-
-        String exactFileName = chrom.getName() + "_" + rowIndex + "_" + colIndex + "_Horzntl_" + fileEnding;
-        if (isVerticalStripe) {
-            exactFileName = chrom.getName() + "_" + rowIndex + "_" + colIndex + "_Vertcl_" + fileEnding;
-        }
-        MatrixTools.saveMatrixTextV2(path + "/" + exactFileName, transformedData);
-        writer.write(exactFileName + "\n");
-    }
-
-    private boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
-        if (isVerticalStripe) {
-            return rowLength > colLength;
-        } else {
-            return colLength > rowLength;
-        }
-    }
-
     @Override
     public void makeNegativeExamples() {
 
     }
-
-
 }

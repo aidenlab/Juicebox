@@ -120,7 +120,7 @@ class SectionParser {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
                             } catch (Exception e) {
@@ -199,7 +199,7 @@ class SectionParser {
                                 //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                 //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
                         } catch (Exception e) {
@@ -368,7 +368,7 @@ class SectionParser {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
                             } catch (Exception e) {
@@ -387,31 +387,6 @@ class SectionParser {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-            }
-        }
-    }
-
-    public static void saveMatrixText2(String filename, RealMatrix realMatrix) {
-        saveMatrixText2(filename, realMatrix.getData());
-    }
-
-    public static void saveMatrixText2(String filename, double[][] matrix) {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
-            for (double[] row : matrix) {
-                String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
-                s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
-                writer.write(s + "\n");
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
         }
     }

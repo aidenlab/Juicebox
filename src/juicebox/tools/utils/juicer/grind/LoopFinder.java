@@ -41,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 
-import static juicebox.tools.utils.juicer.grind.SectionParser.saveMatrixText2;
 
 public class LoopFinder implements RegionFinder {
 
@@ -144,7 +143,7 @@ public class LoopFinder implements RegionFinder {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(path + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
                             } catch (Exception e) {
@@ -263,7 +262,7 @@ public class LoopFinder implements RegionFinder {
                                 //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                 //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                saveMatrixText2(path + exactFileName, localizedRegionData);
+                                MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
                         } catch (Exception e) {

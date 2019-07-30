@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import static juicebox.tools.utils.juicer.grind.SectionParser.saveMatrixText2;
 
 public class DomainFinder implements RegionFinder {
 
@@ -151,8 +150,8 @@ public class DomainFinder implements RegionFinder {
                                         String exactFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".txt";
                                         String exactLabelFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".label.txt";
 
-                                        saveMatrixText2(path + exactFileName, localizedRegionData);
-                                        saveMatrixText2(path + exactLabelFileName, labelsMatrix);
+                                        MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
+                                        MatrixTools.saveMatrixTextV2(path + exactLabelFileName, labelsMatrix);
                                         writer.write(exactFileName + "\n");
 
 
