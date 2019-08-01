@@ -202,25 +202,6 @@ public class StripeFinder implements RegionFinder {
         }
     }
 
-    private void fillInAreaUnderDiagonal(RealMatrix localizedRegionData, boolean isVerticalStripe) {
-        if (isVerticalStripe) {
-            int numRows = localizedRegionData.getRowDimension();
-            int numCols = localizedRegionData.getColumnDimension();
-            int diagonalULIndex = numRows - numCols;
-            for (int i = diagonalULIndex; i < numRows; i++) {
-                for (int j = 0; j < (i - diagonalULIndex); j++) {
-                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(diagonalULIndex + j, i - diagonalULIndex));
-                }
-            }
-        } else {
-            for (int i = 0; i < localizedRegionData.getRowDimension(); i++) {
-                for (int j = 0; j < i; j++) {
-                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(j, i));
-                }
-            }
-        }
-    }
-
     private void saveStripeMatrixDataToFile(Chromosome chrom, int rowIndex, int colIndex, String fileEnding, String path,
                                             double[][] data, Writer writer, boolean isVerticalStripe) throws IOException {
 

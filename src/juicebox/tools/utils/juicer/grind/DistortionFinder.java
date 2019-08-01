@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -53,11 +52,10 @@ public class DistortionFinder implements RegionFinder {
     private boolean useObservedOverExpected;
     private boolean useDenseLabels;
     private Set<Integer> resolutions;
-    private int cornerOffBy;
     private int stride;
 
     public DistortionFinder(int sliceRowSize, int sliceColSize, int numExamples, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                            boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int corner_off_by, int stride) {
+                            boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int stride) {
 
         this.sliceRowSize = sliceRowSize;
         this.sliceColSize = sliceColSize;
@@ -70,7 +68,6 @@ public class DistortionFinder implements RegionFinder {
         this.useObservedOverExpected = useObservedOverExpected;
         this.useDenseLabels = useDenseLabels;
         this.resolutions = resolutions;
-        this.cornerOffBy = corner_off_by;
         this.stride = stride;
     }
 
@@ -89,39 +86,57 @@ public class DistortionFinder implements RegionFinder {
         makeDir(negPath);
         makeDir(posPath);
 
+
         try {
 
             final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_file_names.txt"), StandardCharsets.UTF_8));
             final Writer negWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/neg_file_names.txt"), StandardCharsets.UTF_8));
             final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_label_file_names.txt"), StandardCharsets.UTF_8));
 
-            final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
-
             for (int resolution : resolutions) {
-                for (Chromosome chrom : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) continue;
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-                    if (zd == null) continue;
-                    System.out.println("Currently processing: " + chrom.getName());
+                Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
+                for (int chrArrayI = 0; chrArrayI < chromosomes.length; chrArrayI++) {
+                    Chromosome chromI = chromosomes[chrArrayI];
+                    for (int chrArrayJ = chrArrayI; chrArrayJ < chromosomes.length; chrArrayJ++) {
+                        Chromosome chromJ = chromosomes[chrArrayJ];
 
-                    // sliding along the diagonal
-                    for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - sliceColSize; rowIndex += stride) {
-                        int startCol = Math.max(0, rowIndex - cornerOffBy);
-                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution) - sliceColSize);
-                        for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
-                                    posPath, negPath, posWriter, posLabelWriter, negWriter, false);
+                        Matrix matrix = ds.getMatrix(chromI, chromJ);
+                        if (matrix == null) continue;
+                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                        final MatrixZoomData zd = matrix.getZoomData(zoom);
+                        if (zd == null) continue;
+                        System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName());
+
+                        MatrixZoomData matrixZoomDataI, matrixZoomDataJ;
+                        if (chrArrayI == chrArrayJ) {
+                            // is Intra
+                            matrixZoomDataI = zd;
+                            matrixZoomDataJ = zd;
+                        } else {
+                            // is Inter
+                            Matrix matrixI = ds.getMatrix(chromI, chromI);
+                            if (matrixI == null) continue;
+                            matrixZoomDataI = matrixI.getZoomData(zoom);
+                            Matrix matrixJ = ds.getMatrix(chromJ, chromJ);
+                            if (matrixJ == null) continue;
+                            matrixZoomDataJ = matrixJ.getZoomData(zoom);
                         }
-                    }
-                    for (int rowIndex = sliceColSize; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
-                        int startCol = Math.max(sliceColSize, rowIndex - cornerOffBy);
-                        int endCol = Math.min(rowIndex + cornerOffBy, (chrom.getLength() / resolution));
-                        for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                            getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
-                                    posPath, negPath, posWriter, posLabelWriter, negWriter, true);
+                        if (matrixZoomDataI == null) continue;
+                        if (matrixZoomDataJ == null) continue;
+
+/*
+
+                        // sliding along the diagonal
+                        for (int rowIndex = 0; rowIndex < (chromI.getLength() / resolution) - sliceColSize; rowIndex += stride) {
+                            int startCol = Math.max(0, rowIndex);
+                            int endCol = Math.min(rowIndex, (chromJ.getLength() / resolution) - sliceColSize);
+                            for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
+                                getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
+                                        posPath, negPath, posWriter, posLabelWriter, negWriter, false);
+                            }
                         }
+
+                        */
                     }
                 }
             }
@@ -133,7 +148,7 @@ public class DistortionFinder implements RegionFinder {
         }
     }
 
-    private void getTrainingDataAndSaveToFile(MatrixZoomData zd, Chromosome chrom, int rowIndex, int colIndex, int resolution,
+    private void getTrainingDataAndSaveToFile(MatrixZoomData zd, Chromosome chromR, Chromosome chromC, int rowIndex, int colIndex, int resolution,
                                               Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
                                               Writer posWriter, Writer posLabelWriter, Writer negWriter, boolean isVerticalStripe) throws IOException {
 
@@ -154,25 +169,13 @@ public class DistortionFinder implements RegionFinder {
             numCols = x;
         }
 
-        RealMatrix localizedRegionData;
-        if (useObservedOverExpected) {
-            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println("O/E data not available at " + zd.getZoom() + " " + norm);
-                return;
-            }
-            localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, rectULX, rectLRX,
-                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true);
-        } else {
-            localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+        RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                     rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm, true);
-        }
 
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rectULX * resolution,
                 rectULY * resolution, rectLRX * resolution, rectLRY * resolution);
 
-        List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chrom.getIndex(), chrom.getIndex(),
-                currentWindow);
+        List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chromR.getIndex(), chromC.getIndex(), currentWindow);
 
         boolean stripeIsFound = false;
 
@@ -196,25 +199,6 @@ public class DistortionFinder implements RegionFinder {
 
         //  MatrixTools.saveMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
 
-    }
-
-    private void fillInAreaUnderDiagonal(RealMatrix localizedRegionData, boolean isVerticalStripe) {
-        if (isVerticalStripe) {
-            int numRows = localizedRegionData.getRowDimension();
-            int numCols = localizedRegionData.getColumnDimension();
-            int diagonalULIndex = numRows - numCols;
-            for (int i = diagonalULIndex; i < numRows; i++) {
-                for (int j = 0; j < (i - diagonalULIndex); j++) {
-                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(diagonalULIndex + j, i - diagonalULIndex));
-                }
-            }
-        } else {
-            for (int i = 0; i < localizedRegionData.getRowDimension(); i++) {
-                for (int j = 0; j < i; j++) {
-                    localizedRegionData.setEntry(i, j, localizedRegionData.getEntry(j, i));
-                }
-            }
-        }
     }
 
     @Override

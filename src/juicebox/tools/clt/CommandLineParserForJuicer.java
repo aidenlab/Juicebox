@@ -77,6 +77,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option useDenseLabelsOption = null;
     private static Option useWholeGenome = null;
     private static Option useStripeOption = null;
+    private static Option useDistortionOption = null;
     private static Option useDomainOption = null;
     private static Option useLoopOption = null;
     private static Option cornerOffBy = null;
@@ -130,6 +131,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         useLoopOption = addBooleanOption("loops");
         useDomainOption = addBooleanOption("domains");
         useStripeOption = addBooleanOption("stripes");
+        useDistortionOption = addBooleanOption("distort");
         cornerOffBy = addIntegerOption("corner_off_by");
         stride = addIntegerOption("stride");
     }
@@ -148,6 +150,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         if (opt != null) return 2;
         opt = getOptionValue(useStripeOption);
         if (opt != null) return 3;
+        opt = getOptionValue(useDistortionOption);
+        if (opt != null) return 4;
         return 0;
     }
 
