@@ -47,7 +47,7 @@ public class DrinkUtils {
 
         final Map<SimpleInterval, Integer> modeOfClusterIdsInInterval = new HashMap<>();
 
-        control.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        control.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<SubcompartmentInterval> controlList) {
 
@@ -81,7 +81,7 @@ public class DrinkUtils {
             }
         });
 
-        consensus.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+        consensus.filterLists(new FeatureFilter<>() {
             @Override
             public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
 
@@ -107,7 +107,7 @@ public class DrinkUtils {
 
         GenomeWideList<SubcompartmentInterval> control = comparativeSubcompartments.get(0);
 
-        control.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        control.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<SubcompartmentInterval> controlList) {
 
@@ -238,7 +238,7 @@ public class DrinkUtils {
                 final FileWriter fwStringentWIG = new FileWriter(outputStringentWigFile);
                 final FileWriter fwStringentBED = new FileWriter(outputStringentBEDFile);
 
-                comparativeSubcompartments.get(i).processLists(new FeatureFunction<SubcompartmentInterval>() {
+                comparativeSubcompartments.get(i).processLists(new FeatureFunction<>() {
                     @Override
                     public void process(String chr, List<SubcompartmentInterval> featureList) {
 
@@ -246,7 +246,7 @@ public class DrinkUtils {
                         for (int k = 0; k < differences.length; k++) {
                             differences[k] = featureList.get(k).getDifferenceFromControl();
                         }
-                        Chromosome chromosome = chromosomeHandler.getChromosomeFromIndex(Integer.valueOf(chr));
+                        Chromosome chromosome = chromosomeHandler.getChromosomeFromIndex(Integer.parseInt(chr));
 
                         writeClusterCenterToWigAndBed(chromosome, differences, featureList, fwWIG, fwBED, resolution, 0);
                         double avgThreshold = calculateTopThreshold(differences);
@@ -292,7 +292,7 @@ public class DrinkUtils {
     }
 
     public static void collapseGWList(GenomeWideList<SubcompartmentInterval> intraSubcompartments) {
-        intraSubcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+        intraSubcompartments.filterLists(new FeatureFilter<>() {
             @Override
             public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
                 return collapseSubcompartmentIntervals(featureList);
@@ -301,7 +301,7 @@ public class DrinkUtils {
     }
 
     public static void reSort(GenomeWideList<SubcompartmentInterval> subcompartments) {
-        subcompartments.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+        subcompartments.filterLists(new FeatureFilter<>() {
             @Override
             public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
                 Collections.sort(featureList);

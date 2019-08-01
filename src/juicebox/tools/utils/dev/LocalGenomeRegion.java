@@ -79,9 +79,9 @@ public class LocalGenomeRegion {
 
     @Override
     public String toString() {
-        String nei = "";
+        StringBuilder nei = new StringBuilder();
         for (Neighbor neighbor : neighbors) {
-            nei += neighbor.index + "-" + neighbor.value + "__";
+            nei.append(neighbor.index).append("-").append(neighbor.value).append("__");
         }
 
         return initialIndex + " - " + nei;

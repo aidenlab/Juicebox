@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@ public class GeneTools {
             if (values.length == 4 || values.length == 16) {  // 16 is refGene official format
 
                 // transcript start; for 4 column format, just position-1
-                int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                int txStart = (values.length == 4) ? Integer.parseInt(values[3].trim()) - 1 : Integer.parseInt(values[4].trim());
                 // transcript end; for 4 column format, just position+1
                 //int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
                 String name = values[1].trim();
@@ -110,9 +110,9 @@ public class GeneTools {
                     if (chr != null) {
                         int chrIndex = chr.getIndex();
                         // transcript start; for 4 column format, just position-1
-                        int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                        int txStart = (values.length == 4) ? Integer.parseInt(values[3].trim()) - 1 : Integer.parseInt(values[4].trim());
                         // transcript end; for 4 column format, just position+1
-                        int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
+                        int txEnd = (values.length == 4) ? Integer.parseInt(values[3].trim()) + 1 : Integer.parseInt(values[5].trim());
                         String name = (values.length==4) ? values[1].trim() : values[12].trim();
                         MotifAnchor gene = new MotifAnchor(chrIndex, txStart, txEnd, name);
                         genes.add(gene);

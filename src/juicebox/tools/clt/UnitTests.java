@@ -104,9 +104,7 @@ class UnitTests {
         MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, 50000));
 
         double[] targetVectorInitial = new double[(chr1.getLength() / 50000) + 1];
-        for (int i = 0; i < targetVectorInitial.length; i++) {
-            targetVectorInitial[i] = 1;
-        }
+        Arrays.fill(targetVectorInitial, 1);
 
         HiCGlobals.printVerboseComments = true;
 

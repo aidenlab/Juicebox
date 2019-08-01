@@ -36,7 +36,7 @@
 
     <property name="compiler.debug" value="on"/>
     <property name="compiler.generate.no.warnings" value="off"/>
-    <property name="compiler.args" value="-Xlint:all -target 1.7"/>
+    <property name="compiler.args" value="-Xlint:all -target 1.8"/>
     <property name="compiler.max.memory" value="700m"/>
     <patternset id="ignored.files">
         <exclude name="**/*.hprof/**"/>
@@ -161,7 +161,7 @@
     <property name="module.jdk.bin.juicebox" value="${project.jdk.bin}"/>
     <property name="module.jdk.classpath.juicebox" value="${project.jdk.classpath}"/>
 
-    <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.7  ${compiler.args}"/>
+    <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.8  ${compiler.args}"/>
 
     <property name="juicebox.output.dir" value="${module.juicebox.basedir}/out/production/Juicebox"/>
     <property name="juicebox.testoutput.dir" value="${module.juicebox.basedir}/out/test/Juicebox"/>

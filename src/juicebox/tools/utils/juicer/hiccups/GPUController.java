@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,7 +113,7 @@ public class GPUController {
         int[] columnBounds = regionContainer.getColumnBounds();
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
-                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
+                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType, false);
 
 
         float[] observedVals = Floats.toArray(Doubles.asList(MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData)));
@@ -305,7 +305,7 @@ public class GPUController {
                 int diagDist = Math.abs(t_row + diff - t_col);
                 int maxIndex = msize - buffer_width;
 
-                wsize = Math.min(wsize, (Math.abs(t_row + diff - t_col) - 1) / 2);
+                wsize = Math.min(wsize, (diagDist - 1) / 2);
                 if (wsize <= pwidth) {
                     wsize = pwidth + 1;
                 }
@@ -348,13 +348,14 @@ public class GPUController {
                                 if (!Double.isNaN(c[i][j])) {
                                     if (i + diff - j < 0) {
                                         Evalue_bl += c[i][j];
-                                        Edistvalue_bl += d[Math.abs(i + diff - j)];
+                                        int distVal = Math.abs(i + diff - j);
+                                        Edistvalue_bl += d[distVal];
                                         if (i >= t_row + 1) {
                                             if (i < t_row + pwidth + 1) {
                                                 if (j >= t_col - pwidth) {
                                                     if (j < t_col) {
                                                         Evalue_bl -= c[i][j];
-                                                        Edistvalue_bl -= d[Math.abs(i + diff - j)];
+                                                        Edistvalue_bl -= d[distVal];
                                                     }
                                                 }
                                             }
@@ -367,7 +368,7 @@ public class GPUController {
                         if (wsize >= buffer_width) {
                             break;
                         }
-                        if (2 * wsize >= Math.abs(t_row + diff - t_col)) {
+                        if (2 * wsize >= diagDist) {
                             break;
                         }
                     }

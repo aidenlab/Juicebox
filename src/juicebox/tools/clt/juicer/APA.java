@@ -220,8 +220,7 @@ public class APA extends JuicerCLT {
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             Integer[] gwPeakNumbers = new Integer[3];
-            for (int i = 0; i < gwPeakNumbers.length; i++)
-                gwPeakNumbers[i] = 0;
+            Arrays.fill(gwPeakNumbers, 0);
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;

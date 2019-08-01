@@ -254,7 +254,7 @@ class HeatmapRenderer {
                 List<Block> blocks = null;
                 try {
                     if (zd != null)
-                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, observedNormalizationType, isImportant);
+                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 } catch (Exception ignored) {
                     System.err.println("problems with MZD");
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
@@ -263,7 +263,7 @@ class HeatmapRenderer {
                 List<Block> ctrlBlocks = null;
                 try {
                     if (controlZD != null)
-                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, controlNormalizationType, isImportant);
+                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 } catch (Exception ignored) {
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
                 }

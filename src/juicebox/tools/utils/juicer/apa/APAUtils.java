@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,17 +180,18 @@ public class APAUtils {
         int binYStart = loopY - window;
         int binYEnd = loopY + (window + 1);
 
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm);
+        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
     }
-    public static RealMatrix extractLocalizedDataForAFA (MatrixZoomData zd, Feature2D loop,
-                                                  int L, int resolution, int window, NormalizationType norm) throws IOException {
+
+    public static RealMatrix extractLocalizedDataForAFA(MatrixZoomData zd, Feature2D loop,
+                                                        int resolution, int window, NormalizationType norm) throws IOException {
         int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopY;
         int binXEnd = loopX + (window + 1);
         int binYStart = loopY - window;
         int binYEnd = loopX + 1;
-        L = binXStart - binXEnd;
+        int L = binXStart - binXEnd;
         int dis = zd.getBinSize();
         /*int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
@@ -200,7 +201,7 @@ public class APAUtils {
         int binYEnd = loopY + window;
         L = binXStart - binXEnd;*/
 
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm);
+        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
     }
 
     public static RealMatrix linearInterpolation (RealMatrix original, int targetNumRows, int targetNumCols){

@@ -250,7 +250,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     }
 
                     customNormType = normalizationHandler.getNormTypeFromString(tokens[1]);
-                    resolution = Integer.valueOf(tokens[3]);
+                    resolution = Integer.parseInt(tokens[3]);
                     unit = HiC.Unit.valueOf(tokens[4]);
                     needsToBeScaledTo = tokens[0].toLowerCase().contains("scale");
                 }
@@ -269,7 +269,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     while (nextLine != null && !(nextLine.startsWith("vector"))) {
                         if (nextLine.toLowerCase().equals("nan") || nextLine.equals(".")) {
                             data[i] = Double.NaN;
-                        } else data[i] = Double.valueOf(nextLine);
+                        } else data[i] = Double.parseDouble(nextLine);
                         i++;
                         if (i > size) {
                             throw new IOException("More values than resolution would indicate");
@@ -278,7 +278,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     }
 
                     if (!normVectors.containsKey(customNormType)) {
-                        normVectors.put(customNormType, new HashMap<String, NormalizationVector>());
+                        normVectors.put(customNormType, new HashMap<>());
                     }
                     NormalizationVector vector = new NormalizationVector(customNormType, chr.getIndex(), unit, resolution, data, needsToBeScaledTo);
                     normVectors.get(customNormType).put(vector.getKey(), vector);

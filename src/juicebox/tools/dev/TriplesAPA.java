@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ public class TriplesAPA extends JuicerCLT {
 
     private static void removeAnchorsThatAreTooCloseTogether(GenomeWideList<MotifAnchor> anchors, final int filterSize) {
         MotifAnchorTools.mergeAndExpandSmallAnchors(anchors, filterSize);
-        anchors.filterLists(new FeatureFilter<MotifAnchor>() {
+        anchors.filterLists(new FeatureFilter<>() {
             @Override
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> featureList) {
                 List<MotifAnchor> newAnchors = new ArrayList<>();
@@ -129,7 +129,7 @@ public class TriplesAPA extends JuicerCLT {
     private void threeDimSearching(GenomeWideList<IntraChromTriple> triples, final int interval) {
 
 
-        triples.processLists(new FeatureFunction<IntraChromTriple>() {
+        triples.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<IntraChromTriple> tripleList) {
                 final Map<String, Integer> plot3D = new HashMap<>();
@@ -181,7 +181,7 @@ public class TriplesAPA extends JuicerCLT {
         final Map<String, Integer> plot3D = new HashMap<>();
         final int midNumPoint = numInterval / 2;
 
-        triples.processLists(new FeatureFunction<IntraChromTriple>() {
+        triples.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<IntraChromTriple> tripleList) {
                 List<MotifAnchor> canyons = anchors.getFeatures(chr);
@@ -245,7 +245,7 @@ public class TriplesAPA extends JuicerCLT {
     }
 
     private void dedupTriples(GenomeWideList<IntraChromTriple> anchors, final int tolerance) {
-        anchors.filterLists(new FeatureFilter<IntraChromTriple>() {
+        anchors.filterLists(new FeatureFilter<>() {
             @Override
             public List<IntraChromTriple> filter(String chr, List<IntraChromTriple> triplesList) {
 
@@ -272,7 +272,7 @@ public class TriplesAPA extends JuicerCLT {
 
     private void translateAnchors(GenomeWideList<MotifAnchor> anchors, final int translation) {
         if (translation != 0) {
-            anchors.filterLists(new FeatureFilter<MotifAnchor>() {
+            anchors.filterLists(new FeatureFilter<>() {
                 @Override
                 public List<MotifAnchor> filter(String chr, List<MotifAnchor> featureList) {
 

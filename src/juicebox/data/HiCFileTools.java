@@ -369,8 +369,8 @@ public class HiCFileTools {
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
-                                                       NormalizationType norm) throws IOException {
-        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm);
+                                                       NormalizationType norm, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm, fillUnderDiagonal);
     }
 
 
@@ -382,11 +382,11 @@ public class HiCFileTools {
      */
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                       NormalizationType normalizationType) throws IOException {
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
+        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
@@ -403,6 +403,17 @@ public class HiCFileTools {
                                 data.addToEntry(relativeX, relativeY, rec.getCounts());
                             }
                         }
+
+                        if (fillUnderDiagonal) {
+                            relativeX = rec.getBinY() - binXStart;
+                            relativeY = rec.getBinX() - binYStart;
+
+                            if (relativeX >= 0 && relativeX < numRows) {
+                                if (relativeY >= 0 && relativeY < numCols) {
+                                    data.addToEntry(relativeX, relativeY, rec.getCounts());
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -415,14 +426,14 @@ public class HiCFileTools {
 
     public static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
                                                  int binYStart, int binYEnd,
-                                                 NormalizationType normalizationType) throws IOException {
+                                                 NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
 
         List<Block> blocks = new ArrayList<>();
 
         int numDataReadingErrors = 0;
 
         try {
-            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
+            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false, fillUnderDiagonal));
         } catch (Exception e) {
             triggerNormError(normalizationType);
             if (HiCGlobals.printVerboseComments) {
@@ -515,7 +526,7 @@ public class HiCFileTools {
         int maxSize = maxBin;
 
         return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
+                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
 
     }
 }

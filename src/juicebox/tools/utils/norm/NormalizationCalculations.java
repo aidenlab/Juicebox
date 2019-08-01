@@ -139,7 +139,7 @@ public class NormalizationCalculations {
 
         int n = x0.length;
         double[] e = new double[n];
-        for (int i = 0; i < e.length; i++) e[i] = 1;
+        Arrays.fill(e, 1);
 
         double g = 0.9;
         double etamax = 0.1;
@@ -337,7 +337,7 @@ public class NormalizationCalculations {
     double[] computeVC() {
         double[] rowsums = new double[totSize];
 
-        for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
+        Arrays.fill(rowsums, 0);
 
         for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
@@ -398,7 +398,7 @@ public class NormalizationCalculations {
 
             // initialize x0 for call the compute KR norm
             double[] x0 = new double[newSize];
-            for (int i = 0; i < x0.length; i++) x0[i] = 1;
+            Arrays.fill(x0, 1);
 
             x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
 
@@ -461,7 +461,7 @@ public class NormalizationCalculations {
     private int[] getOffset(double percent) {
         double[] rowSums = new double[totSize];
 
-        for (int i = 0; i < rowSums.length; i++) rowSums[i] = 0;
+        Arrays.fill(rowSums, 0);
 
         for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();

@@ -47,7 +47,7 @@ public class AddGWNorm extends JuiceboxCLT {
         file = args[1];
 
         try {
-            genomeWideResolution = Integer.valueOf(args[2]);
+            genomeWideResolution = Integer.parseInt(args[2]);
         } catch (NumberFormatException error) {
             printUsageAndExit();
         }

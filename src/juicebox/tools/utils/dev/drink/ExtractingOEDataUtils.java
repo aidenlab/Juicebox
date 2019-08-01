@@ -37,7 +37,8 @@ public class ExtractingOEDataUtils {
     public static RealMatrix extractLocalThresholdedLogOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                                        int binYStart, int binYEnd, int numRows, int numCols,
                                                                        NormalizationType normalizationType, boolean isIntra,
-                                                                       ExpectedValueFunction df, int chrIndex, double threshold) throws IOException {
+                                                                       ExpectedValueFunction df, int chrIndex, double threshold,
+                                                                       boolean fillUnderDiagonal) throws IOException {
         if (isIntra && df == null) {
             System.err.println("DF is null");
             return null;
@@ -45,7 +46,7 @@ public class ExtractingOEDataUtils {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
+        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
@@ -74,7 +75,7 @@ public class ExtractingOEDataUtils {
     public static double extractAveragedOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                         int binYStart, int binYEnd, int numRows, int numCols,
                                                         NormalizationType normalizationType, boolean isIntra,
-                                                        ExpectedValueFunction df, int chrIndex) throws IOException {
+                                                        ExpectedValueFunction df, int chrIndex, boolean fillUnderDiagonal) throws IOException {
         if (isIntra && df == null) {
             System.err.println("DF is null");
             return 0.0;
@@ -82,7 +83,7 @@ public class ExtractingOEDataUtils {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
+        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
         double averageCount = zd.getAverageCount();
@@ -113,7 +114,8 @@ public class ExtractingOEDataUtils {
     public static double[][] extractLocalOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                          int binYStart, int binYEnd, int numRows, int numCols,
                                                          NormalizationType normalizationType, boolean isIntra,
-                                                         ExpectedValueFunction df, int chrIndex, double threshold) throws IOException {
+                                                         ExpectedValueFunction df, int chrIndex, double threshold,
+                                                         boolean fillUnderDiagonal) throws IOException {
 
         if (isIntra && df == null) {
             System.err.println("DF is null");
@@ -123,7 +125,7 @@ public class ExtractingOEDataUtils {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
+        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
