@@ -76,6 +76,13 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option useObservedOverExpectedOption = null;
     private static Option useDenseLabelsOption = null;
     private static Option useWholeGenome = null;
+    private static Option useStripeOption = null;
+    private static Option useDistortionOption = null;
+    private static Option useDomainOption = null;
+    private static Option useLoopOption = null;
+    private static Option cornerOffBy = null;
+    private static Option stride = null;
+
 
     public CommandLineParserForJuicer() {
         // used flags
@@ -118,9 +125,15 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleAttributesOption = addStringOption('a', "attributes");
 
         // for GRIND
-        useObservedOverExpectedOption = addBooleanOption("obs/exp");
+        useObservedOverExpectedOption = addBooleanOption("obs_exp");
         useDenseLabelsOption = addBooleanOption("dense_labels");
         useWholeGenome = addBooleanOption("whole_genome");
+        useLoopOption = addBooleanOption("loops");
+        useDomainOption = addBooleanOption("domains");
+        useStripeOption = addBooleanOption("stripes");
+        useDistortionOption = addBooleanOption("distort");
+        cornerOffBy = addIntegerOption("corner_off_by");
+        stride = addIntegerOption("stride");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -128,6 +141,18 @@ public class CommandLineParserForJuicer extends CmdLineParser {
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
                 cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
+    }
+
+    public int getGrindDataSliceOption() {
+        Object opt = getOptionValue(useLoopOption);
+        if (opt != null) return 1;
+        opt = getOptionValue(useDomainOption);
+        if (opt != null) return 2;
+        opt = getOptionValue(useStripeOption);
+        if (opt != null) return 3;
+        opt = getOptionValue(useDistortionOption);
+        if (opt != null) return 4;
+        return 0;
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
@@ -140,6 +165,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         Object opt = getOptionValue(useObservedOverExpectedOption);
         return opt != null;
     }
+
 
     public boolean getUseWholeGenome() {
         Object opt = getOptionValue(useWholeGenome);
@@ -239,6 +265,14 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
+    }
+
+    public int getCornerOffBy() {
+        return optionToInt(cornerOffBy);
+    }
+
+    public int getStride() {
+        return optionToInt(stride);
     }
 
     public int getMatrixSizeOption() {

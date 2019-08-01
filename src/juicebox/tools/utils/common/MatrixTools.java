@@ -34,6 +34,7 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
 
+
 /**
  * Helper methods to handle matrix operations
  */
@@ -653,6 +654,31 @@ public class MatrixTools {
     public static void copyFromAToBRegion(double[][] region, double[][] aggregator, int rowOffSet, int colOffSet) {
         for (int i = 0; i < region.length; i++) {
             System.arraycopy(region[i], 0, aggregator[i + rowOffSet], 0 + colOffSet, region[0].length);
+        }
+    }
+
+    public static void saveMatrixTextV2(String filename, RealMatrix realMatrix) {
+        saveMatrixTextV2(filename, realMatrix.getData());
+    }
+
+    public static void saveMatrixTextV2(String filename, double[][] matrix) {
+        Writer writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
+            for (double[] row : matrix) {
+                String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
+                s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
+                writer.write(s + "\n");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

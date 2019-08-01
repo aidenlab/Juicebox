@@ -45,12 +45,16 @@ public class ChromosomeCalculation {
         if (!outFolder.exists()) {
             outFolder.mkdir();
         }
-        File columnSumsFile = new File(outputFolder, "column_sum_file.bedgraph");
-        File diagValFile = new File(outputFolder, "diagonal_val_file.bedgraph");
-        File slidingAvgColumnSumsFile = new File(outputFolder, "slide_avg_column_sum_file.bedgraph");
-        File slidingAvgDiagValFile = new File(outputFolder, "slide_avg_diagonal_val_file.bedgraph");
-        File logEnrichColumnSumsFile = new File(outputFolder, "log_enrich_column_sum_file.bedgraph");
-        File logEnrichDiagValFile = new File(outputFolder, "log_enrich_diagonal_val_file.bedgraph");
+
+        String colString = "column_sum_" + resolution + "_" + slidingWindow + ".bedgraph";
+        String diagString = "diagonal_val_" + resolution + "_" + slidingWindow + ".bedgraph";
+
+        File columnSumsFile = new File(outputFolder, colString);
+        File diagValFile = new File(outputFolder, diagString);
+        File slidingAvgColumnSumsFile = new File(outputFolder, "slide_avg_" + colString);
+        File slidingAvgDiagValFile = new File(outputFolder, "slide_avg_" + diagString);
+        File logEnrichColumnSumsFile = new File(outputFolder, "log_enrich_" + colString);
+        File logEnrichDiagValFile = new File(outputFolder, "log_enrich_" + diagString);
 
         HiCGlobals.useCache = false;
 

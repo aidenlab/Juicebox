@@ -24,11 +24,12 @@
 
 package juicebox.tools.dev;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.grind.LoopFinder;
+import juicebox.tools.utils.juicer.grind.*;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
@@ -46,17 +47,19 @@ import java.util.Set;
 public class Grind extends JuicerCLT {
 
     private int x, y, z;
+    private int sliceTypeOption = 0;
     private boolean useObservedOverExpected = false;
-    Dataset ds;
+    private Dataset ds;
     private boolean useDenseLabels = false;
-    private Set<String> chromosome = null;
     private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
-    private String loopListPath;
+    private String featureListPath;
+    private int cornerOffBy = 0;
+    private int stride = 1;
 
     public Grind() {
-        super("grind [hic file] [bedpe positions] [x,y,z] [directory]");
+        super("grind --loops --domains --stripes [hic file] [bedpe positions] [x,y,z] [directory]");
     }
 
     @Override
@@ -65,9 +68,10 @@ public class Grind extends JuicerCLT {
             printUsageAndExit();
         }
 
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        ds = HiCFileTools.
+                extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        loopListPath = args[2];
+        featureListPath = args[2];
 
         // split on commas
         // save the dimensions
@@ -76,13 +80,13 @@ public class Grind extends JuicerCLT {
         y = Integer.parseInt(dimensions[1]);
         z = Integer.parseInt(dimensions[2]);
 
-
-
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
         useDenseLabels = juicerParser.getDenseLabelsOption();
         wholeGenome = juicerParser.getUseWholeGenome();
+        cornerOffBy = juicerParser.getCornerOffBy();
+        stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
-        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -95,31 +99,31 @@ public class Grind extends JuicerCLT {
         } else {
             resolutions.add(10000);
         }
+
+        sliceTypeOption = juicerParser.getGrindDataSliceOption();
     }
 
     @Override
     public void run() {
+        Feature2DList feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
 
-        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, ds.getChromosomeHandler(), false, null, false);
-
-        // use these as inputs
-        LoopFinder loopFinder = new LoopFinder(x, y, z, ds, features, outputDirectory, givenChromosomes, norm, useObservedOverExpected, useDenseLabels, resolutions);
-
-        loopFinder.makePositiveExamples();
-        // read in any additional data required
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+        if (givenChromosomes != null)
+            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
 
-        // iterate over regions of interest and save them to a directory
+        RegionFinder finder;
+        if (sliceTypeOption == 1) {
+            finder = new LoopFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        } else if (sliceTypeOption == 2) {
+            finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
+        } else if (sliceTypeOption == 4) {
+            finder = new DistortionFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
+        } else {
+            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, cornerOffBy, stride);
+        }
 
-
-        // oe
-
-        //RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-        //        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
-
-
-
-
-
+        finder.makePositiveExamples();
+        finder.makeNegativeExamples();
     }
 }

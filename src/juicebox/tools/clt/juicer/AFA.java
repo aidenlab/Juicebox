@@ -154,8 +154,7 @@ public class AFA extends JuicerCLT {
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             Integer[] gwPeakNumbers = new Integer[3];
-            for (int i = 0; i < gwPeakNumbers.length; i++)
-                gwPeakNumbers[i] = 0;
+            Arrays.fill(gwPeakNumbers, 0);
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;
@@ -246,7 +245,7 @@ public class AFA extends JuicerCLT {
                             try {
                                 //testDataStack.addData(APAUtils.matrixResize(APAUtils.extractLocalizedDataForAFA(zd, loops.get(0), L, resolution, window, norm), 100, 100));
 
-                                testDataStack.addData(APAUtils.matrixScaling(APAUtils.extractLocalizedDataForAFA(zd, loops.get(0), L, resolution, window, norm), 100, 100));
+                                testDataStack.addData(APAUtils.matrixScaling(APAUtils.extractLocalizedDataForAFA(zd, loops.get(0), resolution, window, norm), 100, 100));
                             } catch (IOException e) {
                                 System.err.println("Unable to find data for loop: " + loops.get(0));
                             }

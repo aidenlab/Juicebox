@@ -91,7 +91,7 @@ class DataCleanerV2 extends DataCleaner {
 
         List<List<SubcompartmentInterval>> subcompartmentIntervals = new ArrayList<>();
         for (int i = 0; i < numDatasets; i++) {
-            subcompartmentIntervals.add(new ArrayList<SubcompartmentInterval>());
+            subcompartmentIntervals.add(new ArrayList<>());
         }
 
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");

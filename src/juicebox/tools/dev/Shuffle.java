@@ -93,7 +93,7 @@ public class Shuffle extends JuicerCLT {
 
             int maxIndex = chr.getLength() / resolution + 1;
 
-            List<Block> blocks = zd.getNormalizedBlocksOverlapping(0, 0, maxIndex, maxIndex, NormalizationHandler.KR, false);
+            List<Block> blocks = zd.getNormalizedBlocksOverlapping(0, 0, maxIndex, maxIndex, NormalizationHandler.KR, false, false);
             for (Block b : blocks) {
                 for (ContactRecord cr : b.getContactRecords()) {
                     final int x = cr.getBinX();

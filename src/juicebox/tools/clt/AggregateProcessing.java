@@ -24,8 +24,6 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.dev.ChromosomeCalculation;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,13 +88,16 @@ class AggregateProcessing {
                 "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_500kb_r40");
 
 
+        String[] stripestestrun = new String[]{
+                "grind", "-c", "4", "-r", "25000",
+                "/Users/audreylu/Downloads/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
+                "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
+                "30,300,1000000",
+                "/Users/audreylu/Downloads/stripes_data"
+        };
 
+        HiCTools.main(stripestestrun);
 
-        /*
-        ChromosomeCalculation.sum(1000000, 20, "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
-                "/Users/muhammad/Desktop/chromcal_1mb_r20");
-
-         */
 
     }
 

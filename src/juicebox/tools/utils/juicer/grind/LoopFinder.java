@@ -41,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 
-import static juicebox.tools.utils.juicer.grind.SectionParser.saveMatrixText2;
 
 public class LoopFinder implements RegionFinder {
 
@@ -54,8 +53,9 @@ public class LoopFinder implements RegionFinder {
     private NormalizationType norm;
     private Set<Integer> resolutions;
     private Writer writer = null;
+    private ChromosomeHandler chromosomeHandler;
 
-    public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, Set<String> givenChromosomes, NormalizationType norm,
+    public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
                       boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
         this.x = x;
         this.y = y;
@@ -65,6 +65,7 @@ public class LoopFinder implements RegionFinder {
         this.path = outputDirectory.getPath();
         this.norm = norm;
         this.resolutions = resolutions;
+        this.chromosomeHandler = chromosomeHandler;
         try {
             writer =
                 new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
@@ -84,9 +85,6 @@ public class LoopFinder implements RegionFinder {
         if (!file.isDirectory()) {
             file.mkdir();
         }
-
-
-        final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
         final int resolution = (int) resolutions.toArray()[0];
 
@@ -135,7 +133,7 @@ public class LoopFinder implements RegionFinder {
                             try {
                                 RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                         i, i + x,
-                                        j, j + y, x, y, norm);
+                                        j, j + y, x, y, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -145,10 +143,10 @@ public class LoopFinder implements RegionFinder {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(path + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
-                            } catch (Exception e) {
+                            } catch (Exception ignored) {
 
                             }
                         }
@@ -186,7 +184,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 100000);
                 int y1 = x1 + generator.nextInt(100000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -194,7 +192,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 5000000);
                 int y1 = x1 + generator.nextInt(5000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -202,7 +200,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 20000000);
                 int y1 = x1 + generator.nextInt(20000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -210,7 +208,7 @@ public class LoopFinder implements RegionFinder {
                 int x1 = generator.nextInt(chromosome.getLength() - 40);
                 int y1 = x1 + generator.nextInt(chromosome.getLength() - x1);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                    chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
             badlist.addByKey(Feature2DList.getKey(chromosome, chromosome), badFeaturesForChromosome);
@@ -254,7 +252,7 @@ public class LoopFinder implements RegionFinder {
                         try {
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + x,
-                                    j, j + y, x, y, norm);
+                                    j, j + y, x, y, norm, true);
                             if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                 String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -264,10 +262,10 @@ public class LoopFinder implements RegionFinder {
                                 //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                 //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                saveMatrixText2(path + exactFileName, localizedRegionData);
+                                MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
 
                         }
                     }
