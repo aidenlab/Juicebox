@@ -24,8 +24,6 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,24 +36,68 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
+/*
+
+        ChromosomeCalculation.sum(2500000, 10, "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/chromcal_2.5mb_r10");
+
+        ChromosomeCalculation.sum(2500000, 20, "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/chromcal_2.5mb_r20");
+
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/gm12878_chromcalc_1mb_r10");
+
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/gm12878_primary_chromcalc_1mb_r10");
+
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/gm12878_replicate_chromcalc_1mb_r10");
+
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_maternal.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/gm12878_maternal_chromcalc_1mb_r10");
+
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_paternal.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/gm12878_paternal_chromcalc_1mb_r10");
 
 
-        Long time = System.currentTimeMillis();
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/k562_chromcalc_1mb_r10");
 
-        String[] ll51231123 = {"addnorm", "-d", "-F",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec13.hic",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr_all.vec"};
+        ChromosomeCalculation.sum(1000000, 10,
+                "https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/hap1_chromcalc_1mb_r10");
 
-        //String[] ll51231123 = {"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz","/Users/muhammad/Desktop/pre_jars/scaled74.hic","hg19"};
 
-        ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
+        ChromosomeCalculation.sum(1000000, 10,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_1mb_r10");
 
-        ll51231123 = new String[]{"pre", "--verbose", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
-                "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
+                ChromosomeCalculation.sum(1000000, 20,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_1mb_r20");
+        */
 
-        HiCTools.main(ll51231123);
+        ChromosomeCalculation.sum(100000, 40,
+                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
+                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_500kb_r40");
 
-        //UnitTests.testCustomFastScaling();
+
+        String[] stripestestrun = new String[]{
+                "grind", "-c", "4", "-r", "25000",
+                "/Users/audreylu/Downloads/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
+                "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
+                "30,300,1000000",
+                "/Users/audreylu/Downloads/stripes_data"
+        };
+
+        HiCTools.main(stripestestrun);
+
 
     }
 

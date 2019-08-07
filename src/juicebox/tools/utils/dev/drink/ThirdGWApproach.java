@@ -95,7 +95,7 @@ public class ThirdGWApproach {
 
         System.out.println("Start Intra List Processing");
         // set the initial set with cluster val
-        origIntraSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        origIntraSubcompartments.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<SubcompartmentInterval> featureList) {
                 for (SubcompartmentInterval interval : featureList) {
@@ -110,7 +110,7 @@ public class ThirdGWApproach {
         System.out.println("Start Inter List Processing");
 
         //odds first
-        interOddSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        interOddSubcompartments.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<SubcompartmentInterval> featureList) {
                 for (SubcompartmentInterval interval : featureList) {
@@ -120,7 +120,7 @@ public class ThirdGWApproach {
         });
 
         //even next
-        interEvenSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+        interEvenSubcompartments.processLists(new FeatureFunction<>() {
             @Override
             public void process(String chr, List<SubcompartmentInterval> featureList) {
                 for (SubcompartmentInterval interval : featureList) {

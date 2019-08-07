@@ -209,7 +209,7 @@ public class MatrixZoomData {
      * @return List of overlapping blocks, normalized
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no,
-                                                      boolean isImportant) {
+                                                      boolean isImportant, boolean fillUnderDiagonal) {
         final List<Block> blockList = new ArrayList<>();
         Block b = new Block(1, getBlockKey(1, no));
         if (HiCGlobals.isAssemblyMatCheck) {
@@ -217,7 +217,7 @@ public class MatrixZoomData {
         } else if (SuperAdapter.assemblyModeCurrentlyActive && !HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
         } else {
-            return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
+            return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no, fillUnderDiagonal);
         }
     }
 
@@ -243,7 +243,7 @@ public class MatrixZoomData {
      * @return List of overlapping blocks, normalized
      */
     private List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                  final NormalizationType no) {
+                                                  final NormalizationType no, boolean getBelowDiagonal) {
 
         Set<Integer> blocksToLoad = new HashSet<>();
       
@@ -256,6 +256,14 @@ public class MatrixZoomData {
         for (int r = row1; r <= row2; r++) {
             for (int c = col1; c <= col2; c++) {
                 populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+            }
+        }
+
+        if (getBelowDiagonal && binX2 > binY1) {
+            for (int r = row1; r <= row2; r++) {
+                for (int c = col1; c <= col2; c++) {
+                    populateBlocksToLoad(c, r, no, blockList, blocksToLoad);
+                }
             }
         }
 
@@ -296,7 +304,7 @@ public class MatrixZoomData {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        long actualBinSize = (long) binSize;
+        long actualBinSize = binSize;
         if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
         }
@@ -525,7 +533,7 @@ public class MatrixZoomData {
             }
         }
 
-        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType, false);
+        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType, false, false);
         if (blocks == null) return 0;
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {

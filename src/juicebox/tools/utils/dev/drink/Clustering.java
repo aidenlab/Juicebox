@@ -75,7 +75,7 @@ public class Clustering {
                 int maxSize = maxBin;
 
                 RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
+                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
 
                 final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
 
@@ -141,7 +141,7 @@ public class Clustering {
         // each ds will need a respective list of assigned subcompartments
         final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
         for (int i = 0; i < datasets.size(); i++) {
-            comparativeSubcompartments.add(new GenomeWideList<SubcompartmentInterval>(chromosomeHandler));
+            comparativeSubcompartments.add(new GenomeWideList<>(chromosomeHandler));
         }
 
         for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -161,7 +161,7 @@ public class Clustering {
                 if (matrices.size() != datasets.size()) continue;
 
                 final DataCleanerV2 dataCleanerV2 = new DataCleanerV2(matrices, chromosome.getIndex(),
-                        maxPercentAllowedToBeZeroThreshold, resolution, outputDirectory, new ArrayList<Integer>());
+                        maxPercentAllowedToBeZeroThreshold, resolution, outputDirectory, new ArrayList<>());
 
                 if (dataCleanerV2.getLength() > 0) {
 

@@ -22,43 +22,12 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.juicer.grind;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
+public interface RegionFinder {
 
+    void makePositiveExamples();
 
-public class AddGWNorm extends JuiceboxCLT {
+    void makeNegativeExamples();
 
-    private String file;
-    private int genomeWideResolution = -100;
-
-    public AddGWNorm() {
-        super("addGWNorm <input_HiC_file> <min resolution>");
-    }
-
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.parseInt(args[2]);
-        } catch (NumberFormatException error) {
-            printUsageAndExit();
-        }
-    }
-
-    @Override
-    public void run() {
-        try {
-            GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

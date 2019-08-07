@@ -164,7 +164,7 @@ class ConnectedComponents {
         }
 
 
-        finalList.filterLists(new FeatureFilter<SubcompartmentInterval>() {
+        finalList.filterLists(new FeatureFilter<>() {
             @Override
             public List<SubcompartmentInterval> filter(String chr, List<SubcompartmentInterval> featureList) {
 

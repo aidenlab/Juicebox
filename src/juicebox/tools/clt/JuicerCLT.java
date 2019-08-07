@@ -61,7 +61,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer)parser;
         assessIfChromosomesHaveBeenSpecified(juicerParser);
         readJuicerArguments(args, juicerParser);
     }

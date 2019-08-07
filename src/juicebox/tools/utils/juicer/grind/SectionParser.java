@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.apa;
+package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.tools.utils.common.MatrixTools;
@@ -65,17 +65,20 @@ class SectionParser {
         final int halfwidth = submatrixSize / 2;
 
         try {
-            final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(savepath + "all_file_names.txt"), StandardCharsets.UTF_8));
+            // create a writer for saving names of all the files which will contain data
+            // master list
+            final Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(savepath + "all_file_names.txt"), StandardCharsets.UTF_8));
 
+            // importing features of interest
             Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, false, null, false);
 
             features.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
 
-                    System.out.println("Doing " + chr);
-
                     Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+                    System.out.println("Currently handling chromosome: " + chrom.getName());
 
                     Matrix matrix = ds.getMatrix(chrom, chrom);
                     if (matrix == null) return;
@@ -107,7 +110,7 @@ class SectionParser {
                             try {
                                 RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                         i, i + submatrixSize,
-                                        j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                        j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -117,10 +120,10 @@ class SectionParser {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
-                            } catch (Exception e) {
+                            } catch (Exception ignored) {
 
                             }
                         }
@@ -186,7 +189,7 @@ class SectionParser {
                         try {
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + submatrixSize,
-                                    j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                    j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                             if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                 String exactFileName = chrom.getName() + "_" + i + "_" + j + ".txt";
@@ -196,10 +199,10 @@ class SectionParser {
                                 //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                 //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
 
                         }
                     }
@@ -218,7 +221,7 @@ class SectionParser {
     public static void buildRandomLooplistV2(String outputfile, String hicpath) {
 
         Random generator = new Random();
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicpath), false);
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Collections.singletonList(hicpath), false);
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
         Feature2DList badlist = new Feature2DList();
@@ -234,7 +237,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 100000);
                 int y1 = x1 + generator.nextInt(100000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -242,7 +245,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 5000000);
                 int y1 = x1 + generator.nextInt(5000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -250,7 +253,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 20000000);
                 int y1 = x1 + generator.nextInt(20000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -258,7 +261,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 40);
                 int y1 = x1 + generator.nextInt(chromosome.getLength() - x1);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
             System.out.println("End " + chromosome.getName());
@@ -273,7 +276,7 @@ class SectionParser {
     public static void buildRandomLooplist(String hicpath, String outputpath) {
 
         Random generator = new Random();
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicpath), false);
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Collections.singletonList(hicpath), false);
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
         Feature2DList badlist = new Feature2DList();
@@ -289,7 +292,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 5000000);
                 int y1 = x1 + generator.nextInt(5000000);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
 
@@ -297,7 +300,7 @@ class SectionParser {
                 int x1 = generator.nextInt(chromosome.getLength() - 40);
                 int y1 = x1 + generator.nextInt(chromosome.getLength() - x1);
                 Feature2D feature = new Feature2D(Feature2D.FeatureType.PEAK, chromosome.getName(), x1, x1 + 33,
-                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<String, String>());
+                        chromosome.getName(), y1, y1 + 33, Color.BLACK, new HashMap<>());
                 badFeaturesForChromosome.add(feature);
             }
             System.out.println("End " + chromosome.getName());
@@ -355,7 +358,7 @@ class SectionParser {
                     for (int i = 0; i < maxBin; i += incrementSize) {
                         for (int j = i; j < 1600 + i; j += incrementSize) {
                             try {
-                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, i, i + submatrixSize, j, j + submatrixSize, submatrixSize, submatrixSize, norm);
+                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, i, i + submatrixSize, j, j + submatrixSize, submatrixSize, submatrixSize, norm, true);
                                 if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
                                     String exactFileName = chromosome.getName() + "_" + i + "_" + j + ".txt";
@@ -365,10 +368,10 @@ class SectionParser {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    saveMatrixText2(savepath + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(savepath + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
-                            } catch (Exception e) {
+                            } catch (Exception ignored) {
 
                             }
                         }
@@ -384,28 +387,6 @@ class SectionParser {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-            }
-        }
-    }
-
-    private static void saveMatrixText2(String filename, RealMatrix realMatrix) {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
-            double[][] matrix = realMatrix.getData();
-            for (double[] row : matrix) {
-                String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
-                s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
-                writer.write(s + "\n");
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
         }
     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -163,7 +163,7 @@ public class BlockBuster {
 
             // get data for window from hic file
             int n = limEnd - adjustedLimStart + 1;
-            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd, n, norm);
+            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd, n, norm, false);
             observed = MatrixTools.fillLowerLeftTriangle(observed);
 
             // get contact domains in window

@@ -44,7 +44,6 @@ public class Matrix {
     private final int chr2;
     List<MatrixZoomData> bpZoomData;
     List<MatrixZoomData> fragZoomData;
-
     /**
      * Constructor for creating a matrix from precomputed data.
      *
