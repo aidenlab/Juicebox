@@ -36,33 +36,7 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
-/*
 
-        ChromosomeCalculation.sum(2500000, 10, "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/chromcal_2.5mb_r10");
-
-        ChromosomeCalculation.sum(2500000, 20, "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/chromcal_2.5mb_r20");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_DpnII_combined_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/gm12878_chromcalc_1mb_r10");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_primary_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/gm12878_primary_chromcalc_1mb_r10");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_insitu_replicate_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/gm12878_replicate_chromcalc_1mb_r10");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_maternal.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/gm12878_maternal_chromcalc_1mb_r10");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/gm12878/GSE63525_GM12878_diploid_paternal.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/gm12878_paternal_chromcalc_1mb_r10");
 
 
         ChromosomeCalculation.sum(1000000, 10,
