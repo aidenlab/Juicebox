@@ -228,18 +228,21 @@ public class CommandLineParserForJuicer extends CmdLineParser {
                                                               NormalizationHandler normHandler2) {
         NormalizationType[] normalizationTypes = new NormalizationType[2];
         String normStrings = optionToString(normalizationTypeOption);
-        String[] bothNorms = normStrings.split(",");
-        if (bothNorms.length > 2 || bothNorms.length < 1) {
-            System.err.println("Invalid norm syntax: " + normStrings);
-            return null;
-        } else if (bothNorms.length == 2) {
-            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
-            normalizationTypes[1] = retrieveNormalization(bothNorms[1], normHandler2);
-        } else if (bothNorms.length == 1) {
-            normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
-            normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
+        if (normStrings != null) {
+            String[] bothNorms = normStrings.split(",");
+            if (bothNorms.length > 2 || bothNorms.length < 1) {
+                System.err.println("Invalid norm syntax: " + normStrings);
+                return null;
+            } else if (bothNorms.length == 2) {
+                normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+                normalizationTypes[1] = retrieveNormalization(bothNorms[1], normHandler2);
+            } else if (bothNorms.length == 1) {
+                normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+                normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
+            }
+            return normalizationTypes;
         }
-        return normalizationTypes;
+        return null;
     }
 
     private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
