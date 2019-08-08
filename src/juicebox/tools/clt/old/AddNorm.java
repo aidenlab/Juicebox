@@ -49,7 +49,6 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
                 + " Above options ignored if input_vector_file present\n"
                 + "           : --skip-kr skip KR normalization\n"
-
         );
     }
 
