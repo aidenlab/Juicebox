@@ -725,7 +725,11 @@ public class Preprocessor {
                             continue;
                         }
 
-                        fragMapToUse = Objects.requireNonNullElse(fragMap1, fragMap2);
+                        if (fragMap1 != null) {
+                            fragMapToUse = fragMap1;
+                        } else {
+                            fragMapToUse = fragMap2;
+                        }
 
                     } else {
                         // use default map
@@ -1021,7 +1025,7 @@ public class Preprocessor {
 
         // Sort keys in row-major order
         List<Point> keys = new ArrayList<>(records.keySet());
-        Collections.sort(keys, new Comparator<>() {
+        Collections.sort(keys, new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
                 if (o1.y != o2.y) {
@@ -1299,7 +1303,7 @@ public class Preprocessor {
         BlockQueueMem(Collection<BlockPP> blockCollection) {
 
             this.blocks = new ArrayList<>(blockCollection);
-            Collections.sort(blocks, new Comparator<>() {
+            Collections.sort(blocks, new Comparator<BlockPP>() {
                 @Override
                 public int compare(BlockPP o1, BlockPP o2) {
                     return o1.getNumber() - o2.getNumber();
@@ -1694,7 +1698,7 @@ public class Preprocessor {
                 los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file), 4194304));
 
                 List<BlockPP> blockList = new ArrayList<>(blocks.values());
-                Collections.sort(blockList, new Comparator<>() {
+                Collections.sort(blockList, new Comparator<BlockPP>() {
                     @Override
                     public int compare(BlockPP o1, BlockPP o2) {
                         return o1.getNumber() - o2.getNumber();
@@ -1759,7 +1763,7 @@ public class Preprocessor {
             }
 
             do {
-                Collections.sort(activeList, new Comparator<>() {
+                Collections.sort(activeList, new Comparator<BlockQueue>() {
                     @Override
                     public int compare(BlockQueue o1, BlockQueue o2) {
                         return o1.getBlock().getNumber() - o2.getBlock().getNumber();

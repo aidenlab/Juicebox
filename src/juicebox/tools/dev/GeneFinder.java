@@ -94,7 +94,7 @@ public class GeneFinder extends JuicerCLT {
                     GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
                     MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
 
-                    allAnchors.processLists(new FeatureFunction<>() {
+                    allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
                         @Override
                         public void process(String chr, List<MotifAnchor> anchors) {
                             List<Feature2D> restoredLoops = new ArrayList<>();
@@ -128,7 +128,7 @@ public class GeneFinder extends JuicerCLT {
             }
 
             final Set<String> geneNames = new HashSet<>();
-            genes.processLists(new FeatureFunction<>() {
+            genes.processLists(new FeatureFunction<MotifAnchor>() {
                 @Override
                 public void process(String chr, List<MotifAnchor> featureList) {
                     for (MotifAnchor anchor : featureList) {

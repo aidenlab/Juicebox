@@ -48,6 +48,7 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
                 + " Above options ignored if input_vector_file present\n"
+                + "           : --skip-kr skip KR normalization\n"
         );
     }
 

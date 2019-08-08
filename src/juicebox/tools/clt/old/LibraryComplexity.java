@@ -149,7 +149,7 @@ public class LibraryComplexity extends JuiceboxCLT {
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(3);
 
-                Callable<Long> taskOptDups = new Callable<>() {
+                Callable<Long> taskOptDups = new Callable<Long>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/opt_dups.txt");
@@ -170,7 +170,7 @@ public class LibraryComplexity extends JuiceboxCLT {
                     }
                 };
 
-                Callable<Long> taskUniqueReads = new Callable<>() {
+                Callable<Long> taskUniqueReads = new Callable<Long>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/merged_nodups.txt");
@@ -191,7 +191,7 @@ public class LibraryComplexity extends JuiceboxCLT {
                     }
                 };
 
-                Callable<Long> taskReadPairs = new Callable<>() {
+                Callable<Long> taskReadPairs = new Callable<Long>() {
                     @Override
                     public Long call() {
                         File f = new File(localWorkingDirectory + "/dups.txt");

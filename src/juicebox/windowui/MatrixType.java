@@ -30,15 +30,18 @@ public enum MatrixType {
     OBSERVED("Observed"),
     EXPECTED("Expected"),
     OE("Observed/Expected"),
+    OME("Observed-Expected"),
     PEARSON("Observed Pearson"),
     NORM2("Observed Norm^2"),
     CONTROL("Control"),
     OECTRL("Control/Expected"),
+    CME("Control-Expected"),
     PEARSONCTRL("Control Pearson"),
     NORM2CTRL("Control Norm^2"),
     RATIO("Observed/Control"),
     VS("Observed vs Control"),
     OEVS("Observed/Expected vs Control/Expected"),
+    OCMEVS("Observed-Expected vs Control-Expected"),
     PEARSONVS("Observed Pearson vs Control Pearson"),
     DIFF("Observed-Control"),
     NORM("Norm"),
@@ -119,7 +122,7 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS;
+        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME;
     }
 
     /**
@@ -127,7 +130,7 @@ public enum MatrixType {
      * @return true if the option only works for intrachromosomal, not interchromosomal (genomewide may still be allowed)
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return isPearsonType(option) || option == VS || option == DIFF || option == OEVS; //|| option == OE
+        return isPearsonType(option) || isVSTypeDisplay(option);
     }
 
     /**
@@ -135,7 +138,7 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || isPearsonType(option) || isControlExpectedUsedType(option);
+        return option == OE || isPearsonType(option) || isControlExpectedUsedType(option) || option == OCMEVS || option == OME || option == CME;
     }
 
     /**
@@ -163,7 +166,7 @@ public enum MatrixType {
     }
 
     public static boolean isVSTypeDisplay(MatrixType option) {
-        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS;
+        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS || option == OCMEVS;
     }
 
     public static boolean isControlPearsonType(MatrixType option) {
@@ -171,7 +174,7 @@ public enum MatrixType {
     }
 
     private static boolean isControlExpectedUsedType(MatrixType option) {
-        return option == OECTRL || option == OEVS;
+        return option == OECTRL || option == OEVS || option == OCMEVS || option == CME;
     }
 
     public String toString() {

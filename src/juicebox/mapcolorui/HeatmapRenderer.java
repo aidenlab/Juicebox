@@ -322,7 +322,7 @@ class HeatmapRenderer {
                     } else {
                         return false;
                     }
-                } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS) {
+                } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
 
                     List<Block> comboBlocks = new ArrayList<>();
 
@@ -354,15 +354,18 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
 
-                                    if (displayOption == MatrixType.OEVS) {
+                                    if (displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
                                         if (df != null) {
                                             int dist = Math.abs(binX - binY);
                                             double expected = df.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
+                                            if (displayOption == MatrixType.OEVS) {
+                                                score = rec.getCounts() / expected;
+                                            } else {
+                                                score = rec.getCounts() - expected;
+                                            }
                                         } else {
                                             continue;
                                         }
-
                                     }
                                     Color color = cs.getColor((float) score);
                                     g.setColor(color);
@@ -387,11 +390,17 @@ class HeatmapRenderer {
                                     int binX = rec.getBinX();
                                     int binY = rec.getBinY();
 
-                                    if (displayOption == MatrixType.OEVS) {
+                                    if (displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
                                         if (controlDF != null) {
+                                            //score = getObservedComparedToExpected()
                                             int dist = Math.abs(binX - binY);
                                             double expected = controlDF.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
+
+                                            if (displayOption == MatrixType.OEVS) {
+                                                score = rec.getCounts() / expected;
+                                            } else {
+                                                score = rec.getCounts() - expected;
+                                            }
                                         } else {
                                             continue;
                                         }
