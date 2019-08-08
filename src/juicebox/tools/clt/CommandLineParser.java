@@ -110,7 +110,7 @@ public class CommandLineParser extends CmdLineParser {
         randomizePositionOption = addBooleanOption("randomize_position");
         skipKROption = addBooleanOption("skip-kr");
         randomSeedOption = addLongOption("random_seed");
-        randomizePositionMapsOption = addStringOption("randomize_pos_maps");
+        randomizePositionMapsOption = addStringOption("frag_site_maps");
 
     }
 

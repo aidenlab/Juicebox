@@ -61,10 +61,9 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -z <double> scale factor for hic file\n"
                 + "           : -a <1, 2, 3, 4> filter based on inner, outer, left-left, right-right pairs respectively\n"
                 + "           : --randomize_position randomize positions between fragment sites\n"
-                + "           : --random_seed seed for random generator\n"
-                + "           : --randomize_pos_maps fragment maps for randomization\n"
-
-
+                + "           : --random_seed <long> for seeding random number generator\n"
+                + "           : --frag_site_maps <fragment site files> for randomization\n"
+                + "           : --skip-kr skip KR normalization\n"
         );
     }
 
