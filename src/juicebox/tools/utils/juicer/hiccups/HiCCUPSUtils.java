@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,8 +41,8 @@ import org.broad.igv.feature.Chromosome;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Utility class for HiCCUPS
@@ -516,17 +516,20 @@ public class HiCCUPSUtils {
 
     public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                             ChromosomeHandler chromosomeHandler, List<HiCCUPSConfiguration> configurations,
-                                            NormalizationType norm, File outputDirectory) {
+                                            NormalizationType norm, File outputDirectory, String suffix, File outputFile) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
             removeLowMapQFeatures(looplists.get(res), res, ds, chromosomeHandler, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
-            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res + ".bedpe"), true, Feature2DList.ListFormat.FINAL);
+            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res + suffix + ".bedpe"),
+                    true, Feature2DList.ListFormat.FINAL);
         }
 
-        return mergeAllResolutions(looplists);
+        Feature2DList mergedList = mergeAllResolutions(looplists);
+        mergedList.exportFeatureList(outputFile, true, Feature2DList.ListFormat.FINAL);
+        return mergedList;
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
