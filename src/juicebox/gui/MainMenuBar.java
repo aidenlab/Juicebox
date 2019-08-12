@@ -65,7 +65,9 @@ public class MainMenuBar extends JMenuBar {
   private static JMenuItem showStats, showControlStats;
   //private static JMenu annotationsMenu;
   private static JMenu viewMenu;
+  private static JMenu bookmarksMenu;
   private static JMenu assemblyMenu;
+  private static JMenu devMenu;
   private static JMenuItem exportAssembly;
   private static JMenuItem resetAssembly;
   private static JMenuItem exitAssembly;
@@ -268,7 +270,7 @@ public class MainMenuBar extends JMenuBar {
     });
     fileMenu.add(exit);
 
-    JMenu bookmarksMenu = new JMenu("Bookmarks");
+    bookmarksMenu = new JMenu("Bookmarks");
     //---- Save location ----
     saveLocationList = new JMenuItem("Save Current Location");
     saveLocationList.addActionListener(new ActionListener() {
@@ -309,7 +311,7 @@ public class MainMenuBar extends JMenuBar {
     });
 
     saveStateForReload.setEnabled(false);
-    bookmarksMenu.add(saveStateForReload);
+    //bookmarksMenu.add(saveStateForReload);
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
@@ -325,6 +327,7 @@ public class MainMenuBar extends JMenuBar {
     recentLocationMenu.setMnemonic('S');
     recentLocationMenu.setEnabled(false);
     bookmarksMenu.add(recentLocationMenu);
+    bookmarksMenu.setEnabled(false);
 
     //---Export States----
     exportSavedStateMenuItem = new JMenuItem();
@@ -352,7 +355,7 @@ public class MainMenuBar extends JMenuBar {
       }
     };
 
-    bookmarksMenu.add(previousStates);
+    //bookmarksMenu.add(previousStates);
 
     //---Import States----
     importMapAsFile = new JMenuItem();
@@ -378,9 +381,10 @@ public class MainMenuBar extends JMenuBar {
     });
     //bookmarksMenu.add(slideShow);
 
-    bookmarksMenu.addSeparator();
-    bookmarksMenu.add(exportSavedStateMenuItem);
-    bookmarksMenu.add(importMapAsFile);
+    // todo replace with a save state URL
+    //bookmarksMenu.addSeparator();
+    //bookmarksMenu.add(exportSavedStateMenuItem);
+    //bookmarksMenu.add(importMapAsFile);
 
     //---View Menu-----
     viewMenu = new JMenu("View");
@@ -500,7 +504,8 @@ public class MainMenuBar extends JMenuBar {
     });
     viewMenu.add(saveToSVG);
 
-    final JMenu devMenu = new JMenu("Dev");
+    devMenu = new JMenu("Dev");
+    devMenu.setEnabled(false);
 
     final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
     addCustomNorms.addActionListener(new ActionListener() {
@@ -754,20 +759,22 @@ public class MainMenuBar extends JMenuBar {
   public void setEnableForAllElements(boolean status) {
     //annotationsMenu.setEnabled(status);
     viewMenu.setEnabled(status);
+    bookmarksMenu.setEnabled(status);
     assemblyMenu.setEnabled(status);
     saveLocationList.setEnabled(status);
     saveStateForReload.setEnabled(status);
     saveLocationList.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
-  public void enableAssemblyMenuOptions() {
-    resetAssembly.setEnabled(true);
-    exportAssembly.setEnabled(true);
-    enableAssembly.setEnabled(true);
-    setScale.setEnabled(true);
-    importModifiedAssembly.setEnabled(true);
-    exitAssembly.setEnabled(true);
-
+  public void setEnableAssemblyMenuOptions(boolean status) {
+    resetAssembly.setEnabled(status);
+    exportAssembly.setEnabled(status);
+    enableAssembly.setEnabled(status);
+    setScale.setEnabled(status);
+    importModifiedAssembly.setEnabled(status);
+    exitAssembly.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
   public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
