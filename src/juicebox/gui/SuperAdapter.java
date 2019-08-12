@@ -260,16 +260,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    /*
-    public void setShowLoops(boolean showLoops) {
-        hic.setShowLoops(showLoops);
-    }
-
-    public void addVisibleLoops(CustomAnnotationHandler handler) {
-        handler.addVisibleLoops(hic);
-    }
-    */
-
     public String getDescription(String item) {
         return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
                 hic.getDefaultLocationDescription());
@@ -505,7 +495,7 @@ public class SuperAdapter {
 
         getHeatmapPanel().disableAssemblyEditing();
         resetAnnotationLayers();
-        HiCGlobals.hicMapScale = (double) 1;
+        HiCGlobals.hicMapScale = 1;
 //        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];

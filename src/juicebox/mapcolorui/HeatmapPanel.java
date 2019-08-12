@@ -931,6 +931,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
+      final JMenuItem mi9_c = new JMenuItem("Export data centered on pixel");
+      mi9_c.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              try {
+                  hic.exportDataCenteredAboutRegion(xMousePos, yMousePos);
+              } catch (Exception ee) {
+                  ee.printStackTrace();
+              }
+          }
+      });
+
     final JCheckBoxMenuItem mi9_h = new JCheckBoxMenuItem("Generate Horizontal 1D Track");
     mi9_h.addActionListener(new ActionListener() {
       @Override
@@ -1008,6 +1020,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.addSeparator();
         menu.add(mi9_h);
         menu.add(mi9_v);
+          menu.add(mi9_c);
       }
 
       boolean menuSeparatorNotAdded = true;
