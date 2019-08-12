@@ -583,12 +583,12 @@ public class SuperAdapter {
 
             } else {
                 try {
-                    if (hic.isPearsonsNotAvailable(false)) {
+                    if (hic.isPearsonsNotAvailableForFile(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }
-                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailableForFile(true)) {
                         JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;

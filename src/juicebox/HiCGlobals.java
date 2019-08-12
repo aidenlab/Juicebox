@@ -39,6 +39,8 @@ public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
     public static final String versionNum = "1.12.04";
+    // Juicebox title
+    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
     // Changes Data Output Mode
     public static final boolean isRestricted = false;
@@ -61,7 +63,7 @@ public class HiCGlobals {
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
     // min hic file version supported
-    public static final int minVersion = 6; // todo redundant calls to this should be removed
+    public static final int minVersion = 6;
     public static final int bufferSize = 2097152;
 
     public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
@@ -71,14 +73,14 @@ public class HiCGlobals {
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    // Juicebox title
-    // TODO decide on title displayed in Juicebox
-    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
     public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static int MAX_PEARSON_ZOOM = 500000;
-    public static double hicMapScale = 1; //TODO implement Map scaling with this global variable
+
+    // implement Map scaling with this global variable
+    public static double hicMapScale = 1;
+
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;

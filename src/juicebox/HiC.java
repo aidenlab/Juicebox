@@ -131,7 +131,7 @@ public class HiC {
         clearFeatures();
     }
 
-    // TODO zgire - why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
+    //Todo why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
@@ -1134,7 +1134,7 @@ public class HiC {
                 (isInPearsonsMode() && currentZoom.getBinSize() <= HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
-    public boolean isPearsonsNotAvailable(boolean isControl) {
+    public boolean isPearsonsNotAvailableForFile(boolean isControl) {
         try {
             if (isControl) {
                 MatrixZoomData cZd = getControlZd();
@@ -1148,11 +1148,13 @@ public class HiC {
         }
     }
 
-    // todo remove / replace with above?
-    public boolean isPearsonsNotAvailable(HiCZoom zoom) {
+    public boolean isPearsonsNotAvailableAtSpecificZoom(boolean isControl, HiCZoom zoom) {
         try {
-            MatrixZoomData zd = getMatrix().getZoomData(zoom);
-            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), obsNormalizationType)) == null;
+            if (isControl) {
+                return getControlZd().getPearsons(controlDataset.getExpectedValues(zoom, ctrlNormalizationType)) == null;
+            } else {
+                return getZd().getPearsons(dataset.getExpectedValues(zoom, obsNormalizationType)) == null;
+            }
         } catch (Exception e) {
             return true;
         }
