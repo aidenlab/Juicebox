@@ -54,9 +54,9 @@ public class CompareLists extends JuicerCLT {
 
     public CompareLists() {
         super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]\n" +
-                "comparetype:   1 - overlap/intersect within distance threshold\n" +
-                "               2 - comparison with ctcf motifs\n" +
-                "               3 - convergence calculation for list1 with ctcf motifs");
+                "comparetype:   0 - overlap/intersect within distance threshold\n" +
+                "               1 - comparison with ctcf motifs\n" +
+                "               2 - convergence calculation for list1 with ctcf motifs");
         HiCGlobals.useCache = false;
     }
 

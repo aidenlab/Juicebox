@@ -529,4 +529,10 @@ public class HiCFileTools {
                 0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
 
     }
+
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
+        Matrix matrix = ds.getMatrix(chrom1, chrom2);
+        if (matrix == null) return null;
+        return matrix.getZoomData(zoom);
+    }
 }

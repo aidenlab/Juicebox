@@ -161,12 +161,6 @@ public class HiCCUPS extends JuicerCLT {
     public static final int w1 = 40;      // TODO dimension should be variably set
     private static final int w2 = 10000;   // TODO dimension should be variably set
     private static final boolean dataShouldBePostProcessed = true;
-    private static final String MERGED = "merged_loops.bedpe";
-    private static final String REQUESTED = "_from_requested_loops";
-    private static final String MERGED_REQUESTED = "merged" + REQUESTED + ".bedpe";
-    private static final String FDR_THRESHOLDS = "fdr_thresholds";
-    private static final String ENRICHED_PIXELS = "enriched_pixels";
-    private static final String REQUESTED_LIST = "requested_list";
     public static double fdrsum = 0.02;
     public static double oeThreshold1 = 1.5;
     public static double oeThreshold2 = 1.75;
@@ -268,7 +262,7 @@ public class HiCCUPS extends JuicerCLT {
                                    String featureListPath, NormalizationType preferredNorm, int matrixSize,
                                    ChromosomeHandler providedCommonChromosomeHandler,
                                    List<HiCCUPSConfiguration> configurations, double[] thresholds,
-                                   boolean usingCPUVersion) {
+                                   boolean usingCPUVersion, boolean restrictSearchRegions) {
         this.ds = dataset;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -296,9 +290,10 @@ public class HiCCUPS extends JuicerCLT {
         // force hiccups to run
         checkMapDensityThreshold = false;
 
+        this.restrictSearchRegions = restrictSearchRegions;
         if (usingCPUVersion) {
             useCPUVersionHiCCUPS = true;
-            restrictSearchRegions = true;
+            this.restrictSearchRegions = true;
         }
     }
 
@@ -352,8 +347,8 @@ public class HiCCUPS extends JuicerCLT {
         Map<Integer, Feature2DList> loopLists = new HashMap<>();
         Map<Integer, Feature2DList> givenLoopLists = new HashMap<>();
 
-        File outputMergedFile = new File(outputDirectory, MERGED);
-        File outputMergedGivenFile = new File(outputDirectory, MERGED_REQUESTED);
+        File outputMergedFile = new File(outputDirectory, HiCCUPSUtils.getMergedLoopsFileName());
+        File outputMergedGivenFile = new File(outputDirectory, HiCCUPSUtils.getMergedRequestedLoopsFileName());
 
         Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
         if (listGiven) {
@@ -370,10 +365,10 @@ public class HiCCUPS extends JuicerCLT {
 
         if (dataShouldBePostProcessed) {
             HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomesHandler,
-                    configurations, norm, outputDirectory, "", outputMergedFile);
+                    configurations, norm, outputDirectory, false, outputMergedFile);
             if (listGiven) {
                 HiCCUPSUtils.postProcess(givenLoopLists, ds, commonChromosomesHandler,
-                        configurations, norm, outputDirectory, REQUESTED, outputMergedGivenFile);
+                        configurations, norm, outputDirectory, true, outputMergedGivenFile);
             }
         }
         System.out.println("HiCCUPS complete");
@@ -402,7 +397,7 @@ public class HiCCUPS extends JuicerCLT {
 
         // open the print writer early so the file I/O capability is verified before running hiccups
         PrintWriter outputFDR = HiCFileTools.openWriter(
-                new File(outputDirectory, FDR_THRESHOLDS + "_" + conf.getResolution()));
+                new File(outputDirectory, HiCCUPSUtils.getFDRThresholdsFilename(conf.getResolution())));
 
         final long[][] histBL = new long[w1][w2];
         final long[][] histDonut = new long[w1][w2];
@@ -597,10 +592,10 @@ public class HiCCUPS extends JuicerCLT {
 
         }
 
-        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution() + ".bedpe"),
+        globalList.exportFeatureList(new File(outputDirectory, HiCCUPSUtils.getEnrichedPixelFileName(conf.getResolution())),
                 true, Feature2DList.ListFormat.ENRICHED);
         if (listGiven) {
-            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution() + ".bedpe"),
+            requestedList.exportFeatureList(new File(outputDirectory, HiCCUPSUtils.getRequestedLoopsFileName(conf.getResolution())),
                     true, Feature2DList.ListFormat.ENRICHED);
             givenLoopLists.put(conf.getResolution(), requestedList);
         }

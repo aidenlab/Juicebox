@@ -88,7 +88,7 @@ class UnitTests {
         loopLists.put(10000, Feature2DParser.loadFeatures(link2, chromosomeHandler, true, null, false));
 
         HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
-                filteredConfigurations, norm, outputDirectory, "", outputMergedFile);
+                filteredConfigurations, norm, outputDirectory, false, outputMergedFile);
     }
 
     public static void testCustomFastScaling() {

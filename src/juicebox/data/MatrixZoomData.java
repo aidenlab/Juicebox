@@ -155,7 +155,6 @@ public class MatrixZoomData {
         return chr1.getIndex();
     }
 
-
     public int getChr2Idx() {
         return chr2.getIndex();
     }

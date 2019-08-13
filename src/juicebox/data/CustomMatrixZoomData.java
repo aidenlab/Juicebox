@@ -264,7 +264,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         return rTreeHandler.getBoundariesOfCustomChromosomeY();
     }
 
-    // TODO
+    // TODO get Expected should be appropriately caculated in the custom regions
     public double getExpected(int binX, int binY, ExpectedValueFunction df) {
         // x window
         int gx1 = binX * zoom.getBinSize();

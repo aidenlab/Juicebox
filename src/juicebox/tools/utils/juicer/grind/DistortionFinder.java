@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -71,27 +72,20 @@ public class DistortionFinder implements RegionFinder {
         this.stride = stride;
     }
 
-    private void makeDir(String path) {
-        File file = new File(path);
-        if (!file.isDirectory()) {
-            file.mkdir();
-        }
-    }
-
     @Override
     public void makePositiveExamples() {
 
         final String negPath = path + "/negative";
         final String posPath = path + "/positive";
-        makeDir(negPath);
-        makeDir(posPath);
-
+        UNIXTools.makeDir(negPath);
+        UNIXTools.makeDir(posPath);
 
         try {
 
             final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_file_names.txt"), StandardCharsets.UTF_8));
             final Writer negWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/neg_file_names.txt"), StandardCharsets.UTF_8));
             final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_label_file_names.txt"), StandardCharsets.UTF_8));
+            final Writer negLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/neg_label_file_names.txt"), StandardCharsets.UTF_8));
 
             for (int resolution : resolutions) {
                 Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
@@ -102,41 +96,30 @@ public class DistortionFinder implements RegionFinder {
 
                         Matrix matrix = ds.getMatrix(chromI, chromJ);
                         if (matrix == null) continue;
+
                         HiCZoom zoom = ds.getZoomForBPResolution(resolution);
                         final MatrixZoomData zd = matrix.getZoomData(zoom);
                         if (zd == null) continue;
-                        System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName());
+
+                        boolean isIntraChromosomal = chrArrayI == chrArrayJ;
+
+                        System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName() +
+                                " at resolution " + resolution);
 
                         MatrixZoomData matrixZoomDataI, matrixZoomDataJ;
-                        if (chrArrayI == chrArrayJ) {
-                            // is Intra
-                            matrixZoomDataI = zd;
-                            matrixZoomDataJ = zd;
+                        if (isIntraChromosomal) {
+                            //                     iterateAcrossIntraChromosomalRegion(zd, chromI, resolution, sliceRowSize, sliceColSize,
+                            //                             posPath, negPath, posWriter, posLabelWriter, negWriter, negLabelWriter, false);
                         } else {
                             // is Inter
-                            Matrix matrixI = ds.getMatrix(chromI, chromI);
-                            if (matrixI == null) continue;
-                            matrixZoomDataI = matrixI.getZoomData(zoom);
-                            Matrix matrixJ = ds.getMatrix(chromJ, chromJ);
-                            if (matrixJ == null) continue;
-                            matrixZoomDataJ = matrixJ.getZoomData(zoom);
+                            matrixZoomDataI = HiCFileTools.getMatrixZoomData(ds, chromI, chromI, zoom);
+                            matrixZoomDataJ = HiCFileTools.getMatrixZoomData(ds, chromJ, chromJ, zoom);
+                            if (matrixZoomDataI == null) continue;
+                            if (matrixZoomDataJ == null) continue;
+
+//                            iterateBetweenInterChromosomalRegions(zd, matrixZoomDataI, matrixZoomDataJ, chromI, chromJ, resolution,
+//                                    sliceRowSize, sliceColSize, posPath, negPath, posWriter, posLabelWriter, negWriter, negLabelWriter, false);
                         }
-                        if (matrixZoomDataI == null) continue;
-                        if (matrixZoomDataJ == null) continue;
-
-/*
-
-                        // sliding along the diagonal
-                        for (int rowIndex = 0; rowIndex < (chromI.getLength() / resolution) - sliceColSize; rowIndex += stride) {
-                            int startCol = Math.max(0, rowIndex);
-                            int endCol = Math.min(rowIndex, (chromJ.getLength() / resolution) - sliceColSize);
-                            for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                                getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
-                                        posPath, negPath, posWriter, posLabelWriter, negWriter, false);
-                            }
-                        }
-
-                        */
                     }
                 }
             }
@@ -147,6 +130,23 @@ public class DistortionFinder implements RegionFinder {
             ex.printStackTrace();
         }
     }
+
+    /*
+    private void iterateAcrossIntraChromosomalRegion(MatrixZoomData zd, Chromosome chrom, int resolution, Integer sliceRowSize,
+                                                     Integer sliceColSize, String posPath, String negPath, Writer posWriter, Writer posLabelWriter, Writer negWriter, Writer negLabelWriter, boolean b) {
+
+        // sliding along the diagonal
+        for (int rowIndex = 0; rowIndex < (chromI.getLength() / resolution) - sliceColSize; rowIndex += stride) {
+            int startCol = Math.max(0, rowIndex);
+            int endCol = Math.min(rowIndex, (chromJ.getLength() / resolution) - sliceColSize);
+            for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
+                getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, sliceRowSize, sliceColSize,
+                        posPath, negPath, posWriter, posLabelWriter, negWriter, false);
+            }
+        }
+    }
+    */
+
 
     private void getTrainingDataAndSaveToFile(MatrixZoomData zd, Chromosome chromR, Chromosome chromC, int rowIndex, int colIndex, int resolution,
                                               Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
