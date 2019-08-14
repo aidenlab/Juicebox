@@ -34,8 +34,10 @@ import jcuda.utils.KernelLauncher;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.juicer.HiCCUPS;
+import juicebox.tools.clt.juicer.HiCCUPSRegionHandler;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -101,14 +103,14 @@ public class GPUController {
         return cuFileText;
     }
 
-    public GPUOutputContainer process(HiCCUPSRegionContainer regionContainer, int matrixSize,
+    public GPUOutputContainer process(HiCCUPSRegionHandler regionHandler, HiCCUPSRegionContainer regionContainer, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
-                                      NormalizationType normalizationType)
+                                      NormalizationType normalizationType, HiCZoom zoom)
             throws NegativeArraySizeException, IOException {
 
-        MatrixZoomData zd = regionContainer.getZd();
-        double[] normalizationVector = regionContainer.getNormalizationVector();
-        double[] expectedVector = regionContainer.getExpectedVector();
+        MatrixZoomData zd = regionHandler.getZoomData(regionContainer, zoom);
+        double[] normalizationVector = regionHandler.getNormalizationVector(regionContainer, zoom);
+        double[] expectedVector = regionHandler.getExpectedVector(regionContainer, zoom);
         int[] rowBounds = regionContainer.getRowBounds();
         int[] columnBounds = regionContainer.getColumnBounds();
 

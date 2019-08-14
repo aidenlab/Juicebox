@@ -244,7 +244,17 @@ public class ChromosomeHandler {
         if (intersection.isEmpty()) {
             return null;
         }
-        else return new ChromosomeHandler(new ArrayList<>(intersection));
+
+        List<Chromosome> newSetOfChrs = new ArrayList<>();
+        long genomeLength = getTotalLengthOfAllChromosomes(cleanedChromosomes);
+        newSetOfChrs.add(new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        for (Chromosome chromosome : cleanedChromosomes) {
+            if (!isAllByAll(chromosome) && intersection.contains(chromosome)) {
+                newSetOfChrs.add(chromosome);
+            }
+        }
+
+        return new ChromosomeHandler(newSetOfChrs);
     }
 
     public Chromosome[] getAutosomalChromosomesArray() {
