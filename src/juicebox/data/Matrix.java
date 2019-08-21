@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
@@ -140,8 +141,10 @@ public class Matrix {
             indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
         }
 
-        System.out.println(indicesForChr1);
-        //System.out.println(indicesForChr2);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Indices_1 " + indicesForChr1);
+            System.out.println("Indices_2 " + indicesForChr2);
+        }
 
         // TODO need to sort first!!
         Chromosome newChr1 = chr1, newChr2 = chr2;
@@ -150,7 +153,7 @@ public class Matrix {
             newChr2 = chr1;
         }
 
-        Map<HiCZoom, MatrixZoomData> customZDs = new HashMap<>();
+        Map<HiCZoom, CustomMatrixZoomData> customZDs = new HashMap<>();
 
         // ensure all regions loaded
         for (Chromosome i : indicesForChr1) {
@@ -165,11 +168,17 @@ public class Matrix {
                         // TODO high priority, needs to be fixed
                         int numAttempts = 0;
                         while (m == null && numAttempts < 3) {
+                            numAttempts++;
                             try {
                                 m = reader.readMatrix(key);
                             } catch (Exception ignored) {
-                                numAttempts++;
                             }
+                        }
+                        if (m == null) {
+                            if (HiCGlobals.printVerboseComments) {
+                                System.out.println("nothing found for cc4 " + i.getName() + " - " + j.getName());
+                            }
+                            continue;
                         }
                         matrices.put(key, m);
                     }
@@ -181,8 +190,10 @@ public class Matrix {
                     }
                 } catch (Exception ee) {
                     System.err.println("Custom Chr Region Missing " + key);
-                    ee.printStackTrace();
+                    //ee.printStackTrace();
                 }
+                if (HiCGlobals.printVerboseComments)
+                    System.out.println("completed cc4 " + i.getName() + " - " + j.getName());
             }
         }
         return new Matrix(chr1.getIndex(), chr2.getIndex(), new ArrayList<>(customZDs.values()));
@@ -206,21 +217,23 @@ public class Matrix {
         } else {
             indices.add(chromosome);
         }
+
+        ChromosomeHandler.sort(indices);
         return indices;
     }
 
     private static void updateCustomZoomDataRegions(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                                     String regionKey, MatrixZoomData zd,
-                                                    Map<HiCZoom, MatrixZoomData> customZDs, DatasetReader reader) {
-        if (customZDs.containsKey(zd.getZoom())) {
-            ((CustomMatrixZoomData) customZDs.get(zd.getZoom())).expandAvailableZoomDatas(regionKey, zd);
-        } else {
-            customZDs.put(zd.getZoom(), new CustomMatrixZoomData(chr1, chr2, handler, regionKey, zd, reader));
+                                                    Map<HiCZoom, CustomMatrixZoomData> customZDs, DatasetReader reader) {
+        if (!customZDs.containsKey(zd.getZoom())) {
+            customZDs.put(zd.getZoom(), new CustomMatrixZoomData(chr1, chr2, handler, zd.getZoom(), reader));
         }
+
+        customZDs.get(zd.getZoom()).expandAvailableZoomDatas(regionKey, zd);
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
-        //System.out.println("c1 "+chr1 + " c2 "+chr2);
+        if (HiCGlobals.printVerboseComments) System.out.println("c1 " + chr1 + " c2 " + chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);

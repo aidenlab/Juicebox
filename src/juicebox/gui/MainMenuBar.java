@@ -440,7 +440,16 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.createCustomChromosomesFromBED();
       }
     });
+
+    JMenuItem addGWChromosome = new JMenuItem("Make Genomewide Chromosome");
+    addGWChromosome.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.createGenomewideChromosomeFromChromDotSizes();
+      }
+    });
+
     if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
+      //viewMenu.add(addGWChromosome);
       viewMenu.add(addCustomChromosome);
     }
 

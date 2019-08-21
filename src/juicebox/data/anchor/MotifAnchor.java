@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,10 +68,8 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
             this.x1 = x1;
             this.x2 = x2;
         } else {
-            // x2 < x1 shouldn't ever happen, but just in case
-            System.err.println("Improperly formatted Motif file");
-            //this.x1 = x2;
-            //this.x2 = x1;
+            System.err.println("Improperly formatted Motif file: index " + chrIndex + " x1 " + x1 + " x2 " + x2);
+            // todo throw new InvalidObjectException();
         }
     }
 

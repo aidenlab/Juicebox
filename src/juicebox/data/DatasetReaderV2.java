@@ -747,7 +747,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
 
             if (nv1 == null || nv2 == null) {
-                if (true || HiCGlobals.printVerboseComments) {
+                if (HiCGlobals.printVerboseComments) { // todo should this print an error always instead?
                     System.err.println("Norm " + no + " missing for: " + zd.getDescription());
                     System.err.println(nv1 + " - " + nv2);
                 }
