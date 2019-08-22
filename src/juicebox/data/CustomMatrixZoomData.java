@@ -223,129 +223,57 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         final AtomicInteger errorCounter = new AtomicInteger();
         ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        int trialType = 0;
-        long timeStart = System.currentTimeMillis();
+        long[] timesPassed = new long[3];
+        long overallTimeStart = System.currentTimeMillis();
 
-        if (trialType == 0) {
-            for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
-                final Map<RegionPair, List<Integer>> blockNumberMap = blocksNumsToLoadForZd.get(zd);
+        for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
+            final Map<RegionPair, List<Integer>> blockNumberMap = blocksNumsToLoadForZd.get(zd);
+            for (final RegionPair rp : blockNumberMap.keySet()) {
                 Runnable loader = new Runnable() {
                     @Override
                     public void run() {
-                        for (final RegionPair rp : blockNumberMap.keySet()) {
-                            for (final int blockNum : blockNumberMap.get(rp)) {
-                                try {
-                                    String key = zd.getBlockKey(blockNum, no);
-                                    Block b = reader.readNormalizedBlock(blockNum, zd, no);
-                                    if (b == null) {
-                                        b = new Block(blockNum, key + rp.getDescription());   // An empty block
-                                    } else {
-                                        b = modifyBlock(b, key, zd, rp);
-                                    }
-
-                                    if (HiCGlobals.useCache) {
-                                        synchronized (allBlockCaches) {
-                                            if (!allBlockCaches.containsKey(zd)) {
-                                                allBlockCaches.put(zd, new HashMap<RegionPair, LRUCache<String, Block>>());
-                                            }
-                                            if (!allBlockCaches.get(zd).containsKey(rp)) {
-                                                allBlockCaches.get(zd).put(rp, new LRUCache<String, Block>(50));
-                                            }
-                                            allBlockCaches.get(zd).get(rp).put(key, b);
-                                        }
-                                    }
-                                    blockList.add(b);
-                                } catch (IOException e) {
-                                    System.err.println("--e0 " + zd.getDescription() + " - " + rp.getDescription());
-                                    errorCounter.incrementAndGet();
+                        for (final int blockNum : blockNumberMap.get(rp)) {
+                            try {
+                                long time0 = System.currentTimeMillis();
+                                String key = zd.getBlockKey(blockNum, no);
+                                long time1 = System.currentTimeMillis();
+                                Block b = reader.readNormalizedBlock(blockNum, zd, no);
+                                long time2 = System.currentTimeMillis();
+                                if (b == null) {
+                                    b = new Block(blockNum, key + rp.getDescription());   // An empty block
+                                } else {
+                                    b = modifyBlock(b, key, zd, rp);
                                 }
+                                long time3 = System.currentTimeMillis();
+
+                                if (HiCGlobals.useCache) {
+                                    synchronized (allBlockCaches) {
+                                        if (!allBlockCaches.containsKey(zd)) {
+                                            allBlockCaches.put(zd, new HashMap<RegionPair, LRUCache<String, Block>>());
+                                        }
+                                        if (!allBlockCaches.get(zd).containsKey(rp)) {
+                                            allBlockCaches.get(zd).put(rp, new LRUCache<String, Block>(50));
+                                        }
+                                        allBlockCaches.get(zd).get(rp).put(key, b);
+                                    }
+                                }
+                                blockList.add(b);
+
+                                synchronized (timesPassed) {
+                                    timesPassed[0] += time1 - time0;
+                                    timesPassed[1] += time2 - time1;
+                                    timesPassed[2] += time3 - time2;
+                                }
+                            } catch (IOException e) {
+                                System.err.println("--e0 " + zd.getDescription() + " - " + rp.getDescription());
+                                errorCounter.incrementAndGet();
                             }
                         }
                     }
                 };
                 service.submit(loader);
             }
-        } else if (trialType == 1) {
-            for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
-                final Map<RegionPair, List<Integer>> blockNumberMap = blocksNumsToLoadForZd.get(zd);
-                for (final RegionPair rp : blockNumberMap.keySet()) {
-                    Runnable loader = new Runnable() {
-                        @Override
-                        public void run() {
-                            for (final int blockNum : blockNumberMap.get(rp)) {
-                                try {
-                                    String key = zd.getBlockKey(blockNum, no);
-                                    Block b = reader.readNormalizedBlock(blockNum, zd, no);
-                                    if (b == null) {
-                                        b = new Block(blockNum, key + rp.getDescription());   // An empty block
-                                    } else {
-                                        b = modifyBlock(b, key, zd, rp);
-                                    }
-
-                                    if (HiCGlobals.useCache) {
-                                        synchronized (allBlockCaches) {
-                                            if (!allBlockCaches.containsKey(zd)) {
-                                                allBlockCaches.put(zd, new HashMap<RegionPair, LRUCache<String, Block>>());
-                                            }
-                                            if (!allBlockCaches.get(zd).containsKey(rp)) {
-                                                allBlockCaches.get(zd).put(rp, new LRUCache<String, Block>(50));
-                                            }
-                                            allBlockCaches.get(zd).get(rp).put(key, b);
-                                        }
-                                    }
-                                    blockList.add(b);
-                                } catch (IOException e) {
-                                    System.err.println("--e0 " + zd.getDescription() + " - " + rp.getDescription());
-                                    errorCounter.incrementAndGet();
-                                }
-                            }
-                        }
-                    };
-                    service.submit(loader);
-                }
-            }
-        } else {
-            for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
-                final Map<RegionPair, List<Integer>> blockNumberMap = blocksNumsToLoadForZd.get(zd);
-                for (final RegionPair rp : blockNumberMap.keySet()) {
-                    for (final int blockNum : blockNumberMap.get(rp)) {
-                        Runnable loader = new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    String key = zd.getBlockKey(blockNum, no);
-                                    Block b = reader.readNormalizedBlock(blockNum, zd, no);
-                                    if (b == null) {
-                                        b = new Block(blockNum, key + rp.getDescription());   // An empty block
-                                    } else {
-                                        b = modifyBlock(b, key, zd, rp);
-                                    }
-
-                                    if (HiCGlobals.useCache) {
-                                        synchronized (allBlockCaches) {
-                                            if (!allBlockCaches.containsKey(zd)) {
-                                                allBlockCaches.put(zd, new HashMap<RegionPair, LRUCache<String, Block>>());
-                                            }
-                                            if (!allBlockCaches.get(zd).containsKey(rp)) {
-                                                allBlockCaches.get(zd).put(rp, new LRUCache<String, Block>(50));
-                                            }
-                                            allBlockCaches.get(zd).get(rp).put(key, b);
-                                        }
-                                    }
-                                    blockList.add(b);
-                                } catch (IOException e) {
-                                    System.err.println("--e0 " + zd.getDescription() + " - " + rp.getDescription());
-                                    errorCounter.incrementAndGet();
-                                }
-                            }
-                        };
-                        service.submit(loader);
-                    }
-                }
-            }
         }
-
-
 
         // done submitting all jobs
         service.shutdown();
@@ -365,9 +293,9 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             }
         }
 
-        long timeEnd = System.currentTimeMillis() - timeStart;
-        double totalTimeInSecs = timeEnd / 1000.0;
-        System.out.println("Time taken in actuallyLoadGivenBlocks type " + trialType + " (seconds): " + totalTimeInSecs);
+        long timeFinalOverall = System.currentTimeMillis();
+        System.out.println("Time taken in actuallyLoadGivenBlocks (seconds): " + timesPassed[0] / 1000.0 + " - " + timesPassed[1] / 1000.0 + " - " + timesPassed[2] / 1000.0);
+        System.out.println("Time taken overall (seconds): " + (overallTimeStart - timeFinalOverall) / 1000.0);
 
         // error printing
         if (errorCounter.get() > 0) {
