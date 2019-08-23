@@ -70,6 +70,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private long normVectorFilePosition;
     private boolean activeStatus = true;
     private final AtomicBoolean useMainStream = new AtomicBoolean();
+    public static double[] globalTimeDiffThings = new double[5];
 
     @Override
     public Dataset read() throws IOException {
@@ -576,49 +577,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return chrSites;
     }
 
-    @Override
-    public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
-
-        if (no == null) {
-            throw new IOException("Norm " + no + " is null");
-        } else if (no.equals(NormalizationHandler.NONE)) {
-            return readBlock(blockNumber, zd);
-        } else {
-            NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
-            NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
-
-            if (nv1 == null || nv2 == null) {
-                if (HiCGlobals.printVerboseComments) { // todo should this print an error always instead?
-                    System.err.println("Norm " + no + " missing for: " + zd.getDescription());
-                    System.err.println(nv1 + " - " + nv2);
-                }
-                return null;
-            }
-            double[] nv1Data = nv1.getData();
-            double[] nv2Data = nv2.getData();
-            Block rawBlock = readBlock(blockNumber, zd);
-            if (rawBlock == null) return null;
-
-            Collection<ContactRecord> records = rawBlock.getContactRecords();
-            List<ContactRecord> normRecords = new ArrayList<>(records.size());
-            for (ContactRecord rec : records) {
-                int x = rec.getBinX();
-                int y = rec.getBinY();
-                float counts;
-                if (nv1Data[x] != 0 && nv2Data[y] != 0 && !Double.isNaN(nv1Data[x]) && !Double.isNaN(nv2Data[y])) {
-                    counts = (float) (rec.getCounts() / (nv1Data[x] * nv2Data[y]));
-                } else {
-                    counts = Float.NaN;
-                }
-                normRecords.add(new ContactRecord(x, y, counts));
-            }
-
-            //double sparsity = (normRecords.size() * 100) / (Preprocessor.BLOCK_SIZE * Preprocessor.BLOCK_SIZE);
-            //System.out.println(sparsity);
-
-            return new Block(blockNumber, normRecords, zd.getBlockKey(blockNumber, no));
-        }
-    }
+    private final AtomicBoolean useMainCompression = new AtomicBoolean();
 
     @Override
     public List<Integer> getBlockNumbers(MatrixZoomData zd) {
@@ -626,108 +585,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return blockIndex == null ? null : new ArrayList<>(blockIndex.keySet());
     }
 
-    private Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
-
-        Block b = null;
-        Map<Integer, Preprocessor.IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
-        if (blockIndex != null) {
-
-            Preprocessor.IndexEntry idx = blockIndex.get(blockNumber);
-            if (idx != null) {
-
-                //System.out.println(" blockIndexPosition:" + idx.position);
-
-                byte[] compressedBytes = seekAndFullyReadCompressedBytes(idx);
-                byte[] buffer;
-
-                try {
-                    CompressionUtils compressionUtils = new CompressionUtils();
-                    buffer = compressionUtils.decompress(compressedBytes);
-
-                } catch (Exception e) {
-                    throw new RuntimeException("Block read error: " + e.getMessage());
-                }
-
-                LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-                int nRecords = dis.readInt();
-                List<ContactRecord> records = new ArrayList<>(nRecords);
-
-                if (version < 7) {
-                    for (int i = 0; i < nRecords; i++) {
-                        int binX = dis.readInt();
-                        int binY = dis.readInt();
-                        float counts = dis.readFloat();
-                        records.add(new ContactRecord(binX, binY, counts));
-                    }
-                } else {
-
-                    int binXOffset = dis.readInt();
-                    int binYOffset = dis.readInt();
-
-                    boolean useShort = dis.readByte() == 0;
-
-                    byte type = dis.readByte();
-
-                    switch (type) {
-                        case 1:
-                            // List-of-rows representation
-                            int rowCount = dis.readShort();
-
-                            for (int i = 0; i < rowCount; i++) {
-
-                                int binY = binYOffset + dis.readShort();
-                                int colCount = dis.readShort();
-
-                                for (int j = 0; j < colCount; j++) {
-
-                                    int binX = binXOffset + dis.readShort();
-                                    float counts = useShort ? dis.readShort() : dis.readFloat();
-                                    records.add(new ContactRecord(binX, binY, counts));
-                                }
-                            }
-                            break;
-                        case 2:
-
-                            int nPts = dis.readInt();
-                            int w = dis.readShort();
-
-                            for (int i = 0; i < nPts; i++) {
-                                //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                                int row = i / w;
-                                int col = i - row * w;
-                                int bin1 = binXOffset + col;
-                                int bin2 = binYOffset + row;
-
-                                if (useShort) {
-                                    short counts = dis.readShort();
-                                    if (counts != Short.MIN_VALUE) {
-                                        records.add(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                } else {
-                                    float counts = dis.readFloat();
-                                    if (!Float.isNaN(counts)) {
-                                        records.add(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                }
-
-
-                            }
-
-                            break;
-                        default:
-                            throw new RuntimeException("Unknown block type: " + type);
-                    }
-                }
-                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
-            }
-        }
-
-        // If no block exists, mark with an "empty block" to prevent further attempts
-        if (b == null) {
-            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
-        }
-        return b;
-    }
+    private final CompressionUtils mainCompressionUtils = new CompressionUtils();
+    private final CompressionUtils backUpCompressionUtils = new CompressionUtils();
 
     @Override
     public void close() {
@@ -803,6 +662,188 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
         }
         return compressedBytes;
+    }
+
+    @Override
+    public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
+
+        if (no == null) {
+            throw new IOException("Norm " + no + " is null");
+        } else if (no.equals(NormalizationHandler.NONE)) {
+            return readBlock(blockNumber, zd);
+        } else {
+            long[] timeDiffThings = new long[4];
+            timeDiffThings[0] = System.currentTimeMillis();
+            NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
+            NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
+
+            if (nv1 == null || nv2 == null) {
+                if (HiCGlobals.printVerboseComments) { // todo should this print an error always instead?
+                    System.err.println("Norm " + no + " missing for: " + zd.getDescription());
+                    System.err.println(nv1 + " - " + nv2);
+                }
+                return null;
+            }
+            double[] nv1Data = nv1.getData();
+            double[] nv2Data = nv2.getData();
+            timeDiffThings[1] = System.currentTimeMillis();
+            Block rawBlock = readBlock(blockNumber, zd);
+            timeDiffThings[2] = System.currentTimeMillis();
+            if (rawBlock == null) return null;
+
+            Collection<ContactRecord> records = rawBlock.getContactRecords();
+            List<ContactRecord> normRecords = new ArrayList<>(records.size());
+            for (ContactRecord rec : records) {
+                int x = rec.getBinX();
+                int y = rec.getBinY();
+                float counts;
+                if (nv1Data[x] != 0 && nv2Data[y] != 0 && !Double.isNaN(nv1Data[x]) && !Double.isNaN(nv2Data[y])) {
+                    counts = (float) (rec.getCounts() / (nv1Data[x] * nv2Data[y]));
+                } else {
+                    counts = Float.NaN;
+                }
+                normRecords.add(new ContactRecord(x, y, counts));
+            }
+            timeDiffThings[3] = System.currentTimeMillis();
+
+            //double sparsity = (normRecords.size() * 100) / (Preprocessor.BLOCK_SIZE * Preprocessor.BLOCK_SIZE);
+            //System.out.println(sparsity);
+            //if(HiCGlobals.printVerboseComments) {
+            //    System.out.println("Time taken inside of reader " +
+            //            (timeDiffThings[1] - timeDiffThings[0]) / 1000.0 + " - " + (timeDiffThings[2] - timeDiffThings[1]) / 1000.0 + " - " + (timeDiffThings[3] - timeDiffThings[2]) / 1000.0);
+            //}
+
+            return new Block(blockNumber, normRecords, zd.getBlockKey(blockNumber, no));
+        }
+    }
+
+    private Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
+
+        long[] timeDiffThings = new long[6];
+        timeDiffThings[0] = System.currentTimeMillis();
+
+        Block b = null;
+        Map<Integer, Preprocessor.IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
+        if (blockIndex != null) {
+
+            Preprocessor.IndexEntry idx = blockIndex.get(blockNumber);
+            if (idx != null) {
+
+                //System.out.println(" blockIndexPosition:" + idx.position);
+                timeDiffThings[1] = System.currentTimeMillis();
+                byte[] compressedBytes = seekAndFullyReadCompressedBytes(idx);
+                timeDiffThings[2] = System.currentTimeMillis();
+                byte[] buffer;
+
+                try {
+                    buffer = decompress(compressedBytes);
+                    timeDiffThings[3] = System.currentTimeMillis();
+
+                } catch (Exception e) {
+                    throw new RuntimeException("Block read error: " + e.getMessage());
+                }
+
+                LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+                int nRecords = dis.readInt();
+                List<ContactRecord> records = new ArrayList<>(nRecords);
+                timeDiffThings[4] = System.currentTimeMillis();
+
+                if (version < 7) {
+                    for (int i = 0; i < nRecords; i++) {
+                        int binX = dis.readInt();
+                        int binY = dis.readInt();
+                        float counts = dis.readFloat();
+                        records.add(new ContactRecord(binX, binY, counts));
+                    }
+                } else {
+
+                    int binXOffset = dis.readInt();
+                    int binYOffset = dis.readInt();
+
+                    boolean useShort = dis.readByte() == 0;
+
+                    byte type = dis.readByte();
+
+                    switch (type) {
+                        case 1:
+                            // List-of-rows representation
+                            int rowCount = dis.readShort();
+
+                            for (int i = 0; i < rowCount; i++) {
+
+                                int binY = binYOffset + dis.readShort();
+                                int colCount = dis.readShort();
+
+                                for (int j = 0; j < colCount; j++) {
+
+                                    int binX = binXOffset + dis.readShort();
+                                    float counts = useShort ? dis.readShort() : dis.readFloat();
+                                    records.add(new ContactRecord(binX, binY, counts));
+                                }
+                            }
+                            break;
+                        case 2:
+
+                            int nPts = dis.readInt();
+                            int w = dis.readShort();
+
+                            for (int i = 0; i < nPts; i++) {
+                                //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
+                                int row = i / w;
+                                int col = i - row * w;
+                                int bin1 = binXOffset + col;
+                                int bin2 = binYOffset + row;
+
+                                if (useShort) {
+                                    short counts = dis.readShort();
+                                    if (counts != Short.MIN_VALUE) {
+                                        records.add(new ContactRecord(bin1, bin2, counts));
+                                    }
+                                } else {
+                                    float counts = dis.readFloat();
+                                    if (!Float.isNaN(counts)) {
+                                        records.add(new ContactRecord(bin1, bin2, counts));
+                                    }
+                                }
+                            }
+
+                            break;
+                        default:
+                            throw new RuntimeException("Unknown block type: " + type);
+                    }
+                }
+                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
+                timeDiffThings[5] = System.currentTimeMillis();
+                for (int ii = 0; ii < timeDiffThings.length - 1; ii++) {
+                    globalTimeDiffThings[ii] += (timeDiffThings[ii + 1] - timeDiffThings[ii]) / 1000.0;
+                }
+            }
+        }
+
+        // If no block exists, mark with an "empty block" to prevent further attempts
+        if (b == null) {
+            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
+        }
+        return b;
+    }
+
+    private byte[] decompress(byte[] compressedBytes) {
+        boolean currentlyUseMainCompression;
+
+        synchronized (useMainCompression) {
+            currentlyUseMainCompression = useMainCompression.get();
+            useMainCompression.set(!currentlyUseMainCompression);
+        }
+
+        if (currentlyUseMainCompression) {
+            synchronized (mainCompressionUtils) {
+                return mainCompressionUtils.decompress(compressedBytes);
+            }
+        } else {
+            synchronized (backUpCompressionUtils) {
+                return backUpCompressionUtils.decompress(compressedBytes);
+            }
+        }
     }
 
     /*
