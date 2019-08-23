@@ -195,12 +195,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
     // todo pearsons
     if (hic.isInPearsonsMode()) {
       // Possibly force asynchronous computation of pearsons
-      if (hic.isPearsonsNotAvailable(false)) {
+        if (hic.isPearsonsNotAvailableForFile(false)) {
         JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
             "resolution, use 500KB or lower resolution.");
         return;
       }
-      if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailable(false)) {
+        if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailableForFile(false)) {
         JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
             "resolution, use 500KB or lower resolution.");
         return;
@@ -617,7 +617,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
   public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
                                  NormalizationType observedNormalizationType, NormalizationType controlNormalizationType) {
-    if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
+      if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailableForFile(false)) {
       JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
       return null;
     }
@@ -931,6 +931,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
 
+      final JMenuItem mi9_c = new JMenuItem("Export data centered on pixel");
+      mi9_c.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              try {
+                  hic.exportDataCenteredAboutRegion(xMousePos, yMousePos);
+              } catch (Exception ee) {
+                  ee.printStackTrace();
+              }
+          }
+      });
+
     final JCheckBoxMenuItem mi9_h = new JCheckBoxMenuItem("Generate Horizontal 1D Track");
     mi9_h.addActionListener(new ActionListener() {
       @Override
@@ -1008,6 +1020,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.addSeparator();
         menu.add(mi9_h);
         menu.add(mi9_v);
+          menu.add(mi9_c);
       }
 
       boolean menuSeparatorNotAdded = true;

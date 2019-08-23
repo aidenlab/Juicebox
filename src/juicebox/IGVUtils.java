@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 package juicebox;
 
-import org.broad.igv.Globals;
+import juicebox.data.ChromosomeHandler;
 import org.broad.igv.ui.IGV;
 
 import java.io.BufferedReader;
@@ -81,8 +81,7 @@ class IGVUtils {
         Runnable runnable = new Runnable() {
             public void run() {
 
-                // TODO deprecate, if want to use, see chromosome handler because other variations possible
-                if (locus1.startsWith(Globals.CHR_ALL) || locus1.startsWith("chrAll")) {
+                if (ChromosomeHandler.isAllByAll(locus1)) {
                     return;
                 }
 

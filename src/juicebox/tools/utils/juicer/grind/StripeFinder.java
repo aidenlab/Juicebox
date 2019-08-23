@@ -27,6 +27,7 @@ package juicebox.tools.utils.juicer.grind;
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -73,20 +74,13 @@ public class StripeFinder implements RegionFinder {
         this.stride = stride;
     }
 
-    private void makeDir(String path) {
-        File file = new File(path);
-        if (!file.isDirectory()) {
-            file.mkdir();
-        }
-    }
-
     @Override
     public void makePositiveExamples() {
 
         final String negPath = path + "/negative";
         final String posPath = path + "/positive";
-        makeDir(negPath);
-        makeDir(posPath);
+        UNIXTools.makeDir(negPath);
+        UNIXTools.makeDir(posPath);
 
         try {
 

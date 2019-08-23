@@ -179,7 +179,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 position += 4;
 
                 chromosomes.add(new Chromosome(i, ChromosomeHandler.cleanUpName(name), size));
-            }
+            } // todo is the genomewide chr included already?
             dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes));
             // guess genomeID from chromosomes
             String genomeId1 = dataset.getChromosomeHandler().getGenomeId();
@@ -253,7 +253,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         dis.readInt();                // Old "zoom" index -- not used
 
         // Stats.  Not used yet, but we need to read them anyway
-        double sumCounts = (double) dis.readFloat();
+        double sumCounts = dis.readFloat();
         float occupiedCellCount = dis.readFloat();
         float stdDev = dis.readFloat();
         float percent95 = dis.readFloat();

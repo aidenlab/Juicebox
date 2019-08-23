@@ -115,7 +115,7 @@ public class CombinedDatasetReader implements DatasetReader {
         return allBoxes;
     }
 
-    // todo
+    // todo this just picks the normalization for the first map rather doing an appropriate calculation
     @Override
     public NormalizationVector getNormalizationVector(int chr1Idx, HiCZoom zoom, NormalizationType normalizationType) {
         return readers.get(0).getNormalizationVector(chr1Idx, zoom, normalizationType);

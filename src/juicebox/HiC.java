@@ -28,12 +28,14 @@ package juicebox;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
@@ -42,6 +44,7 @@ import org.broad.igv.util.ResourceLocator;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,7 +131,7 @@ public class HiC {
         clearFeatures();
     }
 
-    // TODO zgire - why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
+    //Todo why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
@@ -1131,7 +1134,7 @@ public class HiC {
                 (isInPearsonsMode() && currentZoom.getBinSize() <= HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
-    public boolean isPearsonsNotAvailable(boolean isControl) {
+    public boolean isPearsonsNotAvailableForFile(boolean isControl) {
         try {
             if (isControl) {
                 MatrixZoomData cZd = getControlZd();
@@ -1145,11 +1148,13 @@ public class HiC {
         }
     }
 
-    // todo remove / replace with above?
-    public boolean isPearsonsNotAvailable(HiCZoom zoom) {
+    public boolean isPearsonsNotAvailableAtSpecificZoom(boolean isControl, HiCZoom zoom) {
         try {
-            MatrixZoomData zd = getMatrix().getZoomData(zoom);
-            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), obsNormalizationType)) == null;
+            if (isControl) {
+                return getControlZd().getPearsons(controlDataset.getExpectedValues(zoom, ctrlNormalizationType)) == null;
+            } else {
+                return getZd().getPearsons(dataset.getExpectedValues(zoom, obsNormalizationType)) == null;
+            }
         } catch (Exception e) {
             return true;
         }
@@ -1274,6 +1279,60 @@ public class HiC {
             }
         }
     }
+
+    public void exportDataCenteredAboutRegion(int xBinPos, int yBinPos) throws IOException {
+
+        int radius = 20;
+
+        // Initialize default file name
+        String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
+        filename += "_bin_" + xBinPos + "_" + yBinPos + "_res_" + currentZoom.getBinSize();
+        filename = cleanUpNumbersInName(filename);
+
+        // allow user to customize or change the name
+        filename = MessageUtils.showInputDialog("Enter a name for the resulting .txt file", filename);
+        if (filename == null || filename.equalsIgnoreCase("null"))
+            return;
+
+        String radiusSize = MessageUtils.showInputDialog("What radius of pixels around the selected point would you like", "" + radius);
+        try {
+            radius = Integer.parseInt(radiusSize);
+        } catch (Exception ignored) {
+            radius = 20;
+        }
+
+        File outputMatrixFile = new File(DirectoryManager.getHiCDirectory(), filename + ".txt");
+        SuperAdapter.showMessageDialog("Data will be saved to " + outputMatrixFile.getAbsolutePath());
+
+        // extract the starting position
+        int xbinStartPosition = (int) (getXContext().getBinOrigin() + xBinPos / getScaleFactor());
+        int ybinStartPosition = (int) (getYContext().getBinOrigin() + yBinPos / getScaleFactor());
+
+        int binXStart = xbinStartPosition - radius;
+        int binXEnd = xbinStartPosition + radius;
+        int binYStart = ybinStartPosition - radius;
+        int binYEnd = ybinStartPosition + radius;
+        int matrixWidth = 2 * radius + 1;
+
+        MatrixZoomData requestedZd = getZd();
+        NormalizationType requestedNormType = getObsNormalizationType();
+        if (MatrixType.isSimpleControlType(displayOption)) {
+            requestedZd = getControlZd();
+            requestedNormType = getControlNormalizationType();
+        }
+
+        RealMatrix realMatrix = HiCFileTools.extractLocalBoundedRegion(requestedZd, binXStart, binXEnd, binYStart, binYEnd,
+                matrixWidth, matrixWidth, requestedNormType, true);
+
+        MatrixTools.saveMatrixTextV2(outputMatrixFile.getAbsolutePath(), realMatrix);
+
+    }
+
+
+
+
+
+
 
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {

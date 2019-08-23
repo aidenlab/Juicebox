@@ -104,12 +104,13 @@ public class MainViewPanel {
     private final JPanel chrButtonPanel = new JPanel();
     private final JPanel chrLabelPanel = new JPanel(new BorderLayout());
     private final JLabel chrLabel = new JLabel("Chromosomes");
-    private final JLabel normalizationLabel = new JLabel("Normalization");
+    private final JLabel normalizationLabel = new JLabel("Normalization  (Obs  |  Ctrl)");
     private final JLabel displayOptionLabel = new JLabel("Show");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
     private boolean tooltipAllowedToUpdate = true;
     private boolean ignoreUpdateThumbnail = false;
     private final JPanel tooltipPanel = new JPanel(new BorderLayout());
+    private boolean controlIsLoaded = false;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {
         ignoreUpdateThumbnail = flag;
@@ -214,7 +215,7 @@ public class MainViewPanel {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeDisplayOptionComboBoxActionPerformed();
                 observedNormalizationComboBox.setEnabled(!isWholeGenome());
-                controlNormalizationComboBox.setEnabled(!isWholeGenome());
+                controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -600,6 +601,10 @@ public class MainViewPanel {
         return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
+    private boolean ifControlIsLoaded() {
+        return controlIsLoaded;
+    }
+
     private boolean isWholeGenome(HiC hic) {
         Chromosome chr1 = hic.getXContext().getChromosome();
         Chromosome chr2 = hic.getYContext().getChromosome();
@@ -622,7 +627,7 @@ public class MainViewPanel {
         }
 
         observedNormalizationComboBox.setEnabled(!isWholeGenome(hic));
-        controlNormalizationComboBox.setEnabled(!isWholeGenome());
+        controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
         displayOptionComboBox.setEnabled(true);
     }
 
@@ -800,7 +805,7 @@ public class MainViewPanel {
     public void setNormalizationEnabledForReload() {
         //observedNormalizationComboBox.setEnabled(true);
         observedNormalizationComboBox.setEnabled(!isWholeGenome());
-        controlNormalizationComboBox.setEnabled(!isWholeGenome());
+        controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
     }
 
     public void setPositionChrLeft(String newPositionDate) {
@@ -847,14 +852,15 @@ public class MainViewPanel {
         colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
     }
 
-    public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean status) {
+    public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean versionStatus) {
         if (isControl) {
+            controlIsLoaded = true;
             if (normalizationOptions != null && normalizationOptions.length == 1) {
                 controlNormalizationComboBox.setEnabled(false);
             } else {
                 controlNormalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
                 controlNormalizationComboBox.setSelectedIndex(0);
-                controlNormalizationComboBox.setEnabled(status && !isWholeGenome());
+                controlNormalizationComboBox.setEnabled(versionStatus && !isWholeGenome() && ifControlIsLoaded());
             }
         } else {
             if (normalizationOptions.length == 1) {
@@ -862,7 +868,7 @@ public class MainViewPanel {
             } else {
                 observedNormalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
                 observedNormalizationComboBox.setSelectedIndex(0);
-                observedNormalizationComboBox.setEnabled(status && !isWholeGenome());
+                observedNormalizationComboBox.setEnabled(versionStatus && !isWholeGenome());
             }
         }
     }

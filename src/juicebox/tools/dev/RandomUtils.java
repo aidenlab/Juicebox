@@ -55,7 +55,7 @@ class RandomUtils {
      * @param fileNames
      * @param outputFile
      */
-    public static void mergeLoopLists(String genomeID, String[] fileNames, File outputFile) {
+    public static void intersectLoopLists(String genomeID, String[] fileNames, File outputFile) {
 
         ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 

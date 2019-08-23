@@ -24,37 +24,17 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
-import juicebox.data.MatrixZoomData;
 import org.broad.igv.feature.Chromosome;
 
 public class HiCCUPSRegionContainer {
-    private final MatrixZoomData zd;
-    private final double[] normalizationVector;
-    private final double[] expectedVector;
+    private final Chromosome chromosome;
     private final int[] rowBounds;
     private final int[] columnBounds;
-    private final Chromosome chromosome;
 
-    public HiCCUPSRegionContainer(Chromosome chromosome, MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
-                                  int[] rowBounds, int[] columnBounds) {
+    public HiCCUPSRegionContainer(Chromosome chromosome, int[] rowBounds, int[] columnBounds) {
         this.chromosome = chromosome;
-        this.zd = zd;
-        this.normalizationVector = normalizationVector;
-        this.expectedVector = expectedVector;
         this.rowBounds = rowBounds;
         this.columnBounds = columnBounds;
-    }
-
-    public MatrixZoomData getZd() {
-        return zd;
-    }
-
-    public double[] getNormalizationVector() {
-        return normalizationVector;
-    }
-
-    public double[] getExpectedVector() {
-        return expectedVector;
     }
 
     public int[] getRowBounds() {

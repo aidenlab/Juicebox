@@ -260,16 +260,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    /*
-    public void setShowLoops(boolean showLoops) {
-        hic.setShowLoops(showLoops);
-    }
-
-    public void addVisibleLoops(CustomAnnotationHandler handler) {
-        handler.addVisibleLoops(hic);
-    }
-    */
-
     public String getDescription(String item) {
         return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
                 hic.getDefaultLocationDescription());
@@ -505,7 +495,7 @@ public class SuperAdapter {
 
         getHeatmapPanel().disableAssemblyEditing();
         resetAnnotationLayers();
-        HiCGlobals.hicMapScale = (double) 1;
+        HiCGlobals.hicMapScale = 1;
 //        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
@@ -593,12 +583,12 @@ public class SuperAdapter {
 
             } else {
                 try {
-                    if (hic.isPearsonsNotAvailable(false)) {
+                    if (hic.isPearsonsNotAvailableForFile(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }
-                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailableForFile(true)) {
                         JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;

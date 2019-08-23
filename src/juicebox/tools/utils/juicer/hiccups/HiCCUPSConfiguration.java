@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -146,6 +146,15 @@ public class HiCCUPSConfiguration {
 
     private static HiCCUPSConfiguration getDefaultBlankConfig(int res) {
         return new HiCCUPSConfiguration(res, 10, -1, -1, -1);
+    }
+
+    public static List<HiCCUPSConfiguration> getDefaultSetOfConfigsForUsers() {
+        List<HiCCUPSConfiguration> configurations = new ArrayList<>();
+        configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
+        configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
+        configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+        System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
+        return configurations;
     }
 
     private boolean isValid() {

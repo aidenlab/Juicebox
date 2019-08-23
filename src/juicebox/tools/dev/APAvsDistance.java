@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,14 +74,16 @@ public class APAvsDistance extends JuicerCLT  {
     private String SaveFolderPath;
     private File   SaveFolder;
 
-    //Defaults todo adjust binning algorithm so that there is enough features in each bucket for apa to run
-    private int[]resolutions;
+    //TODO add new flags for (exponent, numBins)
+    //todo appears to have bugs / see commented code for processing flags
+    //todo adjust binning algorithm so that there is enough features in each bucket for apa to run
+    private int[] resolutions = new int[]{25000};
     private int numBuckets=8;
     private double exponent=2;
     private double minPeakDist=0;
     private double maxPeakDist=30;
 
-    public APAvsDistance(){ //TODO add new flags for (exponent, numBins)
+    public APAvsDistance() {
         super("APAvsDistance [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
@@ -90,56 +92,6 @@ public class APAvsDistance extends JuicerCLT  {
 
     public static String getBasicUsage() {
         return "apa_vs_distance <hicFile(s)> <PeaksFile> <SaveFolder>";
-    }
-
-    private static void printResults(String[] windows, double[] results, String SaveFolderPath) {
-
-        File outFolder = new File(SaveFolderPath + "/results.txt");
-        try {
-            PrintWriter pw = new PrintWriter(outFolder);
-            pw.println("PeaktoPeak Distance\tAPA Score");
-            for (int i = 0; i < results.length; i++) {
-                pw.println(windows[i] + "\t" + results[i]);
-            }
-            pw.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private static void plotChart(String SaveFolderPath, XYSeries results) {
-        File file = new File(SaveFolderPath + "/results.png");
-
-        final XYSeriesCollection dataset = new XYSeriesCollection();
-        dataset.addSeries(results);
-
-        JFreeChart Chart = ChartFactory.createXYLineChart(
-                "APA vs Distance",
-                "Distance Bucket",
-                "APA Score",
-                dataset,
-                PlotOrientation.VERTICAL,
-                true, true, false);
-
-       /*
-       LogarithmicAxis logAxis= new LogarithmicAxis("Distance (log)");
-       XYPlot plot= Chart.getXYPlot();
-       plot.setDomainAxis(logAxis);
-       XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer();
-       renderer.setSeriesShapesVisible(0, true);
-       ChartFrame frame = new ChartFrame("My Chart", Chart);
-       frame.pack();
-       frame.setVisible(true);
-       */
-
-        int width = 640;   /* Width of the image */
-        int height = 480;  /* Height of the image */
-
-        try {
-            ChartUtilities.saveChartAsPNG(file, Chart, width, height);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath,
@@ -205,34 +157,82 @@ public class APAvsDistance extends JuicerCLT  {
         }
     }
 
-   @Override
+    private static void printResults(String[] windows, double[] results, String SaveFolderPath) {
+
+        File outFolder = new File(SaveFolderPath + "/results.txt");
+        try {
+            PrintWriter pw = new PrintWriter(outFolder);
+            pw.println("PeaktoPeak Distance\tAPA Score");
+            for (int i = 0; i < results.length; i++) {
+                pw.println(windows[i] + "\t" + results[i]);
+            }
+            pw.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private static void plotChart(String SaveFolderPath, XYSeries results) {
+        File file = new File(SaveFolderPath + "/results.png");
+
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(results);
+
+        JFreeChart Chart = ChartFactory.createXYLineChart(
+                "APA vs Distance",
+                "Distance Bucket",
+                "APA Score",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true, true, false);
+
+       /*
+       LogarithmicAxis logAxis= new LogarithmicAxis("Distance (log)");
+       XYPlot plot= Chart.getXYPlot();
+       plot.setDomainAxis(logAxis);
+       XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer();
+       renderer.setSeriesShapesVisible(0, true);
+       ChartFrame frame = new ChartFrame("My Chart", Chart);
+       frame.pack();
+       frame.setVisible(true);
+       */
+
+        int width = 640;   /* Width of the image */
+        int height = 480;  /* Height of the image */
+
+        try {
+            ChartUtilities.saveChartAsPNG(file, Chart, width, height);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
     public void run()  {
 
-       SaveFolder= new File(SaveFolderPath);
-       numBuckets=8;
-       exponent=2;
-       double[] results= new double[numBuckets];
-       String[] windows= new String[numBuckets];
-       XYSeries XYresults=new XYSeries("APA Result");
-       APA apa;
+        for (int resolution : resolutions) {
+            SaveFolder = new File(SaveFolderPath + resolution);
+            numBuckets = 8;
+            exponent = 2;
+            double[] results = new double[numBuckets];
+            String[] windows = new String[numBuckets];
+            XYSeries XYresults = new XYSeries("APA Result: " + resolution);
+            for (int i = 0; i < numBuckets; i++) {
+                APA apa = new APA();
+                apa.initializeDirectly(hicFilePaths, PeaksFile, SaveFolderPath + "/" + (int) minPeakDist + "-" + (int) maxPeakDist, new int[]{resolution}, minPeakDist, maxPeakDist);
+                windows[i] = minPeakDist + "-" + maxPeakDist;
+                System.out.println("Bucket:" + (i + 1) + " Window: " + windows[i]);
 
-      for(int i=0;i<numBuckets;i++)
-      {
-          apa=new APA();
-          resolutions = new int[]{25000};
-          apa.initializeDirectly(hicFilePaths,PeaksFile,SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist,resolutions,minPeakDist,maxPeakDist);
-          windows[i]=minPeakDist+"-"+maxPeakDist;
-          System.out.println("Bucket:" + (i + 1) + " Window: " + windows[i]);
+                //results[i]=i; //for testing binning algorithm
+                results[i] = apa.runWithReturn().getPeak2LL(); // calls APA returns results of apa and gets LL score
+                System.out.println(results[i]);
 
-          //results[i]=i; //for testing binning algorithm
-          results[i] = apa.runWithReturn().getPeak2LL(); // calls APA returns results of apa and gets LL score
-          System.out.println(results[i]);
-
-          XYresults.add(Math.log(maxPeakDist),results[i]);
-          minPeakDist=maxPeakDist;
-          maxPeakDist*=exponent;
-      }
-       plotChart(SaveFolderPath, XYresults);
-      printResults(windows,results,SaveFolderPath);
-   }
+                XYresults.add(Math.log(maxPeakDist), results[i]);
+                minPeakDist = maxPeakDist;
+                maxPeakDist *= exponent;
+            }
+            plotChart(SaveFolderPath + resolution, XYresults);
+            printResults(windows, results, SaveFolderPath + resolution);
+        }
+    }
 }
