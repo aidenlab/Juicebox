@@ -231,6 +231,24 @@ public class Preprocessor {
         return random.nextInt(high - low + 1) + low;
     }
 
+    private static Alignment calculateAlignment(AlignmentPair pair) {
+        if (pair.getStrand1() == pair.getStrand2()) {
+            return Alignment.TANDEM;
+        } else if (pair.getStrand1()) {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.INNER;
+            } else {
+                return Alignment.OUTER;
+            }
+        } else {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.OUTER;
+            } else {
+                return Alignment.INNER;
+            }
+        }
+    }
+
     public void preprocess(final String inputFile) throws IOException {
         File file = new File(inputFile);
 
@@ -440,6 +458,116 @@ public class Preprocessor {
         random.setSeed(seed);
     }
 
+    public void setRandomizePosition(boolean allowPositionsRandomization) {
+        this.allowPositionsRandomization = allowPositionsRandomization;
+    }
+
+    /**
+     * @param file List of files to read
+     * @return Matrix with counts in each bin
+     * @throws IOException
+     */
+    private MatrixPP computeWholeGenomeMatrix(String file, Alignment alignmentFilter) throws IOException {
+
+
+        MatrixPP matrix;
+        // NOTE: always true that c1 <= c2
+
+        int genomeLength = chromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
+        int binSize = genomeLength / 500;
+        if (binSize == 0) binSize = 1;
+        int nBinsX = genomeLength / binSize + 1;
+        int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
+        matrix = new MatrixPP(0, 0, binSize, nBlockColumns);
+
+        PairIterator iter = null;
+
+        int belowMapq = 0;
+        int intraFrag = 0;
+        int totalRead = 0;
+        int contig = 0;
+        int hicContact = 0;
+
+        // Create an index the first time through
+        try {
+            iter = (file.endsWith(".bin")) ?
+                    new BinPairIterator(file) :
+                    new AsciiPairIterator(file, chromosomeIndexes);
+
+            while (iter.hasNext()) {
+                totalRead++;
+                AlignmentPair pair = iter.next();
+                if (pair.isContigPair()) {
+                    contig++;
+                } else {
+                    int bp1 = pair.getPos1();
+                    int bp2 = pair.getPos2();
+                    int chr1 = pair.getChr1();
+                    int chr2 = pair.getChr2();
+                    int frag1 = pair.getFrag1();
+                    int frag2 = pair.getFrag2();
+                    int mapq1 = pair.getMapq1();
+                    int mapq2 = pair.getMapq2();
+
+                    int pos1, pos2;
+                    if (diagonalsOnly && chr1 != chr2) continue;
+                    if (includedChromosomes != null && chr1 != 0) {
+                        String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                        String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                        if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
+                            continue;
+                        }
+                    }
+
+                    if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+                        continue;
+                    }
+
+
+                    if (chr1 == chr2 && frag1 == frag2) {
+                        intraFrag++;
+                    } else if (mapq1 < mapqThreshold || mapq2 < mapqThreshold) {
+                        belowMapq++;
+                    } else {
+                        pos1 = getGenomicPosition(chr1, bp1);
+                        pos2 = getGenomicPosition(chr2, bp2);
+                        matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore());
+                        hicContact++;
+                    }
+                }
+            }
+        } finally {
+            if (iter != null) iter.close();
+        }
+/*
+Intra-fragment Reads: 2,321 (0.19% / 0.79%)
+Below MAPQ Threshold: 44,134 (3.57% / 15.01%)
+Hi-C Contacts: 247,589 (20.02% / 84.20%)
+ Ligation Motif Present: 99,245  (8.03% / 33.75%)
+ 3' Bias (Long Range): 73% - 27%
+ Pair Type %(L-I-O-R): 25% - 25% - 25% - 25%
+Inter-chromosomal: 58,845  (4.76% / 20.01%)
+Intra-chromosomal: 188,744  (15.27% / 64.19%)
+Short Range (<20Kb): 48,394  (3.91% / 16.46%)
+Long Range (>20Kb): 140,350  (11.35% / 47.73%)
+
+        System.err.println("contig: " + contig + " total: " + totalRead + " below mapq: " + belowMapq + " intra frag: " + intraFrag); */
+
+        matrix.parsingComplete();
+        return matrix;
+    }
+
+    private int getGenomicPosition(int chr, int pos) {
+        long len = 0;
+        for (int i = 1; i < chr; i++) {
+            len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
+        }
+        len += pos;
+
+        return (int) (len / 1000);
+
+    }
+
     private void writeBody(String inputFile) throws IOException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
 
@@ -537,130 +665,6 @@ public class Preprocessor {
         masterIndexPosition = los.getWrittenCount();
     }
 
-
-    private int getGenomicPosition(int chr, int pos) {
-        long len = 0;
-        for (int i = 1; i < chr; i++) {
-            len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
-        }
-        len += pos;
-
-        return (int) (len / 1000);
-
-    }
-
-    private static Alignment calculateAlignment(AlignmentPair pair) {
-        if (pair.getStrand1() == pair.getStrand2()) {
-            return Alignment.TANDEM;
-        } else if (pair.getStrand1()) {
-            if (pair.getPos1() < pair.getPos2()) {
-                return Alignment.INNER;
-            } else {
-                return Alignment.OUTER;
-            }
-        } else {
-            if (pair.getPos1() < pair.getPos2()) {
-                return Alignment.OUTER;
-            } else {
-                return Alignment.INNER;
-            }
-        }
-    }
-
-    /**
-     * @param file List of files to read
-     * @return Matrix with counts in each bin
-     * @throws IOException
-     */
-    private MatrixPP computeWholeGenomeMatrix(String file, Alignment alignmentFilter) throws IOException {
-
-
-        MatrixPP matrix;
-        // NOTE: always true that c1 <= c2
-
-        int genomeLength = chromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
-        int binSize = genomeLength / 500;
-        if (binSize == 0) binSize = 1;
-        int nBinsX = genomeLength / binSize + 1;
-        int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
-        matrix = new MatrixPP(0, 0, binSize, nBlockColumns);
-
-        PairIterator iter = null;
-
-        int belowMapq = 0;
-        int intraFrag = 0;
-        int totalRead = 0;
-        int contig = 0;
-        int hicContact = 0;
-
-        // Create an index the first time through
-        try {
-            iter = (file.endsWith(".bin")) ?
-                    new BinPairIterator(file) :
-                    new AsciiPairIterator(file, chromosomeIndexes);
-
-            while (iter.hasNext()) {
-                totalRead++;
-                AlignmentPair pair = iter.next();
-                if (pair.isContigPair()) {
-                    contig++;
-                } else {
-                    int bp1 = pair.getPos1();
-                    int bp2 = pair.getPos2();
-                    int chr1 = pair.getChr1();
-                    int chr2 = pair.getChr2();
-                    int frag1 = pair.getFrag1();
-                    int frag2 = pair.getFrag2();
-                    int mapq1 = pair.getMapq1();
-                    int mapq2 = pair.getMapq2();
-
-                    int pos1, pos2;
-                    if (diagonalsOnly && chr1 != chr2) continue;
-                    if (includedChromosomes != null && chr1 != 0) {
-                        String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
-                        String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                        if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
-                            continue;
-                        }
-                    }
-
-                    if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
-                        continue;
-                    }
-
-
-                    if (chr1 == chr2 && frag1 == frag2) {
-                        intraFrag++;
-                    } else if (mapq1 < mapqThreshold || mapq2 < mapqThreshold) {
-                        belowMapq++;
-                    } else {
-                        pos1 = getGenomicPosition(chr1, bp1);
-                        pos2 = getGenomicPosition(chr2, bp2);
-                        matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore());
-                        hicContact++;
-                    }
-                }
-            }
-        } finally {
-            if (iter != null) iter.close();
-        }
-/*
-Intra-fragment Reads: 2,321 (0.19% / 0.79%)
-Below MAPQ Threshold: 44,134 (3.57% / 15.01%)
-Hi-C Contacts: 247,589 (20.02% / 84.20%)
- Ligation Motif Present: 99,245  (8.03% / 33.75%)
- 3' Bias (Long Range): 73% - 27%
- Pair Type %(L-I-O-R): 25% - 25% - 25% - 25%
-Inter-chromosomal: 58,845  (4.76% / 20.01%)
-Intra-chromosomal: 188,744  (15.27% / 64.19%)
-Short Range (<20Kb): 48,394  (3.91% / 16.46%)
-Long Range (>20Kb): 140,350  (11.35% / 47.73%)
-
-        System.err.println("contig: " + contig + " total: " + totalRead + " below mapq: " + belowMapq + " intra frag: " + intraFrag); */
-
-        matrix.parsingComplete();
-        return matrix;
-    }
 
     private void updateMasterIndex() throws IOException {
         RandomAccessFile raf = null;
@@ -1025,9 +1029,6 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         return bos.toByteArray();
     }
 
-    public void setRandomizePosition(boolean allowPositionsRandomization) {
-        this.allowPositionsRandomization = allowPositionsRandomization;
-    }
 
     interface BlockQueue {
 
