@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
-import juicebox.windowui.NormalizationType;
 import juicebox.tools.clt.CommandLineParser.Alignment;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -41,9 +41,8 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 import java.util.zip.Deflater;
 
 
@@ -80,7 +79,8 @@ public class Preprocessor {
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
     private Alignment alignmentFilter;
-    private long positionRandomizerSeed;
+    private static final Random random = new Random();
+    private boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
     private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -100,7 +100,6 @@ public class Preprocessor {
     private long normVectorLengthPosition;
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
-    private Random randomizer;
 
     public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         this.genomeId = genomeId;
@@ -122,7 +121,7 @@ public class Preprocessor {
             this.hicFileScalingFactor = hicFileScalingFactor;
         }
 
-        randomizer = new Random();
+        random.setSeed(0);
 
     }
 
@@ -217,9 +216,19 @@ public class Preprocessor {
         this.alignmentFilter = al;
     }
 
-    public void setPositionRandomizerSeed(long seed) {
-        this.positionRandomizerSeed = seed;
-        this.randomizer.setSeed(seed);
+    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
+        int low = 1;
+        int high = 1;
+        if (frag == 0) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+        } else {
+            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
+            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+        }
+        return random.nextInt(high - low + 1) + low;
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -426,6 +435,11 @@ public class Preprocessor {
         }
     }
 
+    public void setPositionRandomizerSeed(long seed) {
+        System.out.println(String.format("seed %d", seed));
+        random.setSeed(seed);
+    }
+
     private void writeBody(String inputFile) throws IOException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
 
@@ -478,9 +492,9 @@ public class Preprocessor {
                 }
 
                 // Randomize
-                if (fragmentCalculation != null && positionRandomizerSeed != 0) {
-                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1, randomizer);
-                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2, randomizer);
+                if (fragmentCalculation != null && allowPositionsRandomization) {
+                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
@@ -523,6 +537,35 @@ public class Preprocessor {
         masterIndexPosition = los.getWrittenCount();
     }
 
+
+    private int getGenomicPosition(int chr, int pos) {
+        long len = 0;
+        for (int i = 1; i < chr; i++) {
+            len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
+        }
+        len += pos;
+
+        return (int) (len / 1000);
+
+    }
+
+    private static Alignment calculateAlignment(AlignmentPair pair) {
+        if (pair.getStrand1() == pair.getStrand2()) {
+            return Alignment.TANDEM;
+        } else if (pair.getStrand1()) {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.INNER;
+            } else {
+                return Alignment.OUTER;
+            }
+        } else {
+            if (pair.getPos1() < pair.getPos2()) {
+                return Alignment.OUTER;
+            } else {
+                return Alignment.INNER;
+            }
+        }
+    }
 
     /**
      * @param file List of files to read
@@ -580,7 +623,7 @@ public class Preprocessor {
                             continue;
                         }
                     }
-                    
+
                     if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
                         continue;
                     }
@@ -617,51 +660,6 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         matrix.parsingComplete();
         return matrix;
-    }
-
-
-    private int getGenomicPosition(int chr, int pos) {
-        long len = 0;
-        for (int i = 1; i < chr; i++) {
-            len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
-        }
-        len += pos;
-
-        return (int) (len / 1000);
-
-    }
-
-    private static Alignment calculateAlignment(AlignmentPair pair) {
-        if (pair.getStrand1() == pair.getStrand2()) {
-            return Alignment.TANDEM;
-        } else if (pair.getStrand1()) {
-            if (pair.getPos1() < pair.getPos2()) {
-                return Alignment.INNER;
-            } else {
-                return Alignment.OUTER;
-            }
-        } else {
-            if (pair.getPos1() < pair.getPos2()) {
-                return Alignment.OUTER;
-            } else {
-                return Alignment.INNER;
-            }
-        }
-    }
-
-    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag, Random randomizer) {
-        int low = 1;
-        int high = 1;
-        if (frag == 0) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
-        } else {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-        }
-        return randomizer.nextInt(high - low + 1) + low;
     }
 
     private void updateMasterIndex() throws IOException {
@@ -1027,6 +1025,10 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         return bos.toByteArray();
     }
 
+    public void setRandomizePosition(boolean allowPositionsRandomization) {
+        this.allowPositionsRandomization = allowPositionsRandomization;
+    }
+
     interface BlockQueue {
 
         void advance() throws IOException;
@@ -1117,7 +1119,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Read enough bytes to fill the input buffer
          */
-        void readFully(byte b[], InputStream is) throws IOException {
+        void readFully(byte[] b, InputStream is) throws IOException {
             int len = b.length;
             if (len < 0)
                 throw new IndexOutOfBoundsException();
