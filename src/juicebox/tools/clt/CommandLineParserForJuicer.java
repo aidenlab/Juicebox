@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -71,6 +72,18 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option relativeLocationOption = null;
     private static Option multipleAttributesOption = null;
 
+    // for GRIND
+    private static Option useObservedOverExpectedOption = null;
+    private static Option useDenseLabelsOption = null;
+    private static Option useWholeGenome = null;
+    private static Option useStripeOption = null;
+    private static Option useDistortionOption = null;
+    private static Option useDomainOption = null;
+    private static Option useLoopOption = null;
+    private static Option cornerOffBy = null;
+    private static Option stride = null;
+
+
     public CommandLineParserForJuicer() {
         // used flags
         // wmnxcrplafdptkqbvuhgjyz
@@ -110,16 +123,57 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         // previously for AFA
         relativeLocationOption = addStringOption('l', "location_type");
         multipleAttributesOption = addStringOption('a', "attributes");
+
+        // for GRIND
+        useObservedOverExpectedOption = addBooleanOption("obs_exp");
+        useDenseLabelsOption = addBooleanOption("dense_labels");
+        useWholeGenome = addBooleanOption("whole_genome");
+        useLoopOption = addBooleanOption("loops");
+        useDomainOption = addBooleanOption("domains");
+        useStripeOption = addBooleanOption("stripes");
+        useDistortionOption = addBooleanOption("distort");
+        cornerOffBy = addIntegerOption("corner_off_by");
+        stride = addIntegerOption("stride");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes") || cmd.equals("apa_vs_distance");
+                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
+    }
+
+    public int getGrindDataSliceOption() {
+        Object opt = getOptionValue(useLoopOption);
+        if (opt != null) return 1;
+        opt = getOptionValue(useDomainOption);
+        if (opt != null) return 2;
+        opt = getOptionValue(useStripeOption);
+        if (opt != null) return 3;
+        opt = getOptionValue(useDistortionOption);
+        if (opt != null) return 4;
+        return 0;
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
         Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
+    }
+
+    // for GRIND
+    public boolean getUseObservedOverExpectedOption() {
+        Object opt = getOptionValue(useObservedOverExpectedOption);
+        return opt != null;
+    }
+
+
+    public boolean getUseWholeGenome() {
+        Object opt = getOptionValue(useWholeGenome);
+        return opt != null;
+    }
+
+    public boolean getDenseLabelsOption() {
+        Object opt = getOptionValue(useDenseLabelsOption);
         return opt != null;
     }
 
@@ -166,16 +220,37 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToString(relativeLocationOption);
     }
 
-    public NormalizationType getNormalizationTypeOption() {
-        return retrieveNormalization(optionToString(normalizationTypeOption));
+    public NormalizationType getNormalizationTypeOption(NormalizationHandler normalizationHandler) {
+        return retrieveNormalization(optionToString(normalizationTypeOption), normalizationHandler);
     }
 
-    private NormalizationType retrieveNormalization(String norm) {
+    public NormalizationType[] getBothNormalizationTypeOption(NormalizationHandler normHandler1,
+                                                              NormalizationHandler normHandler2) {
+        NormalizationType[] normalizationTypes = new NormalizationType[2];
+        String normStrings = optionToString(normalizationTypeOption);
+        if (normStrings != null) {
+            String[] bothNorms = normStrings.split(",");
+            if (bothNorms.length > 2 || bothNorms.length < 1) {
+                System.err.println("Invalid norm syntax: " + normStrings);
+                return null;
+            } else if (bothNorms.length == 2) {
+                normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+                normalizationTypes[1] = retrieveNormalization(bothNorms[1], normHandler2);
+            } else if (bothNorms.length == 1) {
+                normalizationTypes[0] = retrieveNormalization(bothNorms[0], normHandler1);
+                normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
+            }
+            return normalizationTypes;
+        }
+        return null;
+    }
+
+    private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
         if (norm == null || norm.length() < 1)
             return null;
 
         try {
-            return NormalizationType.valueOf(norm);
+            return normalizationHandler.getNormTypeFromString(norm);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
             System.exit(7);
@@ -193,6 +268,14 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
+    }
+
+    public int getCornerOffBy() {
+        return optionToInt(cornerOffBy);
+    }
+
+    public int getStride() {
+        return optionToInt(stride);
     }
 
     public int getMatrixSizeOption() {

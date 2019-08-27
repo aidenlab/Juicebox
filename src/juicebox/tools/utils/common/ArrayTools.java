@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -214,6 +214,14 @@ public class ArrayTools {
         return inverses;
     }
 
+    public static double[] flipArrayValues(double[] array) {
+        double[] flipped = new double[array.length];
+        for (int i = 0; i < array.length; i++) {
+            flipped[i] = -1 * array[i];
+        }
+        return flipped;
+    }
+
     /**
      * Print out a given vector in wig style format to the specified writer
      * @param vector
@@ -226,5 +234,43 @@ public class ArrayTools {
         for(double val : vector){
             pw.println(val);
         }
+    }
+
+    /**
+     * confirm before calling that both vectors are the same size
+     *
+     * @param vector1
+     * @param vector2
+     * @return
+     */
+    public static double euclideanDistance(double[] vector1, double[] vector2) {
+        double distance = 0;
+        for (int i = 0; i < vector1.length; i++) {
+            double diff = vector1[i] - vector2[i];
+            distance += diff * diff;
+        }
+        return Math.sqrt(distance);
+    }
+
+    public static float[] runSlidingAverageOnArray(int radius, float[] values) {
+
+        float[] newValues = new float[values.length];
+        for (int i = 0; i < values.length; i++) {
+            float sum = 0;
+            int numVals = 0;
+            for (int j = Math.max(i - radius, 0); j < Math.min(i + radius, values.length); j++) {
+                if (values[j] > 0) {
+                    sum += values[j];
+                    numVals++;
+                }
+            }
+            if (numVals == 0) {
+                newValues[i] = 0;
+            } else {
+                newValues[i] = sum / numVals;
+            }
+
+        }
+        return newValues;
     }
 }

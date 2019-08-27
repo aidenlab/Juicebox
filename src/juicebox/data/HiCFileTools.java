@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -41,11 +42,6 @@ import java.util.regex.Pattern;
  * Created by muhammadsaadshamim on 5/12/15.
  */
 public class HiCFileTools {
-
-    // coalescing some of the magic strings
-    public static final String KR = "KR";
-    public static final String VC = "VC";
-    public static final String VC_SQRT = "VC_SQRT";
 
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
@@ -306,7 +302,7 @@ public class HiCFileTools {
 
 
     public static ChromosomeHandler getChromosomeSetIntersection(ChromosomeHandler handler1, ChromosomeHandler handler2) {
-        return handler1.getIntersetionWith(handler2);
+        return handler1.getIntersectionWith(handler2);
     }
 
     public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
@@ -373,8 +369,8 @@ public class HiCFileTools {
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
-                                                       NormalizationType norm) throws IOException {
-        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm);
+                                                       NormalizationType norm, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm, fillUnderDiagonal);
     }
 
 
@@ -386,31 +382,11 @@ public class HiCFileTools {
      */
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                       NormalizationType normalizationType) throws IOException {
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = new ArrayList<>();
-
-        int numDataReadingErrors = 0;
-
-        try {
-            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
-        } catch (Exception e) {
-            triggerNormError(normalizationType);
-            if (HiCGlobals.printVerboseComments) {
-                System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
-                System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
-                System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
-                e.printStackTrace();
-                System.exit(38);
-            }
-        }
-
-        if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
-            //System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
-            triggerNormError(normalizationType);
-        }
+        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
@@ -427,6 +403,17 @@ public class HiCFileTools {
                                 data.addToEntry(relativeX, relativeY, rec.getCounts());
                             }
                         }
+
+                        if (fillUnderDiagonal) {
+                            relativeX = rec.getBinY() - binXStart;
+                            relativeY = rec.getBinX() - binYStart;
+
+                            if (relativeX >= 0 && relativeX < numRows) {
+                                if (relativeY >= 0 && relativeY < numCols) {
+                                    data.addToEntry(relativeX, relativeY, rec.getCounts());
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -435,6 +422,35 @@ public class HiCFileTools {
         blocks = null;
 
         return data;
+    }
+
+    public static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                 int binYStart, int binYEnd,
+                                                 NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+
+        List<Block> blocks = new ArrayList<>();
+
+        int numDataReadingErrors = 0;
+
+        try {
+            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false, fillUnderDiagonal));
+        } catch (Exception e) {
+            triggerNormError(normalizationType);
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
+                System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
+                System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
+                e.printStackTrace();
+                System.exit(38);
+            }
+        }
+
+        if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
+            //System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
+            triggerNormError(normalizationType);
+        }
+
+        return blocks;
     }
 
     public static double[] extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
@@ -450,7 +466,7 @@ public class HiCFileTools {
 
 
     public static void triggerNormError(NormalizationType normalizationType) throws IOException {
-        System.err.println("");
+        System.err.println();
         System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region.");
         System.err.println("Region is likely too sparse/does not exist, or a different normalization/resolution should be chosen.");
         throw new IOException("Norm could not be found");
@@ -477,7 +493,7 @@ public class HiCFileTools {
         if (truncatedName.length() > maxLengthEntryName) {
             truncatedName = text.substring(0, maxLengthEntryName / 2 - 1);
             truncatedName += "...";
-            truncatedName += text.substring(text.length() - maxLengthEntryName / 2, text.length());
+            truncatedName += text.substring(text.length() - maxLengthEntryName / 2);
         }
         return truncatedName;
     }
@@ -489,5 +505,34 @@ public class HiCFileTools {
     public static String cleanUpDropboxURL(String url) {
         return url.replace("?dl=0", "")
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
+    }
+
+    public static RealMatrix getRealMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
+        // skip these matrices
+        Matrix matrix = ds.getMatrix(chromosome, chromosome);
+        if (matrix == null) return null;
+
+        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+        final MatrixZoomData zd = matrix.getZoomData(zoom);
+        if (zd == null) return null;
+
+        ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+        if (df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
+            System.exit(14);
+        }
+
+        int maxBin = chromosome.getLength() / resolution + 1;
+        int maxSize = maxBin;
+
+        return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
+                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
+
+    }
+
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
+        Matrix matrix = ds.getMatrix(chrom1, chrom2);
+        if (matrix == null) return null;
+        return matrix.getZoomData(zoom);
     }
 }

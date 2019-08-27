@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,9 @@ public class MainMenuBar extends JMenuBar {
   private static JMenuItem showStats, showControlStats;
   //private static JMenu annotationsMenu;
   private static JMenu viewMenu;
+  private static JMenu bookmarksMenu;
   private static JMenu assemblyMenu;
+  private static JMenu devMenu;
   private static JMenuItem exportAssembly;
   private static JMenuItem resetAssembly;
   private static JMenuItem exitAssembly;
@@ -148,10 +150,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 4202L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
-//                initProperties();         // don't know why we're doing this here
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
       }
     };
@@ -164,13 +163,11 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 42012L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
-        //initProperties();         // don't know why we're doing this here
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
       }
     };
+
     //recentControlMapMenu.setMnemonic('r');
     recentControlMapMenu.setEnabled(false);
     fileMenu.add(recentControlMapMenu);
@@ -273,7 +270,7 @@ public class MainMenuBar extends JMenuBar {
     });
     fileMenu.add(exit);
 
-    JMenu bookmarksMenu = new JMenu("Bookmarks");
+    bookmarksMenu = new JMenu("Bookmarks");
     //---- Save location ----
     saveLocationList = new JMenuItem("Save Current Location");
     saveLocationList.addActionListener(new ActionListener() {
@@ -282,7 +279,7 @@ public class MainMenuBar extends JMenuBar {
         String stateString = superAdapter.getLocationDescription();
         String stateDescription = superAdapter.getDescription("location");
         if (stateDescription != null && stateDescription.length() > 0) {
-          addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+            addRecentStateMenuEntry(stateDescription + RecentMenu.delimiter + stateString, true);
           recentLocationMenu.setEnabled(true);
         }
       }
@@ -314,16 +311,14 @@ public class MainMenuBar extends JMenuBar {
     });
 
     saveStateForReload.setEnabled(false);
-    bookmarksMenu.add(saveStateForReload);
+    //bookmarksMenu.add(saveStateForReload);
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
       private static final long serialVersionUID = 4204L;
 
       public void onSelectPosition(String mapPath) {
-        String delimiter = "@@";
-        String[] temp;
-        temp = mapPath.split(delimiter);
+          String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
         superAdapter.setNormalizationDisplayState();
 
@@ -332,6 +327,7 @@ public class MainMenuBar extends JMenuBar {
     recentLocationMenu.setMnemonic('S');
     recentLocationMenu.setEnabled(false);
     bookmarksMenu.add(recentLocationMenu);
+    bookmarksMenu.setEnabled(false);
 
     //---Export States----
     exportSavedStateMenuItem = new JMenuItem();
@@ -359,7 +355,7 @@ public class MainMenuBar extends JMenuBar {
       }
     };
 
-    bookmarksMenu.add(previousStates);
+    //bookmarksMenu.add(previousStates);
 
     //---Import States----
     importMapAsFile = new JMenuItem();
@@ -385,9 +381,10 @@ public class MainMenuBar extends JMenuBar {
     });
     //bookmarksMenu.add(slideShow);
 
-    bookmarksMenu.addSeparator();
-    bookmarksMenu.add(exportSavedStateMenuItem);
-    bookmarksMenu.add(importMapAsFile);
+    // todo replace with a save state URL
+    //bookmarksMenu.addSeparator();
+    //bookmarksMenu.add(exportSavedStateMenuItem);
+    //bookmarksMenu.add(importMapAsFile);
 
     //---View Menu-----
     viewMenu = new JMenu("View");
@@ -507,7 +504,19 @@ public class MainMenuBar extends JMenuBar {
     });
     viewMenu.add(saveToSVG);
 
-    final JMenu devMenu = new JMenu("Dev");
+    devMenu = new JMenu("Dev");
+    devMenu.setEnabled(false);
+
+    final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
+    addCustomNorms.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchImportNormalizations();
+      }
+    });
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(addCustomNorms);
+    }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
     displayTiles.addActionListener(new ActionListener() {
@@ -551,7 +560,7 @@ public class MainMenuBar extends JMenuBar {
       }
     });
 
-    useAssemblyMatrix.setSelected(MainViewPanel.assemblyMatCheck);
+    useAssemblyMatrix.setSelected(HiCGlobals.isAssemblyMatCheck);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(useAssemblyMatrix);
     }
@@ -750,20 +759,22 @@ public class MainMenuBar extends JMenuBar {
   public void setEnableForAllElements(boolean status) {
     //annotationsMenu.setEnabled(status);
     viewMenu.setEnabled(status);
+    bookmarksMenu.setEnabled(status);
     assemblyMenu.setEnabled(status);
     saveLocationList.setEnabled(status);
     saveStateForReload.setEnabled(status);
     saveLocationList.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
-  public void enableAssemblyMenuOptions() {
-    resetAssembly.setEnabled(true);
-    exportAssembly.setEnabled(true);
-    enableAssembly.setEnabled(true);
-    setScale.setEnabled(true);
-    importModifiedAssembly.setEnabled(true);
-    exitAssembly.setEnabled(true);
-
+  public void setEnableAssemblyMenuOptions(boolean status) {
+    resetAssembly.setEnabled(status);
+    exportAssembly.setEnabled(status);
+    enableAssembly.setEnabled(status);
+    setScale.setEnabled(status);
+    importModifiedAssembly.setEnabled(status);
+    exitAssembly.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
   public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {

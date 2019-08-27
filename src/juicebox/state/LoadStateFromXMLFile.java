@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
 import juicebox.windowui.MatrixType;
-import juicebox.windowui.NormalizationType;
 import org.broad.igv.renderer.DataRange;
 
 import javax.swing.*;
@@ -74,7 +73,7 @@ public class LoadStateFromXMLFile {
                     doubleInfo[1] = Double.parseDouble(infoForReload[9]); //yOrigin
                     doubleInfo[2] = Double.parseDouble(infoForReload[10]); //ScaleFactor
                     MatrixType displayOption = MatrixType.valueOf(infoForReload[11].toUpperCase());
-                    NormalizationType normType = NormalizationType.valueOf(infoForReload[12].toUpperCase());
+                    String normType = infoForReload[12].toUpperCase();
                     doubleInfo[3] = Double.parseDouble(infoForReload[13]); //minColorVal
                     doubleInfo[4] = Double.parseDouble(infoForReload[14]); //lowerColorVal
                     doubleInfo[5] = Double.parseDouble(infoForReload[15]); //upperColorVal
@@ -99,7 +98,7 @@ public class LoadStateFromXMLFile {
 
     private static void safeLoadStateFromXML(final SuperAdapter superAdapter, final HiC hic, final String[] initialInfo,
                                              final int binSize, final double[] doubleInfo, final MatrixType displaySelection,
-                                             final NormalizationType normSelection, final String[] tracks) {
+                                             final String normSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
@@ -114,7 +113,7 @@ public class LoadStateFromXMLFile {
     }
 
     private static void unsafeLoadStateFromXML(SuperAdapter superAdapter, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
-                                               MatrixType displaySelection, NormalizationType normSelection,
+                                               MatrixType displaySelection, String normSelection,
                                                String[] tracks) {
 
         superAdapter.resetControlMap(); //TODO test
@@ -150,7 +149,9 @@ public class LoadStateFromXMLFile {
 
         hic.unsafeSetLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT, true);
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
-        superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
+        // todo should not be implemented with ordinals; implement with proper lookup
+        // leaving unimplemented at this time
+        //superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
         //todo: Check that color scale value is not 0!
         superAdapter.getMainViewPanel().updateColorSlider(hic, minColor / colorScaleFactor, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
@@ -174,7 +175,7 @@ public class LoadStateFromXMLFile {
                         } else if (currentTrack.toLowerCase().contains("coverage") || currentTrack.toLowerCase().contains("balanced")
                                 || currentTrack.equals("Loaded")) {
                             loadAction.checkBoxesForReload(trackNames[i].trim());
-                            hic.loadCoverageTrack(NormalizationType.enumValueFromString(currentTrack));
+                            hic.loadCoverageTrack(currentTrack);
                         } else if (currentTrack.contains("peaks") || currentTrack.contains("blocks") || currentTrack.contains("superloop")) {
                             hic.getResourceTree().checkTrackBoxesForReloadState(currentTrack.trim());
                             hic.loadLoopList(currentTrack);
@@ -193,7 +194,7 @@ public class LoadStateFromXMLFile {
                             loadedTrack.setName(trackNames[i].trim());
                             if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
 
-                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType(), false);
+                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getObsNormalizationType(), false);
                                 HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, loadedTrack.getLocator(), source);
 
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,17 @@
 
 package juicebox;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import oracle.net.jdbc.nl.UninitializedObjectException;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
@@ -44,6 +44,7 @@ import org.broad.igv.util.ResourceLocator;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,21 +57,18 @@ import java.util.List;
  * @since 4/8/12
  */
 public class HiC {
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
-    public static boolean assemblyMatCheck = false;
 
-    //private final MainWindow mainWindow;
-    //private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
     private MatrixType displayOption;
-    private NormalizationType normalizationType;
+    private NormalizationType obsNormalizationType, ctrlNormalizationType;
     private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
     private Dataset controlDataset;
@@ -89,7 +87,6 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -128,12 +125,13 @@ public class HiC {
         controlEigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
-        normalizationType = NormalizationType.NONE;
+        obsNormalizationType = NormalizationHandler.NONE;
+        ctrlNormalizationType = NormalizationHandler.NONE;
         zoomActionTracker.clear();
         clearFeatures();
     }
 
-    // TODO zgire - why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
+    //Todo why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
@@ -203,12 +201,12 @@ public class HiC {
         }
     }
 
-    private void refreshEigenvectorTrackIfExists() {
+    public void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
-            eigenvectorTrack.forceRefresh();
+            eigenvectorTrack.forceRefreshCache();
         }
         if (controlEigenvectorTrack != null) {
-            controlEigenvectorTrack.forceRefresh();
+            controlEigenvectorTrack.forceRefreshCache();
         }
     }
 
@@ -244,7 +242,8 @@ public class HiC {
         trackManager.unsafeLoadTrackDirectPath(path);
     }
 
-    public void loadCoverageTrack(NormalizationType no) {
+    public void loadCoverageTrack(String label) {
+        NormalizationType no = dataset.getNormalizationHandler().getNormTypeFromString(label);
         trackManager.loadCoverageTrack(no, false);
         if (isControlLoaded()) {
             trackManager.loadCoverageTrack(no, true);
@@ -299,12 +298,12 @@ public class HiC {
         return currentZoom;
     }
 
-    public MatrixZoomData getZd() throws UninitializedObjectException {
+    public MatrixZoomData getZd() throws NullPointerException {
         Matrix matrix = getMatrix();
         if (matrix == null) {
-            throw new UninitializedObjectException("Uninitialized matrix");
+            throw new NullPointerException("Uninitialized matrix");
         } else if (currentZoom == null) {
-            throw new UninitializedObjectException("Uninitialized zoom");
+            throw new NullPointerException("Uninitialized zoom");
         } else {
             return matrix.getZoomData(currentZoom);
         }
@@ -562,13 +561,26 @@ public class HiC {
         return false;
     }
 
-    public NormalizationType getNormalizationType() {
-        return normalizationType;
+    public NormalizationType getObsNormalizationType() {
+        return obsNormalizationType;
     }
 
-    public void setNormalizationType(NormalizationType option) {
-        if (this.normalizationType != option) {
-            this.normalizationType = option;
+    public void setObsNormalizationType(String label) {
+        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
+        if (this.obsNormalizationType != option) {
+            this.obsNormalizationType = option;
+            setNormalizationTypeChanged();
+        }
+    }
+
+    public NormalizationType getControlNormalizationType() {
+        return ctrlNormalizationType;
+    }
+
+    public void setControlNormalizationType(String label) {
+        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
+        if (this.ctrlNormalizationType != option) {
+            this.ctrlNormalizationType = option;
             setNormalizationTypeChanged();
         }
     }
@@ -579,35 +591,51 @@ public class HiC {
             if (controlDataset == null) return null;
 
             Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
-            return controlDataset.getEigenvector(chr, currentZoom, n, normalizationType);
+            return controlDataset.getEigenvector(chr, currentZoom, n, ctrlNormalizationType);
         } else {
             if (dataset == null) return null;
 
             Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
-            return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
+            return dataset.getEigenvector(chr, currentZoom, n, obsNormalizationType);
         }
     }
 
     public ExpectedValueFunction getExpectedValues() {
         if (dataset == null) return null;
-        return dataset.getExpectedValues(currentZoom, normalizationType);
+        return dataset.getExpectedValues(currentZoom, obsNormalizationType);
     }
 
     public ExpectedValueFunction getExpectedControlValues() {
         if (controlDataset == null) return null;
-        return controlDataset.getExpectedValues(currentZoom, normalizationType);
+        return controlDataset.getExpectedValues(currentZoom, ctrlNormalizationType);
     }
 
     public NormalizationVector getNormalizationVector(int chrIdx) {
         if (dataset == null) return null;
-        return dataset.getNormalizationVector(chrIdx, currentZoom, normalizationType);
+        return dataset.getNormalizationVector(chrIdx, currentZoom, obsNormalizationType);
+    }
+
+    public NormalizationVector getControlNormalizationVector(int chrIdx) {
+        if (controlDataset == null) return null;
+        return controlDataset.getNormalizationVector(chrIdx, currentZoom, ctrlNormalizationType);
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
     public float getNormalizedObservedValue(int binX, int binY) {
         float val = Float.NaN;
         try {
-            val = getZd().getObservedValue(binX, binY, normalizationType);
+            val = getZd().getObservedValue(binX, binY, obsNormalizationType);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return val;
+    }
+
+    public float getNormalizedControlValue(int binX, int binY) {
+        float val = Float.NaN;
+        try {
+            val = getControlZd().getObservedValue(binX, binY, ctrlNormalizationType);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -881,8 +909,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
@@ -893,8 +921,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return xChr + "@" + (long) (xContext.getBinOrigin() * currentZoom.getBinSize()) + "_" +
                 yChr + "@" + (long) (yContext.getBinOrigin() * currentZoom.getBinSize());
@@ -949,6 +977,7 @@ public class HiC {
         binSizeDictionary.put("10000", 10000);
         binSizeDictionary.put("5000", 5000);
         binSizeDictionary.put("1000", 1000);
+        binSizeDictionary.put("500", 500);
 
         //FRAG Bin size:
         binSizeDictionary.put("500f", 500);
@@ -1085,7 +1114,7 @@ public class HiC {
 
             zd.dump1DTrackFromCrossHairAsWig(printWriter, binStartPosition,
                     chromosomeForPosition.getIndex() == chromosome.getIndex(), regionIndices,
-                    normalizationType, displayOption);
+                    obsNormalizationType, displayOption);
         }
     }
 
@@ -1105,26 +1134,28 @@ public class HiC {
                 (isInPearsonsMode() && currentZoom.getBinSize() <= HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
-    public boolean isPearsonsNotAvailable(boolean isControl) {
+    public boolean isPearsonsNotAvailableForFile(boolean isControl) {
         try {
             if (isControl) {
                 MatrixZoomData cZd = getControlZd();
-                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), normalizationType)) == null;
+                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), ctrlNormalizationType)) == null;
             } else {
                 MatrixZoomData zd = getZd();
-                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
+                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), obsNormalizationType)) == null;
             }
         } catch (Exception e) {
             return true;
         }
     }
 
-    public boolean isPearsonsNotAvailable(HiCZoom zoom) {
+    public boolean isPearsonsNotAvailableAtSpecificZoom(boolean isControl, HiCZoom zoom) {
         try {
-            MatrixZoomData zd = getMatrix().getZoomData(zoom);
-            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
-        }
-        catch (Exception e) {
+            if (isControl) {
+                return getControlZd().getPearsons(controlDataset.getExpectedValues(zoom, ctrlNormalizationType)) == null;
+            } else {
+                return getZd().getPearsons(dataset.getExpectedValues(zoom, obsNormalizationType)) == null;
+            }
+        } catch (Exception e) {
             return true;
         }
     }
@@ -1155,7 +1186,7 @@ public class HiC {
                 case CONTROL:
                 case OECTRL:
                 case PEARSONCTRL:
-                    return getControlZd().getColorScaleKey(displayOption);
+                    return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
                 case OE:
                 case RATIO:
                 case OBSERVED:
@@ -1165,7 +1196,7 @@ public class HiC {
                 case PEARSON:
                 case PEARSONVS:
                 default:
-                    return getZd().getColorScaleKey(displayOption);
+                    return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
             }
         } catch (Exception ignored) {
         }
@@ -1201,7 +1232,7 @@ public class HiC {
         return this.zoomActionTracker;
     }
 
-  public void clearAllMatrixZoomDataCache() {
+    public void clearAllMatrixZoomDataCache() {
         clearAllCacheForDataset(dataset);
         if (isControlLoaded()) {
             clearAllCacheForDataset(controlDataset);
@@ -1223,9 +1254,86 @@ public class HiC {
         }
     }
 
-    public SuperAdapter getSuperAdaptor() {
-        return superAdapter;
+    public String[] getNormalizationOptions(boolean isControl) {
+        if (isControl) {
+            if (controlDataset == null || controlDataset.getVersion() < HiCGlobals.minVersion) {
+                return new String[]{NormalizationHandler.NONE.getDescription()};
+            } else {
+                ArrayList<String> tmp = new ArrayList<>();
+                tmp.add(NormalizationHandler.NONE.getDescription());
+                for (NormalizationType t : controlDataset.getNormalizationTypes()) {
+                    tmp.add(t.getDescription());
+                }
+                return tmp.toArray(new String[tmp.size()]);
+            }
+        } else {
+            if (dataset.getVersion() < HiCGlobals.minVersion) {
+                return new String[]{NormalizationHandler.NONE.getDescription()};
+            } else {
+                ArrayList<String> tmp = new ArrayList<>();
+                tmp.add(NormalizationHandler.NONE.getDescription());
+                for (NormalizationType t : dataset.getNormalizationTypes()) {
+                    tmp.add(t.getDescription());
+                }
+                return tmp.toArray(new String[tmp.size()]);
+            }
+        }
     }
+
+    public void exportDataCenteredAboutRegion(int xBinPos, int yBinPos) throws IOException {
+
+        int radius = 20;
+
+        // Initialize default file name
+        String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
+        filename += "_bin_" + xBinPos + "_" + yBinPos + "_res_" + currentZoom.getBinSize();
+        filename = cleanUpNumbersInName(filename);
+
+        // allow user to customize or change the name
+        filename = MessageUtils.showInputDialog("Enter a name for the resulting .txt file", filename);
+        if (filename == null || filename.equalsIgnoreCase("null"))
+            return;
+
+        String radiusSize = MessageUtils.showInputDialog("What radius of pixels around the selected point would you like", "" + radius);
+        try {
+            radius = Integer.parseInt(radiusSize);
+        } catch (Exception ignored) {
+            radius = 20;
+        }
+
+        File outputMatrixFile = new File(DirectoryManager.getHiCDirectory(), filename + ".txt");
+        SuperAdapter.showMessageDialog("Data will be saved to " + outputMatrixFile.getAbsolutePath());
+
+        // extract the starting position
+        int xbinStartPosition = (int) (getXContext().getBinOrigin() + xBinPos / getScaleFactor());
+        int ybinStartPosition = (int) (getYContext().getBinOrigin() + yBinPos / getScaleFactor());
+
+        int binXStart = xbinStartPosition - radius;
+        int binXEnd = xbinStartPosition + radius;
+        int binYStart = ybinStartPosition - radius;
+        int binYEnd = ybinStartPosition + radius;
+        int matrixWidth = 2 * radius + 1;
+
+        MatrixZoomData requestedZd = getZd();
+        NormalizationType requestedNormType = getObsNormalizationType();
+        if (MatrixType.isSimpleControlType(displayOption)) {
+            requestedZd = getControlZd();
+            requestedNormType = getControlNormalizationType();
+        }
+
+        RealMatrix realMatrix = HiCFileTools.extractLocalBoundedRegion(requestedZd, binXStart, binXEnd, binYStart, binYEnd,
+                matrixWidth, matrixWidth, requestedNormType, true);
+
+        MatrixTools.saveMatrixTextV2(outputMatrixFile.getAbsolutePath(), realMatrix);
+
+    }
+
+
+
+
+
+
+
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {
         STANDARD, DRAG, DIRECT, INITIAL, REVERSE

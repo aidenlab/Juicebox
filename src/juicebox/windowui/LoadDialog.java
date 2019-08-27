@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,8 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
@@ -66,7 +66,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
 
-        System.out.println(properties);
+        //System.out.println(properties);
         if (properties != null) {
 
             if (!createNodes(top, properties)) {
@@ -156,12 +156,12 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
                 @SuppressWarnings("unchecked")
-                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
+                Enumeration<TreeNode> en = top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
                     String[] searchStrings = fTextField.getText().split(",");
                     colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
-                        DefaultMutableTreeNode leaf = en.nextElement();
+                        TreeNode leaf = en.nextElement();
                         String str = leaf.toString();
                         for (String term : searchStrings) {
                             if (str.contains(term)) {
@@ -207,10 +207,25 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         return button30;
     }
 
-    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
+    public static TreeNode[] getPathToRoot(TreeNode aNode, int depth) {
+        TreeNode[] retNodes;
+        if (aNode == null) {
+            if (depth == 0)
+                return null;
+            else
+                retNodes = new TreeNode[depth];
+        } else {
+            depth++;
+            retNodes = getPathToRoot(aNode.getParent(), depth);
+            retNodes[retNodes.length - depth] = aNode;
+        }
+        return retNodes;
+    }
+
+    private void expandToWantedNode(TreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
-            TreePath path = new TreePath(dNode.getPath());
+            TreePath path = new TreePath(getPathToRoot(dNode, 0));
             tree.scrollPathToVisible(path);
             tree.setSelectionPath(path);
         }
@@ -261,7 +276,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             final String[] values = value.split(",");
             if (values.length != 3 && values.length != 2) {
                 JOptionPane.showMessageDialog(this, "Improperly formatted properties file; incorrect # of fields", "Error", JOptionPane.ERROR_MESSAGE);
-                return false;
+                return true;
             }
             if (values.length == 2) {
                 node = new DefaultMutableTreeNode(new ItemInfo(key, values[0], values[1]));

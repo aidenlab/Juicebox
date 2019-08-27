@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
-import juicebox.windowui.NormalizationType;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
@@ -255,14 +254,7 @@ public class LoadAction extends AbstractAction {
                 try {
 
                     if (locator.getType() != null && locator.getType().equals("norm")) {
-                        NormalizationType option = null;
-                        for (NormalizationType no : NormalizationType.values()) {
-                            if (locator.getPath().equals(no.getLabel())) {
-                                option = no;
-                                break;
-                            }
-                        }
-                        hic.loadCoverageTrack(option);
+                        hic.loadCoverageTrack(locator.getPath());
                     } else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
                         hic.loadEigenvectorTrack();
 

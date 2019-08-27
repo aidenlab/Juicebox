@@ -33,7 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.tools.clt.CommandLineParser.Alignment;
-import juicebox.windowui.NormalizationType;
+import juicebox.windowui.NormalizationHandler;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -66,7 +66,7 @@ public class Preprocessor {
     private final Map<String, Integer> chromosomeIndexes;
     private final File outputFile;
     private final Map<String, IndexEntry> matrixPositions;
-    private final String genomeId;
+    private String genomeId;
     private final Deflater compressor;
     private LittleEndianOutputStream los;
     private long masterIndexPosition;
@@ -76,14 +76,17 @@ public class Preprocessor {
     private String fragmentFileName = null;
     private String statsFileName = null;
     private String graphFileName = null;
+    private String expectedVectorFile = null;
+    private Set<String> randomizeFragMapFiles = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
+    private ArrayList<FragmentCalculation> fragmentCalculationsForRandomization = null;
     private Alignment alignmentFilter;
     private static final Random random = new Random();
     private boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
-    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
+    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
 
     // Fragment resolutions
     private int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
@@ -150,8 +153,18 @@ public class Preprocessor {
         this.fragmentFileName = fragmentFileName;
     }
 
+    public void setExpectedVectorFile(String expectedVectorFile) {
+        this.expectedVectorFile = expectedVectorFile;
+    }
+
     public void setGraphFile(String graphFileName) {
         this.graphFileName = graphFileName;
+    }
+
+    public void setGenome(String genome) {
+        if (genome != null) {
+            this.genomeId = genome;
+        }
     }
 
     public void setResolutions(Set<String> resolutions) {
@@ -216,19 +229,66 @@ public class Preprocessor {
         this.alignmentFilter = al;
     }
 
+    public void setRandomizeFragMaps(Set<String> fragMaps) {
+        this.randomizeFragMapFiles = fragMaps;
+    }
+
     private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
         int low = 1;
         int high = 1;
         if (frag == 0) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-        } else if (frag >= fragmentCalculation.getNumberFragments(String.valueOf(chr))) {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 2];
+            high = fragmentCalculation.getSites(chr)[frag];
+        } else if (frag >= fragmentCalculation.getNumberFragments(chr)) {
+            high = fragmentCalculation.getSites(chr)[frag - 1];
+            low = fragmentCalculation.getSites(chr)[frag - 2];
         } else {
-            high = fragmentCalculation.getSites(String.valueOf(chr))[frag];
-            low = fragmentCalculation.getSites(String.valueOf(chr))[frag - 1];
+            high = fragmentCalculation.getSites(chr)[frag];
+            low = fragmentCalculation.getSites(chr)[frag - 1];
         }
         return random.nextInt(high - low + 1) + low;
+    }
+
+    public void setRandomizePosition(boolean allowPositionsRandomization) {
+        this.allowPositionsRandomization = allowPositionsRandomization;
+    }
+  
+    private static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
+        //potential maps that this strand could come from
+        ArrayList<FragmentCalculation> mapsFound = new ArrayList<>();
+        for (FragmentCalculation fragmentCalculation : maps) {
+            int low = 1;
+            int high = 1;
+
+            if (frag > fragmentCalculation.getNumberFragments(chr)) {
+                // definitely not this restriction site file for certain
+                continue;
+            }
+            
+            try {
+                if (frag == 0) {
+                    high = fragmentCalculation.getSites(chr)[frag];
+                } else if (frag == fragmentCalculation.getNumberFragments(chr)) {
+                    high = fragmentCalculation.getSites(chr)[frag - 1];
+                    low = fragmentCalculation.getSites(chr)[frag - 2];
+                } else {
+                    high = fragmentCalculation.getSites(chr)[frag];
+                    low = fragmentCalculation.getSites(chr)[frag - 1];
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(String.format("fragment: %d, number of frags: %d", frag, fragmentCalculation.getNumberFragments(chr)));
+
+            }
+
+            // does bp fit in this range?
+            if (bp >= low && bp <= high) {
+                mapsFound.add(fragmentCalculation);
+            }
+        }
+        if (mapsFound.size() == 1) {
+            return mapsFound.get(0);
+        }
+        return null;
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -253,6 +313,27 @@ public class Preprocessor {
             } else {
                 System.out.println("Not including fragment map");
             }
+
+            if (allowPositionsRandomization) {
+                if (randomizeFragMapFiles != null) {
+                    fragmentCalculationsForRandomization = new ArrayList<>();
+                    for (String fragmentFileName : randomizeFragMapFiles) {
+                        try {
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                            fragmentCalculationsForRandomization.add(fragmentCalculation);
+                            System.out.println(String.format("added %s", fragmentFileName));
+                        } catch (Exception e) {
+                            System.err.println(String.format("Warning: Unable to process fragment file %s. Randomization will continue without fragment file %s.", fragmentFileName, fragmentFileName));
+                        }
+                    }
+                } else {
+                    System.out.println("Using default fragment map for randomization");
+                }
+
+            } else if (randomizeFragMapFiles != null) {
+                System.err.println("Position randomizer seed not set, disregarding map options");
+            }
+
             if (statsFileName != null) {
                 FileInputStream is = null;
                 try {
@@ -293,11 +374,13 @@ public class Preprocessor {
                 }
             }
 
-            expectedValueCalculations = new LinkedHashMap<>();
-            for (int bBinSize : bpBinSizes) {
-                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
-                String key = "BP_" + bBinSize;
-                expectedValueCalculations.put(key, calc);
+            if (expectedVectorFile == null) {
+                expectedValueCalculations = new LinkedHashMap<>();
+                for (int bBinSize : bpBinSizes) {
+                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
+                    String key = "BP_" + bBinSize;
+                    expectedValueCalculations.put(key, calc);
+                }
             }
             if (fragmentCalculation != null) {
 
@@ -310,11 +393,12 @@ public class Preprocessor {
                     fragmentCountMap.put(chr, fragCount);
                 }
 
-
-                for (int fBinSize : fragBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationType.NONE);
-                    String key = "FRAG_" + fBinSize;
-                    expectedValueCalculations.put(key, calc);
+                if (expectedVectorFile == null) {
+                    for (int fBinSize : fragBinSizes) {
+                        ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
+                        String key = "FRAG_" + fBinSize;
+                        expectedValueCalculations.put(key, calc);
+                    }
                 }
             }
 
@@ -440,9 +524,7 @@ public class Preprocessor {
         random.setSeed(seed);
     }
 
-    public void setRandomizePosition(boolean allowPositionsRandomization) {
-        this.allowPositionsRandomization = allowPositionsRandomization;
-    }
+    
 
     /**
      * @param file List of files to read
@@ -521,17 +603,18 @@ public class Preprocessor {
         } finally {
             if (iter != null) iter.close();
         }
-/*
-Intra-fragment Reads: 2,321 (0.19% / 0.79%)
-Below MAPQ Threshold: 44,134 (3.57% / 15.01%)
-Hi-C Contacts: 247,589 (20.02% / 84.20%)
- Ligation Motif Present: 99,245  (8.03% / 33.75%)
- 3' Bias (Long Range): 73% - 27%
- Pair Type %(L-I-O-R): 25% - 25% - 25% - 25%
-Inter-chromosomal: 58,845  (4.76% / 20.01%)
-Intra-chromosomal: 188,744  (15.27% / 64.19%)
-Short Range (<20Kb): 48,394  (3.91% / 16.46%)
-Long Range (>20Kb): 140,350  (11.35% / 47.73%)
+
+        /*
+            Intra-fragment Reads: 2,321 (0.19% / 0.79%)
+            Below MAPQ Threshold: 44,134 (3.57% / 15.01%)
+            Hi-C Contacts: 247,589 (20.02% / 84.20%)
+             Ligation Motif Present: 99,245  (8.03% / 33.75%)
+             3' Bias (Long Range): 73% - 27%
+             Pair Type %(L-I-O-R): 25% - 25% - 25% - 25%
+            Inter-chromosomal: 58,845  (4.76% / 20.01%)
+            Intra-chromosomal: 188,744  (15.27% / 64.19%)
+            Short Range (<20Kb): 48,394  (3.91% / 16.46%)
+            Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         System.err.println("contig: " + contig + " total: " + totalRead + " below mapq: " + belowMapq + " intra frag: " + intraFrag); */
 
@@ -551,8 +634,13 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     }
 
     private static Alignment calculateAlignment(AlignmentPair pair) {
+
         if (pair.getStrand1() == pair.getStrand2()) {
-            return Alignment.TANDEM;
+            if (pair.getStrand1()) {
+                return Alignment.RR;
+            } else {
+                return Alignment.LL;
+            }
         } else if (pair.getStrand1()) {
             if (pair.getPos1() < pair.getPos2()) {
                 return Alignment.INNER;
@@ -583,6 +671,10 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         MatrixPP currentMatrix = null;
         HashSet<String> writtenMatrices = new HashSet<>();
         String currentMatrixKey = null;
+
+        // randomization error/ambiguity stats
+        int noMapFoundCount = 0;
+        int mapDifferentCount = 0;
 
         while (iter.hasNext()) {
             AlignmentPair pair = iter.next();
@@ -619,10 +711,34 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                     continue;
                 }
 
-                // Randomize
+                // Randomize position within fragment site
                 if (fragmentCalculation != null && allowPositionsRandomization) {
-                    bp1 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
-                    bp2 = randomizePos(fragmentCalculation, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
+                    FragmentCalculation fragMapToUse;
+                    if (fragmentCalculationsForRandomization != null) {
+                        FragmentCalculation fragMap1 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
+                        FragmentCalculation fragMap2 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
+
+                        if (fragMap1 == null && fragMap2 == null) {
+                            noMapFoundCount += 1;
+                            continue;
+                        } else if (fragMap1 != null && fragMap2 != null && fragMap1 != fragMap2) {
+                            mapDifferentCount += 1;
+                            continue;
+                        }
+
+                        if (fragMap1 != null) {
+                            fragMapToUse = fragMap1;
+                        } else {
+                            fragMapToUse = fragMap2;
+                        }
+
+                    } else {
+                        // use default map
+                        fragMapToUse = fragmentCalculation;
+                    }
+
+                    bp1 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
@@ -652,6 +768,11 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore());
 
             }
+        }
+
+        if (fragmentCalculation != null && allowPositionsRandomization) {
+            System.out.println(String.format("Randomization errors encountered: %d no map found, " +
+                    "%d two different maps found", noMapFoundCount, mapDifferentCount));
         }
 
         if (currentMatrix != null) {
@@ -722,32 +843,72 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
 
         // Vectors  (Expected values,  other).
-        buffer.putInt(expectedValueCalculations.size());
-        for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
-            ExpectedValueCalculation ev = entry.getValue();
+        /***  NEVA ***/
+        if (expectedVectorFile == null) {
+            buffer.putInt(expectedValueCalculations.size());
+            for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
+                ExpectedValueCalculation ev = entry.getValue();
 
-            ev.computeDensity();
+                ev.computeDensity();
 
-            int binSize = ev.getGridSize();
-            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
+                int binSize = ev.getGridSize();
+                HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
-            buffer.putNullTerminatedString(unit.toString());
-            buffer.putInt(binSize);
+                buffer.putNullTerminatedString(unit.toString());
+                buffer.putInt(binSize);
 
-            // The density values
-            double[] expectedValues = ev.getDensityAvg();
-            buffer.putInt(expectedValues.length);
-            for (double expectedValue : expectedValues) {
-                buffer.putDouble(expectedValue);
+                // The density values
+                double[] expectedValues = ev.getDensityAvg();
+                buffer.putInt(expectedValues.length);
+                for (double expectedValue : expectedValues) {
+                    buffer.putDouble(expectedValue);
+                }
+
+                // Map of chromosome index -> normalization factor
+                Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
+                buffer.putInt(normalizationFactors.size());
+                for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
+                    buffer.putInt(normFactor.getKey());
+                    buffer.putDouble(normFactor.getValue());
+                    //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
+                }
             }
+        }
+        else {
+            // read in expected vector file. to get # of resolutions, might have to read twice.
 
-            // Map of chromosome index -> normalization factor
-            Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-            buffer.putInt(normalizationFactors.size());
-            for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                buffer.putInt(normFactor.getKey());
-                buffer.putDouble(normFactor.getValue());
-                //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
+            int count=0;
+            try (Reader reader = new FileReader(expectedVectorFile);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.startsWith("fixedStep"))
+                        count++;
+                    if (line.startsWith("variableStep")) {
+                        System.err.println("Expected vector file must be in wiggle fixedStep format");
+                        System.exit(19);
+                    }
+                }
+            }
+            buffer.putInt(count);
+            try (Reader reader = new FileReader(expectedVectorFile);
+                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.startsWith("fixedStep")) {
+                        String[] words = line.split("\\s+");
+                        for (String str:words){
+                            if (str.contains("chrom")){
+                                String[] chrs = str.split("=");
+                                
+                            }
+                        }
+                    }
+                        // parse linef ixedStep  chrom=chrN
+                    //start=position  step=stepInterval
+                }
             }
         }
 
@@ -1495,10 +1656,12 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                     sum += score;  // <= count for mirror cell.
                 }
 
-                String evKey = (isFrag ? "FRAG_" : "BP_") + binSize;
-                ExpectedValueCalculation ev = expectedValueCalculations.get(evKey);
-                if (ev != null) {
-                    ev.addDistance(chr1.getIndex(), xBin, yBin, score);
+                if (expectedValueCalculations != null) {
+                    String evKey = (isFrag ? "FRAG_" : "BP_") + binSize;
+                    ExpectedValueCalculation ev = expectedValueCalculations.get(evKey);
+                    if (ev != null) {
+                        ev.addDistance(chr1.getIndex(), xBin, yBin, score);
+                    }
                 }
             }
 
@@ -1706,6 +1869,4 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             }
         }
     }
-
-
 }

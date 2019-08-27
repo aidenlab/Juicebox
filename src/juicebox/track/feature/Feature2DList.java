@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,15 @@
 
 package juicebox.track.feature;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -259,7 +260,11 @@ public class Feature2DList {
     public boolean exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
-            return exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
+            if (exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat)) {
+                System.out.println(getNumTotalFeatures() + " features written to file: " + outputFile.getAbsolutePath());
+            } else {
+                System.err.println("Error features not written to file: " + outputFile.getAbsolutePath());
+            }
         }
         return false;
     }
@@ -295,6 +300,7 @@ public class Feature2DList {
                         header.append("\t").append(key);
                     }
                     outputFilePrintWriter.println(header);
+                    outputFilePrintWriter.println("# juicer_tools version " + HiCGlobals.versionNum);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {

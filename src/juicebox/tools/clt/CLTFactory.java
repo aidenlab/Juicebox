@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,9 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
-import juicebox.tools.dev.APAvsDistance;
-import juicebox.tools.dev.GeneFinder;
+import juicebox.tools.dev.*;
 import juicebox.tools.utils.Benchmark;
+
 
 /**
  * Factory for command line tools to call different functions
@@ -106,8 +106,14 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
+        } else if (cmd.equals("shuffle")) {
+            return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
+        } else if (cmd.equals("drink")) {
+            return new Drink();
+        } else if (cmd.equals("grind")) {
+            return new Grind();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -130,9 +136,9 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
+        } else if (cmd.equals("afa")) { //added command for afa
+            return new AFA ();
         }
-
-
 
         return null;
     }

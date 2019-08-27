@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,22 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.afa;
+package juicebox.tools.utils.norm;
 
-/**
- * Created by muhammadsaadshamim on 9/9/15.
- */
-public enum LocationType {
-    TL("TopLeft"),
-    BR("BottomRight"),
-    CENTER("Center");
-    private final String label;
+class NormalizedSum {
+    final String type;
+    final int chr1Idx;
+    final int chr2Idx;
+    final String unit;
+    final int resolution;
+    final double value;
 
-    LocationType(String label) {
-        this.label = label;
+    public NormalizedSum(String type, int chr1Idx, int chr2Idx, String unit, int resolution, double value) {
+        this.type = type;
+        this.chr1Idx = chr1Idx;
+        this.chr2Idx = chr2Idx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.value = value;
     }
-
-    public static LocationType enumValueFromString(String text) {
-        if (text != null) {
-            for (LocationType region : LocationType.values()) {
-                if (text.equalsIgnoreCase(region.label)) {
-                    return region;
-                }
-            }
-        }
-        return null;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
 }

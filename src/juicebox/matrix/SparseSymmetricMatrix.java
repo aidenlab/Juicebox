@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,72 +25,48 @@
 package juicebox.matrix;
 
 
+import juicebox.data.ContactRecord;
 import org.broad.igv.util.collections.FloatArrayList;
 import org.broad.igv.util.collections.IntArrayList;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.List;
 
+/**
+ * Represents a sparse, symmetric matrix in the sense that value(x,y) == value(y,x).  It is an error to
+ * add an x,y value twice, or to add both x,y and y,x, although this is not checked.   The class is designed
+ * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
+ * matrix class.   It is not private only so it can be unit tested
+ * <p>
+ * TODO - able to do Pearson's and gradient?
+ */
 public class SparseSymmetricMatrix implements BasicMatrix {
 
-    private final int totSize;
-    private IntArrayList rows1 = null;
-    private IntArrayList cols1 = null;
-    private FloatArrayList values1 = null;
+    private final int numValsEstimate;
+    private IntArrayList rows1;
+    private IntArrayList cols1;
+    private FloatArrayList values1;
     private IntArrayList rows2 = null;
     private IntArrayList cols2 = null;
     private FloatArrayList values2 = null;
 
-
-    public SparseSymmetricMatrix(int totSize) {
-        rows1 = new IntArrayList();
-        cols1 = new IntArrayList();
-        values1 = new FloatArrayList();
-        this.totSize = totSize;
+    public SparseSymmetricMatrix(int numValsEstimate) {
+        this.numValsEstimate = numValsEstimate;
+        rows1 = new IntArrayList(numValsEstimate);
+        cols1 = new IntArrayList(numValsEstimate);
+        values1 = new FloatArrayList(numValsEstimate);
     }
 
-    public void set(int row, int col, float v) {
-
-        if (!Float.isNaN(v)) {
-            if (rows2 == null) {
-                try {
-                    rows1.add(row);
-                    cols1.add(col);
-                    values1.add(v);
-                } catch (NegativeArraySizeException error) {
-                    rows2 = new IntArrayList();
-                    cols2 = new IntArrayList();
-                    values2 = new FloatArrayList();
-                    rows2.add(row);
-                    cols2.add(col);
-                    values2.add(v);
-                }
-            } else {
-                rows2.add(row);
-                cols2.add(col);
-                values2.add(v);
+    public void populateMatrix(List<ContactRecord> list, int[] offset) {
+        for (ContactRecord cr : list) {
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            float value = cr.getCounts();
+            if (offset[x] != -1 && offset[y] != -1) {
+                setEntry(offset[x], offset[y], value);
             }
         }
     }
-
-    private float[] getRow(int rowNum) {
-
-        float[] result = new float[totSize];
-
-        int size = rows1.size();
-        for (int i = 0; i < size; i++) {
-            if (rows1.get(i) == rowNum) result[cols1.get(i)] = values1.get(i);
-        }
-        if (rows2 != null) {
-            size = rows2.size();
-            for (int i = 0; i < size; i++) {
-                if (rows2.get(i) == rowNum) result[cols2.get(i)] = values2.get(i);
-            }
-        }
-        return result;
-
-    }
-
 
     public double[] multiply(double[] vector) {
 
@@ -107,7 +83,6 @@ public class SparseSymmetricMatrix implements BasicMatrix {
             int col = colArray1[i];
             float value = valueArray1[i];
             result[row] += vector[col] * value;
-
             if (row != col) {
                 result[col] += vector[row] * value;
             }
@@ -132,6 +107,70 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         return result;
     }
 
+
+    @Override
+    public float getEntry(int row, int col) {
+        notImplementedDontCall();
+        return 0;
+    }
+
+    /**
+     * functions not implemented as they will reduce certain optimizations / add to runtime
+     */
+    private void notImplementedDontCall() {
+        System.err.println("called unimplemented function - terminate");
+        System.exit(9);
+    }
+
+    @Override
+    public int getRowDimension() {
+        notImplementedDontCall();
+        return 0;
+    }
+
+    @Override
+    public int getColumnDimension() {
+        notImplementedDontCall();
+        return 0;
+    }
+
+    @Override
+    public float getLowerValue() {
+        notImplementedDontCall();
+        return 0;
+    }
+
+    @Override
+    public float getUpperValue() {
+        notImplementedDontCall();
+        return 0;
+    }
+
+    @Override
+    public void setEntry(int row, int col, float val) {
+        if (!Float.isNaN(val)) {
+            if (rows2 == null) {
+                try {
+                    rows1.add(row);
+                    cols1.add(col);
+                    values1.add(val);
+                } catch (NegativeArraySizeException error) {
+                    rows2 = new IntArrayList(numValsEstimate);
+                    cols2 = new IntArrayList(numValsEstimate);
+                    values2 = new FloatArrayList(numValsEstimate);
+                    rows2.add(row);
+                    cols2.add(col);
+                    values2.add(val);
+                }
+            } else {
+                rows2.add(row);
+                cols2.add(col);
+                values2.add(val);
+            }
+        }
+    }
+
+     /*
     public void print() {
         print(new PrintWriter(System.out));
     }
@@ -146,34 +185,25 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         }
         pw.close();
     }
+    */
 
-    @Override
-    public float getEntry(int row, int col) {
-        return 0;
-    }
+    /*
+    private float[] getRow(int rowNum) {
 
-    @Override
-    public int getRowDimension() {
-        return 0;
-    }
+        float[] result = new float[totSize];
 
-    @Override
-    public int getColumnDimension() {
-        return 0;
-    }
-
-    @Override
-    public float getLowerValue() {
-        return 0;
-    }
-
-    @Override
-    public float getUpperValue() {
-        return 0;
-    }
-
-    @Override
-    public void setEntry(int i, int j, float corr) {
+        int size = rows1.size();
+        for (int i = 0; i < size; i++) {
+            if (rows1.get(i) == rowNum) result[cols1.get(i)] = values1.get(i);
+        }
+        if (rows2 != null) {
+            size = rows2.size();
+            for (int i = 0; i < size; i++) {
+                if (rows2.get(i) == rowNum) result[cols2.get(i)] = values2.get(i);
+            }
+        }
+        return result;
 
     }
+    */
 }

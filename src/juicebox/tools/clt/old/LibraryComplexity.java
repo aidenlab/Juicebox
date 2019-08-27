@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ public class LibraryComplexity extends JuiceboxCLT {
         super(getUsage());
     }
 
-    public static String getUsage() {
+    private static String getUsage() {
         return "LibraryComplexity <directory> <output file>\n" +
                 "\tLibraryComplexity <unique> <pcr> <opt>";
     }
@@ -127,9 +127,9 @@ public class LibraryComplexity extends JuiceboxCLT {
 
         } else {
             try {
-                uniqueReadPairs = Integer.valueOf(args[1]);
-                readPairs = Integer.valueOf(args[2]);
-                opticalDups = Integer.valueOf(args[3]);
+                uniqueReadPairs = Integer.parseInt(args[1]);
+                readPairs = Integer.parseInt(args[2]);
+                opticalDups = Integer.parseInt(args[3]);
                 filesNotYetCounted = false;
             } catch (NumberFormatException error) {
                 System.err.println("When called with three arguments, must be integers");

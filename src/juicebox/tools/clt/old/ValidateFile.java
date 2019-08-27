@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,16 +61,24 @@ public class ValidateFile extends JuiceboxCLT {
 
     @Override
     public void run() {
-        DatasetReader reader = HiCFileTools.extractDatasetReaderForCLT(Arrays.asList(filePath.split("\\+")), true);
-        Dataset ds = null;
         try {
-    //        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(filePath.split("\\+")), true);
-          ds = reader.read();
+            DatasetReader reader = HiCFileTools.extractDatasetReaderForCLT(Arrays.asList(filePath.split("\\+")), true);
+            Dataset ds = reader.read();
             HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
             assert ds.getGenomeId() != null;
             assert ds.getChromosomeHandler().size() > 0;
             List<HiCZoom> zooms = ds.getBpZooms();
             List<NormalizationType> norms = ds.getNormalizationTypes();
+
+            for (NormalizationType type : norms) {
+                System.out.println("File has normalization: " + type.getLabel());
+                System.out.println("Description: " + type.getDescription());
+            }
+
+            for (HiCZoom zoom : zooms) {
+                System.out.println("File has zoom: " + zoom);
+            }
+
             Chromosome[] array = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
             for (Chromosome chr: array)  {
                 for (Chromosome chr2: array) {
@@ -95,6 +103,7 @@ public class ValidateFile extends JuiceboxCLT {
             throw new IOException("t");
         }
         catch (IOException error) {
+            System.err.println(":( Validation failed");
             error.printStackTrace();
             System.exit(1);
         }

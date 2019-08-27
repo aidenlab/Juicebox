@@ -51,7 +51,7 @@ public class MotifAnchorTools {
                                                                                          final boolean onlyUninitializedFeatures,
                                                                                          final ChromosomeHandler handler) {
 
-        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
+        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>(handler);
         features.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
@@ -72,7 +72,7 @@ public class MotifAnchorTools {
 
     public static GenomeWideList<MotifAnchor> extractAllAnchorsFromAllFeatures(Feature2DList features, final ChromosomeHandler handler) {
 
-        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
+        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>(handler);
         features.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -104,7 +104,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
     @Override
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2,
-                                                      final NormalizationType norm, boolean isImportant) {
+                                                      final NormalizationType norm, boolean isImportant, boolean fillUnderDiagonal) {
         this.isImportant = isImportant;
         float resolution = zoom.getBinSize();
         //if(isImportant) System.out.println("zt12 "+resolution+" --x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
@@ -264,7 +264,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         return rTreeHandler.getBoundariesOfCustomChromosomeY();
     }
 
-    // TODO
+    // TODO get Expected should be appropriately caculated in the custom regions
     public double getExpected(int binX, int binY, ExpectedValueFunction df) {
         // x window
         int gx1 = binX * zoom.getBinSize();
