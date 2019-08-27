@@ -54,9 +54,10 @@ public class LoopFinder implements RegionFinder {
     private Set<Integer> resolutions;
     private Writer writer = null;
     private ChromosomeHandler chromosomeHandler;
+    private int overallWidth;
 
     public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                      boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
+                      boolean useObservedOverExpected, boolean dimensionOfLabelIsSameAsOutput, Set<Integer> resolutions) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -79,8 +80,6 @@ public class LoopFinder implements RegionFinder {
     public void makePositiveExamples() {
         final Random generator = new Random();
 
-        //String loopListPath = "";
-
         File file = new File(path);
         if (!file.isDirectory()) {
             file.mkdir();
@@ -90,11 +89,9 @@ public class LoopFinder implements RegionFinder {
 
         final int halfWidthI = x / 2;
         final int halfWidthJ = y / 2;
-        final int maxk = z / features.getNumTotalFeatures();
+        final int maxk = Math.max(z / features.getNumTotalFeatures(), 1);
 
         try {
-            // Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, false, null, false);
-
             features.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {

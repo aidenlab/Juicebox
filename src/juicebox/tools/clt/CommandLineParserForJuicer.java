@@ -82,6 +82,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option useLoopOption = null;
     private static Option cornerOffBy = null;
     private static Option stride = null;
+    private static Option useIgnoreDirectionOrientationOption = null;
+    private static Option useOnlyMakePositiveExamplesOption = null;
 
 
     public CommandLineParserForJuicer() {
@@ -125,15 +127,17 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleAttributesOption = addStringOption('a', "attributes");
 
         // for GRIND
-        useObservedOverExpectedOption = addBooleanOption("obs_exp");
-        useDenseLabelsOption = addBooleanOption("dense_labels");
-        useWholeGenome = addBooleanOption("whole_genome");
+        useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
+        useDenseLabelsOption = addBooleanOption("dense-labels");
+        useWholeGenome = addBooleanOption("whole-genome");
         useLoopOption = addBooleanOption("loops");
         useDomainOption = addBooleanOption("domains");
         useStripeOption = addBooleanOption("stripes");
         useDistortionOption = addBooleanOption("distort");
-        cornerOffBy = addIntegerOption("corner_off_by");
+        cornerOffBy = addIntegerOption("off-from-diagonal");
         stride = addIntegerOption("stride");
+        useIgnoreDirectionOrientationOption = addBooleanOption("--ignore-feature-orientation");
+        useOnlyMakePositiveExamplesOption = addBooleanOption("--only-make-positives");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -174,6 +178,16 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getDenseLabelsOption() {
         Object opt = getOptionValue(useDenseLabelsOption);
+        return opt != null;
+    }
+
+    public boolean getUseIgnoreDirectionOrientationOption() {
+        Object opt = getOptionValue(useIgnoreDirectionOrientationOption);
+        return opt != null;
+    }
+
+    public boolean getUseOnlyMakePositiveExamplesOption() {
+        Object opt = getOptionValue(useOnlyMakePositiveExamplesOption);
         return opt != null;
     }
 
