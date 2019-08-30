@@ -112,7 +112,17 @@ public class Grind extends JuicerCLT {
 
     @Override
     public void run() {
-        Feature2DList feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+
+        Feature2DList feature2DList = null;
+        try {
+            feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+        } catch (Exception e) {
+            if (sliceTypeOption != 4) {
+                System.err.println("Feature list failed to load");
+                e.printStackTrace();
+                System.exit(-9);
+            }
+        }
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         if (givenChromosomes != null)
@@ -124,13 +134,12 @@ public class Grind extends JuicerCLT {
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
-            finder = new DistortionFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
+            finder = new DistortionFinder(x, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
         } else {
             finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected,
                     useDenseLabels, resolutions, offsetOfCornerFromDiagonal, stride, onlyMakePositiveExamples, ignoreDirectionOrientation);
         }
 
-        finder.makePositiveExamples();
-        finder.makeNegativeExamples();
+        finder.makeExamples();
     }
 }

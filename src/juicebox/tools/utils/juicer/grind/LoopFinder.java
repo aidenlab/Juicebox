@@ -69,15 +69,20 @@ public class LoopFinder implements RegionFinder {
         this.chromosomeHandler = chromosomeHandler;
         try {
             writer =
-                new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
-                    StandardCharsets.UTF_8));
+                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
+                            StandardCharsets.UTF_8));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void makePositiveExamples() {
+    public void makeExamples() {
+        makePositiveExamples();
+        makeNegativeExamples();
+    }
+
+    private void makePositiveExamples() {
         final Random generator = new Random();
 
         File file = new File(path);
@@ -158,8 +163,8 @@ public class LoopFinder implements RegionFinder {
         }
     }
 
-    @Override
-    public void makeNegativeExamples() {
+
+    private void makeNegativeExamples() {
         Random generator = new Random();
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         Feature2DList badlist = new Feature2DList();
@@ -278,8 +283,5 @@ public class LoopFinder implements RegionFinder {
             e.printStackTrace();
         }
     }
-
-
-
-    }
+}
 

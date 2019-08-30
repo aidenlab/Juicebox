@@ -79,7 +79,7 @@ public class DomainFinder implements RegionFinder {
     }
 
     @Override
-    public void makePositiveExamples() {
+    public void makeExamples() {
         final Random generator = new Random();
 
         //String loopListPath = "";
@@ -166,10 +166,5 @@ public class DomainFinder implements RegionFinder {
         } catch (Exception ignored) {
 
         }
-    }
-
-    @Override
-    public void makeNegativeExamples() {
-
     }
 }

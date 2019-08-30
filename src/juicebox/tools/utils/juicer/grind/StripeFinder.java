@@ -80,7 +80,7 @@ public class StripeFinder implements RegionFinder {
     }
 
     @Override
-    public void makePositiveExamples() {
+    public void makeExamples() {
 
         final String negPath = path + "/negative";
         final String posPath = path + "/positive";
@@ -231,11 +231,4 @@ public class StripeFinder implements RegionFinder {
             return colLength > rowLength;
         }
     }
-
-    @Override
-    public void makeNegativeExamples() {
-
-    }
-
-
 }
