@@ -27,17 +27,33 @@ package juicebox.tools.utils.norm;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 public class ZeroScale {
-
     private final static double tolerance = 1.0e-3;
     private final static int maxIter = 200;
     private final static double del = 1.0e-2;
     private final static int maxOverallAttempts = 3;
     private final static int numTrialsWithinScalingRun = 5;
+
+    public static void utmvMul(List<ContactRecord> contactRecords, double[] binaryVector, int k, double[] tobeScaledVector) {
+        for (int p = 0; p < k; p++) {
+            tobeScaledVector[p] = 0;
+        }
+
+        for (ContactRecord cr : contactRecords) {
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+
+            tobeScaledVector[x] += counts * binaryVector[y];
+            tobeScaledVector[y] += counts * binaryVector[x];
+        }
+    }
 
     public static double[] scale(List<ContactRecord> contactRecords, double[] targetVectorInitial, String key) {
         // if the regular call fails, loosen parameters
@@ -79,7 +95,7 @@ public class ZeroScale {
                                                 double percentLowRowSumExcluded, double percentZValsToIgnore,
                                                 int maxIter, double del, int numTrials) {
 
-        double high, low, err;
+        double high, low, ber;
         int lind, hind;
 
         //	find the matrix dimensions
@@ -87,7 +103,10 @@ public class ZeroScale {
         //Math.min(zd.getXGridAxis().getBinCount() + 1, targetVectorInitial.length);
 
         double[] current = new double[k];
-        double[] r = new double[k];
+        double[] row = new double[k];
+        double[] col = new double[k];
+        double[] dr = new double[k];
+        double[] dc = new double[k];
         double[] r0 = new double[k];
         int[] bad = new int[k];
         int[] bad1 = new int[k];
@@ -116,25 +135,23 @@ public class ZeroScale {
 
         for (int p = 0; p < k; p++) one[p] = 1.0;
         for (int p = 0; p < k; p++) if (targetVector[p] == 0) one[p] = 0;
-
-        //	find rows sums
-        for (int p = 0; p < k; p++) {
-            r[p] = 0;
-        }
-
+        for (int p = 0; p < k; p++) bad[p] = 1;
         for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             final float counts = cr.getCounts();
-
-            r[x] += counts * one[y];
-            if (x < y) {
-                r[y] += counts * one[x];
+            if (x == y) {
+                bad[x] = 0;
             }
         }
 
+
+        //	find rows sums
+        utmvMul(contactRecords, one, k, row);
+
+
         //	find relevant percentiles
-        System.arraycopy(r, 0, r0, 0, k);
+        System.arraycopy(row, 0, r0, 0, k);
 
         Arrays.sort(r0);
 
@@ -151,17 +168,25 @@ public class ZeroScale {
 
         //	find the "bad" rows and exclude them
         for (int p = 0; p < k; p++) {
-            if ((r[p] < low && targetVector[p] > 0) || Double.isNaN(targetVector[p])) {
+            if (((row[p] < low || row[p] > high) && targetVector[p] > 0) || Double.isNaN(targetVector[p])) {
                 bad[p] = 1;
                 targetVector[p] = 1.0;
-            } else bad[p] = 0;
+            }
         }
 
         double[] calculatedVector = new double[k];
-        double[][] errorForIteration = new double[maxIter][2];
+        double[] errorForIteration = new double[maxIter];
 
+        /**
+         for (int p = 0; p < k; p++) {
+         calculatedVector[p] = 1.0 - bad[p];
+         }
+         **/
         for (int p = 0; p < k; p++) {
-            calculatedVector[p] = 1.0 - bad[p];
+            dr[p] = 1.0 - bad[p];
+        }
+        for (int p = 0; p < k; p++) {
+            dc[p] = 1.0 - bad[p];
         }
         for (int p = 0; p < k; p++) {
             one[p] = 1.0 - bad[p];
@@ -176,57 +201,59 @@ public class ZeroScale {
         }
 
         //	start iterations
-        //	r is the current rows sum; s is the correction vector to be applied to rows and columns
-        err = 10.0 * (1.0 + tolerance);
+        //	row is the current rows sum; s is the correction vector to be applied to rows and columns
+        ber = 10.0 * (1.0 + tolerance);
         int iter = 0;
         int stuck = 0;
-        double ber;
-        System.arraycopy(calculatedVector, 0, current, 0, k);
-        while (err > tolerance && iter++ < maxIter) {
+        for (int p = 0; p < k; p++) current[p] = Math.sqrt(dr[p] * dc[p]);
+        double err = 0;
+        //System.arraycopy(calculatedVector, 0, current, 0, k);
+        while ((ber > tolerance || err > 5.0 * tolerance) && iter++ < maxIter) {
             for (int p = 0; p < k; p++) {
-                if (bad1[p] == 1) r[p] = 1.0;
+                if (bad1[p] == 1) row[p] = 1.0;
             }
             for (int p = 0; p < k; p++) {
-                s[p] = Math.sqrt(targetVector[p] / r[p]);
+                s[p] = targetVector[p] / row[p];
             }
             for (int p = 0; p < k; p++) {
-                calculatedVector[p] *= s[p];
+                dr[p] *= s[p];
             }
 
-            for (int p = 0; p < k; p++) r[p] = 0;
+            utmvMul(contactRecords, dr, k, col);
 
-            for (ContactRecord cr : contactRecords) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                final float counts = cr.getCounts();
+            for (int p = 0; p < k; p++) col[p] *= dc[p];
+            for (int p = 0; p < k; p++) if (bad1[p] == 1) col[p] = 1.0;
+            for (int p = 0; p < k; p++) s[p] = targetVector[p] / col[p];
+            for (int p = 0; p < k; p++) dc[p] *= s[p];
 
-                r[x] += counts * calculatedVector[y];
-                if (x < y) {
-                    r[y] += counts * calculatedVector[x];
-                }
-            }
+            utmvMul(contactRecords, dc, k, row);
+            for (int p = 0; p < k; p++) row[p] *= dr[p];
 
             for (int p = 0; p < k; p++) {
-                r[p] *= calculatedVector[p];
+                calculatedVector[p] = Math.sqrt(dr[p] * dc[p]);
             }
 
             //	calculate the current relative error
-            err = 0;
             ber = 0;
             for (int p = 0; p < k; p++) {
                 if (bad1[p] == 1) continue;
-                if (Math.abs((r[p] - targetVector[p]) / targetVector[p]) > err)
-                    err = Math.abs((r[p] - targetVector[p]) / targetVector[p]);
                 if (Math.abs(calculatedVector[p] - current[p]) > ber) ber = Math.abs(calculatedVector[p] - current[p]);
             }
-            errorForIteration[iter - 1][0] = err;
-            errorForIteration[iter - 1][1] = ber;
 
+            errorForIteration[iter - 1] = ber;
             System.arraycopy(calculatedVector, 0, current, 0, k);
             if (iter < numTrials + 2) continue;
-            if (err > (1.0 - del) * errorForIteration[iter - 2][0]) stuck++;
+            if (ber > (1.0 - del) * errorForIteration[iter - 2]) stuck++;
             else stuck = 0;
             if (stuck >= numTrials) break;
+        }
+
+        utmvMul(contactRecords, calculatedVector, k, col);
+        err = 0;
+        for (int p = 0; p < k; p++) {
+            if (bad1[p] == 1) continue;
+            if (err < Math.abs(col[p] * calculatedVector[p] - targetVector[p]))
+                err = Math.abs(col[p] * calculatedVector[p] - targetVector[p]);
         }
         for (int p = 0; p < k; p++) {
             if (bad[p] == 1) {
@@ -234,7 +261,7 @@ public class ZeroScale {
             }
         }
 
-        if (err > tolerance){
+        if (ber > tolerance) {
             return null;
         }
         return calculatedVector;
@@ -287,4 +314,5 @@ public class ZeroScale {
 
         return newNormVector;
     }
+
 }
