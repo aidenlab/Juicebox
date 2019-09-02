@@ -100,7 +100,6 @@ public class ZeroScale {
 
         //	find the matrix dimensions
         int k = targetVectorInitial.length;
-        //Math.min(zd.getXGridAxis().getBinCount() + 1, targetVectorInitial.length);
 
         double[] current = new double[k];
         double[] row = new double[k];
@@ -177,11 +176,6 @@ public class ZeroScale {
         double[] calculatedVector = new double[k];
         double[] errorForIteration = new double[maxIter];
 
-        /**
-         for (int p = 0; p < k; p++) {
-         calculatedVector[p] = 1.0 - bad[p];
-         }
-         **/
         for (int p = 0; p < k; p++) {
             dr[p] = 1.0 - bad[p];
         }
@@ -207,7 +201,6 @@ public class ZeroScale {
         int stuck = 0;
         for (int p = 0; p < k; p++) current[p] = Math.sqrt(dr[p] * dc[p]);
         double err = 0;
-        //System.arraycopy(calculatedVector, 0, current, 0, k);
         while ((ber > tolerance || err > 5.0 * tolerance) && iter++ < maxIter) {
             for (int p = 0; p < k; p++) {
                 if (bad1[p] == 1) row[p] = 1.0;
