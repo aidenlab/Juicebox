@@ -136,8 +136,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         useDistortionOption = addBooleanOption("distort");
         cornerOffBy = addIntegerOption("off-from-diagonal");
         stride = addIntegerOption("stride");
-        useIgnoreDirectionOrientationOption = addBooleanOption("--ignore-feature-orientation");
-        useOnlyMakePositiveExamplesOption = addBooleanOption("--only-make-positives");
+        useIgnoreDirectionOrientationOption = addBooleanOption("ignore-feature-orientation");
+        useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
     }
 
     public static boolean isJuicerCommand(String cmd) {
