@@ -51,15 +51,20 @@ public class Grind extends JuicerCLT {
     private boolean useObservedOverExpected = false;
     private Dataset ds;
     private boolean useDenseLabels = false;
+    private boolean onlyMakePositiveExamples = false;
+    private boolean ignoreDirectionOrientation = false;
     private boolean wholeGenome = false;
     private File outputDirectory;
     private Set<Integer> resolutions = new HashSet<>();
     private String featureListPath;
-    private int cornerOffBy = 0;
+    private int offsetOfCornerFromDiagonal = 0;
     private int stride = 1;
 
     public Grind() {
-        super("grind --loops --domains --stripes [hic file] [bedpe positions] [x,y,z] [directory]");
+        super("grind [-k NONE/KR/VC/VC_SQRT] [-r resolution] [--stride increment] " +
+                "[--off-from-diagonal max-dist-from-diag] " +
+                "--observed-over-expected --dense-labels --ignore-feature-orientation --only-make-positives " + //--whole-genome --distort
+                "<--loops --domains --stripes> <hic file> <bedpe positions> <x,y,z> <directory>");
     }
 
     @Override
@@ -81,9 +86,11 @@ public class Grind extends JuicerCLT {
         z = Integer.parseInt(dimensions[2]);
 
         useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+        ignoreDirectionOrientation = juicerParser.getUseIgnoreDirectionOrientationOption();
+        onlyMakePositiveExamples = juicerParser.getUseOnlyMakePositiveExamplesOption();
         useDenseLabels = juicerParser.getDenseLabelsOption();
         wholeGenome = juicerParser.getUseWholeGenome();
-        cornerOffBy = juicerParser.getCornerOffBy();
+        offsetOfCornerFromDiagonal = juicerParser.getCornerOffBy();
         stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
 
@@ -105,12 +112,21 @@ public class Grind extends JuicerCLT {
 
     @Override
     public void run() {
-        Feature2DList feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+
+        Feature2DList feature2DList = null;
+        try {
+            feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+        } catch (Exception e) {
+            if (sliceTypeOption != 4) {
+                System.err.println("Feature list failed to load");
+                e.printStackTrace();
+                System.exit(-9);
+            }
+        }
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         if (givenChromosomes != null)
             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
-
 
         RegionFinder finder;
         if (sliceTypeOption == 1) {
@@ -118,12 +134,12 @@ public class Grind extends JuicerCLT {
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
-            finder = new DistortionFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
+            finder = new DistortionFinder(x, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
         } else {
-            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, cornerOffBy, stride);
+            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected,
+                    useDenseLabels, resolutions, offsetOfCornerFromDiagonal, stride, onlyMakePositiveExamples, ignoreDirectionOrientation);
         }
 
-        finder.makePositiveExamples();
-        finder.makeNegativeExamples();
+        finder.makeExamples();
     }
 }

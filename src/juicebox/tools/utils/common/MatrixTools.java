@@ -89,8 +89,8 @@ public class MatrixTools {
     /**
      * Generate a matrix with randomly initialized 1s and 0s
      *
-     * @param rows
-     * @param cols
+     * @param rows number of rows
+     * @param cols number of columns
      * @return randomized binary matrix
      */
     private static RealMatrix randomUnitMatrix(int rows, int cols) {
@@ -651,9 +651,9 @@ public class MatrixTools {
         return matrix;
     }
 
-    public static void copyFromAToBRegion(double[][] region, double[][] aggregator, int rowOffSet, int colOffSet) {
-        for (int i = 0; i < region.length; i++) {
-            System.arraycopy(region[i], 0, aggregator[i + rowOffSet], 0 + colOffSet, region[0].length);
+    public static void copyFromAToBRegion(double[][] source, double[][] destination, int rowOffSet, int colOffSet) {
+        for (int i = 0; i < source.length; i++) {
+            System.arraycopy(source[i], 0, destination[i + rowOffSet], colOffSet, source[0].length);
         }
     }
 
@@ -680,5 +680,26 @@ public class MatrixTools {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public static double[][] generateCompositeMatrix(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
+        return generateCompositeMatrix(matrixDiag1.getData(), matrixDiag2.getData(), matrix1vs2.getData());
+    }
+
+    private static double[][] generateCompositeMatrix(double[][] matrixDiag1, double[][] matrixDiag2, double[][] matrix1vs2) {
+        int newLength = matrixDiag1.length + matrixDiag2.length;
+        double[][] compositeMatrix = new double[newLength][newLength];
+
+        copyFromAToBRegion(matrixDiag1, compositeMatrix, 0, 0);
+        copyFromAToBRegion(matrixDiag2, compositeMatrix, matrixDiag1.length, matrixDiag1.length);
+
+        for (int i = 0; i < matrix1vs2.length; i++) {
+            for (int j = 0; j < matrix1vs2[0].length; j++) {
+                compositeMatrix[i][matrixDiag1.length + j] = matrix1vs2[i][j];
+                compositeMatrix[matrixDiag1.length + j][i] = matrix1vs2[i][j];
+            }
+        }
+
+        return compositeMatrix;
     }
 }
