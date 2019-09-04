@@ -25,9 +25,5 @@
 package juicebox.tools.utils.juicer.grind;
 
 public interface RegionFinder {
-
-    void makePositiveExamples();
-
-    void makeNegativeExamples();
-
+    void makeExamples();
 }
