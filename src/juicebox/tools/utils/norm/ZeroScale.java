@@ -27,11 +27,9 @@ package juicebox.tools.utils.norm;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 public class ZeroScale {
     private final static double tolerance = 1.0e-3;
@@ -57,7 +55,7 @@ public class ZeroScale {
 
     public static double[] scale(List<ContactRecord> contactRecords, double[] targetVectorInitial, String key) {
         // if the regular call fails, loosen parameters
-        double[] newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .01, 0, key);
+        double[] newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .01, 0.0025, key);
         if (newVector == null) {
             newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .04, .01, key);
         }
@@ -81,7 +79,7 @@ public class ZeroScale {
                 System.err.println("Did not converge for " + key);
                 System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
             }
-            newVector = scaleToTargetVector(contactRecords, targetVectorInitial, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
+            newVector = scaleToTargetVector(contactRecords, targetVectorInitial, -1, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
         }
 
@@ -157,12 +155,12 @@ public class ZeroScale {
         int n = 0;
         for (int p = 0; p < k; p++) if (r0[p] == 0) n++;
         lind = n - 1 + (int) (((double) (k - n)) * percentLowRowSumExcluded + 0.5);
-        hind = n - 1 + (int) (((double) (k - n)) * (1.0 - 0.01 * percentLowRowSumExcluded) + 0.5);
+        hind = n - 1 + (int) (((double) (k - n)) * (1.0 - 0.1 * percentLowRowSumExcluded) + 0.5);
 
         if (lind < 0) lind = 0;
         if (hind >= k) hind = k - 1;
         low = r0[lind];
-        high = r0[hind]; //todo ask moshe/neva if bug
+        high = r0[hind];
         r0 = null;
 
         //	find the "bad" rows and exclude them
