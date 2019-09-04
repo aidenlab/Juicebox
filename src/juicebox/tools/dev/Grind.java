@@ -130,7 +130,7 @@ public class Grind extends JuicerCLT {
 
         RegionFinder finder;
         if (sliceTypeOption == 1) {
-            finder = new LoopFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
+            finder = new LoopFinder(x, y, z, stride, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, onlyMakePositiveExamples);
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
