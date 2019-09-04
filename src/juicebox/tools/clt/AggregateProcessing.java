@@ -37,42 +37,7 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws Exception {
 
-
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/k562/combined_30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/k562_chromcalc_1mb_r10");
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/hap1_chromcalc_1mb_r10");
-
-
-        ChromosomeCalculation.sum(1000000, 10,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_1mb_r10");
-
-                ChromosomeCalculation.sum(1000000, 20,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_1mb_r20");
-        */
-
-        ChromosomeCalculation.sum(100000, 40,
-                "/Volumes/AidenLabWD7/Backup/AidenLab/LocalFiles/ATDC5_Differentiated_Megamap_MAPQ30.hic",
-                "/Users/muhammad/Desktop/Sandra_v2/atdc5_chromcalc_500kb_r40");
-
-
-        String[] stripestestrun = new String[]{
-                "grind", "-c", "4", "-r", "25000",
-                "/Users/audreylu/Downloads/rh6wmo0b6a3l7d1cqsnzwfqxsnq6ie_dgwt.hic",
-                "/Users/audreylu/Downloads/Stripes_DGWT_IB_3-4-6.bedpe",
-                "30,300,1000000",
-                "/Users/audreylu/Downloads/stripes_data"
-        };
-
-        HiCTools.main(stripestestrun);
-
-
+        
     }
 
     private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
