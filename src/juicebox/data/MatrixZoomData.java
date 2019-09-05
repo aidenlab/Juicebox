@@ -808,7 +808,7 @@ public class MatrixZoomData {
      * Utility for printing description of this matrix.
      */
     public String getDescription() {
-        return chr1.getName() + " - " + chr2.getName();
+        return chr1.getName() + " - " + chr2.getName() + " - " + getZoom();
     }
 
     public void printFullDescription() {

@@ -985,7 +985,6 @@ public class SuperAdapter {
 
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
-
         updateChrHandlerAndMVP(custom);
     }
 
@@ -1067,5 +1066,10 @@ public class SuperAdapter {
         };
         mainWindow.executeLongRunningTask(runnable, "safe add custom norms");
 
+    }
+
+    public void createGenomewideChromosomeFromChromDotSizes() {
+        Chromosome custom = hic.getChromosomeHandler().addGenomeWideChromosome();
+        updateChrHandlerAndMVP(custom);
     }
 }
