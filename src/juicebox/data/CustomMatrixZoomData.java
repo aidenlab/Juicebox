@@ -296,16 +296,17 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         long timeFinalOverall = System.currentTimeMillis();
         //System.out.println("Time taken in actuallyLoadGivenBlocks (seconds): " + timesPassed[0] / 1000.0 + " - " + timesPassed[1] / 1000.0 + " - " + timesPassed[2] / 1000.0);
 
-        System.out.println("Time taken overall breakdown (seconds): "
-                + DatasetReaderV2.globalTimeDiffThings[0] + " - "
-                + DatasetReaderV2.globalTimeDiffThings[1] + " - "
-                + DatasetReaderV2.globalTimeDiffThings[2] + " - "
-                + DatasetReaderV2.globalTimeDiffThings[3] + " - "
-                + DatasetReaderV2.globalTimeDiffThings[4]
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Time taken overall breakdown (seconds): "
+                    + DatasetReaderV2.globalTimeDiffThings[0] + " - "
+                    + DatasetReaderV2.globalTimeDiffThings[1] + " - "
+                    + DatasetReaderV2.globalTimeDiffThings[2] + " - "
+                    + DatasetReaderV2.globalTimeDiffThings[3] + " - "
+                    + DatasetReaderV2.globalTimeDiffThings[4]
 
-        );
-        System.out.println("Time taken overall (seconds): " + (overallTimeStart - timeFinalOverall) / 1000.0);
-
+            );
+            System.out.println("Time taken overall (seconds): " + (overallTimeStart - timeFinalOverall) / 1000.0);
+        }
         // error printing
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
