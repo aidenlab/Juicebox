@@ -761,7 +761,7 @@ public class ConcurrentKMeans implements KMeans {
                 // Workers are done.
                 mBarrier = new CyclicBarrier(numThreads, new Runnable() {
                     public void run() {
-                        // Method called after all workers haved called await() on the
+                        // Method called after all workers have called await() on the
                         // barrier.  The call to workersDone()
                         // unblocks the controlling thread.
                         workersDone();

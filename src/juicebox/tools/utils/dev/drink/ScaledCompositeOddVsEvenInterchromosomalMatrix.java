@@ -73,11 +73,11 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
         Chromosome[] evenChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
 
         // assuming Odd vs Even
-        Chromosome[] heightChromosomes = oddChromosomes;
+        // height chromosomes
         int h = calculateDimensionInterMatrix(oddChromosomes);
         int[] heightIndices = calculateOffsetIndex(oddChromosomes);
 
-        Chromosome[] widthChromosomes = evenChromosomes;
+        // width chromosomes
         int w = calculateDimensionInterMatrix(evenChromosomes);
         int[] widthIndices = calculateOffsetIndex(evenChromosomes);
 
@@ -86,21 +86,17 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         double[][] interMatrix = new double[h][w];
 
-        for (int i = 0; i < heightChromosomes.length; i++) {
-            Chromosome chr1 = heightChromosomes[i];
+        for (int i = 0; i < oddChromosomes.length; i++) {
+            Chromosome chr1 = oddChromosomes[i];
 
-            for (int j = 0; j < widthChromosomes.length; j++) {
-                Chromosome chr2 = widthChromosomes[j];
+            for (int j = 0; j < evenChromosomes.length; j++) {
+                Chromosome chr2 = evenChromosomes[j];
 
                 if (chr1.getIndex() == chr2.getIndex()) continue;
-
                 Matrix matrix = ds.getMatrix(chr1, chr2);
-
                 if (matrix == null) continue;
-
                 HiCZoom zoom = ds.getZoomForBPResolution(resolution);
                 final MatrixZoomData zd = matrix.getZoomData(zoom);
-
                 if (zd == null) continue;
 
                 // will need to flip across diagonal

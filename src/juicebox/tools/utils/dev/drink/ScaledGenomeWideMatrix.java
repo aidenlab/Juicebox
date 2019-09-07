@@ -80,12 +80,7 @@ class ScaledGenomeWideMatrix {
 
                 if (zd == null) continue;
 
-                ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-                if (isIntra && df == null) {
-                    System.err.println("O/E data not available at " + chr1.getName() + " " + zoom + " " + norm);
-                    System.exit(14);
-                }
-
+                ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chr1, isIntra);
                 fillInChromosomeRegion(gwMatrix, zd, df, isIntra, chr1, indices[i], chr2, indices[j]);
             }
         }

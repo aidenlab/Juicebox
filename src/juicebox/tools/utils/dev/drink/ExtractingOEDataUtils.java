@@ -47,7 +47,6 @@ public class ExtractingOEDataUtils {
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
         List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
         double averageCount = zd.getAverageCount();
@@ -66,8 +65,8 @@ public class ExtractingOEDataUtils {
                 }
             }
         }
-        // ~force cleanup
-        blocks = null;
+        // force cleanup
+        System.gc();
 
         return data;
     }
@@ -105,8 +104,8 @@ public class ExtractingOEDataUtils {
                 }
             }
         }
-        // ~force cleanup
-        blocks = null;
+        // force cleanup
+        System.gc();
 
         return MatrixTools.getAverage(data);
     }
@@ -150,8 +149,8 @@ public class ExtractingOEDataUtils {
                 }
             }
         }
-        // ~force cleanup
-        blocks = null;
+        // force cleanup
+        System.gc();
 
         return data.getData();
     }

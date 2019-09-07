@@ -80,10 +80,8 @@ public class ThirdGWApproach {
         outputFile3 = new File(outputDirectory, "inter_even_kmeans_clusters.bed");
         interEvenSubcompartments.simpleExport(outputFile3);
 
-        GenomeWideList<SubcompartmentInterval> finalSubcompartments = mergeIntraAndInterAnnotations(outputDirectory,
+        return mergeIntraAndInterAnnotations(outputDirectory,
                 origIntraSubcompartments, interOddSubcompartments, interEvenSubcompartments, connectedComponentThreshold);
-
-        return finalSubcompartments;
     }
 
     private static GenomeWideList<SubcompartmentInterval>

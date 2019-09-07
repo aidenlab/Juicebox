@@ -258,6 +258,15 @@ public class Dataset {
         return expectedValueFunctionMap.get(key);
     }
 
+    public ExpectedValueFunction getExpectedValuesOrExit(HiCZoom zoom, NormalizationType type, Chromosome chromosome, boolean isIntra) {
+        ExpectedValueFunction df = getExpectedValues(zoom, type);
+        if (isIntra && df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + type);
+            System.exit(14);
+        }
+        return df;
+    }
+
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
         return expectedValueFunctionMap;
     }
