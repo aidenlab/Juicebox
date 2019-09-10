@@ -167,7 +167,7 @@ public class Pearsons extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-        HiCGlobals.MAX_PEARSON_ZOOM = 500000;
+        //HiCGlobals.MAX_PEARSON_ZOOM = 500000;
         setDatasetAndNorm(args[2], args[1], true);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
@@ -192,19 +192,21 @@ public class Pearsons extends JuiceboxCLT {
             System.err.println("Integer expected for bin size.  Found: " + binSizeSt + ".");
             System.exit(21);
         }
-
+/***
         if ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_PEARSON_ZOOM) ||
                 (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM / 1000)) {
             System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
             System.out.println("To override this limitation, send in the \"-p\" flag.");
             System.exit(0);
         }
+ ***/
 
         if (args.length == 7) {
             ofile = args[6];
         }
 
     }
+
 
     @Override
     public void run() {
@@ -335,5 +337,7 @@ public class Pearsons extends JuiceboxCLT {
         les.writeInt(BLOCK_TILE);
     }
 }
+
+
 
 
