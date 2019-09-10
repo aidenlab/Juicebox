@@ -522,7 +522,8 @@ public class HiCFileTools {
         int maxSize = maxBin;
 
         return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
+                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
+                false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
 
     }
 

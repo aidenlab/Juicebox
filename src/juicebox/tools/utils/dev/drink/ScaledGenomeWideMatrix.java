@@ -29,6 +29,7 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -118,7 +119,7 @@ class ScaledGenomeWideMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
+            RealMatrix allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
                     0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold, false);
 
             for (int i = 0; i < intervals1.size(); i++) {

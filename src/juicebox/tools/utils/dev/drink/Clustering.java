@@ -67,7 +67,8 @@ public class Clustering {
                 int maxSize = maxBin;
 
                 RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
+                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
+                        false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
 
                 final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
 

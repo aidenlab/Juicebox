@@ -33,6 +33,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -149,12 +150,12 @@ class ScaledInterchromosomalMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion;
+            RealMatrix allDataForRegion;
             if (needToFlip) {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
                         0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
-                allDataForRegion = MatrixTools.transpose(allDataForRegion);
+                allDataForRegion = allDataForRegion.transpose();
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,

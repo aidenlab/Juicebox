@@ -33,6 +33,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -145,12 +146,12 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion;
+            RealMatrix allDataForRegion;
             if (needToFlip) {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
                         0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
-                allDataForRegion = MatrixTools.transpose(allDataForRegion);
+                allDataForRegion = allDataForRegion.transpose();
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
                 allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
@@ -175,12 +176,6 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
                     try {
                         matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
                     } catch (Exception e) {
-                        //System.err.println("err " + i + ", (" + offsetIndex2 + "+" + j + ")");
-                        //System.err.println("err interv1 " + interv1);
-                        //System.err.println("err interv2 " + interv2);
-                        //System.err.println("err region size " + allDataForRegion.length + " by " + allDataForRegion[0].length);
-                        //System.err.println("err matrix size " + matrix.length + " by " + matrix[0].length);
-
                         e.printStackTrace();
                         System.exit(99);
                     }

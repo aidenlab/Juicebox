@@ -108,7 +108,7 @@ public class StripeFinder implements RegionFinder {
                 return;
             }
             localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, rectULX, rectLRX,
-                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true);
+                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
         } else {
             localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                     rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm, true);

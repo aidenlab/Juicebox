@@ -38,28 +38,31 @@ public class ExtractingOEDataUtils {
                                                                        int binYStart, int binYEnd, int numRows, int numCols,
                                                                        NormalizationType normalizationType, boolean isIntra,
                                                                        ExpectedValueFunction df, int chrIndex, double threshold,
-                                                                       boolean fillUnderDiagonal) throws IOException {
+                                                                       boolean fillUnderDiagonal, ThresholdType thresholdType) throws IOException {
         if (isIntra && df == null) {
             System.err.println("DF is null");
             return null;
         }
-
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
         List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
         double averageCount = zd.getAverageCount();
-
         if (blocks.size() > 0) {
             for (Block b : blocks) {
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-
                         double expected = getExpected(rec, df, chrIndex, isIntra, averageCount);
-                        double oeVal = Math.log(rec.getCounts() / expected);
-                        oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-
+                        double oeVal = rec.getCounts();
+                        if (thresholdType.equals(ThresholdType.LOG_OE_BOUNDED)) {
+                            oeVal = Math.log(oeVal / expected);
+                            oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
+                        } else if (thresholdType.equals(ThresholdType.AVERAGED)) {
+                            if (isIntra) {
+                                oeVal = Math.log(oeVal / expected);
+                            }
+                        }
                         placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
                     }
                 }
@@ -67,50 +70,10 @@ public class ExtractingOEDataUtils {
         }
         // force cleanup
         System.gc();
-
         return data;
     }
 
-    public static double extractAveragedOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                        NormalizationType normalizationType, boolean isIntra,
-                                                        ExpectedValueFunction df, int chrIndex, boolean fillUnderDiagonal) throws IOException {
-        if (isIntra && df == null) {
-            System.err.println("DF is null");
-            return 0.0;
-        }
-
-        // numRows/numCols is just to ensure a set size in case bounds are approximate
-        // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-        double averageCount = zd.getAverageCount();
-
-        if (blocks.size() > 0) {
-            for (Block b : blocks) {
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-
-                        double expected = getExpected(rec, df, chrIndex, isIntra, averageCount);
-                        double oeVal = rec.getCounts();
-                        if (isIntra) {
-                            oeVal = Math.log(rec.getCounts() / expected);
-                            //oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-                        }
-
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
-                    }
-                }
-            }
-        }
-        // force cleanup
-        System.gc();
-
-        return MatrixTools.getAverage(data);
-    }
-
-    public static double[][] extractLocalOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
+    public static RealMatrix extractLocalOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                          int binYStart, int binYEnd, int numRows, int numCols,
                                                          NormalizationType normalizationType, boolean isIntra,
                                                          ExpectedValueFunction df, int chrIndex, double threshold,
@@ -151,12 +114,13 @@ public class ExtractingOEDataUtils {
         }
         // force cleanup
         System.gc();
-
-        return data.getData();
+        return data;
     }
 
-    public static double extractAveragedOEFromRegion(double[][] allDataForRegion, int binXStart, int binXEnd,
+    public static double extractAveragedOEFromRegion(RealMatrix matrix, int binXStart, int binXEnd,
                                                      int binYStart, int binYEnd, double threshold, boolean isIntra) {
+
+        double[][] allDataForRegion = matrix.getData();
 
         int totalNumInclZero = (binXEnd - binXStart) * (binYEnd - binYStart);
         double total = 0;
@@ -185,6 +149,8 @@ public class ExtractingOEDataUtils {
 
         return average;
     }
+
+    public enum ThresholdType {LOG_OE_BOUNDED, AVERAGED}
 
     /**
      * place oe value in relative position
