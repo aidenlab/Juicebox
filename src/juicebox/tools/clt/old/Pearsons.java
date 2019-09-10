@@ -335,5 +335,3 @@ public class Pearsons extends JuiceboxCLT {
         les.writeInt(BLOCK_TILE);
     }
 }
-
-
