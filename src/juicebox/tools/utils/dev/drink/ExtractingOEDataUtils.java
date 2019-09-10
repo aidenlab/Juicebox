@@ -34,11 +34,11 @@ import java.util.List;
 
 public class ExtractingOEDataUtils {
 
-    public static RealMatrix extractLocalThresholdedLogOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                                       int binYStart, int binYEnd, int numRows, int numCols,
-                                                                       NormalizationType normalizationType, boolean isIntra,
-                                                                       ExpectedValueFunction df, int chrIndex, double threshold,
-                                                                       boolean fillUnderDiagonal, ThresholdType thresholdType) throws IOException {
+    public static RealMatrix extractObsOverExpBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                            int binYStart, int binYEnd, int numRows, int numCols,
+                                                            NormalizationType normalizationType, boolean isIntra,
+                                                            ExpectedValueFunction df, int chrIndex, double threshold,
+                                                            boolean fillUnderDiagonal, ThresholdType thresholdType) throws IOException {
         if (isIntra && df == null) {
             System.err.println("DF is null");
             return null;
@@ -58,10 +58,11 @@ public class ExtractingOEDataUtils {
                         if (thresholdType.equals(ThresholdType.LOG_OE_BOUNDED)) {
                             oeVal = Math.log(oeVal / expected);
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-                        } else if (thresholdType.equals(ThresholdType.AVERAGED)) {
+                        } else if (thresholdType.equals(ThresholdType.LOCAL_BOUNDED)) {
                             if (isIntra) {
-                                oeVal = Math.log(oeVal / expected);
+                                oeVal = Math.log(rec.getCounts() / expected);
                             }
+                            if (Double.isNaN(oeVal)) oeVal = 0;
                         }
                         placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
                     }
@@ -73,49 +74,20 @@ public class ExtractingOEDataUtils {
         return data;
     }
 
-    public static RealMatrix extractLocalOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                         int binYStart, int binYEnd, int numRows, int numCols,
-                                                         NormalizationType normalizationType, boolean isIntra,
-                                                         ExpectedValueFunction df, int chrIndex, double threshold,
-                                                         boolean fillUnderDiagonal) throws IOException {
-
-        if (isIntra && df == null) {
-            System.err.println("DF is null");
-            System.exit(87);
-            return null;
+    private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
+        int x = rec.getBinX();
+        int y = rec.getBinY();
+        double expected;
+        if (isIntra) {
+            int dist = Math.abs(x - y);
+            expected = df.getExpectedValue(chrIndex, dist);
+        } else {
+            expected = (averageCount > 0 ? averageCount : 1);
         }
-
-        // numRows/numCols is just to ensure a set size in case bounds are approximate
-        // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-
-        if (blocks.size() > 0) {
-            for (Block b : blocks) {
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-                        int x = rec.getBinX();
-                        int y = rec.getBinY();
-
-                        double oeVal = rec.getCounts();
-                        if (isIntra) {
-                            int dist = Math.abs(x - y);
-                            double expected = df.getExpectedValue(chrIndex, dist);
-                            oeVal = Math.log(rec.getCounts() / expected);
-                            //oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-                        }
-                        if (Double.isNaN(oeVal)) oeVal = 0;
-
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
-                    }
-                }
-            }
-        }
-        // force cleanup
-        System.gc();
-        return data;
+        return expected;
     }
+
+    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED}
 
     public static double extractAveragedOEFromRegion(RealMatrix matrix, int binXStart, int binXEnd,
                                                      int binYStart, int binYEnd, double threshold, boolean isIntra) {
@@ -150,8 +122,6 @@ public class ExtractingOEDataUtils {
         return average;
     }
 
-    public enum ThresholdType {LOG_OE_BOUNDED, AVERAGED}
-
     /**
      * place oe value in relative position
      *
@@ -183,26 +153,5 @@ public class ExtractingOEDataUtils {
                 }
             }
         }
-    }
-
-    /**
-     * @param rec
-     * @param df
-     * @param chrIndex
-     * @param isIntra
-     * @param averageCount
-     * @return
-     */
-    private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
-        int x = rec.getBinX();
-        int y = rec.getBinY();
-        double expected;
-        if (isIntra) {
-            int dist = Math.abs(x - y);
-            expected = df.getExpectedValue(chrIndex, dist);
-        } else {
-            expected = (averageCount > 0 ? averageCount : 1);
-        }
-        return expected;
     }
 }

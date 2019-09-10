@@ -119,8 +119,8 @@ class ScaledGenomeWideMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            RealMatrix allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold, false);
+            RealMatrix allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
+                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
 
             for (int i = 0; i < intervals1.size(); i++) {
                 SubcompartmentInterval interv1 = intervals1.get(i);

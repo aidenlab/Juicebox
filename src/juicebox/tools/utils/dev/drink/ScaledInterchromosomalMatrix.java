@@ -152,14 +152,14 @@ class ScaledInterchromosomalMatrix {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
             RealMatrix allDataForRegion;
             if (needToFlip) {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
-                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr2,
+                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
                 allDataForRegion = allDataForRegion.transpose();
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
+                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
             }
 
             for (int i = 0; i < intervals1.size(); i++) {
