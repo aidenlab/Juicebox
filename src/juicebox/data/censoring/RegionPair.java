@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,9 @@ public class RegionPair {
     public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion) {
         int xI = xRegion.getFirst().getChr();
         int yI = yRegion.getFirst().getChr();
+
+        // todo debug for diff custom chrs against each other
+        //  return new RegionPair(xI, xRegion, yI, yRegion);
 
         if (xI <= yI) {
             return new RegionPair(xI, xRegion, yI, yRegion);

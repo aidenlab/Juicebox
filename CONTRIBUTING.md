@@ -28,7 +28,7 @@ While we strongly suggest using the public forum so that the community at large 
 
 ## **Did you fix whitespace, format code, or make a purely cosmetic patch?**
 
-Changes that are cosmetic in nature and do not add anything to the stability, functionality, or testability of Juicebox are still welcome!
+We welcome changes that are cosmetic in nature and do not necessarily add anything to the stability, functionality, or testability of Juicebox. Please follow commonly practiced Java Style Guides when doing so.
 
 ## **Do you intend to add a new feature or change an existing one?**
 

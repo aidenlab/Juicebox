@@ -167,7 +167,7 @@ public class Pearsons extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-        HiCGlobals.MAX_PEARSON_ZOOM = 500000;
+        //HiCGlobals.MAX_PEARSON_ZOOM = 500000;
         setDatasetAndNorm(args[2], args[1], true);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
@@ -335,5 +335,3 @@ public class Pearsons extends JuiceboxCLT {
         les.writeInt(BLOCK_TILE);
     }
 }
-
-

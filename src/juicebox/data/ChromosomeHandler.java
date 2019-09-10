@@ -40,6 +40,7 @@ import java.util.*;
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
+    private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
     private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
@@ -47,6 +48,7 @@ public class ChromosomeHandler {
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
     private Chromosome[] chromosomeArrayAutosomesOnly;
+    public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -59,13 +61,17 @@ public class ChromosomeHandler {
     }
 
     public static String cleanUpName(String name) {
-        if (name.equals("assembly")) {
+        if (name.equalsIgnoreCase("assembly")) {
             return "assembly";
         }
-        if (name.equals("pseudoassembly")) {
+        if (name.equalsIgnoreCase("pseudoassembly")) {
             return "pseudoassembly";
         }
         return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+    }
+
+    public static void sort(List<Chromosome> indices) {
+        Collections.sort(indices, new ChromosomeComparator());
     }
 
     /**
@@ -93,6 +99,33 @@ public class ChromosomeHandler {
 
     public static boolean isAllByAll(String name) {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    }
+
+    private GenomeWideList<MotifAnchor> generateChromDotSizesBedFile() {
+        GenomeWideList<MotifAnchor> chromDotSizes = new GenomeWideList<>(this);
+
+        for (Chromosome c : getChromosomeArray()) {
+            if (isAllByAll(c) || isGenomeWide(c)) continue;
+            MotifAnchor chromAnchor = new MotifAnchor(c.getIndex(), 0, c.getLength(), c.getName());
+            List<MotifAnchor> anchors = new ArrayList<>();
+            anchors.add(chromAnchor);
+            chromDotSizes.setFeatures("" + c.getIndex(), anchors);
+        }
+
+        return chromDotSizes;
+    }
+
+    private boolean isGenomeWide(Chromosome chromosome) {
+        return isGenomeWide(chromosome.getName());
+    }
+
+    private boolean isGenomeWide(String name) {
+        return cleanUpName(name).equalsIgnoreCase(GENOMEWIDE_CHR);
+    }
+
+    public Chromosome addGenomeWideChromosome() {
+        GenomeWideList<MotifAnchor> chromDotSizes = generateChromDotSizesBedFile();
+        return addCustomChromosome(chromDotSizes, cleanUpName(GENOMEWIDE_CHR));
     }
 
     public Chromosome generateAssemblyChromosome() {
@@ -127,6 +160,19 @@ public class ChromosomeHandler {
                 MotifAnchorTools.extractAllAnchorsFromAllFeatures(featureList, this);
         String cleanedUpName = cleanUpName(chrName);
         return addCustomChromosome(featureAnchors, cleanedUpName);
+    }
+
+    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
+        final int[] customGenomeLength = new int[]{0};
+        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor c : featureList) {
+                    if (c != null) customGenomeLength[0] += c.getWidth() + CUSTOM_CHROMOSOME_BUFFER;
+                }
+            }
+        });
+        return customGenomeLength[0];
     }
 
     private Chromosome addCustomChromosome(GenomeWideList<MotifAnchor> regionsInCustomChromosome, String cleanedUpName) {
@@ -194,17 +240,13 @@ public class ChromosomeHandler {
         return genomeLength;
     }
 
-    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
-        final int[] customGenomeLength = new int[]{0};
-        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
-            @Override
-            public void process(String chr, List<MotifAnchor> featureList) {
-                for (MotifAnchor c : featureList) {
-                    if (c != null) customGenomeLength[0] += c.getWidth();
-                }
-            }
-        });
-        return customGenomeLength[0];
+    static class ChromosomeComparator implements Comparator<Chromosome> {
+        @Override
+        public int compare(Chromosome a, Chromosome b) {
+            Integer aIndx = a.getIndex();
+            Integer bIndx = b.getIndex();
+            return aIndx.compareTo(bIndx);
+        }
     }
 
     public boolean isCustomChromosome(Chromosome chromosome) {

@@ -25,7 +25,9 @@
 package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DTools;
@@ -47,6 +49,7 @@ public class LoopFinder implements RegionFinder {
     private Integer x;
     private Integer y;
     private Integer z;
+    private Integer stride;
     private Dataset ds;
     private Feature2DList features;
     private String path;
@@ -55,18 +58,22 @@ public class LoopFinder implements RegionFinder {
     private Writer writer = null;
     private ChromosomeHandler chromosomeHandler;
     private int overallWidth;
+    private boolean onlyMakePositiveExamples, dimensionOfLabelIsSameAsOutput;
 
-    public LoopFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                      boolean useObservedOverExpected, boolean dimensionOfLabelIsSameAsOutput, Set<Integer> resolutions) {
+    public LoopFinder(int x, int y, int z, int stride, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
+                      boolean useObservedOverExpected, boolean dimensionOfLabelIsSameAsOutput, Set<Integer> resolutions, boolean onlyMakePositiveExamples) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.stride = stride;
         this.ds = ds;
         this.features = features;
         this.path = outputDirectory.getPath();
         this.norm = norm;
         this.resolutions = resolutions;
         this.chromosomeHandler = chromosomeHandler;
+        this.onlyMakePositiveExamples = onlyMakePositiveExamples;
+        this.dimensionOfLabelIsSameAsOutput = dimensionOfLabelIsSameAsOutput;
         try {
             writer =
                     new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
@@ -78,11 +85,86 @@ public class LoopFinder implements RegionFinder {
 
     @Override
     public void makeExamples() {
-        makePositiveExamples();
-        makeNegativeExamples();
+        if (dimensionOfLabelIsSameAsOutput) {
+            makeAllPositiveExamples();
+        } else {
+            makeRandomPositiveExamples();
+        }
+        if (!onlyMakePositiveExamples) {
+            makeNegativeExamples();
+        }
     }
 
-    private void makePositiveExamples() {
+    private void makeAllPositiveExamples() {
+        final Random generator = new Random();
+
+        File file = new File(path);
+        if (!file.isDirectory()) {
+            file.mkdir();
+        }
+
+        final int fullWidthI = x;
+        final int fullWidthJ = y;
+
+
+        final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
+
+        try {
+            for (int resolution : resolutions) {
+
+
+                final String posPath = path + "/positive_res" + resolution;
+                UNIXTools.makeDir(posPath);
+
+                final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_file_names.txt"), StandardCharsets.UTF_8));
+                final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_\"+resolution+\"_label_file_names.txt"), StandardCharsets.UTF_8));
+
+                features.processLists(new FeatureFunction() {
+                    @Override
+                    public void process(String chr, List<Feature2D> feature2DList) {
+
+                        System.out.println("Currently on: " + chr);
+
+                        Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+
+                        Matrix matrix = ds.getMatrix(chrom, chrom);
+                        if (matrix == null) return;
+
+                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                        final MatrixZoomData zd = matrix.getZoomData(zoom);
+
+                        if (zd == null) return;
+
+                        for (Feature2D feature2D : feature2DList) {
+                            int i0 = Math.max(0, feature2D.getMidPt1() / resolution - fullWidthI);
+                            int j0 = Math.max(0, feature2D.getMidPt2() / resolution - fullWidthJ);
+                            int iMax = Math.min(feature2D.getMidPt1() / resolution + fullWidthI, chrom.getLength() / resolution);
+                            int jMax = Math.min(feature2D.getMidPt2() / resolution + fullWidthJ, chrom.getLength() / resolution);
+
+                            for (int rowIndex = i0; rowIndex < iMax; rowIndex += stride) {
+                                for (int colIndex = j0; colIndex < jMax; colIndex += stride) {
+                                    try {
+                                        StripeFinder.getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
+                                                posPath, null, posWriter, posLabelWriter, null, false,
+                                                false, true, true);
+                                    } catch (Exception e) {
+                                        System.err.println("Error reading from row " + rowIndex + " col " + colIndex + " at res " + resolution);
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                });
+            }
+
+            writer.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void makeRandomPositiveExamples() {
         final Random generator = new Random();
 
         File file = new File(path);
