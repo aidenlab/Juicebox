@@ -181,6 +181,18 @@ public class DrinkUtils {
         consensus.simpleExport(outputFile3);
     }
 
+    public static void saveFileBeforeAndAfterCollapsing(GenomeWideList<SubcompartmentInterval> subcompartments,
+                                                        File outputDirectory, String preCollapsingFileName,
+                                                        String postCollapsingFileName) {
+        File outputFile = new File(outputDirectory, preCollapsingFileName);
+        subcompartments.simpleExport(outputFile);
+
+        DrinkUtils.collapseGWList(subcompartments);
+
+        File outputFile2 = new File(outputDirectory, postCollapsingFileName);
+        subcompartments.simpleExport(outputFile2);
+    }
+
     // todo mss
     // variableStep chrom=chr2 span=5
     // 300701  12.5
