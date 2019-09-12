@@ -134,7 +134,7 @@ public class Grind extends JuicerCLT {
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
-            finder = new DistortionFinder(x, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
+            finder = new DistortionFinder(x, z, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
         } else {
             finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected,
                     useDenseLabels, resolutions, offsetOfCornerFromDiagonal, stride, onlyMakePositiveExamples, ignoreDirectionOrientation);

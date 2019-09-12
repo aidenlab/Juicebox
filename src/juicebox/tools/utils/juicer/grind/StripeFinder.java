@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
@@ -140,34 +139,35 @@ public class StripeFinder implements RegionFinder {
             }
         }
 
+        double[][] finalData = localizedRegionData.getData();
+        double[][] finalLabels = labelsMatrix;
+        String orientationType = "_Horzntl";
+
+        if (isVerticalStripe) {
+            finalData = appropriatelyTransformVerticalStripes(finalData);
+            finalLabels = appropriatelyTransformVerticalStripes(finalLabels);
+            orientationType = "_Vertcl";
+        }
+
+        String filePrefix = chrom.getName() + "_" + rowIndex + "_" + colIndex + orientationType;
+
         if (stripeIsFound) {
             System.out.print(".");
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", posPath, localizedRegionData.getData(), posWriter, isVerticalStripe);
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.label.txt", posPath, labelsMatrix, posLabelWriter, isVerticalStripe);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", posPath, finalData, posWriter);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.txt", posPath, finalLabels, posLabelWriter);
         } else if (!onlyMakePositiveExamples) {
-            saveStripeMatrixDataToFile(chrom, rowIndex, colIndex, "_matrix.txt", negPath, localizedRegionData.getData(), negWriter, isVerticalStripe);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", negPath, finalData, negWriter);
         }
     }
 
-    private static void saveStripeMatrixDataToFile(Chromosome chrom, int rowIndex, int colIndex, String fileEnding, String path,
-                                                   double[][] data, Writer writer, boolean isVerticalStripe) throws IOException {
-
-        double[][] transformedData = data;
-        if (isVerticalStripe) {
-            transformedData = new double[data[0].length][data.length];
-            for (int i = 0; i < data.length; i++) {
-                for (int j = 0; j < data[0].length; j++) {
-                    transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
-                }
+    private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
+        double[][] transformedData = new double[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
             }
         }
-
-        String exactFileName = chrom.getName() + "_" + rowIndex + "_" + colIndex + "_Horzntl_" + fileEnding;
-        if (isVerticalStripe) {
-            exactFileName = chrom.getName() + "_" + rowIndex + "_" + colIndex + "_Vertcl_" + fileEnding;
-        }
-        MatrixTools.saveMatrixTextV2(path + "/" + exactFileName, transformedData);
-        writer.write(exactFileName + "\n");
+        return transformedData;
     }
 
     private static boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {

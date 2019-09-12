@@ -40,7 +40,7 @@ public class DistortionFinder implements RegionFinder {
 
 
     private Integer imgSliceWidth, imgHalfSliceWidth;
-    private Integer numExamples;
+    private Integer numManipulations;
     private Dataset ds;
     private String path;
     private ChromosomeHandler chromosomeHandler;
@@ -52,12 +52,13 @@ public class DistortionFinder implements RegionFinder {
 
     // grind -k KR -r 5000,10000,25000,100000 --stride 3 -c 1,2,3 --dense-labels --distort <hic file> null <64,64,1000> <directory>
 
-    public DistortionFinder(int imgSliceWidth, Dataset ds, File outputDirectory,
+    public DistortionFinder(int imgSliceWidth, int numManipulations, Dataset ds, File outputDirectory,
                             ChromosomeHandler chromosomeHandler, NormalizationType norm,
                             boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions, int stride) {
 
         this.imgSliceWidth = imgSliceWidth;
         imgHalfSliceWidth = imgSliceWidth / 2;
+        this.numManipulations = numManipulations;
         this.ds = ds;
         this.path = outputDirectory.getPath();
         this.chromosomeHandler = chromosomeHandler;
@@ -122,6 +123,7 @@ public class DistortionFinder implements RegionFinder {
             posWriter.close();
             negWriter.close();
             posLabelWriter.close();
+            negLabelWriter.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -136,7 +138,8 @@ public class DistortionFinder implements RegionFinder {
         for (int posIndex1 = 0; posIndex1 < maxChrLength - imgSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = posIndex1 + imgHalfSliceWidth; posIndex2 < maxChrLength; posIndex2 += stride) {
                 getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2,
-                        posPath, negPath, posWriter, posLabelWriter, negWriter, negLabelWriter);
+                        posPath, negPath, chrom.getName(), chrom.getName(),
+                        posWriter, posLabelWriter, negWriter, negLabelWriter);
             }
         }
     }
@@ -152,7 +155,8 @@ public class DistortionFinder implements RegionFinder {
         for (int posIndex1 = 0; posIndex1 < maxChrLength1 - imgHalfSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = 0; posIndex2 < maxChrLength2 - imgHalfSliceWidth; posIndex2 += stride) {
                 getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2,
-                        posPath, negPath, posWriter, posLabelWriter, negWriter, negLabelWriter);
+                        posPath, negPath, chrom1.getName(), chrom2.getName(),
+                        posWriter, posLabelWriter, negWriter, negLabelWriter);
             }
         }
     }
@@ -161,6 +165,7 @@ public class DistortionFinder implements RegionFinder {
     private void getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
                                               int box1XIndex, int box2XIndex,
                                               String posPath, String negPath,
+                                              String chrom1Name, String chrom2Name,
                                               Writer posDataWriter, Writer posLabelWriter,
                                               Writer negDataWriter, Writer negLabelWriter) {
 
@@ -171,26 +176,30 @@ public class DistortionFinder implements RegionFinder {
         int box2RectLR = box2XIndex + imgHalfSliceWidth;
 
         try {
-
             RealMatrix localizedRegionDataBox1 = HiCFileTools.extractLocalBoundedRegion(zd1,
                     box1RectUL, box1RectLR, box1RectUL, box1RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-
             if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox1, .3)) return;
-
             RealMatrix localizedRegionDataBox2 = HiCFileTools.extractLocalBoundedRegion(zd2,
                     box2RectUL, box2RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-
             if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox2, .3)) return;
-
             RealMatrix localizedRegionDataBox12 = HiCFileTools.extractLocalBoundedRegion(zd12,
                     box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, false);
 
             double[][] compositeMatrix = MatrixTools.generateCompositeMatrix(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
-
+            MatrixTools.cleanUpNaNs(compositeMatrix);
             double[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4);
+            GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
 
-            // todo GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
+            String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix.txt";
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", negPath, labelsMatrix, negLabelWriter);
 
+            for (int k = 0; k < numManipulations; k++) {
+                filePrefix = "dstrt_" + k + "_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix.txt";
+                GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter);
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", posPath, labelsMatrix, posLabelWriter);
+            }
 
         } catch (Exception e) {
 
