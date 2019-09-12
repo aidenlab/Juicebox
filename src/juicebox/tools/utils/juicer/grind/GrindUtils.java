@@ -28,6 +28,10 @@ import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.util.Pair;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Random;
@@ -55,6 +59,7 @@ public class GrindUtils {
             for (int i = midPt; i < midPt + 2 * numSuperDiagonals; i++) {
                 for (int j = midPt - 2 * numSuperDiagonals; j < midPt; j++) {
                     labels[i][j] = 0;
+                    labels[j][i] = 0;
                 }
             }
         }
@@ -113,6 +118,36 @@ public class GrindUtils {
     public static void saveGrindMatrixDataToFile(String fileName, String path, double[][] data, Writer writer) throws IOException {
         MatrixTools.saveMatrixTextV2(path + "/" + fileName, data);
         writer.write(fileName + "\n");
+    }
+
+    public static void saveGrindMatrixDataToImage(String fileName, String path, double[][] data, Writer writer,
+                                                  boolean isLabelMatrix) throws IOException {
+        double meanToScaleWithR = 1, meanToScaleWithG = 1, meanToScaleWithB = 1;
+        if (!isLabelMatrix) {
+            double meanToScaleWith = 0;
+            for (int i = 0; i < data.length; i++) {
+                meanToScaleWith += data[i][i];
+            }
+            meanToScaleWith = meanToScaleWith / data.length;
+            meanToScaleWithB = meanToScaleWith / 2;
+            meanToScaleWithG = meanToScaleWith / 4;
+            meanToScaleWithR = meanToScaleWith / 8;
+        }
+
+        File myNewPNGFile = new File(path + "/" + fileName);
+        BufferedImage image = new BufferedImage(data.length, data[0].length, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                double val = data[i][j];
+                int r = Math.min(255, (int) Math.round(255. * val / meanToScaleWithR));
+                int g = Math.min(255, (int) Math.round(255. * val / meanToScaleWithG));
+                int b = Math.min(255, (int) Math.round(255. * val / meanToScaleWithB));
+                Color myColor = new Color(r, g, b);
+                image.setRGB(i, j, myColor.getRGB());
+            }
+        }
+
+        ImageIO.write(image, "PNG", myNewPNGFile);
     }
 
     public static Pair<double[][], double[][]> randomlyManipulateMatrix(double[][] data, double[][] labels) {
