@@ -36,7 +36,7 @@ public class GrindUtils {
 
     private static final Random generator = new Random(0);
 
-    public static double[][] generateDefaultDistortionLabelsFile(int length, int numSuperDiagonals) {
+    public static double[][] generateDefaultDistortionLabelsFile(int length, int numSuperDiagonals, boolean isContinous) {
         double[][] labels = new double[length][length];
         for (int i = 0; i < length; i++) {
             labels[i][i] = 1;
@@ -47,6 +47,15 @@ public class GrindUtils {
             for (int i = 0; i < length - k; i++) {
                 labels[i][i + k] = scale;
                 labels[i + k][i] = scale;
+            }
+        }
+
+        if (!isContinous) {
+            int midPt = length / 2;
+            for (int i = midPt; i < midPt + 2 * numSuperDiagonals; i++) {
+                for (int j = midPt - 2 * numSuperDiagonals; j < midPt; j++) {
+                    labels[i][j] = 0;
+                }
             }
         }
 
@@ -61,14 +70,21 @@ public class GrindUtils {
      */
     public static void cleanUpLabelsMatrixBasedOnData(double[][] labelsMatrix, double[][] compositeMatrix) {
         double[] rowSums = MatrixTools.getRowSums(compositeMatrix);
-        zeroOutLabelsBasedOnRowSums(labelsMatrix, rowSums);
+        zeroOutLabelsBasedOnNeighboringRowSums(labelsMatrix, rowSums);
     }
 
-    private static void zeroOutLabelsBasedOnRowSums(double[][] labelsMatrix, double[] rowSums) {
-        for (int i = 0; i < rowSums.length; i++) {
-            if (rowSums[i] > 0) {
-                // do nothing
-            } else {
+    private static void zeroOutLabelsBasedOnNeighboringRowSums(double[][] labelsMatrix, double[] rowSums) {
+        for (int i = 0; i < rowSums.length - 1; i++) {
+            if (rowSums[i] <= 0 && rowSums[i + 1] <= 0) {
+                for (int j = 0; j < rowSums.length; j++) {
+                    labelsMatrix[i][j] = 0;
+                    labelsMatrix[j][i] = 0;
+                }
+            }
+        }
+
+        for (int i = 1; i < rowSums.length; i++) {
+            if (rowSums[i] <= 0 && rowSums[i - 1] <= 0) {
                 for (int j = 0; j < rowSums.length; j++) {
                     labelsMatrix[i][j] = 0;
                     labelsMatrix[j][i] = 0;
@@ -111,7 +127,7 @@ public class GrindUtils {
             newLabels = invertMatrixRegion(labels, boundaries);
 
             // both with low probability
-            if (generator.nextBoolean() && generator.nextBoolean()) {
+            if (false && generator.nextBoolean() && generator.nextBoolean()) {
                 // create translocation
                 newData = translocateMatrixRegion(newData, boundaries, newPosition);
                 newLabels = translocateMatrixRegion(newLabels, boundaries, newPosition);
@@ -129,6 +145,15 @@ public class GrindUtils {
         double[][] transformedData = flipRowsInBoundaries(data, boundaries);
         transformedData = MatrixTools.transpose(transformedData);
         return flipRowsInBoundaries(transformedData, boundaries);
+    }
+
+    private static double[][] flipRowsInBoundaries(double[][] data, Pair<Integer, Integer> boundaries) {
+        double[][] transformedRegion = MatrixTools.deepClone(data);
+        for (int i = boundaries.getFirst(); i <= boundaries.getSecond(); i++) {
+            int copyIndex = boundaries.getSecond() - i + boundaries.getFirst();
+            System.arraycopy(data[i], 0, transformedRegion[copyIndex], 0, data[i].length);
+        }
+        return transformedRegion;
     }
 
     private static double[][] translocateMatrixRegion(double[][] data, Pair<Integer, Integer> boundaries, int newIndex) {
@@ -186,15 +211,6 @@ public class GrindUtils {
         }
 
         return new Pair<>(copyRegionNOTBeingTranslated, copyRegionBeingTranslated);
-    }
-
-    private static double[][] flipRowsInBoundaries(double[][] data, Pair<Integer, Integer> boundaries) {
-        double[][] copy = MatrixTools.deepClone(data);
-        for (int i = boundaries.getFirst(); i <= boundaries.getSecond(); i++) {
-            int copyIndex = boundaries.getSecond() - i + boundaries.getFirst();
-            System.arraycopy(data[i], 0, copy[copyIndex], 0, data[i].length);
-        }
-        return copy;
     }
 
     private static Pair<Integer, Integer> randomlyPickTwoIndices(int length) {

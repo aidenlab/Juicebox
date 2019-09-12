@@ -31,6 +31,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -139,7 +140,7 @@ public class DistortionFinder implements RegionFinder {
             for (int posIndex2 = posIndex1 + imgHalfSliceWidth; posIndex2 < maxChrLength; posIndex2 += stride) {
                 getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2,
                         posPath, negPath, chrom.getName(), chrom.getName(),
-                        posWriter, posLabelWriter, negWriter, negLabelWriter);
+                        posWriter, posLabelWriter, negWriter, negLabelWriter, posIndex2 == posIndex1 + imgHalfSliceWidth);
             }
         }
     }
@@ -156,7 +157,7 @@ public class DistortionFinder implements RegionFinder {
             for (int posIndex2 = 0; posIndex2 < maxChrLength2 - imgHalfSliceWidth; posIndex2 += stride) {
                 getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2,
                         posPath, negPath, chrom1.getName(), chrom2.getName(),
-                        posWriter, posLabelWriter, negWriter, negLabelWriter);
+                        posWriter, posLabelWriter, negWriter, negLabelWriter, false);
             }
         }
     }
@@ -167,7 +168,8 @@ public class DistortionFinder implements RegionFinder {
                                               String posPath, String negPath,
                                               String chrom1Name, String chrom2Name,
                                               Writer posDataWriter, Writer posLabelWriter,
-                                              Writer negDataWriter, Writer negLabelWriter) {
+                                              Writer negDataWriter, Writer negLabelWriter,
+                                              boolean isContinuousRegion) {
 
         int box1RectUL = box1XIndex;
         int box1RectLR = box1XIndex + imgHalfSliceWidth;
@@ -187,7 +189,7 @@ public class DistortionFinder implements RegionFinder {
 
             double[][] compositeMatrix = MatrixTools.generateCompositeMatrix(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
             MatrixTools.cleanUpNaNs(compositeMatrix);
-            double[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4);
+            double[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
             GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
 
             String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix.txt";
@@ -195,8 +197,10 @@ public class DistortionFinder implements RegionFinder {
             GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", negPath, labelsMatrix, negLabelWriter);
 
             for (int k = 0; k < numManipulations; k++) {
-                filePrefix = "dstrt_" + k + "_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix.txt";
-                GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
+                filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix.txt";
+                Pair<double[][], double[][]> alteredMatrices = GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
+                compositeMatrix = alteredMatrices.getFirst();
+                labelsMatrix = alteredMatrices.getSecond();
                 GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter);
                 GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", posPath, labelsMatrix, posLabelWriter);
             }
