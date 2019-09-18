@@ -540,12 +540,7 @@ public class MatrixTools {
 
     public static int[][] normalizeMatrixUsingRowSum(int[][] matrix) {
         int[][] newMatrix = new int[matrix.length][matrix[0].length];
-        int[] rowSum = new int[matrix.length];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                rowSum[i] += matrix[i][j];
-            }
-        }
+        int[] rowSum = getRowSums(matrix);
 
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
@@ -556,13 +551,44 @@ public class MatrixTools {
         return newMatrix;
     }
 
-    public static RealMatrix cleanUpNaNs(RealMatrix matrix) {
-        for (int r = 0; r < matrix.getRowDimension(); r++)
-            for (int c = 0; c < matrix.getColumnDimension(); c++)
+    public static int[] getRowSums(int[][] matrix) {
+        int[] rowSum = new int[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int val : matrix[i]) {
+                rowSum[i] += val;
+            }
+        }
+        return rowSum;
+    }
+
+    public static double[] getRowSums(double[][] matrix) {
+        double[] rowSum = new double[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (double val : matrix[i]) {
+                rowSum[i] += val;
+            }
+        }
+        return rowSum;
+    }
+
+    public static void cleanUpNaNs(RealMatrix matrix) {
+        for (int r = 0; r < matrix.getRowDimension(); r++) {
+            for (int c = 0; c < matrix.getColumnDimension(); c++) {
                 if (Double.isNaN(matrix.getEntry(r, c))) {
                     matrix.setEntry(r, c, 0);
                 }
-        return matrix;
+            }
+        }
+    }
+
+    public static void cleanUpNaNs(double[][] matrix) {
+        for (int r = 0; r < matrix.length; r++) {
+            for (int c = 0; c < matrix[r].length; c++) {
+                if (Double.isNaN(matrix[r][c])) {
+                    matrix[r][c] = 0;
+                }
+            }
+        }
     }
 
     public static double sum(double[][] data) {
@@ -701,5 +727,13 @@ public class MatrixTools {
         }
 
         return compositeMatrix;
+    }
+
+    public static double[][] deepClone(double[][] data) {
+        double[][] copy = new double[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, copy[i], 0, data[i].length);
+        }
+        return copy;
     }
 }

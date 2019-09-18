@@ -39,6 +39,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Generating Regions of Interest for Network Discovery
@@ -128,18 +130,39 @@ public class Grind extends JuicerCLT {
         if (givenChromosomes != null)
             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
-        RegionFinder finder;
+        RegionFinder finder = null;
         if (sliceTypeOption == 1) {
             finder = new LoopFinder(x, y, z, stride, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, onlyMakePositiveExamples);
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
-            finder = new DistortionFinder(x, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
+
+            ExecutorService executor = Executors.newFixedThreadPool(resolutions.size());
+            for (final int resolution : resolutions) {
+                Runnable worker = new Runnable() {
+                    @Override
+                    public void run() {
+                        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
+                        if (givenChromosomes != null)
+                            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
+
+                        RegionFinder finder = new DistortionFinder(x, z, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolution, stride);
+                        finder.makeExamples();
+                    }
+                };
+                executor.execute(worker);
+            }
+            executor.shutdown();
+
+            // Wait until all threads finish
+            while (!executor.isTerminated()) {
+            }
         } else {
             finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected,
                     useDenseLabels, resolutions, offsetOfCornerFromDiagonal, stride, onlyMakePositiveExamples, ignoreDirectionOrientation);
         }
-
-        finder.makeExamples();
+        if (finder != null) {
+            finder.makeExamples();
+        }
     }
 }
