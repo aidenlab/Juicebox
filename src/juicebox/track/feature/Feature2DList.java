@@ -33,6 +33,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -519,8 +521,21 @@ public class Feature2DList {
     public void filterLists(FeatureFilter filter) {
         List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
+        ExecutorService executor = Executors.newFixedThreadPool(keys.size());
         for (String key : keys) {
-            featureList.put(key, filter.filter(key, featureList.get(key)));
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    List<Feature2D> filteredFeatureList = filter.filter(key, featureList.get(key));
+                    synchronized (featureList) {
+                        featureList.put(key, filteredFeatureList);
+                    }
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
         }
     }
 
@@ -532,8 +547,18 @@ public class Feature2DList {
     public synchronized void processLists(FeatureFunction function) {
         List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
+        ExecutorService executor = Executors.newFixedThreadPool(keys.size());
         for (String key : keys) {
-            function.process(key, featureList.get(key));
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    function.process(key, featureList.get(key));
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
         }
     }
 
