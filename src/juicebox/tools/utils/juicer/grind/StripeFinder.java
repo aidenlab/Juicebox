@@ -121,7 +121,7 @@ public class StripeFinder implements RegionFinder {
 
         boolean stripeIsFound = false;
 
-        double[][] labelsMatrix = new double[numRows][numCols];
+        int[][] labelsMatrix = new int[numRows][numCols];
         for (Feature2D feature2D : inputListFoundFeatures) {
             int rowLength = Math.max((feature2D.getEnd1() - feature2D.getStart1()) / resolution, 1);
             int colLength = Math.max((feature2D.getEnd2() - feature2D.getStart2()) / resolution, 1);
@@ -132,7 +132,7 @@ public class StripeFinder implements RegionFinder {
                 int startColOf1 = feature2D.getStart2() / resolution - rectULY;
                 for (int i = 0; i < Math.min(rowLength, numRows); i++) {
                     for (int j = 0; j < Math.min(colLength, numCols); j++) {
-                        labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1.0;
+                        labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1;
                     }
                 }
                 stripeIsFound = true;
@@ -140,7 +140,7 @@ public class StripeFinder implements RegionFinder {
         }
 
         double[][] finalData = localizedRegionData.getData();
-        double[][] finalLabels = labelsMatrix;
+        int[][] finalLabels = labelsMatrix;
         String orientationType = "_Horzntl";
 
         if (isVerticalStripe) {
@@ -153,15 +153,25 @@ public class StripeFinder implements RegionFinder {
 
         if (stripeIsFound) {
             System.out.print(".");
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", posPath, finalData, posWriter);
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.txt", posPath, finalLabels, posLabelWriter);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", posPath, finalData, posWriter, false);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.txt", posPath, finalLabels, posLabelWriter, false);
         } else if (!onlyMakePositiveExamples) {
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", negPath, finalData, negWriter);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", negPath, finalData, negWriter, false);
         }
     }
 
     private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
         double[][] transformedData = new double[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    private static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
+        int[][] transformedData = new int[data[0].length][data.length];
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
                 transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];

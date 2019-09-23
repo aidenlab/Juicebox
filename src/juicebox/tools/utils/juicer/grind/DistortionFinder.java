@@ -203,14 +203,14 @@ public class DistortionFinder implements RegionFinder {
             double[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
             GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
 
-            String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix.txt";
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter);
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", negPath, labelsMatrix, negLabelWriter);
+            String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix";
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter, false);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", negPath, labelsMatrix, negLabelWriter, false);
 
             if (generateImages) {
                 String imagePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix." + imgFileType;
                 GrindUtils.saveGrindMatrixDataToImage(imagePrefix, negImgPath, compositeMatrix, negImgWriter, false);
-                GrindUtils.saveGrindMatrixDataToImage(imagePrefix + "_labels.png", negImgPath, labelsMatrix, negImgLabelWriter, true);
+                GrindUtils.saveGrindMatrixDataToImage(imagePrefix + "_labels." + imgFileType, negImgPath, labelsMatrix, negImgLabelWriter, true);
             }
 
             for (int k = 0; k < numManipulations; k++) {
@@ -218,14 +218,14 @@ public class DistortionFinder implements RegionFinder {
                 compositeMatrix = alteredMatrices.getFirst();
                 labelsMatrix = alteredMatrices.getSecond();
 
-                filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix.txt";
-                GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter);
-                GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels.txt", posPath, labelsMatrix, posLabelWriter);
+                filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix";
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter, false);
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", posPath, labelsMatrix, posLabelWriter, false);
 
                 if (generateImages) {
                     filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix." + imgFileType;
                     GrindUtils.saveGrindMatrixDataToImage(filePrefix, posImgPath, compositeMatrix, posImgWriter, false);
-                    GrindUtils.saveGrindMatrixDataToImage(filePrefix + "_labels.png", posImgPath, labelsMatrix, posImgLabelWriter, true);
+                    GrindUtils.saveGrindMatrixDataToImage(filePrefix + "_labels." + imgFileType, posImgPath, labelsMatrix, posImgLabelWriter, true);
                 }
             }
 

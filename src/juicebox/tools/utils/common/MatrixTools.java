@@ -27,9 +27,11 @@ package juicebox.tools.utils.common;
 import juicebox.tools.utils.juicer.apa.APARegionStatistics;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
+import org.jetbrains.bio.npy.NpyFile;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
@@ -140,14 +142,44 @@ public class MatrixTools {
      * @return 1D double array in row major order
      */
     public static double[] flattenedRowMajorOrderMatrix(RealMatrix matrix) {
-        int n = matrix.getColumnDimension();
         int m = matrix.getRowDimension();
-        int numElements = n * m;
+        int n = matrix.getColumnDimension();
+        int numElements = m * n;
         double[] flattenedMatrix = new double[numElements];
 
         int index = 0;
         for (int i = 0; i < m; i++) {
             System.arraycopy(matrix.getRow(i), 0, flattenedMatrix, index, n);
+            index += n;
+        }
+        return flattenedMatrix;
+    }
+
+    public static double[] flattenedRowMajorOrderMatrix(double[][] matrix) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+
+        int numElements = m * n;
+        double[] flattenedMatrix = new double[numElements];
+
+        int index = 0;
+        for (int i = 0; i < m; i++) {
+            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
+            index += n;
+        }
+        return flattenedMatrix;
+    }
+
+    public static int[] flattenedRowMajorOrderMatrix(int[][] matrix) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+
+        int numElements = m * n;
+        int[] flattenedMatrix = new int[numElements];
+
+        int index = 0;
+        for (int i = 0; i < m; i++) {
+            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
@@ -706,6 +738,43 @@ public class MatrixTools {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public static void saveMatrixTextV2(String filename, int[][] matrix) {
+        Writer writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
+            for (int[] row : matrix) {
+                String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
+                s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
+                writer.write(s + "\n");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public static void saveMatrixTextNumpy(String filename, double[][] matrix) {
+        int numRows = matrix.length;
+        int numCols = matrix[0].length;
+        double[] flattenedArray = MatrixTools.flattenedRowMajorOrderMatrix(matrix);
+
+        NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
+    }
+
+    public static void saveMatrixTextNumpy(String filename, int[][] matrix) {
+        int numRows = matrix.length;
+        int numCols = matrix[0].length;
+        int[] flattenedArray = MatrixTools.flattenedRowMajorOrderMatrix(matrix);
+
+        NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
     }
 
     public static double[][] generateCompositeMatrix(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {

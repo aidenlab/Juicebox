@@ -115,8 +115,25 @@ public class GrindUtils {
         return numNonZeroRows > data.length * maxAllowedPercentZeroedOutColumns;
     }
 
-    public static void saveGrindMatrixDataToFile(String fileName, String path, double[][] data, Writer writer) throws IOException {
-        MatrixTools.saveMatrixTextV2(path + "/" + fileName, data);
+    public static void saveGrindMatrixDataToFile(String fileName, String path, int[][] labels, Writer writer, boolean printToTxt) throws IOException {
+        if (printToTxt) {
+            String txtFileName = fileName + ".txt";
+            MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, labels);
+        } else {
+            String npyFileName = fileName + ".npy";
+            MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, labels);
+        }
+        writer.write(fileName + "\n");
+    }
+
+    public static void saveGrindMatrixDataToFile(String fileName, String path, double[][] data, Writer writer, boolean printToTxt) throws IOException {
+        if (printToTxt) {
+            String txtFileName = fileName + ".txt";
+            MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, data);
+        } else {
+            String npyFileName = fileName + ".npy";
+            MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, data);
+        }
         writer.write(fileName + "\n");
     }
 
