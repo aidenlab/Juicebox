@@ -92,7 +92,7 @@ public class PreProcessing extends JuiceboxCLT {
         double hicFileScalingFactor = parser1.getScalingOption();
 
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-        preprocessor.setIncludedChromosomes(parser1.getChromosomeOption());
+        preprocessor.setIncludedChromosomes(parser1.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser1.getCountThresholdOption());
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());

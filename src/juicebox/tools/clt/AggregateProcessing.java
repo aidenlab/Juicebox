@@ -24,6 +24,8 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.HiCTools;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,35 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
+        String[] command = new String[]{"grind", "-k", "KR", "-r", "10000",
+                "--stride", "200", "-c", "1,2,3", "--dense-labels", "--distort",
+                "/Users/muhammad/Dropbox (Lab at Large)/temp_transfers/ricenots/HIC053_30.hic", "null", "200,200,5", //"64,64,5",
+                "/Users/muhammad/Desktop/deeplearning/testing/results"};
+
+
+        String[] command2 = new String[]{
+                "compare", "-m", "50000", "0", "hg19",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
+                "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks_with_motifs.txt",
+                "/Users/muhammad/Desktop/for_neva"
+        };
+
+        command2 = new String[]{
+                "compare", "-m", "50000", "0", "hg19",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
+                "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
+                "/Users/muhammad/Desktop/for_neva/"
+        };
+
+        command2 = new String[]{
+                "compare", "-m", "50000", "0", "hg19",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks_with_motifs.txt",
+                "https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_peaks.txt",
+                "/Users/muhammad/Desktop/for_neva/hap1"
+        };
+
+        HiCTools.main(command);
+
 
 
     }
