@@ -805,4 +805,33 @@ public class MatrixTools {
         }
         return copy;
     }
+
+    public static void labelRegionWithOnes(int[][] labelsMatrix, int rowLength, int numRows, int colLength, int numCols, int startRowOf1, int startColOf1) {
+        for (int i = 0; i < Math.min(rowLength, numRows); i++) {
+            for (int j = 0; j < Math.min(colLength, numCols); j++) {
+                labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1;
+            }
+        }
+    }
+
+    public static void labelEnrichedRegionWithOnes(int[][] labelsMatrix, double[][] data, int rowLength, int numRows, int colLength, int numCols, int startRowOf1, int startColOf1) {
+        double total = 0;
+        int numVals = 0;
+
+        for (int i = 0; i < Math.min(rowLength, numRows); i++) {
+            for (int j = 0; j < Math.min(colLength, numCols); j++) {
+                total += data[startRowOf1 + i][startColOf1 + j];
+                numVals++;
+            }
+        }
+        double average = total / numVals;
+
+        for (int i = 0; i < Math.min(rowLength, numRows); i++) {
+            for (int j = 0; j < Math.min(colLength, numCols); j++) {
+                if (data[startRowOf1 + i][startColOf1 + j] > average) {
+                    labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1;
+                }
+            }
+        }
+    }
 }

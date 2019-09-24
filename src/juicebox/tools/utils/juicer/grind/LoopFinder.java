@@ -55,7 +55,6 @@ public class LoopFinder implements RegionFinder {
     private String path;
     private NormalizationType norm;
     private Set<Integer> resolutions;
-    private Writer writer = null;
     private ChromosomeHandler chromosomeHandler;
     private int overallWidth;
     private boolean onlyMakePositiveExamples, dimensionOfLabelIsSameAsOutput;
@@ -74,13 +73,6 @@ public class LoopFinder implements RegionFinder {
         this.chromosomeHandler = chromosomeHandler;
         this.onlyMakePositiveExamples = onlyMakePositiveExamples;
         this.dimensionOfLabelIsSameAsOutput = dimensionOfLabelIsSameAsOutput;
-        try {
-            writer =
-                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
-                            StandardCharsets.UTF_8));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -96,7 +88,6 @@ public class LoopFinder implements RegionFinder {
     }
 
     private void makeAllPositiveExamples() {
-        final Random generator = new Random();
 
         File file = new File(path);
         if (!file.isDirectory()) {
@@ -109,31 +100,29 @@ public class LoopFinder implements RegionFinder {
 
         final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
 
-        try {
-            for (int resolution : resolutions) {
+        for (int resolution : resolutions) {
 
+            features.parallelizedProcessLists(new FeatureFunction() {
+                @Override
+                public void process(String chr, List<Feature2D> feature2DList) {
+                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
 
-                final String posPath = path + "/positive_res" + resolution;
-                UNIXTools.makeDir(posPath);
+                    Matrix matrix = ds.getMatrix(chrom, chrom);
+                    if (matrix == null) return;
 
-                final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_file_names.txt"), StandardCharsets.UTF_8));
-                final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_\"+resolution+\"_label_file_names.txt"), StandardCharsets.UTF_8));
+                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                    final MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                features.processLists(new FeatureFunction() {
-                    @Override
-                    public void process(String chr, List<Feature2D> feature2DList) {
+                    if (zd == null) return;
 
-                        System.out.println("Currently on: " + chr);
+                    System.out.println("Currently on: " + chr);
 
-                        Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+                    final String posPath = path + "/positives_res" + resolution + "_chr" + chrom.getName();
+                    UNIXTools.makeDir(posPath);
 
-                        Matrix matrix = ds.getMatrix(chrom, chrom);
-                        if (matrix == null) return;
-
-                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                        final MatrixZoomData zd = matrix.getZoomData(zoom);
-
-                        if (zd == null) return;
+                    try {
+                        final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));
+                        final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_" + chrom.getName() + "_label_file_names.txt"), StandardCharsets.UTF_8));
 
                         for (Feature2D feature2D : feature2DList) {
                             int i0 = Math.max(0, feature2D.getMidPt1() / resolution - fullWidthI);
@@ -146,21 +135,21 @@ public class LoopFinder implements RegionFinder {
                                     try {
                                         StripeFinder.getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, null, posWriter, posLabelWriter, null, false,
-                                                false, true, true);
+                                                false, true, true, true);
                                     } catch (Exception e) {
                                         System.err.println("Error reading from row " + rowIndex + " col " + colIndex + " at res " + resolution);
                                     }
                                 }
                             }
                         }
-
+                        posWriter.close();
+                        posLabelWriter.close();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
-                });
-            }
-
-            writer.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+                    System.out.println("Done with: " + chr);
+                }
+            });
         }
     }
 
@@ -178,22 +167,19 @@ public class LoopFinder implements RegionFinder {
         final int halfWidthJ = y / 2;
         final int maxk = Math.max(z / features.getNumTotalFeatures(), 1);
 
-        try {
-            features.processLists(new FeatureFunction() {
-                @Override
-                public void process(String chr, List<Feature2D> feature2DList) {
+        features.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+                Matrix matrix = ds.getMatrix(chrom, chrom);
+                if (matrix == null) return;
+                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                final MatrixZoomData zd = matrix.getZoomData(zoom);
+                if (zd == null) return;
 
-                    System.out.println("Currently on: " + chr);
-
-                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
-
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
-                    if (zd == null) return;
+                System.out.println("Currently on: " + chr);
+                try {
+                    final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));
 
                     for (Feature2D feature2D : feature2DList) {
                         int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
@@ -235,14 +221,12 @@ public class LoopFinder implements RegionFinder {
                             }
                         }
                     }
-
+                    writer.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-            });
-
-            writer.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+            }
+        });
     }
 
 
@@ -314,26 +298,29 @@ public class LoopFinder implements RegionFinder {
                 if (zd == null) {
                     return;
                 }
-                for (Feature2D feature2D : feature2DList) {
-                    int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
-                    int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
 
-                    for (int k = 0; k < maxk; k++) {
+                try {
+                    final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));
 
-                        int di = 10 - generator.nextInt(21);
-                        while (di == 0) {
-                            di = 10 - generator.nextInt(21);
-                        }
+                    for (Feature2D feature2D : feature2DList) {
+                        int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
+                        int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
 
-                        int dj = 10 - generator.nextInt(21);
-                        while (dj == 0) {
-                            dj = 10 - generator.nextInt(21);
-                        }
+                        for (int k = 0; k < maxk; k++) {
 
-                        int i = i0 + di;
-                        int j = j0 + dj;
+                            int di = 10 - generator.nextInt(21);
+                            while (di == 0) {
+                                di = 10 - generator.nextInt(21);
+                            }
 
-                        try {
+                            int dj = 10 - generator.nextInt(21);
+                            while (dj == 0) {
+                                dj = 10 - generator.nextInt(21);
+                            }
+
+                            int i = i0 + di;
+                            int j = j0 + dj;
+
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + x,
                                     j, j + y, x, y, norm, true);
@@ -349,21 +336,16 @@ public class LoopFinder implements RegionFinder {
                                 MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
-                        } catch (Exception ignored) {
 
                         }
                     }
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
             }
         });
-
-
-        try {
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
 
