@@ -15,5 +15,6 @@
     <orderEntry type="library" name="jfreechart-1.0.19" level="project" />
     <orderEntry type="library" name="log4j-core-2.11.0" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="npy" level="project" />
   </component>
 </module>
