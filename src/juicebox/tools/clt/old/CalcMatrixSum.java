@@ -25,18 +25,20 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.MatrixZoomData;
+import juicebox.data.NormalizationVector;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -44,25 +46,24 @@ import java.util.concurrent.Executors;
 
 public class CalcMatrixSum extends JuiceboxCLT {
 
-    private Dataset dataset;
     private File outputFile;
     private ChromosomeHandler chromosomeHandler;
     private PrintWriter printWriter;
 
 
     public CalcMatrixSum() {
-        super("calcMatrixSum <input_hic_file>");
+        super("calcMatrixSum <normalizationType> <input_hic_file>");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        if (!(args.length == 2)) {
+        if (!(args.length == 3)) {
             printUsageAndExit();
         }
-        String infile = args[1];
 
-        dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(infile.split("\\+")), false);
-        outputFile = new File(infile + "_matrix_sums.txt");
+        setDatasetAndNorm(args[2], args[1], false);
+
+        outputFile = new File(args[2] + "_matrix_sums.txt");
         chromosomeHandler = dataset.getChromosomeHandler();
         try {
             printWriter = new PrintWriter(new FileOutputStream(outputFile));
@@ -82,35 +83,35 @@ public class CalcMatrixSum extends JuiceboxCLT {
         int numCPUThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
 
-        Map<String, Double> zoomToMatrixSumMap = new HashMap<>();
+        Map<String, Pair<Double, Double>> zoomToMatrixSumMap = new HashMap<>();
 
-        for (NormalizationType normalizationType : dataset.getNormalizationTypes()) {
-            for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                for (HiCZoom zoom : dataset.getBpZooms()) {
-                    Runnable worker = new Runnable() {
-                        @Override
-                        public void run() {
-                            NormalizationVector normalizationVector = dataset.getNormalizationVector(chromosome.getIndex(), zoom, normalizationType);
-                            double[] actualVector;
-                            MatrixZoomData zd;
-                            try {
-                                actualVector = normalizationVector.getData();
-                                zd = dataset.getMatrix(chromosome, chromosome).getZoomData(zoom);
-                            } catch (Exception e) {
-                                System.err.println("No data for " + normalizationType.getLabel() + " - " + chromosome + " at " + zoom);
-                                return;
-                            }
-
-                            NormalizationCalculations calculations = new NormalizationCalculations(zd);
-                            double matrixSum = calculations.getSumFactor(actualVector);
-
-                            String key = getKeyWithNorm(chromosome, zoom, normalizationType);
-                            zoomToMatrixSumMap.put(key, matrixSum);
-                            System.out.println("Finished: " + key);
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+            for (HiCZoom zoom : dataset.getBpZooms()) {
+                Runnable worker = new Runnable() {
+                    @Override
+                    public void run() {
+                        NormalizationVector normalizationVector = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
+                        double[] actualVector;
+                        MatrixZoomData zd;
+                        try {
+                            actualVector = normalizationVector.getData();
+                            zd = dataset.getMatrix(chromosome, chromosome).getZoomData(zoom);
+                        } catch (Exception e) {
+                            System.err.println("No data for " + norm.getLabel() + " - " + chromosome + " at " + zoom);
+                            return;
                         }
-                    };
-                    executor.execute(worker);
-                }
+
+                        NormalizationCalculations calculations = new NormalizationCalculations(zd);
+                        Pair<Double, Double> matrixSum = calculations.getNormMatrixSumFactor(actualVector);
+
+                        String key = getKeyWithNorm(chromosome, zoom, norm);
+                        synchronized (zoomToMatrixSumMap) {
+                            zoomToMatrixSumMap.put(key, matrixSum);
+                        }
+                        System.out.println("Finished: " + key);
+                    }
+                };
+                executor.execute(worker);
             }
         }
 
@@ -118,15 +119,14 @@ public class CalcMatrixSum extends JuiceboxCLT {
         while (!executor.isTerminated()) {
         }
 
-        for (NormalizationType normalizationType : dataset.getNormalizationTypes()) {
-            printWriter.println("Normalization Type: " + normalizationType);
-            for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                printWriter.println("Chromsome: " + chromosome);
-                for (HiCZoom zoom : dataset.getBpZooms()) {
-                    String key = getKeyWithNorm(chromosome, zoom, normalizationType);
-                    if (zoomToMatrixSumMap.containsKey(key)) {
-                        printWriter.println("Zoom: " + zoom + " sum: " + zoomToMatrixSumMap.get(key));
-                    }
+        printWriter.println("Normalization Type: " + norm);
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+            printWriter.println("Chromsome: " + chromosome);
+            for (HiCZoom zoom : dataset.getBpZooms()) {
+                String key = getKeyWithNorm(chromosome, zoom, norm);
+                if (zoomToMatrixSumMap.containsKey(key)) {
+                    printWriter.println("Zoom: " + zoom + " Normalized Matrix Sum: " + zoomToMatrixSumMap.get(key).getFirst() +
+                            " Original Matrix Sum: " + zoomToMatrixSumMap.get(key).getSecond());
                 }
             }
         }
