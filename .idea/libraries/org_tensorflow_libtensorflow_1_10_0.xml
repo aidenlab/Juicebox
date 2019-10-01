@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="org.tensorflow:libtensorflow:1.10.0" type="repository">
+    <properties maven-id="org.tensorflow:libtensorflow:1.10.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/tensorflow/libtensorflow/1.10.0/libtensorflow-1.10.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
