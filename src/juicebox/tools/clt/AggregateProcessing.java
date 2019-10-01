@@ -24,8 +24,9 @@
 
 package juicebox.tools.clt;
 
-
+import juicebox.tools.HiCTools;
 import juicebox.tools.utils.common.MatrixTools;
+
 
 import java.io.*;
 import java.util.ArrayList;
@@ -40,15 +41,7 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws Exception {
 
-        long timeStart = System.currentTimeMillis();
-
-        String[] command = new String[]{"grind", "-k", "KR", "-r", "25000,10000,5000",
-                "--stride", "100", "-c", "1,2,3", "--dense-labels", "--distort",
-                "/Users/muhammad/Dropbox (Lab at Large)/temp_transfers/ricenots/HIC053_30.hic", "null", "128,5,1000", //"64,64,5",
-                "/Users/muhammad/Desktop/deeplearning/testing/results_hic053_30"};
-
-        MatrixTools.saveMatrixTextNumpy("/Users/muhammad/Desktop/for_neva/temp1.npy", MatrixTools.randomUnitMatrix(5).getData());
-
+        
     }
 
     private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {

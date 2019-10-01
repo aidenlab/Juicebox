@@ -31,7 +31,6 @@ import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
@@ -179,82 +178,6 @@ public class HiCFileTools {
             }
         }
     }
-
-    /**
-     * Load the list of chromosomes based on given genome id or file
-     *
-     * @param idOrFile string
-     * @return list of chromosomes
-     */
-    public static List<Chromosome> loadCentromeres(String idOrFile) {
-
-        InputStream is = null;
-
-        try {
-            // Note: to get this to work, had to edit Intellij settings
-            // so that "?*.sizes" are considered sources to be copied to class path
-            is = ChromosomeSizes.class.getResourceAsStream(idOrFile + ".chrom.sizes");
-
-            if (is == null) {
-                // Not an ID,  see if its a file
-                File file = new File(idOrFile);
-
-                try {
-                    if (file.exists()) {
-                        is = new FileInputStream(file);
-                    } else {
-                        System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(36);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            List<Chromosome> chromosomes = new ArrayList<>();
-            chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
-
-            Pattern pattern = Pattern.compile("\t");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-            String nextLine;
-            long genomeLength = 0;
-            int idx = 1;
-
-            try {
-                while ((nextLine = reader.readLine()) != null) {
-                    String[] tokens = pattern.split(nextLine);
-                    if (tokens.length == 2) {
-                        String name = tokens[0];
-                        int length = Integer.parseInt(tokens[1]);
-                        genomeLength += length;
-                        chromosomes.add(idx, new Chromosome(idx, name, length));
-                        idx++;
-                    } else {
-                        System.out.println("Skipping " + nextLine);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-
-
-            return chromosomes;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
-
 
     /**
      * Given an array of possible resolutions, returns the actual resolutions available in the dataset
