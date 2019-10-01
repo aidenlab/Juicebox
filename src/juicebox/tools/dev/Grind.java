@@ -97,7 +97,6 @@ public class Grind extends JuicerCLT {
         stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
 
-
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
 

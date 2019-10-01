@@ -24,9 +24,8 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.MatrixTools;
 
+import juicebox.tools.HiCTools;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -40,7 +39,12 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
-
+        String[] command = new String[]{"grind", "-k", "KR", "-r", "100000",
+                "--stride", "20000", "-c", "1,2", "--dense-labels", "--distort",
+                "/Users/muhammad/Desktop/local_hic_files/imr90_intra_nofrag_30.hic",
+                "null", "200,2,1", //"64,64,5",
+                "/Users/muhammad/Desktop/deeplearning/testing/resultsTest"};
+        HiCTools.main(command);
         
     }
 
