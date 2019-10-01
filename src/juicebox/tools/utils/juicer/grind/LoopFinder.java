@@ -52,9 +52,10 @@ public class LoopFinder implements RegionFinder {
     private Integer stride;
     private Dataset ds;
     private Feature2DList features;
-    private String originalPath;
+    private String path;
     private NormalizationType norm;
     private Set<Integer> resolutions;
+    private Writer writer = null;
     private ChromosomeHandler chromosomeHandler;
     private int overallWidth;
     private boolean onlyMakePositiveExamples, dimensionOfLabelIsSameAsOutput;
@@ -67,12 +68,19 @@ public class LoopFinder implements RegionFinder {
         this.stride = stride;
         this.ds = ds;
         this.features = features;
-        this.originalPath = outputDirectory.getPath();
+        this.path = outputDirectory.getPath();
         this.norm = norm;
         this.resolutions = resolutions;
         this.chromosomeHandler = chromosomeHandler;
         this.onlyMakePositiveExamples = onlyMakePositiveExamples;
         this.dimensionOfLabelIsSameAsOutput = dimensionOfLabelIsSameAsOutput;
+        try {
+            writer =
+                    new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"),
+                            StandardCharsets.UTF_8));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -88,8 +96,9 @@ public class LoopFinder implements RegionFinder {
     }
 
     private void makeAllPositiveExamples() {
+        final Random generator = new Random();
 
-        File file = new File(originalPath);
+        File file = new File(path);
         if (!file.isDirectory()) {
             file.mkdir();
         }
@@ -100,34 +109,31 @@ public class LoopFinder implements RegionFinder {
 
         final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
 
-        for (int resolution : resolutions) {
-
-            features.parallelizedProcessLists(new FeatureFunction() {
-                @Override
-                public void process(String chr, List<Feature2D> feature2DList) {
-                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
-
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
-                    if (zd == null) return;
-
-                    System.out.println("Currently on: " + chr);
+        try {
+            for (int resolution : resolutions) {
 
 
+                final String posPath = path + "/positive_res" + resolution;
+                UNIXTools.makeDir(posPath);
 
-                    try {
-                        int tenKCounter = 0;
-                        String resPath = originalPath + "/positives_res" + resolution;
-                        UNIXTools.makeDir(resPath);
-                        String posPath = resPath + "/chr" + chrom.getName() + "_" + tenKCounter + "k";
-                        UNIXTools.makeDir(posPath);
-                        int printingCounter = 0;
-                        Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(posPath + ".txt"), StandardCharsets.UTF_8));
-                        Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(posPath + "_label.txt"), StandardCharsets.UTF_8));
+                final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_" + resolution + "_file_names.txt"), StandardCharsets.UTF_8));
+                final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_res_\"+resolution+\"_label_file_names.txt"), StandardCharsets.UTF_8));
+
+                features.processLists(new FeatureFunction() {
+                    @Override
+                    public void process(String chr, List<Feature2D> feature2DList) {
+
+                        System.out.println("Currently on: " + chr);
+
+                        Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+
+                        Matrix matrix = ds.getMatrix(chrom, chrom);
+                        if (matrix == null) return;
+
+                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                        final MatrixZoomData zd = matrix.getZoomData(zoom);
+
+                        if (zd == null) return;
 
                         for (Feature2D feature2D : feature2DList) {
                             int i0 = Math.max(0, feature2D.getMidPt1() / resolution - fullWidthI);
@@ -140,39 +146,28 @@ public class LoopFinder implements RegionFinder {
                                     try {
                                         StripeFinder.getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, null, posWriter, posLabelWriter, null, false,
-                                                false, true, true, true);
-                                        printingCounter += 3;
+                                                false, true, true);
                                     } catch (Exception e) {
                                         System.err.println("Error reading from row " + rowIndex + " col " + colIndex + " at res " + resolution);
                                     }
                                 }
                             }
-                            if (printingCounter > 10000) {
-                                tenKCounter++;
-                                printingCounter = 0;
-                                posPath = resPath + "/chr" + chrom.getName() + "_" + tenKCounter + "k";
-                                UNIXTools.makeDir(posPath);
-                                posWriter.close();
-                                posLabelWriter.close();
-                                posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(posPath + ".txt"), StandardCharsets.UTF_8));
-                                posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(posPath + "_label.txt"), StandardCharsets.UTF_8));
-                            }
                         }
-                        posWriter.close();
-                        posLabelWriter.close();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+
                     }
-                    System.out.println("Done with: " + chr);
-                }
-            });
+                });
+            }
+
+            writer.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
     private void makeRandomPositiveExamples() {
         final Random generator = new Random();
 
-        File file = new File(originalPath);
+        File file = new File(path);
         if (!file.isDirectory()) {
             file.mkdir();
         }
@@ -183,19 +178,22 @@ public class LoopFinder implements RegionFinder {
         final int halfWidthJ = y / 2;
         final int maxk = Math.max(z / features.getNumTotalFeatures(), 1);
 
-        features.processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
-                Matrix matrix = ds.getMatrix(chrom, chrom);
-                if (matrix == null) return;
-                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                final MatrixZoomData zd = matrix.getZoomData(zoom);
-                if (zd == null) return;
+        try {
+            features.processLists(new FeatureFunction() {
+                @Override
+                public void process(String chr, List<Feature2D> feature2DList) {
 
-                System.out.println("Currently on: " + chr);
-                try {
-                    final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));
+                    System.out.println("Currently on: " + chr);
+
+                    Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
+
+                    Matrix matrix = ds.getMatrix(chrom, chrom);
+                    if (matrix == null) return;
+
+                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                    final MatrixZoomData zd = matrix.getZoomData(zoom);
+
+                    if (zd == null) return;
 
                     for (Feature2D feature2D : feature2DList) {
                         int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
@@ -229,7 +227,7 @@ public class LoopFinder implements RegionFinder {
                                     //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                     //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                    MatrixTools.saveMatrixTextV2(originalPath + exactFileName, localizedRegionData);
+                                    MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                     writer.write(exactFileName + "\n");
                                 }
                             } catch (Exception ignored) {
@@ -237,12 +235,14 @@ public class LoopFinder implements RegionFinder {
                             }
                         }
                     }
-                    writer.close();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+
                 }
-            }
-        });
+            });
+
+            writer.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 
@@ -314,29 +314,26 @@ public class LoopFinder implements RegionFinder {
                 if (zd == null) {
                     return;
                 }
+                for (Feature2D feature2D : feature2DList) {
+                    int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
+                    int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
 
-                try {
-                    final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));
+                    for (int k = 0; k < maxk; k++) {
 
-                    for (Feature2D feature2D : feature2DList) {
-                        int i0 = feature2D.getMidPt1() / resolution - halfWidthI;
-                        int j0 = feature2D.getMidPt2() / resolution - halfWidthJ;
+                        int di = 10 - generator.nextInt(21);
+                        while (di == 0) {
+                            di = 10 - generator.nextInt(21);
+                        }
 
-                        for (int k = 0; k < maxk; k++) {
+                        int dj = 10 - generator.nextInt(21);
+                        while (dj == 0) {
+                            dj = 10 - generator.nextInt(21);
+                        }
 
-                            int di = 10 - generator.nextInt(21);
-                            while (di == 0) {
-                                di = 10 - generator.nextInt(21);
-                            }
+                        int i = i0 + di;
+                        int j = j0 + dj;
 
-                            int dj = 10 - generator.nextInt(21);
-                            while (dj == 0) {
-                                dj = 10 - generator.nextInt(21);
-                            }
-
-                            int i = i0 + di;
-                            int j = j0 + dj;
-
+                        try {
                             RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                                     i, i + x,
                                     j, j + y, x, y, norm, true);
@@ -349,19 +346,24 @@ public class LoopFinder implements RegionFinder {
                                 //mm = (m-yStats.getMean())/Math.max(yStats.getStandardDeviation(),1e-7);
                                 //ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
 
-                                MatrixTools.saveMatrixTextV2(originalPath + exactFileName, localizedRegionData);
+                                MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
                                 writer.write(exactFileName + "\n");
                             }
+                        } catch (Exception ignored) {
 
                         }
                     }
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
 
             }
         });
+
+
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

@@ -24,69 +24,120 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Command Line Parser for Juicer commands (hiccups, arrowhead, apa)
  * @author Muhammad Shamim
  */
-public class CommandLineParserForJuicer extends CommandLineParser {
-
-    // used flags
-    // wmnxcrplafdptkqbvuhgjyz
-
-    // available flags
-    // oes
+public class CommandLineParserForJuicer extends CmdLineParser {
 
     // General
-    private final Option matrixSizeOption = addIntegerOption('m', "matrix_window_width");
-    private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
-    private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
-    private final Option normalizationTypeOption = addStringOption('k', "normalization");
-    private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
-    private final Option legacyOutputOption = addBooleanOption('g', "legacy");
-    private final Option threadNumOption = addIntegerOption('z', "threads");
+    private static Option matrixSizeOption = null;
+    private static Option multipleChromosomesOption = null;
+    private static Option multipleResolutionsOption = null;
+    private static Option normalizationTypeOption = null;
+    private static Option bypassMinimumMapCountCheckOption = null;
+    private static Option verboseOption = null;
+    private static Option legacyOutputOption = null;
+    private static Option helpOption = null;
+    private static Option versionOption = null;
+    private static Option threadNumOption = null;
+
 
     // APA
-    private final Option apaWindowOption = addIntegerOption('w', "window");
-    private final Option apaMinValOption = addDoubleOption('n', "min_dist");
-    private final Option apaMaxValOption = addDoubleOption('x', "max_dist");
-    private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
-    private final Option includeInterChromosomalOption = addBooleanOption('e', "include_inter_chr");
-    private final Option apaSaveAllData = addBooleanOption('u', "all_data");
+    private static Option apaWindowOption = null;
+    private static Option apaMinValOption = null;
+    private static Option apaMaxValOption = null;
+    private static Option multipleCornerRegionDimensionsOption = null;
+    private static Option includeInterChromosomalOption = null;
+    private static Option apaSaveAllData = null;
 
-    // HICCUPS
-    private final Option fdrOption = addStringOption('f', "fdr_thresholds");
-    private final Option windowOption = addStringOption('i', "window_width");
-    private final Option peakOption = addStringOption('p', "peak_width");
-    private final Option clusterRadiusOption = addStringOption('d', "centroid_radii");
-    private final Option thresholdOption = addStringOption('t', "postprocessing_thresholds");
-    private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
-    private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
+    // for HiCCUPS
+    private static Option cpuVersionHiCCUPSOption = null;
+    private static Option restrictSearchRegionsOption = null;
+    private static Option fdrOption = null;
+    private static Option windowOption = null;
+    private static Option peakOption = null;
+    private static Option clusterRadiusOption = null;
+    private static Option thresholdOption = null;
 
     // previously for AFA
-    private final Option relativeLocationOption = addStringOption('l', "location_type");
-    private final Option multipleAttributesOption = addStringOption('a', "attributes");
+    private static Option relativeLocationOption = null;
+    private static Option multipleAttributesOption = null;
 
     // for GRIND
-    private final Option useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
-    private final Option useDenseLabelsOption = addBooleanOption("dense-labels");
-    private final Option useWholeGenome = addBooleanOption("whole-genome");
-    private final Option useLoopOption = addBooleanOption("loops");
-    private final Option useDomainOption = addBooleanOption("domains");
-    private final Option useStripeOption = addBooleanOption("stripes");
-    private final Option useDistortionOption = addBooleanOption("distort");
-    private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
-    private final Option stride = addIntegerOption("stride");
-    private final Option useIgnoreDirectionOrientationOption = addBooleanOption("ignore-feature-orientation");
-    private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
-    private final Option generateImageFormatPicturesOption = addStringOption("img");
+    private static Option useObservedOverExpectedOption = null;
+    private static Option useDenseLabelsOption = null;
+    private static Option useWholeGenome = null;
+    private static Option useStripeOption = null;
+    private static Option useDistortionOption = null;
+    private static Option useDomainOption = null;
+    private static Option useLoopOption = null;
+    private static Option cornerOffBy = null;
+    private static Option stride = null;
+    private static Option useIgnoreDirectionOrientationOption = null;
+    private static Option useOnlyMakePositiveExamplesOption = null;
 
 
     public CommandLineParserForJuicer() {
+        // used flags
+        // wmnxcrplafdptkqbvuhgjyz
+
+        // available flags
+        // oes
+
+        // General
+        matrixSizeOption = addIntegerOption('m', "matrix_window_width");
+        multipleChromosomesOption = addStringOption('c', "chromosomes");
+        multipleResolutionsOption = addStringOption('r', "resolutions");
+        normalizationTypeOption = addStringOption('k', "normalization");
+        bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
+        verboseOption = addBooleanOption('v', "verbose");
+        legacyOutputOption = addBooleanOption('g', "legacy");
+        helpOption = addBooleanOption('h', "help");
+        versionOption = addBooleanOption('V', "version");
+        threadNumOption = addIntegerOption('z', "threads");
+
+        // APA
+        apaWindowOption = addIntegerOption('w', "window");
+        apaMinValOption = addDoubleOption('n', "min_dist");
+        apaMaxValOption = addDoubleOption('x', "max_dist");
+        multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
+        includeInterChromosomalOption = addBooleanOption('e', "include_inter_chr");
+        apaSaveAllData = addBooleanOption('u', "all_data");
+
+        // HICCUPS
+        fdrOption = addStringOption('f', "fdr_thresholds");
+        windowOption = addStringOption('i', "window_width");
+        peakOption = addStringOption('p', "peak_width");
+        clusterRadiusOption = addStringOption('d', "centroid_radii");
+        thresholdOption = addStringOption('t', "postprocessing_thresholds");
+        cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
+        restrictSearchRegionsOption = addBooleanOption('y', "restrict");
+
+        // previously for AFA
+        relativeLocationOption = addStringOption('l', "location_type");
+        multipleAttributesOption = addStringOption('a', "attributes");
+
+        // for GRIND
+        useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
+        useDenseLabelsOption = addBooleanOption("dense-labels");
+        useWholeGenome = addBooleanOption("whole-genome");
+        useLoopOption = addBooleanOption("loops");
+        useDomainOption = addBooleanOption("domains");
+        useStripeOption = addBooleanOption("stripes");
+        useDistortionOption = addBooleanOption("distort");
+        cornerOffBy = addIntegerOption("off-from-diagonal");
+        stride = addIntegerOption("stride");
+        useIgnoreDirectionOrientationOption = addBooleanOption("ignore-feature-orientation");
+        useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -109,47 +160,75 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
-        return optionToBoolean(bypassMinimumMapCountCheckOption);
+        Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
     }
 
     // for GRIND
     public boolean getUseObservedOverExpectedOption() {
-        return optionToBoolean(useObservedOverExpectedOption);
+        Object opt = getOptionValue(useObservedOverExpectedOption);
+        return opt != null;
     }
 
 
     public boolean getUseWholeGenome() {
-        return optionToBoolean(useWholeGenome);
+        Object opt = getOptionValue(useWholeGenome);
+        return opt != null;
     }
 
     public boolean getDenseLabelsOption() {
-        return optionToBoolean(useDenseLabelsOption);
+        Object opt = getOptionValue(useDenseLabelsOption);
+        return opt != null;
     }
 
     public boolean getUseIgnoreDirectionOrientationOption() {
-        return optionToBoolean(useIgnoreDirectionOrientationOption);
+        Object opt = getOptionValue(useIgnoreDirectionOrientationOption);
+        return opt != null;
     }
 
     public boolean getUseOnlyMakePositiveExamplesOption() {
-        return optionToBoolean(useOnlyMakePositiveExamplesOption);
+        Object opt = getOptionValue(useOnlyMakePositiveExamplesOption);
+        return opt != null;
+    }
+
+    public boolean getVerboseOption() {
+        Object opt = getOptionValue(verboseOption);
+        return opt != null;
     }
 
     public boolean getLegacyOutputOption() {
-        return optionToBoolean(legacyOutputOption);
+        Object opt = getOptionValue(legacyOutputOption);
+        return opt != null;
     }
 
     public boolean getIncludeInterChromosomal() {
-        return optionToBoolean(includeInterChromosomalOption);
+        Object opt = getOptionValue(includeInterChromosomalOption);
+        return opt != null;
     }
 
 
     public boolean getAPASaveAllData() {
-        return optionToBoolean(apaSaveAllData);
+        Object opt = getOptionValue(apaSaveAllData);
+        return opt != null;
+    }
+
+    public boolean getHelpOption() {
+        Object opt = getOptionValue(helpOption);
+        return opt != null;
+    }
+
+    public boolean getVersionOption() {
+        Object opt = getOptionValue(versionOption);
+        return opt != null;
     }
 
     /**
      * String flags
      */
+    private String optionToString(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? null : opt.toString();
+    }
 
     public String getRelativeLocationOption() {
         return optionToString(relativeLocationOption);
@@ -196,6 +275,11 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     /**
      * int flags
      */
+    private int optionToInt(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? -1 : ((Number) opt).intValue();
+    }
+
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
     }
@@ -219,6 +303,10 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     /**
      * double flags
      */
+    private double optionToDouble(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? -1 : ((Number) opt).doubleValue();
+    }
 
     public double getAPAMinVal() {
         return optionToDouble(apaMinValOption);
@@ -231,8 +319,12 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     /**
      * String Set flags
      */
+    private List<String> optionToStringList(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? null : new ArrayList<>(Arrays.asList(opt.toString().split(",")));
+    }
 
-    List<String> getChromosomeListOption() {
+    List<String> getChromosomeOption() {
         return optionToStringList(multipleChromosomesOption);
     }
 
@@ -274,10 +366,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public boolean restrictSearchRegionsOptions() {
-        return optionToBoolean(restrictSearchRegionsOption);
-    }
-
-    public String getGenerateImageFormatPicturesOption() {
-        return optionToString(generateImageFormatPicturesOption);
+        Object opt = getOptionValue(restrictSearchRegionsOption);
+        return opt != null;
     }
 }

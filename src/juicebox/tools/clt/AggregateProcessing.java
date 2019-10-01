@@ -25,8 +25,6 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.MatrixTools;
-
 
 import java.io.*;
 import java.util.ArrayList;
@@ -41,7 +39,9 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws Exception {
 
-        
+        String[] command = new String[]{"calcmatrixsum", "/Users/muhammad/Desktop/local_hic_files/imr90_intra_nofrag_30.hic"};
+        HiCTools.main(command);
+
     }
 
     private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
