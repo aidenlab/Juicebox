@@ -53,7 +53,7 @@ public class NormalizationCalculations {
     private int totSize;
     private boolean isEnoughMemory = false;
 
-    NormalizationCalculations(MatrixZoomData zd) {
+    public NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
@@ -359,7 +359,7 @@ public class NormalizationCalculations {
      * @param norm Normalization vector
      * @return Square root of ratio of original to normalized vector
      */
-    double getSumFactor(double[] norm) {
+    public double getSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (ContactRecord cr : contactRecords) {

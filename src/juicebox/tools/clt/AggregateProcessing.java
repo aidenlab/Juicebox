@@ -24,6 +24,8 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.HiCTools;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +39,8 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws Exception {
 
+        String[] command = new String[]{"calcmatrixsum", "/Users/muhammad/Desktop/local_hic_files/imr90_intra_nofrag_30.hic"};
+        HiCTools.main(command);
 
     }
 
