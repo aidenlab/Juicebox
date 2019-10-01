@@ -81,7 +81,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
     protected abstract void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser);
 
     private void assessIfChromosomesHaveBeenSpecified(CommandLineParserForJuicer juicerParser) {
-        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
+        List<String> possibleChromosomes = juicerParser.getChromosomeListOption();
         if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
             givenChromosomes = new HashSet<>(possibleChromosomes);
         }

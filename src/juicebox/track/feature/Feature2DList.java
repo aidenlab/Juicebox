@@ -33,6 +33,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -52,6 +54,24 @@ public class Feature2DList {
     private final Map<String, List<Feature2D>> featureList = new HashMap<>();
 
     private Map<String, String> defaultAttributes = new HashMap<>();
+
+    public void parallelizedProcessLists(FeatureFunction featureFunction) {
+        List<String> keys = new ArrayList<>(featureList.keySet());
+        Collections.sort(keys);
+        ExecutorService executor = Executors.newFixedThreadPool(keys.size());
+        for (String key : keys) {
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    featureFunction.process(key, featureList.get(key));
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+    }
 
     public Feature2DList() {
     }
@@ -516,7 +536,7 @@ public class Feature2DList {
      *
      * @param filter
      */
-    public void filterLists(FeatureFilter filter) {
+    public synchronized void filterLists(FeatureFilter filter) {
         List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
         for (String key : keys) {
@@ -536,6 +556,8 @@ public class Feature2DList {
             function.process(key, featureList.get(key));
         }
     }
+
+    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 
     /**
      * @return true if features available for this region (key = "chr1_chr2")
@@ -632,7 +654,4 @@ public class Feature2DList {
         }
         return features.toString();
     }
-
-
-    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 }

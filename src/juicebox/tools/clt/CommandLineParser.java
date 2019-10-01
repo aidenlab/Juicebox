@@ -26,99 +26,65 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Command Line Parser for original (Pre/Dump) calls. Created by muhammadsaadshamim on 9/4/15.
  */
 public class CommandLineParser extends CmdLineParser {
 
+    // available
+    // bijklou
+    // used
+    // d h x v n p F V f t s g m q w c r z a y
+
+    // universal
+    protected final Option verboseOption = addBooleanOption('v', "verbose");
+    protected final Option helpOption = addBooleanOption('h', "help");
+    protected final Option versionOption = addBooleanOption('V', "version");
+
     // boolean
-    private static Option diagonalsOption = null;
-    private static Option helpOption = null;
-    private static Option removeCacheMemoryOption = null;
-    private static Option verboseOption = null;
-    private static Option skipKROption = null;
-    private static Option noNormOption = null;
-    private static Option allPearsonsOption = null;
-    private static Option versionOption = null;
+    private final Option diagonalsOption = addBooleanOption('d', "diagonals");
+    private final Option removeCacheMemoryOption = addBooleanOption('x', "remove_memory_cache");
+    private final Option noNormOption = addBooleanOption('n', "no_normalization");
+    private final Option allPearsonsOption = addBooleanOption('p', "pearsons_all_resolutions");
+    private final Option noFragNormOption = addBooleanOption('F', "no_fragment_normalization");
+    private final Option randomizePositionOption = addBooleanOption("randomize_position");
+    private final Option skipKROption = addBooleanOption("skip-kr");
 
     // String
-    private static Option fragmentOption = null;
-    private static Option tmpDirOption = null;
-    private static Option statsOption = null;
-    private static Option graphOption = null;
-    private static Option expectedVectorOption = null;
-    private static Option genomeIDOption = null;
+    private final Option fragmentOption = addStringOption('f', "restriction_fragment_site_file");
+    private final Option tmpDirOption = addStringOption('t', "tmpDir");
+    private final Option statsOption = addStringOption('s', "statistics");
+    private final Option graphOption = addStringOption('g', "graphs");
+    private final Option genomeIDOption = addStringOption('y', "genome_id");
+    private final Option expectedVectorOption = addStringOption('e', "expected_vector_file");
 
     // ints
-    private static Option countThresholdOption = null;
-    private static Option mapqOption = null;
-    private static Option noFragNormOption = null;
-    private static Option genomeWideOption = null;
-    private static Option hicFileScalingOption = null;
+    private final Option countThresholdOption = addIntegerOption('m', "min_count");
+    private final Option mapqOption = addIntegerOption('q', "mapq");
+    private final Option genomeWideOption = addIntegerOption('w', "genome_wide");
+    private final Option alignmentFilterOption = addIntegerOption('a', "alignment");
 
     // sets of strings
-    private static Option multipleChromosomesOption = null;
-    private static Option resolutionOption = null;
-    private static Option randomizePositionMapsOption = null;
+    private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
+    private final Option resolutionOption = addStringOption('r', "resolutions");
+    private final Option randomizePositionMapsOption = addStringOption("frag_site_maps");
 
 
     //filter optrectionalion based on diity
-    private static Option alignmentFilterOption = null;
+    private final Option hicFileScalingOption = addDoubleOption('z', "scale");
+    private final Option randomSeedOption = addLongOption("random_seed");
 
-    private static Option randomizePositionOption = null;
-    private static Option randomSeedOption = null;
 
     public CommandLineParser() {
-
-        // available
-        // bijklou
-
-        // used
-        // d h x v n p F V f t s g m q w c r z a y
-
-        diagonalsOption = addBooleanOption('d', "diagonals");
-        helpOption = addBooleanOption('h', "help");
-        removeCacheMemoryOption = addBooleanOption('x', "remove_memory_cache");
-        verboseOption = addBooleanOption('v', "verbose");
-        noNormOption = addBooleanOption('n', "no_normalization");
-        allPearsonsOption = addBooleanOption('p', "pearsons_all_resolutions");
-        noFragNormOption = addBooleanOption('F', "no_fragment_normalization");
-        versionOption = addBooleanOption('V', "version");
-
-        fragmentOption = addStringOption('f', "restriction_fragment_site_file");
-        tmpDirOption = addStringOption('t', "tmpDir");
-        statsOption = addStringOption('s', "statistics");
-        graphOption = addStringOption('g', "graphs");
-        genomeIDOption = addStringOption('y', "genome_id");
-
-        countThresholdOption = addIntegerOption('m', "min_count");
-        mapqOption = addIntegerOption('q', "mapq");
-
-        genomeWideOption = addIntegerOption('w', "genome_wide");
-
-        multipleChromosomesOption = addStringOption('c', "chromosomes");
-        resolutionOption = addStringOption('r', "resolutions");
-
-        expectedVectorOption = addStringOption('e', "expected_vector_file");
-        hicFileScalingOption = addDoubleOption('z', "scale");
-
-        alignmentFilterOption = addIntegerOption('a', "alignment");
-        randomizePositionOption = addBooleanOption("randomize_position");
-        skipKROption = addBooleanOption("skip-kr");
-        randomSeedOption = addLongOption("random_seed");
-        randomizePositionMapsOption = addStringOption("frag_site_maps");
-
     }
 
 
     /**
      * boolean flags
      */
-    private boolean optionToBoolean(Option option) {
+    protected boolean optionToBoolean(Option option) {
         Object opt = getOptionValue(option);
         return opt != null && (Boolean) opt;
     }
@@ -156,7 +122,7 @@ public class CommandLineParser extends CmdLineParser {
     /**
      * String flags
      */
-    private String optionToString(Option option) {
+    protected String optionToString(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? null : opt.toString();
     }
@@ -205,7 +171,7 @@ public class CommandLineParser extends CmdLineParser {
     /**
      * int flags
      */
-    private int optionToInt(Option option) {
+    protected int optionToInt(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? 0 : ((Number) opt).intValue();
     }
@@ -218,7 +184,7 @@ public class CommandLineParser extends CmdLineParser {
 
     public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
 
-    private long optionToLong(Option option) {
+    protected long optionToLong(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? 0 : ((Number) opt).longValue();
     }
@@ -234,7 +200,7 @@ public class CommandLineParser extends CmdLineParser {
     /**
      * double flags
      */
-    private double optionToDouble(Option option) {
+    protected double optionToDouble(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? 0 : ((Number) opt).doubleValue();
     }
@@ -246,12 +212,17 @@ public class CommandLineParser extends CmdLineParser {
     /**
      * String Set flags
      */
-    private Set<String> optionToStringSet(Option option) {
+    protected Set<String> optionToStringSet(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? null : new HashSet<>(Arrays.asList(opt.toString().split(",")));
     }
 
-    public Set<String> getChromosomeOption() {
+    protected List<String> optionToStringList(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? null : new ArrayList<>(Arrays.asList(opt.toString().split(",")));
+    }
+
+    public Set<String> getChromosomeSetOption() {
         return optionToStringSet(multipleChromosomesOption);
     }
 
