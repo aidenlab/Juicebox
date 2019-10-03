@@ -10,7 +10,6 @@
     <orderEntry type="library" exported="" name="broadinstitute" level="project" />
     <orderEntry type="library" exported="" name="jcuda" level="project" />
     <orderEntry type="library" exported="" name="general" level="project" />
-    <orderEntry type="library" name="appbundler-1.0" level="project" />
     <orderEntry type="library" name="jargs" level="project" />
     <orderEntry type="library" name="jfreechart-1.0.19" level="project" />
     <orderEntry type="library" name="log4j-core-2.11.0" level="project" />
@@ -18,5 +17,6 @@
     <orderEntry type="library" name="npy" level="project" />
     <orderEntry type="library" name="org.tensorflow:libtensorflow:1.10.0" level="project" />
     <orderEntry type="library" name="org.tensorflow:libtensorflow_jni:1.10.0" level="project" />
+    <orderEntry type="library" name="npy" level="project" />
   </component>
 </module>

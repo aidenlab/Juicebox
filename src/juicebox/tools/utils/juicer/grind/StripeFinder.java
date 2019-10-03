@@ -40,6 +40,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class StripeFinder implements RegionFinder {
 
@@ -78,6 +80,120 @@ public class StripeFinder implements RegionFinder {
         this.onlyMakePositiveExamples = onlyMakePositiveExamples;
         this.ignoreDirectionOrientation = ignoreDirectionOrientation;
     }
+
+    @Override
+    public void makeExamples() {
+
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
+
+        for (int resolution : resolutions) {
+            for (Chromosome chrom : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+
+                Runnable worker = new Runnable() {
+                    @Override
+                    public void run() {
+
+                        int numFilesWrittenSoFar = 0;
+                        int currentBatchNumber = 0;
+                        int maxBatchSize = 10000;
+
+                        String newFolderPath = path + "/" + resolution + "_chr" + chrom.getName();
+                        UNIXTools.makeDir(newFolderPath);
+
+                        BufferedWriter[] writers = new BufferedWriter[3];
+                        try {
+
+
+                            Matrix matrix = ds.getMatrix(chrom, chrom);
+                            if (matrix == null) return;
+                            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+                            final MatrixZoomData zd = matrix.getZoomData(zoom);
+                            if (zd == null) return;
+                            System.out.println("Currently processing: " + chrom.getName());
+
+                            generateWriters(currentBatchNumber, writers, newFolderPath);
+                            String negPath = newFolderPath + "/negative_" + currentBatchNumber;
+                            String posPath = newFolderPath + "/positive_" + currentBatchNumber;
+                            UNIXTools.makeDir(negPath);
+                            UNIXTools.makeDir(posPath);
+
+                            // sliding along the diagonal
+                            for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
+                                int startCol = Math.max(0, rowIndex - offsetOfCornerFromDiag);
+                                int endCol = Math.min(rowIndex + offsetOfCornerFromDiag, (chrom.getLength() / resolution) - y);
+                                for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
+                                    getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
+                                            posPath, negPath, writers[0], writers[2], writers[1], false,
+                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                    numFilesWrittenSoFar++;
+                                    if (numFilesWrittenSoFar > maxBatchSize) {
+                                        numFilesWrittenSoFar = 0;
+                                        currentBatchNumber++;
+
+                                        generateWriters(currentBatchNumber, writers, newFolderPath);
+                                        negPath = newFolderPath + "/negative_" + currentBatchNumber;
+                                        posPath = newFolderPath + "/positive_" + currentBatchNumber;
+                                        UNIXTools.makeDir(negPath);
+                                        UNIXTools.makeDir(posPath);
+                                    }
+                                }
+                            }
+                            if (x != y) {
+                                // only rectangular regions require the double traveling
+                                for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
+                                    int startCol = Math.max(y, rowIndex - offsetOfCornerFromDiag);
+                                    int endCol = Math.min(rowIndex + offsetOfCornerFromDiag, (chrom.getLength() / resolution));
+                                    for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
+                                        getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
+                                                posPath, negPath, writers[0], writers[2], writers[1], true,
+                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                        numFilesWrittenSoFar++;
+                                        if (numFilesWrittenSoFar > maxBatchSize) {
+                                            numFilesWrittenSoFar = 0;
+                                            currentBatchNumber++;
+
+                                            generateWriters(currentBatchNumber, writers, newFolderPath);
+                                            negPath = newFolderPath + "/negative_" + currentBatchNumber;
+                                            posPath = newFolderPath + "/positive_" + currentBatchNumber;
+                                            UNIXTools.makeDir(negPath);
+                                            UNIXTools.makeDir(posPath);
+                                        }
+                                    }
+                                }
+                            }
+
+                            for (Writer writer : writers) {
+                                writer.close();
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                    }
+                };
+                executor.execute(worker);
+            }
+
+        }
+
+
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+    }
+
+    private void generateWriters(int currentBatchNumber, BufferedWriter[] writers, String newFolderPath) throws FileNotFoundException {
+        writers[0] = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
+                newFolderPath + "/pos_file_names_" + currentBatchNumber + ".txt"), StandardCharsets.UTF_8));
+        writers[1] = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
+                newFolderPath + "/neg_file_names_" + currentBatchNumber + ".txt"), StandardCharsets.UTF_8));
+        writers[2] = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
+                newFolderPath + "/pos_label_file_names_" + currentBatchNumber + ".txt"), StandardCharsets.UTF_8));
+    }
+
 
     public static void getTrainingDataAndSaveToFile(Dataset ds, NormalizationType norm, MatrixZoomData zd, Chromosome chrom, int rowIndex, int colIndex, int resolution,
                                                     Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
@@ -192,63 +308,6 @@ public class StripeFinder implements RegionFinder {
             return rowLength > colLength;
         } else {
             return colLength > rowLength;
-        }
-    }
-
-    @Override
-    public void makeExamples() {
-
-        final String negPath = path + "/negative";
-        final String posPath = path + "/positive";
-        UNIXTools.makeDir(negPath);
-        UNIXTools.makeDir(posPath);
-
-        try {
-
-            final Writer posWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_file_names.txt"), StandardCharsets.UTF_8));
-            final Writer negWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/neg_file_names.txt"), StandardCharsets.UTF_8));
-            final Writer posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/pos_label_file_names.txt"), StandardCharsets.UTF_8));
-
-            final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
-
-            for (int resolution : resolutions) {
-                for (Chromosome chrom : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) continue;
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-                    if (zd == null) continue;
-                    System.out.println("Currently processing: " + chrom.getName());
-
-                    // sliding along the diagonal
-                    for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
-                        int startCol = Math.max(0, rowIndex - offsetOfCornerFromDiag);
-                        int endCol = Math.min(rowIndex + offsetOfCornerFromDiag, (chrom.getLength() / resolution) - y);
-                        for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                            getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
-                                    posPath, negPath, posWriter, posLabelWriter, negWriter, false,
-                                    useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
-                        }
-                    }
-                    if (x != y) {
-                        // only rectangular regions require the double traveling
-                        for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
-                            int startCol = Math.max(y, rowIndex - offsetOfCornerFromDiag);
-                            int endCol = Math.min(rowIndex + offsetOfCornerFromDiag, (chrom.getLength() / resolution));
-                            for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
-                                getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
-                                        posPath, negPath, posWriter, posLabelWriter, negWriter, true,
-                                        useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
-                            }
-                        }
-                    }
-                }
-            }
-            posWriter.close();
-            negWriter.close();
-            posLabelWriter.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
         }
     }
 }
