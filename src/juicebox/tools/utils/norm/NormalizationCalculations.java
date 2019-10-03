@@ -30,7 +30,6 @@ import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
-import org.broad.igv.util.Pair;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -362,11 +361,11 @@ public class NormalizationCalculations {
      * @return Square root of ratio of original to normalized vector
      */
     public double getSumFactor(double[] norm) {
-        Pair<Double, Double> normMatrixSums = getNormMatrixSumFactor(norm);
-        return Math.sqrt(normMatrixSums.getFirst() / normMatrixSums.getSecond());
+        Double[] normMatrixSums = getNormMatrixSumFactor(norm);
+        return Math.sqrt(normMatrixSums[0] / normMatrixSums[1]);
     }
 
-    public Pair<Double, Double> getNormMatrixSumFactor(double[] norm) {
+    public Double[] getNormMatrixSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (ContactRecord cr : contactRecords) {
@@ -385,8 +384,21 @@ public class NormalizationCalculations {
 
             }
         }
-        return new Pair<>(norm_sum, matrix_sum);
+        return new Double[]{norm_sum, matrix_sum};
     }
+
+
+    public int getNumberOfValidEntriesInVector(double[] norm) {
+        int counter = 0;
+        for (double val : norm) {
+            if (!Double.isNaN(val) && val > 0) {
+                counter++;
+            }
+        }
+        return counter;
+    }
+
+
 
     double[] computeKR() {
 
