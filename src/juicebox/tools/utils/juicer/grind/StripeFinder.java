@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.track.feature.Feature2D;
@@ -80,6 +81,122 @@ public class StripeFinder implements RegionFinder {
         this.ignoreDirectionOrientation = ignoreDirectionOrientation;
     }
 
+    public static void getTrainingDataAndSaveToFile(Dataset ds, NormalizationType norm, MatrixZoomData zd, Chromosome chrom, int rowIndex, int colIndex, int resolution,
+                                                    Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
+                                                    Writer posWriter, Writer posLabelWriter, Writer negWriter, boolean isVerticalStripe,
+                                                    boolean useObservedOverExpected, boolean ignoreDirectionOrientation, boolean onlyMakePositiveExamples,
+                                                    boolean useExperimentalLabeling) throws IOException {
+
+        int rectULX = rowIndex;
+        int rectULY = colIndex;
+        int rectLRX = rowIndex + x;
+        int rectLRY = colIndex + y;
+        int numRows = x;
+        int numCols = y;
+
+        if (isVerticalStripe) {
+            rectULX = rowIndex - y;
+            rectULY = colIndex - x;
+            rectLRX = rowIndex;
+            rectLRY = colIndex;
+            numRows = y;
+            numCols = x;
+        }
+
+        RealMatrix localizedRegionData;
+        if (useObservedOverExpected) {
+            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
+            if (df == null) {
+                System.err.println("O/E data not available at " + zd.getZoom() + " " + norm);
+                return;
+            }
+            localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, rectULX, rectLRX,
+                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true);
+        } else {
+            localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                    rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm, true);
+        }
+
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rectULX * resolution,
+                rectULY * resolution, rectLRX * resolution, rectLRY * resolution);
+
+        List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chrom.getIndex(), chrom.getIndex(),
+                currentWindow);
+
+        boolean stripeIsFound = false;
+
+        int[][] labelsMatrix = new int[numRows][numCols];
+        int[][] experimentalLabelsMatrix = new int[numRows][numCols];
+        for (Feature2D feature2D : inputListFoundFeatures) {
+            int rowLength = Math.max((feature2D.getEnd1() - feature2D.getStart1()) / resolution, 1);
+            int colLength = Math.max((feature2D.getEnd2() - feature2D.getStart2()) / resolution, 1);
+
+            if (ignoreDirectionOrientation || stripeIsCorrectOrientation(rowLength, colLength, isVerticalStripe)) {
+
+                int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
+                int startColOf1 = feature2D.getStart2() / resolution - rectULY;
+                MatrixTools.labelRegionWithOnes(labelsMatrix, rowLength, numRows, colLength, numCols, startRowOf1, startColOf1);
+
+                if (useExperimentalLabeling) {
+                    MatrixTools.labelEnrichedRegionWithOnes(experimentalLabelsMatrix, localizedRegionData.getData(), rowLength, numRows, colLength, numCols, startRowOf1, startColOf1);
+                }
+                stripeIsFound = true;
+            }
+        }
+
+        double[][] finalData = localizedRegionData.getData();
+        int[][] finalLabels = labelsMatrix;
+        int[][] finalExpLabels = experimentalLabelsMatrix;
+        String orientationType = "_Horzntl";
+
+        if (isVerticalStripe) {
+            finalData = appropriatelyTransformVerticalStripes(finalData);
+            finalLabels = appropriatelyTransformVerticalStripes(finalLabels);
+            finalExpLabels = appropriatelyTransformVerticalStripes(finalExpLabels);
+            orientationType = "_Vertcl";
+        }
+
+        String filePrefix = chrom.getName() + "_" + rowIndex + "_" + colIndex + orientationType;
+
+        if (stripeIsFound) {
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix", posPath, finalData, posWriter, false);
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label", posPath, finalLabels, posLabelWriter, false);
+            if (useExperimentalLabeling) {
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.exp", posPath, finalExpLabels, posLabelWriter, false);
+            }
+        } else if (!onlyMakePositiveExamples) {
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix", negPath, finalData, negWriter, false);
+        }
+    }
+
+    private static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
+        int[][] transformedData = new int[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
+        double[][] transformedData = new double[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    private static boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
+        if (isVerticalStripe) {
+            return rowLength > colLength;
+        } else {
+            return colLength > rowLength;
+        }
+    }
+
     @Override
     public void makeExamples() {
 
@@ -125,7 +242,7 @@ public class StripeFinder implements RegionFinder {
                                 for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                     getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                             posPath, negPath, writers[0], writers[2], writers[1], false,
-                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples);
+                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
                                     numFilesWrittenSoFar++;
                                     if (numFilesWrittenSoFar > maxBatchSize) {
                                         numFilesWrittenSoFar = 0;
@@ -147,7 +264,7 @@ public class StripeFinder implements RegionFinder {
                                     for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                         getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, negPath, writers[0], writers[2], writers[1], true,
-                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples);
+                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
                                         numFilesWrittenSoFar++;
                                         if (numFilesWrittenSoFar > maxBatchSize) {
                                             numFilesWrittenSoFar = 0;
@@ -191,106 +308,5 @@ public class StripeFinder implements RegionFinder {
                 newFolderPath + "/neg_file_names_" + currentBatchNumber + ".txt"), StandardCharsets.UTF_8));
         writers[2] = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
                 newFolderPath + "/pos_label_file_names_" + currentBatchNumber + ".txt"), StandardCharsets.UTF_8));
-    }
-
-
-    public static void getTrainingDataAndSaveToFile(Dataset ds, NormalizationType norm, MatrixZoomData zd, Chromosome chrom, int rowIndex, int colIndex, int resolution,
-                                                    Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
-                                                    Writer posWriter, Writer posLabelWriter, Writer negWriter, boolean isVerticalStripe,
-                                                    boolean useObservedOverExpected, boolean ignoreDirectionOrientation, boolean onlyMakePositiveExamples) throws IOException {
-
-        int rectULX = rowIndex;
-        int rectULY = colIndex;
-        int rectLRX = rowIndex + x;
-        int rectLRY = colIndex + y;
-        int numRows = x;
-        int numCols = y;
-
-        if (isVerticalStripe) {
-            rectULX = rowIndex - y;
-            rectULY = colIndex - x;
-            rectLRX = rowIndex;
-            rectLRY = colIndex;
-            numRows = y;
-            numCols = x;
-        }
-
-        RealMatrix localizedRegionData;
-        if (useObservedOverExpected) {
-            ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println("O/E data not available at " + zd.getZoom() + " " + norm);
-                return;
-            }
-            localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, rectULX, rectLRX,
-                    rectULY, rectLRY, numRows, numCols, norm, true, df, chrom.getIndex(), 2, true);
-        } else {
-            localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                    rectULX, rectLRX, rectULY, rectLRY, numRows, numCols, norm, true);
-        }
-
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rectULX * resolution,
-                rectULY * resolution, rectLRX * resolution, rectLRY * resolution);
-
-        List<Feature2D> inputListFoundFeatures = feature2DHandler.getContainedFeatures(chrom.getIndex(), chrom.getIndex(),
-                currentWindow);
-
-        boolean stripeIsFound = false;
-
-        double[][] labelsMatrix = new double[numRows][numCols];
-        for (Feature2D feature2D : inputListFoundFeatures) {
-            int rowLength = Math.max((feature2D.getEnd1() - feature2D.getStart1()) / resolution, 1);
-            int colLength = Math.max((feature2D.getEnd2() - feature2D.getStart2()) / resolution, 1);
-
-            if (ignoreDirectionOrientation || stripeIsCorrectOrientation(rowLength, colLength, isVerticalStripe)) {
-
-                int startRowOf1 = feature2D.getStart1() / resolution - rectULX;
-                int startColOf1 = feature2D.getStart2() / resolution - rectULY;
-                for (int i = 0; i < Math.min(rowLength, numRows); i++) {
-                    for (int j = 0; j < Math.min(colLength, numCols); j++) {
-                        labelsMatrix[startRowOf1 + i][startColOf1 + j] = 1.0;
-                    }
-                }
-                stripeIsFound = true;
-            }
-        }
-
-        double[][] finalData = localizedRegionData.getData();
-        double[][] finalLabels = labelsMatrix;
-        String orientationType = "_Horzntl";
-
-        if (isVerticalStripe) {
-            finalData = appropriatelyTransformVerticalStripes(finalData);
-            finalLabels = appropriatelyTransformVerticalStripes(finalLabels);
-            orientationType = "_Vertcl";
-        }
-
-        String filePrefix = chrom.getName() + "_" + rowIndex + "_" + colIndex + orientationType;
-
-        if (stripeIsFound) {
-            System.out.print(".");
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", posPath, finalData, posWriter);
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.txt", posPath, finalLabels, posLabelWriter);
-        } else if (!onlyMakePositiveExamples) {
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.txt", negPath, finalData, negWriter);
-        }
-    }
-
-    private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
-        double[][] transformedData = new double[data[0].length][data.length];
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[0].length; j++) {
-                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
-            }
-        }
-        return transformedData;
-    }
-
-    private static boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
-        if (isVerticalStripe) {
-            return rowLength > colLength;
-        } else {
-            return colLength > rowLength;
-        }
     }
 }

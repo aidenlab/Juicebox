@@ -25,7 +25,6 @@
 package juicebox.tools.clt;
 
 
-import juicebox.tools.HiCTools;
 
 /**
  * Created for testing multiple CLTs at once
@@ -35,6 +34,6 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
-  
+
     }
 }
