@@ -125,7 +125,7 @@ public class StripeFinder implements RegionFinder {
                                 for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                     getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                             posPath, negPath, writers[0], writers[2], writers[1], false,
-                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples);
                                     numFilesWrittenSoFar++;
                                     if (numFilesWrittenSoFar > maxBatchSize) {
                                         numFilesWrittenSoFar = 0;
@@ -147,7 +147,7 @@ public class StripeFinder implements RegionFinder {
                                     for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                         getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, negPath, writers[0], writers[2], writers[1], true,
-                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples);
                                         numFilesWrittenSoFar++;
                                         if (numFilesWrittenSoFar > maxBatchSize) {
                                             numFilesWrittenSoFar = 0;
