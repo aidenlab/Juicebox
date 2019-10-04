@@ -84,7 +84,6 @@ class DataCleanerV2 extends DataCleaner {
         return aggregate;
     }
 
-
     public void processKmeansResultV2(Chromosome chromosome,
                                       List<GenomeWideList<SubcompartmentInterval>> subcompartmentsLists, Cluster[] clusters,
                                       Map<Integer, double[]> idToCentroidMap) {

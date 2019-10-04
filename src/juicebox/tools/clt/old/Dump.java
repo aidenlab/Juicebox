@@ -199,11 +199,8 @@ public class Dump extends JuiceboxCLT {
             pw.close();
 
         } else if (matrixType == MatrixType.EXPECTED) {
-            final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
-            if (df == null) {
-                System.err.println("Expected not available at " + zoom + " " + norm);
-                System.exit(10);
-            }
+            final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
+
             int length = df.getLength();
 
             if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
@@ -259,11 +256,7 @@ public class Dump extends JuiceboxCLT {
 
         ExpectedValueFunction df = null;
         if (MatrixType.isExpectedValueType(matrixType)) {
-            df = dataset.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println(matrixType + " not available at " + chr1 + " " + zoom + " " + norm);
-                System.exit(14);
-            }
+            df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
         }
         zd.dump(pw, les, norm, matrixType, useRegionIndices, regionIndices, df, dense);
 

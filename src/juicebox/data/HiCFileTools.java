@@ -341,8 +341,8 @@ public class HiCFileTools {
                 }
             }
         }
-        // ~force cleanup
-        blocks = null;
+        // force cleanup
+        System.gc();
 
         return data;
     }
@@ -439,17 +439,14 @@ public class HiCFileTools {
         final MatrixZoomData zd = matrix.getZoomData(zoom);
         if (zd == null) return null;
 
-        ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-        if (df == null) {
-            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-            System.exit(14);
-        }
+        ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
 
         int maxBin = chromosome.getLength() / resolution + 1;
         int maxSize = maxBin;
 
-        return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
+        return ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
+                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
+                false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
 
     }
 

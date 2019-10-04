@@ -34,130 +34,65 @@ import java.util.List;
 
 public class ExtractingOEDataUtils {
 
-    public static RealMatrix extractLocalThresholdedLogOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                                       int binYStart, int binYEnd, int numRows, int numCols,
-                                                                       NormalizationType normalizationType, boolean isIntra,
-                                                                       ExpectedValueFunction df, int chrIndex, double threshold,
-                                                                       boolean fillUnderDiagonal) throws IOException {
+    public static RealMatrix extractObsOverExpBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                            int binYStart, int binYEnd, int numRows, int numCols,
+                                                            NormalizationType normalizationType, boolean isIntra,
+                                                            ExpectedValueFunction df, int chrIndex, double threshold,
+                                                            boolean fillUnderDiagonal, ThresholdType thresholdType) throws IOException {
         if (isIntra && df == null) {
             System.err.println("DF is null");
             return null;
         }
-
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
         List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
         double averageCount = zd.getAverageCount();
-
         if (blocks.size() > 0) {
             for (Block b : blocks) {
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-
                         double expected = getExpected(rec, df, chrIndex, isIntra, averageCount);
-                        double oeVal = Math.log(rec.getCounts() / expected);
-                        oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-
+                        double oeVal = rec.getCounts();
+                        if (thresholdType.equals(ThresholdType.LOG_OE_BOUNDED)) {
+                            oeVal = Math.log(oeVal / expected);
+                            oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
+                        } else if (thresholdType.equals(ThresholdType.LOCAL_BOUNDED)) {
+                            if (isIntra) {
+                                oeVal = Math.log(rec.getCounts() / expected);
+                            }
+                            if (Double.isNaN(oeVal)) oeVal = 0;
+                        }
                         placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
                     }
                 }
             }
         }
-        // ~force cleanup
-        blocks = null;
-
+        // force cleanup
+        System.gc();
         return data;
     }
 
-    public static double extractAveragedOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                        NormalizationType normalizationType, boolean isIntra,
-                                                        ExpectedValueFunction df, int chrIndex, boolean fillUnderDiagonal) throws IOException {
-        if (isIntra && df == null) {
-            System.err.println("DF is null");
-            return 0.0;
+    private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
+        int x = rec.getBinX();
+        int y = rec.getBinY();
+        double expected;
+        if (isIntra) {
+            int dist = Math.abs(x - y);
+            expected = df.getExpectedValue(chrIndex, dist);
+        } else {
+            expected = (averageCount > 0 ? averageCount : 1);
         }
-
-        // numRows/numCols is just to ensure a set size in case bounds are approximate
-        // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-        double averageCount = zd.getAverageCount();
-
-        if (blocks.size() > 0) {
-            for (Block b : blocks) {
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-
-                        double expected = getExpected(rec, df, chrIndex, isIntra, averageCount);
-                        double oeVal = rec.getCounts();
-                        if (isIntra) {
-                            oeVal = Math.log(rec.getCounts() / expected);
-                            //oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-                        }
-
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
-                    }
-                }
-            }
-        }
-        // ~force cleanup
-        blocks = null;
-
-        return MatrixTools.getAverage(data);
+        return expected;
     }
 
-    public static double[][] extractLocalOEBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                         int binYStart, int binYEnd, int numRows, int numCols,
-                                                         NormalizationType normalizationType, boolean isIntra,
-                                                         ExpectedValueFunction df, int chrIndex, double threshold,
-                                                         boolean fillUnderDiagonal) throws IOException {
+    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED}
 
-        if (isIntra && df == null) {
-            System.err.println("DF is null");
-            System.exit(87);
-            return null;
-        }
-
-        // numRows/numCols is just to ensure a set size in case bounds are approximate
-        // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-
-        if (blocks.size() > 0) {
-            for (Block b : blocks) {
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-                        int x = rec.getBinX();
-                        int y = rec.getBinY();
-
-                        double oeVal = rec.getCounts();
-                        if (isIntra) {
-                            int dist = Math.abs(x - y);
-                            double expected = df.getExpectedValue(chrIndex, dist);
-                            oeVal = Math.log(rec.getCounts() / expected);
-                            //oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
-                        }
-                        if (Double.isNaN(oeVal)) oeVal = 0;
-
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
-                    }
-                }
-            }
-        }
-        // ~force cleanup
-        blocks = null;
-
-        return data.getData();
-    }
-
-    public static double extractAveragedOEFromRegion(double[][] allDataForRegion, int binXStart, int binXEnd,
+    public static double extractAveragedOEFromRegion(RealMatrix matrix, int binXStart, int binXEnd,
                                                      int binYStart, int binYEnd, double threshold, boolean isIntra) {
+
+        double[][] allDataForRegion = matrix.getData();
 
         int totalNumInclZero = (binXEnd - binXStart) * (binYEnd - binYStart);
         double total = 0;
@@ -218,26 +153,5 @@ public class ExtractingOEDataUtils {
                 }
             }
         }
-    }
-
-    /**
-     * @param rec
-     * @param df
-     * @param chrIndex
-     * @param isIntra
-     * @param averageCount
-     * @return
-     */
-    private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
-        int x = rec.getBinX();
-        int y = rec.getBinY();
-        double expected;
-        if (isIntra) {
-            int dist = Math.abs(x - y);
-            expected = df.getExpectedValue(chrIndex, dist);
-        } else {
-            expected = (averageCount > 0 ? averageCount : 1);
-        }
-        return expected;
     }
 }

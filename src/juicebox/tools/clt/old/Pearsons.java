@@ -229,11 +229,7 @@ public class Pearsons extends JuiceboxCLT {
             }
             System.exit(13);
         }
-        ExpectedValueFunction df = dataset.getExpectedValues(zd.getZoom(), norm);
-        if (df == null) {
-            System.err.println("Pearson's not available at " + chromosome1 + " " + zoom + " " + norm);
-            System.exit(14);
-        }
+        ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
 
         BasicMatrix pearsons = zd.getPearsons(df);
         if (pearsons == null) {

@@ -54,71 +54,33 @@ public class Clustering {
         final AtomicInteger numRunsDone = new AtomicInteger();
 
         for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
-
-            // skip these matrices
             Matrix matrix = ds.getMatrix(chromosome, chromosome);
             if (matrix == null) continue;
-
             HiCZoom zoom = ds.getZoomForBPResolution(resolution);
             final MatrixZoomData zd = matrix.getZoomData(zoom);
             if (zd == null) continue;
 
             try {
-
-                ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-                if (df == null) {
-                    System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-                    System.exit(14);
-                }
+                ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
 
                 int maxBin = chromosome.getLength() / resolution + 1;
                 int maxSize = maxBin;
 
-                RealMatrix localizedRegionData = ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold, false);
+                RealMatrix localizedRegionData = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
+                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
+                        false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
 
                 final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
 
                 if (dataCleaner.getLength() > 0) {
-
-                    ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
-                            maxIters, 128971L);
-
-                    numRunsToExpect.incrementAndGet();
-                    KMeansListener kMeansListener = new KMeansListener() {
-                        @Override
-                        public void kmeansMessage(String s) {
-                        }
-
-                        @Override
-                        public void kmeansComplete(Cluster[] clusters, long l) {
-                            numRunsDone.incrementAndGet();
-                            dataCleaner.processKmeansResult(chromosome, subcompartments, clusters);
-                        }
-
-                        @Override
-                        public void kmeansError(Throwable throwable) {
-                            System.err.println("drink chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
-                            throwable.printStackTrace();
-                            System.exit(98);
-                        }
-                    };
-                    kMeans.addKMeansListener(kMeansListener);
-                    kMeans.run();
+                    launchKMeansForInitialSubcompartment(chromosome, dataCleaner, subcompartments, numClusters,
+                            maxIters, numRunsToExpect, numRunsDone, null, null);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        while (numRunsDone.get() < numRunsToExpect.get()) {
-            System.out.println("So far size is " + subcompartments.size());
-            System.out.println("Wait another minute");
-            try {
-                TimeUnit.MINUTES.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        waitWhileCodeRuns(numRunsDone, numRunsToExpect, subcompartments.size());
 
         return subcompartments;
     }
@@ -164,51 +126,15 @@ public class Clustering {
                         maxPercentAllowedToBeZeroThreshold, resolution, outputDirectory, new ArrayList<>());
 
                 if (dataCleanerV2.getLength() > 0) {
-
-                    /*
-                    File outputFile2 = new File(outputDirectory, "allFilesChr"+chromosome.getIndex()+".txt");
-                    MatrixTools.exportData(dataCleanerV2.getCleanedData(), outputFile2);
-                    */
-
-                    ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleanerV2.getCleanedData(), numClusters,
-                            maxIters, 128971L);
-
-                    numRunsToExpect.incrementAndGet();
-                    KMeansListener kMeansListener = new KMeansListener() {
-                        @Override
-                        public void kmeansMessage(String s) {
-                        }
-
-                        @Override
-                        public void kmeansComplete(Cluster[] clusters, long l) {
-                            numRunsDone.incrementAndGet();
-                            dataCleanerV2.processKmeansResultV2(chromosome, comparativeSubcompartments, clusters,
-                                    idToCentroidMap);
-                        }
-
-                        @Override
-                        public void kmeansError(Throwable throwable) {
-                            System.err.println("drink chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
-                            throwable.printStackTrace();
-                            System.exit(98);
-                        }
-                    };
-                    kMeans.addKMeansListener(kMeansListener);
-                    kMeans.run();
+                    launchKMeansForInitialSubcompartment(chromosome, dataCleanerV2, null, numClusters,
+                            maxIters, numRunsToExpect, numRunsDone, comparativeSubcompartments, idToCentroidMap);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        while (numRunsDone.get() < numRunsToExpect.get()) {
-            System.out.println("Wait another minute");
-            try {
-                TimeUnit.MINUTES.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        waitWhileCodeRuns(numRunsDone, numRunsToExpect, -1);
 
         for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
             DrinkUtils.reSort(gwList);
@@ -221,5 +147,57 @@ public class Clustering {
         DrinkUtils.writeConsensusSubcompartmentsToFile(comparativeSubcompartments, outputDirectory);
 
         DrinkUtils.writeFinalSubcompartmentsToFiles(comparativeSubcompartments, outputDirectory, inputHicFilePaths);
+    }
+
+
+    private static void launchKMeansForInitialSubcompartment(Chromosome chromosome, DataCleaner dataCleaner,
+                                                             GenomeWideList<SubcompartmentInterval> subcompartments,
+                                                             int numClusters, int maxIters,
+                                                             AtomicInteger numRunsToExpect, AtomicInteger numRunsDone,
+                                                             List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments,
+                                                             Map<Integer, double[]> idToCentroidMap) {
+        ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
+                maxIters, 128971L);
+
+        numRunsToExpect.incrementAndGet();
+        KMeansListener kMeansListener = new KMeansListener() {
+            @Override
+            public void kmeansMessage(String s) {
+            }
+
+            @Override
+            public void kmeansComplete(Cluster[] clusters, long l) {
+                numRunsDone.incrementAndGet();
+                if (dataCleaner instanceof DataCleanerV2) {
+                    ((DataCleanerV2) dataCleaner).processKmeansResultV2(chromosome, comparativeSubcompartments, clusters,
+                            idToCentroidMap);
+                } else {
+                    dataCleaner.processKmeansResult(chromosome, subcompartments, clusters);
+                }
+            }
+
+            @Override
+            public void kmeansError(Throwable throwable) {
+                System.err.println("drink chr " + chromosome.getName() + " - err - " + throwable.getLocalizedMessage());
+                throwable.printStackTrace();
+                System.exit(98);
+            }
+        };
+        kMeans.addKMeansListener(kMeansListener);
+        kMeans.run();
+    }
+
+    private static void waitWhileCodeRuns(AtomicInteger numRunsDone, AtomicInteger numRunsToExpect, int size) {
+        while (numRunsDone.get() < numRunsToExpect.get()) {
+            if (size > 0) {
+                System.out.println("So far size is " + size);
+            }
+            System.out.println("Wait another minute");
+            try {
+                TimeUnit.MINUTES.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

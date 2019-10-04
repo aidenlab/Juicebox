@@ -29,6 +29,7 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -80,12 +81,7 @@ class ScaledGenomeWideMatrix {
 
                 if (zd == null) continue;
 
-                ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-                if (isIntra && df == null) {
-                    System.err.println("O/E data not available at " + chr1.getName() + " " + zoom + " " + norm);
-                    System.exit(14);
-                }
-
+                ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chr1, isIntra);
                 fillInChromosomeRegion(gwMatrix, zd, df, isIntra, chr1, indices[i], chr2, indices[j]);
             }
         }
@@ -123,8 +119,8 @@ class ScaledGenomeWideMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold, false);
+            RealMatrix allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
+                    0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra, df, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
 
             for (int i = 0; i < intervals1.size(); i++) {
                 SubcompartmentInterval interv1 = intervals1.get(i);

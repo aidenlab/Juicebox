@@ -49,6 +49,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -555,7 +557,12 @@ public class HiCCUPS extends JuicerCLT {
 
                 }
                 int currProg = currentProgressStatus.incrementAndGet();
-                System.out.println(((int) Math.floor((100.0 * currProg) / regionHandler.getSize())) + "% ");
+                int resonableDivisor = regionHandler.getSize() / 20;
+                if (HiCGlobals.printVerboseComments || currProg % resonableDivisor == 0) {
+                    DecimalFormat df = new DecimalFormat("#.####");
+                    df.setRoundingMode(RoundingMode.FLOOR);
+                    System.out.println(df.format(Math.floor((100.0 * currProg) / regionHandler.getSize())) + "% ");
+                }
 
             } catch (IOException e) {
                 System.err.println("No data in map region");

@@ -33,6 +33,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -73,11 +74,11 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
         Chromosome[] evenChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
 
         // assuming Odd vs Even
-        Chromosome[] heightChromosomes = oddChromosomes;
+        // height chromosomes
         int h = calculateDimensionInterMatrix(oddChromosomes);
         int[] heightIndices = calculateOffsetIndex(oddChromosomes);
 
-        Chromosome[] widthChromosomes = evenChromosomes;
+        // width chromosomes
         int w = calculateDimensionInterMatrix(evenChromosomes);
         int[] widthIndices = calculateOffsetIndex(evenChromosomes);
 
@@ -86,21 +87,17 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         double[][] interMatrix = new double[h][w];
 
-        for (int i = 0; i < heightChromosomes.length; i++) {
-            Chromosome chr1 = heightChromosomes[i];
+        for (int i = 0; i < oddChromosomes.length; i++) {
+            Chromosome chr1 = oddChromosomes[i];
 
-            for (int j = 0; j < widthChromosomes.length; j++) {
-                Chromosome chr2 = widthChromosomes[j];
+            for (int j = 0; j < evenChromosomes.length; j++) {
+                Chromosome chr2 = evenChromosomes[j];
 
                 if (chr1.getIndex() == chr2.getIndex()) continue;
-
                 Matrix matrix = ds.getMatrix(chr1, chr2);
-
                 if (matrix == null) continue;
-
                 HiCZoom zoom = ds.getZoomForBPResolution(resolution);
                 final MatrixZoomData zd = matrix.getZoomData(zoom);
-
                 if (zd == null) continue;
 
                 // will need to flip across diagonal
@@ -149,16 +146,16 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion;
+            RealMatrix allDataForRegion;
             if (needToFlip) {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
-                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr2,
+                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
-                allDataForRegion = MatrixTools.transpose(allDataForRegion);
+                allDataForRegion = allDataForRegion.transpose();
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
+                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
             }
 
             for (int i = 0; i < intervals1.size(); i++) {
@@ -179,12 +176,6 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
                     try {
                         matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
                     } catch (Exception e) {
-                        //System.err.println("err " + i + ", (" + offsetIndex2 + "+" + j + ")");
-                        //System.err.println("err interv1 " + interv1);
-                        //System.err.println("err interv2 " + interv2);
-                        //System.err.println("err region size " + allDataForRegion.length + " by " + allDataForRegion[0].length);
-                        //System.err.println("err matrix size " + matrix.length + " by " + matrix[0].length);
-
                         e.printStackTrace();
                         System.exit(99);
                     }
