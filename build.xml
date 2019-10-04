@@ -24,6 +24,8 @@
   -->
 
 <project name="juicebox" default="all">
+
+
     <property file="juicebox.properties"/>
     <!-- Uncomment the following property if no tests compilation is needed -->
     <!--
@@ -284,7 +286,6 @@
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
-            <zipfileset src="${basedir}/lib/npy.jar"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
             <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
@@ -314,7 +315,6 @@
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
-            <zipfileset src="${basedir}/lib/npy.jar"/>
             <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar"
                         excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>

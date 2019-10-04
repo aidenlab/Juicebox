@@ -27,10 +27,6 @@ package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created for testing multiple CLTs at once
  * Basically scratch space
@@ -39,43 +35,6 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
-        String[] command = new String[]{"grind", "-k", "KR", "-r", "100000",
-                "--stride", "20000", "-c", "1,2", "--dense-labels", "--distort",
-                "/Users/muhammad/Desktop/local_hic_files/imr90_intra_nofrag_30.hic",
-                "null", "200,2,1", //"64,64,5",
-                "/Users/muhammad/Desktop/deeplearning/testing/resultsTest"};
-        HiCTools.main(command);
-        
-    }
-
-    private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
-        List<Integer[]> listPositions = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(seqPath))) {
-            for (String line; (line = br.readLine()) != null; ) {
-                String[] parts = line.split(",");
-                listPositions.add(new Integer[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
-            }
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
-        }
-
-
-        try {
-            PrintWriter p0 = new PrintWriter(new FileWriter(newPath));
-            for (int i = 0; i < listPositions.size(); i++) {
-                Integer[] pos_xy_1 = listPositions.get(i);
-                for (int j = i; j < listPositions.size(); j++) {
-                    Integer[] pos_xy_2 = listPositions.get(j);
-                    double value = 1. / Math.max(1, Math.sqrt((pos_xy_1[0] - pos_xy_2[0]) ^ 2 + (pos_xy_1[1] - pos_xy_2[1]) ^ 2));
-                    float conv_val = (float) value;
-                    if (!Float.isNaN(conv_val) && conv_val > 0) {
-                        p0.println("0 art " + i + " 0 16 art " + j + " 1 " + conv_val);
-                    }
-                }
-            }
-            p0.close();
-        } catch (IOException ignored) {
-            ignored.printStackTrace();
-        }
+  
     }
 }

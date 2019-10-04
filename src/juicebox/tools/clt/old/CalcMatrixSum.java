@@ -33,7 +33,6 @@ import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,7 +82,7 @@ public class CalcMatrixSum extends JuiceboxCLT {
         int numCPUThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
 
-        Map<String, Pair<Double, Double>> zoomToMatrixSumMap = new HashMap<>();
+        Map<String, Double[]> zoomToMatrixSumMap = new HashMap<>();
 
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             for (HiCZoom zoom : dataset.getBpZooms()) {
@@ -102,11 +101,14 @@ public class CalcMatrixSum extends JuiceboxCLT {
                         }
 
                         NormalizationCalculations calculations = new NormalizationCalculations(zd);
-                        Pair<Double, Double> matrixSum = calculations.getNormMatrixSumFactor(actualVector);
+                        Double[] matrixSum = calculations.getNormMatrixSumFactor(actualVector);
+
+                        Double[] result = new Double[]{matrixSum[0], matrixSum[1],
+                                (double) calculations.getNumberOfValidEntriesInVector(actualVector)};
 
                         String key = getKeyWithNorm(chromosome, zoom, norm);
                         synchronized (zoomToMatrixSumMap) {
-                            zoomToMatrixSumMap.put(key, matrixSum);
+                            zoomToMatrixSumMap.put(key, result);
                         }
                         System.out.println("Finished: " + key);
                     }
@@ -125,8 +127,10 @@ public class CalcMatrixSum extends JuiceboxCLT {
             for (HiCZoom zoom : dataset.getBpZooms()) {
                 String key = getKeyWithNorm(chromosome, zoom, norm);
                 if (zoomToMatrixSumMap.containsKey(key)) {
-                    printWriter.println("Zoom: " + zoom + " Normalized Matrix Sum: " + zoomToMatrixSumMap.get(key).getFirst() +
-                            " Original Matrix Sum: " + zoomToMatrixSumMap.get(key).getSecond());
+                    printWriter.println("Zoom: " + zoom + " Normalized Matrix Sum: " + zoomToMatrixSumMap.get(key)[0]
+                            + " Original Matrix Sum: " + zoomToMatrixSumMap.get(key)[1]
+                            + " Number of Positive Entries in Vector: " + zoomToMatrixSumMap.get(key)[2]
+                    );
                 }
             }
         }
