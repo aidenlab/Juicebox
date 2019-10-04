@@ -61,6 +61,7 @@ public class Grind extends JuicerCLT {
     private String featureListPath;
     private int offsetOfCornerFromDiagonal = 0;
     private int stride = 1;
+    private String imgFileType = "";
 
     public Grind() {
         super("grind [-k NONE/KR/VC/VC_SQRT] [-r resolution] [--stride increment] " +
@@ -96,7 +97,6 @@ public class Grind extends JuicerCLT {
         stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
 
-
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
 
@@ -110,6 +110,7 @@ public class Grind extends JuicerCLT {
         }
 
         sliceTypeOption = juicerParser.getGrindDataSliceOption();
+        imgFileType = juicerParser.getGenerateImageFormatPicturesOption();
     }
 
     @Override
@@ -136,7 +137,6 @@ public class Grind extends JuicerCLT {
         } else if (sliceTypeOption == 2) {
             finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
         } else if (sliceTypeOption == 4) {
-
             ExecutorService executor = Executors.newFixedThreadPool(resolutions.size());
             for (final int resolution : resolutions) {
                 Runnable worker = new Runnable() {
@@ -146,7 +146,7 @@ public class Grind extends JuicerCLT {
                         if (givenChromosomes != null)
                             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
-                        RegionFinder finder = new DistortionFinder(x, z, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolution, stride);
+                        RegionFinder finder = new DistortionFinder(x, y, z, ds, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolution, stride, imgFileType);
                         finder.makeExamples();
                     }
                 };
