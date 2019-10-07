@@ -26,9 +26,11 @@ package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -38,7 +40,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -103,14 +107,22 @@ public class CalcMatrixSum extends JuiceboxCLT {
                         NormalizationCalculations calculations = new NormalizationCalculations(zd);
                         Double[] matrixSum = calculations.getNormMatrixSumFactor(actualVector);
 
+
+                        int numValidVectorEntries = calculations.getNumberOfValidEntriesInVector(actualVector);
                         Double[] result = new Double[]{matrixSum[0], matrixSum[1],
-                                (double) calculations.getNumberOfValidEntriesInVector(actualVector)};
+                                (double) numValidVectorEntries};
+
 
                         String key = getKeyWithNorm(chromosome, zoom, norm);
                         synchronized (zoomToMatrixSumMap) {
                             zoomToMatrixSumMap.put(key, result);
                         }
                         System.out.println("Finished: " + key);
+
+                        /*
+                        testCode(zoom, zd.getContactRecordList(), actualVector, 1. / matrixSum[0],
+                                numValidVectorEntries / matrixSum[0]);
+                         */
                     }
                 };
                 executor.execute(worker);
@@ -136,5 +148,20 @@ public class CalcMatrixSum extends JuiceboxCLT {
         }
 
         printWriter.close();
+    }
+
+    private void testCode(HiCZoom zoom, List<ContactRecord> contactRecordList, double[] actualVector, double scalar1, double scalar2) {
+
+        if (zoom.getBinSize() > 100000) {
+            System.out.println("No scaling");
+            System.out.println(Arrays.toString(MatrixTools.getRowSums(contactRecordList,
+                    1, actualVector)));
+            System.out.println("Scale by 1/sum");
+            System.out.println(Arrays.toString(MatrixTools.getRowSums(contactRecordList,
+                    scalar1, actualVector)));
+            System.out.println("Scale by N/M");
+            System.out.println(Arrays.toString(MatrixTools.getRowSums(contactRecordList,
+                    scalar2, actualVector)));
+        }
     }
 }

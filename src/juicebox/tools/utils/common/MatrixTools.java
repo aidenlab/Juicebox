@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.common;
 
+import juicebox.data.ContactRecord;
 import juicebox.tools.utils.juicer.apa.APARegionStatistics;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
@@ -34,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 
@@ -599,6 +601,23 @@ public class MatrixTools {
             for (double val : matrix[i]) {
                 rowSum[i] += val;
             }
+        }
+        return rowSum;
+    }
+
+    public static double[] getRowSums(List<ContactRecord> unNormedRecordList, double scalar, double[] normVector) {
+        double[] rowSum = new double[normVector.length];
+        for (ContactRecord record : unNormedRecordList) {
+            int x = record.getBinX();
+            int y = record.getBinY();
+            float counts = record.getCounts();
+
+            double normVal = counts * scalar / (normVector[x] * normVector[y]);
+            rowSum[x] += normVal;
+            if (x != y) {
+                rowSum[y] += normVal;
+            }
+
         }
         return rowSum;
     }
