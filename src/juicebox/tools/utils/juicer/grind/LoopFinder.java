@@ -57,10 +57,12 @@ public class LoopFinder implements RegionFinder {
     private Set<Integer> resolutions;
     private ChromosomeHandler chromosomeHandler;
     private int overallWidth;
-    private boolean onlyMakePositiveExamples, dimensionOfLabelIsSameAsOutput;
+    private boolean onlyMakePositiveExamples, dimensionOfLabelIsSameAsOutput, useAmorphicPixelLabeling, useObservedOverExpected;
+
 
     public LoopFinder(int x, int y, int z, int stride, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                      boolean useObservedOverExpected, boolean dimensionOfLabelIsSameAsOutput, Set<Integer> resolutions, boolean onlyMakePositiveExamples) {
+                      boolean useObservedOverExpected, boolean dimensionOfLabelIsSameAsOutput, Set<Integer> resolutions, boolean onlyMakePositiveExamples,
+                      boolean useAmorphicPixelLabeling) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -73,6 +75,9 @@ public class LoopFinder implements RegionFinder {
         this.chromosomeHandler = chromosomeHandler;
         this.onlyMakePositiveExamples = onlyMakePositiveExamples;
         this.dimensionOfLabelIsSameAsOutput = dimensionOfLabelIsSameAsOutput;
+        this.useObservedOverExpected = useObservedOverExpected;
+        this.useAmorphicPixelLabeling = useAmorphicPixelLabeling;
+
     }
 
     @Override
@@ -139,7 +144,7 @@ public class LoopFinder implements RegionFinder {
                                     try {
                                         StripeFinder.getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, null, posWriter, posLabelWriter, null, false,
-                                                false, true, true, true);
+                                                useObservedOverExpected, true, true, useAmorphicPixelLabeling);
                                         printingCounter += 3;
                                     } catch (Exception e) {
                                         System.err.println("Error reading from row " + rowIndex + " col " + colIndex + " at res " + resolution);

@@ -60,10 +60,12 @@ public class StripeFinder implements RegionFinder {
     private Set<Integer> resolutions;
     private int offsetOfCornerFromDiag;
     private int stride;
+    private boolean useAmorphicLabeling;
 
     public StripeFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
                         boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions,
-                        int offsetOfCornerFromDiag, int stride, boolean onlyMakePositiveExamples, boolean ignoreDirectionOrientation) {
+                        int offsetOfCornerFromDiag, int stride, boolean onlyMakePositiveExamples, boolean ignoreDirectionOrientation,
+                        boolean useAmorphicLabeling) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -79,13 +81,14 @@ public class StripeFinder implements RegionFinder {
         this.stride = stride;
         this.onlyMakePositiveExamples = onlyMakePositiveExamples;
         this.ignoreDirectionOrientation = ignoreDirectionOrientation;
+        this.useAmorphicLabeling = useAmorphicLabeling;
     }
 
     public static void getTrainingDataAndSaveToFile(Dataset ds, NormalizationType norm, MatrixZoomData zd, Chromosome chrom, int rowIndex, int colIndex, int resolution,
                                                     Feature2DHandler feature2DHandler, Integer x, Integer y, String posPath, String negPath,
                                                     Writer posWriter, Writer posLabelWriter, Writer negWriter, boolean isVerticalStripe,
                                                     boolean useObservedOverExpected, boolean ignoreDirectionOrientation, boolean onlyMakePositiveExamples,
-                                                    boolean useExperimentalLabeling) throws IOException {
+                                                    boolean useAmorphicLabeling) throws IOException {
 
         int rectULX = rowIndex;
         int rectULY = colIndex;
@@ -137,7 +140,7 @@ public class StripeFinder implements RegionFinder {
                 int startColOf1 = feature2D.getStart2() / resolution - rectULY;
                 MatrixTools.labelRegionWithOnes(labelsMatrix, rowLength, numRows, colLength, numCols, startRowOf1, startColOf1);
 
-                if (useExperimentalLabeling) {
+                if (useAmorphicLabeling) {
                     MatrixTools.labelEnrichedRegionWithOnes(experimentalLabelsMatrix, localizedRegionData.getData(), rowLength, numRows, colLength, numCols, startRowOf1, startColOf1);
                 }
                 stripeIsFound = true;
@@ -161,39 +164,11 @@ public class StripeFinder implements RegionFinder {
         if (stripeIsFound) {
             GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix", posPath, finalData, posWriter, false);
             GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label", posPath, finalLabels, posLabelWriter, false);
-            if (useExperimentalLabeling) {
+            if (useAmorphicLabeling) {
                 GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix.label.exp", posPath, finalExpLabels, posLabelWriter, false);
             }
         } else if (!onlyMakePositiveExamples) {
             GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_matrix", negPath, finalData, negWriter, false);
-        }
-    }
-
-    private static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
-        int[][] transformedData = new int[data[0].length][data.length];
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[0].length; j++) {
-                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
-            }
-        }
-        return transformedData;
-    }
-
-    private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
-        double[][] transformedData = new double[data[0].length][data.length];
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data[0].length; j++) {
-                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
-            }
-        }
-        return transformedData;
-    }
-
-    private static boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
-        if (isVerticalStripe) {
-            return rowLength > colLength;
-        } else {
-            return colLength > rowLength;
         }
     }
 
@@ -242,7 +217,7 @@ public class StripeFinder implements RegionFinder {
                                 for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                     getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                             posPath, negPath, writers[0], writers[2], writers[1], false,
-                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                            useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, useAmorphicLabeling);
                                     numFilesWrittenSoFar++;
                                     if (numFilesWrittenSoFar > maxBatchSize) {
                                         numFilesWrittenSoFar = 0;
@@ -264,7 +239,7 @@ public class StripeFinder implements RegionFinder {
                                     for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                         getTrainingDataAndSaveToFile(ds, norm, zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, negPath, writers[0], writers[2], writers[1], true,
-                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, false);
+                                                useObservedOverExpected, ignoreDirectionOrientation, onlyMakePositiveExamples, useAmorphicLabeling);
                                         numFilesWrittenSoFar++;
                                         if (numFilesWrittenSoFar > maxBatchSize) {
                                             numFilesWrittenSoFar = 0;
@@ -298,6 +273,34 @@ public class StripeFinder implements RegionFinder {
 
         executor.shutdown();
         while (!executor.isTerminated()) {
+        }
+    }
+
+    private static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
+        int[][] transformedData = new int[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    private static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
+        double[][] transformedData = new double[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    private static boolean stripeIsCorrectOrientation(int rowLength, int colLength, boolean isVerticalStripe) {
+        if (isVerticalStripe) {
+            return rowLength > colLength;
+        } else {
+            return colLength > rowLength;
         }
     }
 
