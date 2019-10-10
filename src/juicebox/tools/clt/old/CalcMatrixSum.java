@@ -25,10 +25,7 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.ContactRecord;
-import juicebox.data.MatrixZoomData;
-import juicebox.data.NormalizationVector;
+import juicebox.data.*;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.NormalizationCalculations;
@@ -40,44 +37,45 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CalcMatrixSum extends JuiceboxCLT {
 
-    private File outputFile;
+    private File outputSummaryFile, outputNpyFile, outputTxtFile;
     private ChromosomeHandler chromosomeHandler;
     private PrintWriter printWriter;
 
 
     public CalcMatrixSum() {
-        super("calcMatrixSum <normalizationType> <input_hic_file>");
-    }
-
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        if (!(args.length == 3)) {
-            printUsageAndExit();
-        }
-
-        setDatasetAndNorm(args[2], args[1], false);
-
-        outputFile = new File(args[2] + "_matrix_sums.txt");
-        chromosomeHandler = dataset.getChromosomeHandler();
-        try {
-            printWriter = new PrintWriter(new FileOutputStream(outputFile));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.exit(-5);
-        }
+        super("calcMatrixSum <normalizationType> <input_hic_file> <output_directory>");
     }
 
     private static String getKeyWithNorm(Chromosome chromosome, HiCZoom zoom, NormalizationType normalizationType) {
         return chromosome.getName() + "_" + zoom.getKey() + "_" + normalizationType.getLabel();
+    }
+
+    @Override
+    public void readArguments(String[] args, CmdLineParser parser) {
+        if (!(args.length == 4)) {
+            printUsageAndExit();
+        }
+
+        setDatasetAndNorm(args[2], args[1], false);
+        File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
+
+        outputSummaryFile = new File(outputDirectory, "matrix_sums_summary.txt");
+        outputNpyFile = new File(outputDirectory, "matrix_sums_data.npy");
+        outputTxtFile = new File(outputDirectory, "matrix_sums_data.txt");
+
+        chromosomeHandler = dataset.getChromosomeHandler();
+        try {
+            printWriter = new PrintWriter(new FileOutputStream(outputSummaryFile));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(-5);
+        }
     }
 
     @Override
@@ -134,20 +132,35 @@ public class CalcMatrixSum extends JuiceboxCLT {
         }
 
         printWriter.println("Normalization Type: " + norm);
+        List<double[]> matrixFormat = new ArrayList<>();
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            printWriter.println("Chromsome: " + chromosome);
+            printWriter.println("Chromsome: " + chromosome + " index: " + chromosome.getIndex());
             for (HiCZoom zoom : dataset.getBpZooms()) {
                 String key = getKeyWithNorm(chromosome, zoom, norm);
                 if (zoomToMatrixSumMap.containsKey(key)) {
                     printWriter.println("Zoom: " + zoom + " Normalized Matrix Sum: " + zoomToMatrixSumMap.get(key)[0]
                             + " Original Matrix Sum: " + zoomToMatrixSumMap.get(key)[1]
-                            + " Number of Positive Entries in Vector: " + zoomToMatrixSumMap.get(key)[2]
-                    );
+                            + " Number of Positive Entries in Vector: " + zoomToMatrixSumMap.get(key)[2]);
+                    matrixFormat.add(new double[]{
+                            (double) chromosome.getIndex(),
+                            (double) zoom.getBinSize(),
+                            zoomToMatrixSumMap.get(key)[0],
+                            zoomToMatrixSumMap.get(key)[1],
+                            zoomToMatrixSumMap.get(key)[2]
+                    });
                 }
             }
         }
 
         printWriter.close();
+
+        double[][] matrixFormatArray = new double[matrixFormat.size()][5];
+        for (int i = 0; i < matrixFormat.size(); i++) {
+            matrixFormatArray[i] = matrixFormat.get(i);
+        }
+
+        MatrixTools.saveMatrixTextV2(outputTxtFile.getAbsolutePath(), matrixFormatArray);
+        MatrixTools.saveMatrixTextNumpy(outputNpyFile.getAbsolutePath(), matrixFormatArray);
     }
 
     private void testCode(HiCZoom zoom, List<ContactRecord> contactRecordList, double[] actualVector, double scalar1, double scalar2) {
