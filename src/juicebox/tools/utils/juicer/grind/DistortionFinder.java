@@ -24,7 +24,10 @@
 
 package juicebox.tools.utils.juicer.grind;
 
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.windowui.HiCZoom;
@@ -105,19 +108,16 @@ public class DistortionFinder implements RegionFinder {
                 negImgLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_neg_label_img_names.txt"), StandardCharsets.UTF_8));
             }
             Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
-            for (int chrArrayI = 0; chrArrayI < chromosomes.length; chrArrayI++) {
-                Chromosome chromI = chromosomes[chrArrayI];
-                for (int chrArrayJ = chrArrayI; chrArrayJ < chromosomes.length; chrArrayJ++) {
-                    Chromosome chromJ = chromosomes[chrArrayJ];
-
-                    Matrix matrix = ds.getMatrix(chromI, chromJ);
-                    if (matrix == null) continue;
+            for (int chrIndexI = 0; chrIndexI < chromosomes.length; chrIndexI++) {
+                Chromosome chromI = chromosomes[chrIndexI];
+                for (int chrIndexJ = chrIndexI; chrIndexJ < chromosomes.length; chrIndexJ++) {
+                    Chromosome chromJ = chromosomes[chrIndexJ];
 
                     HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromI, chromJ, zoom);
                     if (zd == null) continue;
 
-                    boolean isIntraChromosomal = chrArrayI == chrArrayJ;
+                    boolean isIntraChromosomal = chrIndexI == chrIndexJ;
 
                     System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName() +
                             " at resolution " + resolution);
@@ -129,10 +129,9 @@ public class DistortionFinder implements RegionFinder {
                         // is Inter
                         matrixZoomDataI = HiCFileTools.getMatrixZoomData(ds, chromI, chromI, zoom);
                         matrixZoomDataJ = HiCFileTools.getMatrixZoomData(ds, chromJ, chromJ, zoom);
-                        if (matrixZoomDataI == null) continue;
-                        if (matrixZoomDataJ == null) continue;
+                        if (matrixZoomDataI == null || matrixZoomDataJ == null) continue;
 
-                        iterateBetweenInterChromosomalRegions(zd, matrixZoomDataI, matrixZoomDataJ, chromI, chromJ, resolution);
+                        iterateBetweenInterChromosomalRegions(matrixZoomDataI, matrixZoomDataJ, zd, chromI, chromJ, resolution);
                     }
                 }
             }
