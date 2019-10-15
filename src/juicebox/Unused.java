@@ -69,6 +69,29 @@ class Unused {
         }
     }
 
+    /*
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
+            while (iter.hasNext()) {
+                ContactRecord cr = iter.next();
+                final int x = cr.getBinX();
+                final int y = cr.getBinY();
+                final float counts = cr.getCounts();
+
+                if(!indexToRegion.containsKey(x)){
+                    indexToRegion.put(x, new LocalGenomeRegion(x));
+                }
+
+                if(!indexToRegion.containsKey(y)){
+                    indexToRegion.put(y, new LocalGenomeRegion(y));
+                }
+
+                if(x != y){
+                    indexToRegion.get(x).addNeighbor(y, counts);
+                    indexToRegion.get(y).addNeighbor(x, counts);
+                }
+            }
+            */
+
     private void loadNormalizationVector(File file, HiC hic) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)), HiCGlobals.bufferSize);
         String nextLine = reader.readLine();

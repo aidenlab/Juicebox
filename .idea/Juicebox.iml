@@ -15,8 +15,8 @@
     <orderEntry type="library" exported="" name="log4j-core-2.11.0" level="project" />
     <orderEntry type="library" exported="" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" exported="" name="npy" level="project" />
-    <orderEntry type="library" exported="" name="org.tensorflow:libtensorflow:1.10.0" level="project" />
-    <orderEntry type="library" exported="" name="org.tensorflow:libtensorflow_jni:1.10.0" level="project" />
     <orderEntry type="library" exported="" name="npy" level="project" />
+    <orderEntry type="library" name="org.tensorflow:tensorflow:1.11.0" level="project" />
+    <orderEntry type="library" name="org.deeplearning4j:deeplearning4j-core:1.0.0-beta4" level="project" />
   </component>
 </module>

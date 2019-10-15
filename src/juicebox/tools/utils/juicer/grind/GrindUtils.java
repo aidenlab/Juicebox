@@ -40,14 +40,14 @@ public class GrindUtils {
 
     private static final Random generator = new Random(0);
 
-    public static double[][] generateDefaultDistortionLabelsFile(int length, int numSuperDiagonals, boolean isContinous) {
-        double[][] labels = new double[length][length];
+    public static float[][] generateDefaultDistortionLabelsFile(int length, int numSuperDiagonals, boolean isContinous) {
+        float[][] labels = new float[length][length];
         for (int i = 0; i < length; i++) {
             labels[i][i] = 1;
         }
 
         for (int k = 1; k < numSuperDiagonals + 1; k++) {
-            double scale = (numSuperDiagonals - k + 2) / (numSuperDiagonals + 2.0);
+            float scale = (numSuperDiagonals - k + 2f) / (numSuperDiagonals + 2f);
             for (int i = 0; i < length - k; i++) {
                 labels[i][i + k] = scale;
                 labels[i + k][i] = scale;
@@ -73,12 +73,12 @@ public class GrindUtils {
      * @param labelsMatrix
      * @param compositeMatrix
      */
-    public static void cleanUpLabelsMatrixBasedOnData(double[][] labelsMatrix, double[][] compositeMatrix) {
-        double[] rowSums = MatrixTools.getRowSums(compositeMatrix);
+    public static void cleanUpLabelsMatrixBasedOnData(float[][] labelsMatrix, float[][] compositeMatrix) {
+        float[] rowSums = MatrixTools.getRowSums(compositeMatrix);
         zeroOutLabelsBasedOnNeighboringRowSums(labelsMatrix, rowSums);
     }
 
-    private static void zeroOutLabelsBasedOnNeighboringRowSums(double[][] labelsMatrix, double[] rowSums) {
+    private static void zeroOutLabelsBasedOnNeighboringRowSums(float[][] labelsMatrix, float[] rowSums) {
         for (int i = 0; i < rowSums.length - 1; i++) {
             if (rowSums[i] <= 0 && rowSums[i + 1] <= 0) {
                 for (int j = 0; j < rowSums.length; j++) {
@@ -137,6 +137,47 @@ public class GrindUtils {
         writer.write(fileName + "\n");
     }
 
+    public static void saveGrindMatrixDataToFile(String fileName, String path, float[][] data, Writer writer, boolean printToTxt) throws IOException {
+        if (printToTxt) {
+            String txtFileName = fileName + ".txt";
+            MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, data);
+        } else {
+            String npyFileName = fileName + ".npy";
+            MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, data);
+        }
+        writer.write(fileName + "\n");
+    }
+
+    public static void saveGrindMatrixDataToImage(String fileName, String path, float[][] data, Writer writer,
+                                                  boolean isLabelMatrix) throws IOException {
+        float meanToScaleWithR = 1, meanToScaleWithG = 1, meanToScaleWithB = 1;
+        if (!isLabelMatrix) {
+            float meanToScaleWith = 0;
+            for (int i = 0; i < data.length; i++) {
+                meanToScaleWith += data[i][i];
+            }
+            meanToScaleWith = meanToScaleWith / data.length;
+            meanToScaleWithB = meanToScaleWith / 2;
+            meanToScaleWithG = meanToScaleWith / 4;
+            meanToScaleWithR = meanToScaleWith / 8;
+        }
+
+        File myNewPNGFile = new File(path + "/" + fileName);
+        BufferedImage image = new BufferedImage(data.length, data[0].length, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                float val = data[i][j];
+                int r = Math.min(255, (int) Math.round(255. * val / meanToScaleWithR));
+                int g = Math.min(255, (int) Math.round(255. * val / meanToScaleWithG));
+                int b = Math.min(255, (int) Math.round(255. * val / meanToScaleWithB));
+                Color myColor = new Color(r, g, b);
+                image.setRGB(i, j, myColor.getRGB());
+            }
+        }
+
+        ImageIO.write(image, "PNG", myNewPNGFile);
+    }
+
     public static void saveGrindMatrixDataToImage(String fileName, String path, double[][] data, Writer writer,
                                                   boolean isLabelMatrix) throws IOException {
         double meanToScaleWithR = 1, meanToScaleWithG = 1, meanToScaleWithB = 1;
@@ -167,8 +208,8 @@ public class GrindUtils {
         ImageIO.write(image, "PNG", myNewPNGFile);
     }
 
-    public static Pair<double[][], double[][]> randomlyManipulateMatrix(double[][] data, double[][] labels) {
-        double[][] newData, newLabels;
+    public static Pair<float[][], float[][]> randomlyManipulateMatrix(float[][] data, float[][] labels) {
+        float[][] newData, newLabels;
         Pair<Integer, Integer> boundaries = randomlyPickTwoIndices(data.length);
         int lengthTranslocation = boundaries.getSecond() - boundaries.getFirst() + 1;
         int newPosition = generator.nextInt(data.length - lengthTranslocation);
@@ -193,14 +234,14 @@ public class GrindUtils {
         return new Pair<>(newData, newLabels);
     }
 
-    private static double[][] invertMatrixRegion(double[][] data, Pair<Integer, Integer> boundaries) {
-        double[][] transformedData = flipRowsInBoundaries(data, boundaries);
+    private static float[][] invertMatrixRegion(float[][] data, Pair<Integer, Integer> boundaries) {
+        float[][] transformedData = flipRowsInBoundaries(data, boundaries);
         transformedData = MatrixTools.transpose(transformedData);
         return flipRowsInBoundaries(transformedData, boundaries);
     }
 
-    private static double[][] flipRowsInBoundaries(double[][] data, Pair<Integer, Integer> boundaries) {
-        double[][] transformedRegion = MatrixTools.deepClone(data);
+    private static float[][] flipRowsInBoundaries(float[][] data, Pair<Integer, Integer> boundaries) {
+        float[][] transformedRegion = MatrixTools.deepClone(data);
         for (int i = boundaries.getFirst(); i <= boundaries.getSecond(); i++) {
             int copyIndex = boundaries.getSecond() - i + boundaries.getFirst();
             System.arraycopy(data[i], 0, transformedRegion[copyIndex], 0, data[i].length);
@@ -208,29 +249,29 @@ public class GrindUtils {
         return transformedRegion;
     }
 
-    private static double[][] translocateMatrixRegion(double[][] data, Pair<Integer, Integer> boundaries, int newIndex) {
-        double[][] transformedData = translateRowsInBoundaries(data, boundaries, newIndex);
+    private static float[][] translocateMatrixRegion(float[][] data, Pair<Integer, Integer> boundaries, int newIndex) {
+        float[][] transformedData = translateRowsInBoundaries(data, boundaries, newIndex);
         transformedData = MatrixTools.transpose(transformedData);
         return translateRowsInBoundaries(transformedData, boundaries, newIndex);
     }
 
-    private static double[][] translateRowsInBoundaries(double[][] source, Pair<Integer, Integer> boundaries, int newIndex) {
-        Pair<double[][], double[][]> splitMatrix = splitApartRowsOfMatrix(source, boundaries);
+    private static float[][] translateRowsInBoundaries(float[][] source, Pair<Integer, Integer> boundaries, int newIndex) {
+        Pair<float[][], float[][]> splitMatrix = splitApartRowsOfMatrix(source, boundaries);
         return insertRowsAndReformMatrix(splitMatrix, newIndex);
     }
 
-    private static double[][] insertRowsAndReformMatrix(Pair<double[][], double[][]> splitMatrix, int newIndex) {
-        double[][] overall = splitMatrix.getFirst();
-        double[][] region = splitMatrix.getSecond();
+    private static float[][] insertRowsAndReformMatrix(Pair<float[][], float[][]> splitMatrix, int newIndex) {
+        float[][] overall = splitMatrix.getFirst();
+        float[][] region = splitMatrix.getSecond();
         int n = overall.length + region.length;
 
-        double[][] finalMatrix = new double[n][n];
+        float[][] finalMatrix = new float[n][n];
         int iter = 0;
         for (int i = 0; i < newIndex; i++) {
             System.arraycopy(overall[i], 0, finalMatrix[iter], 0, overall[i].length);
             iter++;
         }
-        for (double[] row : region) {
+        for (float[] row : region) {
             System.arraycopy(row, 0, finalMatrix[iter], 0, row.length);
             iter++;
         }
@@ -241,16 +282,16 @@ public class GrindUtils {
         return finalMatrix;
     }
 
-    private static Pair<double[][], double[][]> splitApartRowsOfMatrix(double[][] source, Pair<Integer, Integer> boundaries) {
+    private static Pair<float[][], float[][]> splitApartRowsOfMatrix(float[][] source, Pair<Integer, Integer> boundaries) {
         int lengthOfTranslocation = boundaries.getSecond() - boundaries.getFirst() + 1;
-        double[][] copyRegionBeingTranslated = new double[lengthOfTranslocation][source[0].length];
+        float[][] copyRegionBeingTranslated = new float[lengthOfTranslocation][source[0].length];
         int iterI1 = 0;
         for (int i = boundaries.getFirst(); i <= boundaries.getSecond(); i++) {
             System.arraycopy(source[i], 0, copyRegionBeingTranslated[iterI1], 0, source[0].length);
             iterI1++;
         }
 
-        double[][] copyRegionNOTBeingTranslated = new double[source.length - lengthOfTranslocation][source[0].length];
+        float[][] copyRegionNOTBeingTranslated = new float[source.length - lengthOfTranslocation][source[0].length];
 
         int iterI2 = 0;
         for (int i = 0; i < boundaries.getFirst(); i++) {

@@ -172,6 +172,21 @@ public class MatrixTools {
         return flattenedMatrix;
     }
 
+    public static float[] flattenedRowMajorOrderMatrix(float[][] matrix) {
+        int m = matrix.length;
+        int n = matrix[0].length;
+
+        int numElements = m * n;
+        float[] flattenedMatrix = new float[numElements];
+
+        int index = 0;
+        for (int i = 0; i < m; i++) {
+            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
+            index += n;
+        }
+        return flattenedMatrix;
+    }
+
     public static int[] flattenedRowMajorOrderMatrix(int[][] matrix) {
         int m = matrix.length;
         int n = matrix[0].length;
@@ -605,6 +620,16 @@ public class MatrixTools {
         return rowSum;
     }
 
+    public static float[] getRowSums(float[][] matrix) {
+        float[] rowSum = new float[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (float val : matrix[i]) {
+                rowSum[i] += val;
+            }
+        }
+        return rowSum;
+    }
+
     public static double[] getRowSums(List<ContactRecord> unNormedRecordList, double scalar, double[] normVector) {
         double[] rowSum = new double[normVector.length];
         for (ContactRecord record : unNormedRecordList) {
@@ -636,6 +661,16 @@ public class MatrixTools {
         for (int r = 0; r < matrix.length; r++) {
             for (int c = 0; c < matrix[r].length; c++) {
                 if (Double.isNaN(matrix[r][c])) {
+                    matrix[r][c] = 0;
+                }
+            }
+        }
+    }
+
+    public static void cleanUpNaNs(float[][] matrix) {
+        for (int r = 0; r < matrix.length; r++) {
+            for (int c = 0; c < matrix[r].length; c++) {
+                if (Float.isNaN(matrix[r][c])) {
                     matrix[r][c] = 0;
                 }
             }
@@ -706,6 +741,19 @@ public class MatrixTools {
         return transposedMatrix;
     }
 
+    public static float[][] transpose(float[][] matrix) {
+        int h0 = matrix.length;
+        int w0 = matrix[0].length;
+        float[][] transposedMatrix = new float[w0][h0];
+
+        for (int i = 0; i < h0; i++) {
+            for (int j = 0; j < w0; j++) {
+                transposedMatrix[j][i] = matrix[i][j];
+            }
+        }
+        return transposedMatrix;
+    }
+
     public static double[][] convertToDoubleMatrix(boolean[][] adjacencyMatrix) {
         double[][] matrix = new double[adjacencyMatrix.length][adjacencyMatrix[0].length];
         for (int i = 0; i < adjacencyMatrix.length; i++) {
@@ -728,7 +776,23 @@ public class MatrixTools {
         return matrix;
     }
 
+    public static float[][] convertToFloatMatrix(double[][] dataMatrix) {
+        float[][] matrix = new float[dataMatrix.length][dataMatrix[0].length];
+        for (int i = 0; i < dataMatrix.length; i++) {
+            for (int j = 0; j < dataMatrix[0].length; j++) {
+                matrix[i][j] = (float) dataMatrix[i][j];
+            }
+        }
+        return matrix;
+    }
+
     public static void copyFromAToBRegion(double[][] source, double[][] destination, int rowOffSet, int colOffSet) {
+        for (int i = 0; i < source.length; i++) {
+            System.arraycopy(source[i], 0, destination[i + rowOffSet], colOffSet, source[0].length);
+        }
+    }
+
+    public static void copyFromAToBRegion(float[][] source, float[][] destination, int rowOffSet, int colOffSet) {
         for (int i = 0; i < source.length; i++) {
             System.arraycopy(source[i], 0, destination[i + rowOffSet], colOffSet, source[0].length);
         }
@@ -743,6 +807,27 @@ public class MatrixTools {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
             for (double[] row : matrix) {
+                String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
+                s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
+                writer.write(s + "\n");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public static void saveMatrixTextV2(String filename, float[][] matrix) {
+        Writer writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8));
+            for (float[] row : matrix) {
                 String s = Arrays.toString(row);//.replaceAll().replaceAll("]","").trim();
                 s = s.replaceAll("\\[", "").replaceAll("\\]", "").trim();
                 writer.write(s + "\n");
@@ -788,6 +873,14 @@ public class MatrixTools {
         NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
     }
 
+    public static void saveMatrixTextNumpy(String filename, float[][] matrix) {
+        int numRows = matrix.length;
+        int numCols = matrix[0].length;
+        float[] flattenedArray = MatrixTools.flattenedRowMajorOrderMatrix(matrix);
+
+        NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
+    }
+
     public static void saveMatrixTextNumpy(String filename, int[][] matrix) {
         int numRows = matrix.length;
         int numCols = matrix[0].length;
@@ -796,13 +889,16 @@ public class MatrixTools {
         NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
     }
 
-    public static double[][] generateCompositeMatrix(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
-        return generateCompositeMatrix(matrixDiag1.getData(), matrixDiag2.getData(), matrix1vs2.getData());
+    public static float[][] generateCompositeMatrix(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
+        return generateCompositeMatrix(
+                convertToFloatMatrix(matrixDiag1.getData()),
+                convertToFloatMatrix(matrixDiag2.getData()),
+                convertToFloatMatrix(matrix1vs2.getData()));
     }
 
-    private static double[][] generateCompositeMatrix(double[][] matrixDiag1, double[][] matrixDiag2, double[][] matrix1vs2) {
+    private static float[][] generateCompositeMatrix(float[][] matrixDiag1, float[][] matrixDiag2, float[][] matrix1vs2) {
         int newLength = matrixDiag1.length + matrixDiag2.length;
-        double[][] compositeMatrix = new double[newLength][newLength];
+        float[][] compositeMatrix = new float[newLength][newLength];
 
         copyFromAToBRegion(matrixDiag1, compositeMatrix, 0, 0);
         copyFromAToBRegion(matrixDiag2, compositeMatrix, matrixDiag1.length, matrixDiag1.length);
@@ -819,6 +915,14 @@ public class MatrixTools {
 
     public static double[][] deepClone(double[][] data) {
         double[][] copy = new double[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, copy[i], 0, data[i].length);
+        }
+        return copy;
+    }
+
+    public static float[][] deepClone(float[][] data) {
+        float[][] copy = new float[data.length][data[0].length];
         for (int i = 0; i < data.length; i++) {
             System.arraycopy(data[i], 0, copy[i], 0, data[i].length);
         }

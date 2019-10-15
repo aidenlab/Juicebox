@@ -24,6 +24,8 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.HiCTools;
+
 
 
 /**
@@ -34,6 +36,44 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
+
+
+        String[] strings = new String[]{"grind",
+                "-k", "KR", "-r", "5000,10000,25000", "--stride", "1500", "-c", "1,2",
+                "--dense-labels", "--distort",
+                "/Users/muhammad/Desktop/local_hic_files/HIC053_30.hic",
+                "null", "2000,12,100",
+                "/Users/muhammad/Desktop/deeplearning/testing/distortion_bank_1_2_float_version"};
+
+        strings = new String[]{"grind",
+                "-k", "KR", "-r", "25000",// "5000,10000,25000",
+                "--stride", "1500", "-c", "4,5",
+                "--dense-labels", "--distort",
+                "/Users/muhammad/Desktop/local_hic_files/HIC053_30.hic",
+                "null", "2000,12,100",
+                "/Users/muhammad/Desktop/deeplearning/testing/distortion_bank_4_5_debug_version"};
+
+        HiCTools.main(strings);
+
+        // load the model
+
+        /*
+        String simpleMlp = "/Users/muhammad/Desktop/deeplearning/models/Clean64DistortionDiffHalfLocalizerV0BinCross.h5";
+        MultiLayerNetwork model = KerasModelImport.importKerasSequentialModelAndWeights(simpleMlp);
+
+
+        // make a random sample
+        int inputs = 10;
+        INDArray features = Nd4j.zeros(inputs);
+        for (int i=0; i<inputs; i++) {
+            features.putScalar(new int[]{i}, Math.random() < 0.5 ? 0 : 1);
+        }
+// get the prediction
+        //double prediction = model.output(features).getDouble(0);
+
+         */
+
+
 
     }
 }
