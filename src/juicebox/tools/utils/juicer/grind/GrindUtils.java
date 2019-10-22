@@ -220,7 +220,7 @@ public class GrindUtils {
             newLabels = invertMatrixRegion(labels, boundaries);
 
             // both with low probability
-            if (false && generator.nextBoolean() && generator.nextBoolean()) {
+            if (generator.nextBoolean() && generator.nextBoolean()) {
                 // create translocation
                 newData = translocateMatrixRegion(newData, boundaries, newPosition);
                 newLabels = translocateMatrixRegion(newLabels, boundaries, newPosition);
