@@ -63,6 +63,7 @@ public class Grind extends JuicerCLT {
     private int stride = 1;
     private String imgFileType = "";
     private boolean useAmorphicPixelLabeling = false;
+    private boolean useDiagonal = false;
 
     public Grind() {
         super("grind [-k NONE/KR/VC/VC_SQRT] [-r resolution] [--stride increment] " +
@@ -98,6 +99,7 @@ public class Grind extends JuicerCLT {
         offsetOfCornerFromDiagonal = juicerParser.getCornerOffBy();
         stride = juicerParser.getStride();
         outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        useDiagonal = juicerParser.getUseGenomeDiagonal();
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
@@ -151,7 +153,7 @@ public class Grind extends JuicerCLT {
                             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
                         RegionFinder finder = new DistortionFinder(x, y, z, ds, outputDirectory, chromosomeHandler, norm,
-                                useObservedOverExpected, useDenseLabels, resolution, stride, imgFileType);
+                                useObservedOverExpected, useDenseLabels, resolution, stride, imgFileType, useDiagonal);
                         finder.makeExamples();
                     }
                 };

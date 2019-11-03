@@ -145,7 +145,9 @@ public class GrindUtils {
             String npyFileName = fileName + ".npy";
             MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, data);
         }
-        writer.write(fileName + "\n");
+        synchronized (writer) {
+            writer.write(fileName + "\n");
+        }
     }
 
     public static void saveGrindMatrixDataToImage(String fileName, String path, float[][] data, Writer writer,

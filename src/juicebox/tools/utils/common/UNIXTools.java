@@ -48,6 +48,12 @@ public class UNIXTools {
         }
     }
 
+    public static void makeDir(File folder) {
+        if (!folder.isDirectory()) {
+            folder.mkdir();
+        }
+    }
+
     public static void redirectOutput(List<String> command, String outputFilePath) {
         String output = executeComplexCommand(command);
         File outputFile = new File(outputFilePath);

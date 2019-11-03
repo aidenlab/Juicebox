@@ -78,6 +78,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option useLoopOption = addBooleanOption("loops");
     private final Option useDomainOption = addBooleanOption("domains");
     private final Option useStripeOption = addBooleanOption("stripes");
+    private final Option useDiagonalOption = addBooleanOption("diagonal");
     private final Option useDistortionOption = addBooleanOption("distort");
     private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
     private final Option stride = addIntegerOption("stride");
@@ -124,6 +125,10 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public boolean getUseWholeGenome() {
         return optionToBoolean(useWholeGenome);
+    }
+
+    public boolean getUseGenomeDiagonal() {
+        return optionToBoolean(useDiagonalOption);
     }
 
     public boolean getDenseLabelsOption() {

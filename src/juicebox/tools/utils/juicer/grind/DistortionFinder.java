@@ -57,17 +57,24 @@ public class DistortionFinder implements RegionFinder {
     private Writer posDataWriter, posLabelWriter, negDataWriter, negLabelWriter, posImgWriter, posImgLabelWriter, negImgWriter, negImgLabelWriter;
     private String negPath, posPath, negImgPath, posImgPath;
     private int maxNumberOfExamplesForRegion = Integer.MAX_VALUE;
+    private boolean ignoreNumberOfExamplesForRegion = false;
+    private int counter = 0;
+    private boolean useDiagonal = false;
+
     // grind -k KR -r 5000,10000,25000,100000 --stride 3 -c 1,2,3 --dense-labels --distort <hic file> null <128,4,1000> <directory>
 
     public DistortionFinder(int imgSliceWidth, int numManipulations, int maxNumberOfExamplesForRegion, Dataset ds, File outputDirectory,
                             ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                            boolean useObservedOverExpected, boolean useDenseLabels, int resolution, int stride, String imgFileType) {
+                            boolean useObservedOverExpected, boolean useDenseLabels, int resolution, int stride, String imgFileType,
+                            boolean useDiagonal) {
 
         this.imgSliceWidth = imgSliceWidth;
         imgHalfSliceWidth = imgSliceWidth / 2;
         this.numManipulations = numManipulations;
         if (maxNumberOfExamplesForRegion > 0) {
             this.maxNumberOfExamplesForRegion = maxNumberOfExamplesForRegion;
+        } else {
+            ignoreNumberOfExamplesForRegion = true;
         }
         this.ds = ds;
         this.path = outputDirectory.getPath();
@@ -79,21 +86,83 @@ public class DistortionFinder implements RegionFinder {
         this.stride = stride;
         this.imgFileType = imgFileType;
         generateImages = imgFileType != null && imgFileType.length() > 0;
+        this.useDiagonal = useDiagonal;
+    }
+
+    public static void getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
+                                                    int box1XIndex, int box2XIndex, String chrom1Name, String chrom2Name,
+                                                    boolean isContinuousRegion, int imgHalfSliceWidth, NormalizationType norm,
+                                                    boolean generateImages, int numManipulations, String imgFileType,
+                                                    String posPath, String negPath, String posImgPath, String negImgPath,
+                                                    Writer posDataWriter, Writer negDataWriter, Writer posLabelWriter, Writer negLabelWriter,
+                                                    Writer posImgWriter, Writer negImgWriter, Writer posImgLabelWriter, Writer negImgLabelWriter,
+                                                    boolean includeLabels) {
+
+        int box1RectUL = box1XIndex;
+        int box1RectLR = box1XIndex + imgHalfSliceWidth;
+
+        int box2RectUL = box2XIndex;
+        int box2RectLR = box2XIndex + imgHalfSliceWidth;
+
+        try {
+            RealMatrix localizedRegionDataBox1 = HiCFileTools.extractLocalBoundedRegion(zd1,
+                    box1RectUL, box1RectLR, box1RectUL, box1RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
+            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox1, .3)) return;
+            RealMatrix localizedRegionDataBox2 = HiCFileTools.extractLocalBoundedRegion(zd2,
+                    box2RectUL, box2RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
+            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox2, .3)) return;
+            RealMatrix localizedRegionDataBox12 = HiCFileTools.extractLocalBoundedRegion(zd12,
+                    box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, false);
+
+            float[][] compositeMatrix = MatrixTools.generateCompositeMatrix(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
+            MatrixTools.cleanUpNaNs(compositeMatrix);
+            float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
+            GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
+
+            String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix";
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter, false);
+            if (includeLabels) {
+                GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", negPath, labelsMatrix, negLabelWriter, false);
+            }
+
+            if (generateImages) {
+                String imagePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix." + imgFileType;
+                GrindUtils.saveGrindMatrixDataToImage(imagePrefix, negImgPath, compositeMatrix, negImgWriter, false);
+                if (includeLabels) {
+                    GrindUtils.saveGrindMatrixDataToImage(imagePrefix + "_labels." + imgFileType, negImgPath, labelsMatrix, negImgLabelWriter, true);
+                }
+            }
+
+            int checkForMultipleOfN = 3;
+
+            if (includeLabels) {
+                for (int k = 0; k < numManipulations; k++) {
+                    Pair<float[][], float[][]> alteredMatrices = GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
+                    compositeMatrix = alteredMatrices.getFirst();
+                    labelsMatrix = alteredMatrices.getSecond();
+
+                    if (k % checkForMultipleOfN == 0) {
+                        filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix";
+                        GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter, false);
+                        GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", posPath, labelsMatrix, posLabelWriter, false);
+
+                        if (generateImages) {
+                            filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix." + imgFileType;
+                            GrindUtils.saveGrindMatrixDataToImage(filePrefix, posImgPath, compositeMatrix, posImgWriter, false);
+                            GrindUtils.saveGrindMatrixDataToImage(filePrefix + "_labels." + imgFileType, posImgPath, labelsMatrix, posImgLabelWriter, true);
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+
+        }
     }
 
     @Override
     public void makeExamples() {
-        negPath = path + "/negative_" + resolution;
-        posPath = path + "/positive_" + resolution;
-        UNIXTools.makeDir(negPath);
-        UNIXTools.makeDir(posPath);
-
-        if (generateImages) {
-            negImgPath = path + "/negativeImg_" + resolution;
-            posImgPath = path + "/positiveImg_" + resolution;
-            UNIXTools.makeDir(negImgPath);
-            UNIXTools.makeDir(posImgPath);
-        }
+        updateLatestMainPaths();
 
         try {
 
@@ -124,7 +193,11 @@ public class DistortionFinder implements RegionFinder {
 
                     MatrixZoomData matrixZoomDataI, matrixZoomDataJ;
                     if (isIntraChromosomal) {
-                        iterateAcrossIntraChromosomalRegion(zd, chromI, resolution);
+                        if (useDiagonal) {
+                            iterateDownDiagonalChromosomalRegion(zd, chromI, resolution);
+                        } else {
+                            iterateAcrossIntraChromosomalRegion(zd, chromI, resolution);
+                        }
                     } else {
                         // is Inter
                         matrixZoomDataI = HiCFileTools.getMatrixZoomData(ds, chromI, chromI, zoom);
@@ -148,6 +221,21 @@ public class DistortionFinder implements RegionFinder {
         }
     }
 
+    private void updateLatestMainPaths() {
+
+        negPath = path + "/negative_" + resolution + "_" + counter;
+        posPath = path + "/positive_" + resolution + "_" + counter;
+        UNIXTools.makeDir(negPath);
+        UNIXTools.makeDir(posPath);
+
+        if (generateImages) {
+            negImgPath = path + "/negativeImg_" + resolution + "_" + counter;
+            posImgPath = path + "/positiveImg_" + resolution + "_" + counter;
+            UNIXTools.makeDir(negImgPath);
+            UNIXTools.makeDir(posImgPath);
+        }
+        counter++;
+    }
 
     private void iterateAcrossIntraChromosomalRegion(MatrixZoomData zd, Chromosome chrom, int resolution) {
 
@@ -156,12 +244,44 @@ public class DistortionFinder implements RegionFinder {
         int maxChrLength = (chrom.getLength() / resolution);
         for (int posIndex1 = 0; posIndex1 < maxChrLength - imgSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = posIndex1 + imgHalfSliceWidth; posIndex2 < maxChrLength; posIndex2 += stride) {
-                if (numberOfExamplesCounter++ < maxNumberOfExamplesForRegion) {
-                    getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(), posIndex2 == posIndex1 + imgHalfSliceWidth);
+                if (ignoreNumberOfExamplesForRegion) {
+                    if (numberOfExamplesCounter++ < 1000) {
+                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
+                                posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                                posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
+                    } else {
+                        updateLatestMainPaths();
+                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
+                                posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                                posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
+                        numberOfExamplesCounter = 1;
+                    }
+
                 } else {
-                    return;
+                    if (numberOfExamplesCounter++ < maxNumberOfExamplesForRegion) {
+                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
+                                posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                                posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
+                    } else {
+                        return;
+                    }
                 }
             }
+        }
+    }
+
+    private void iterateDownDiagonalChromosomalRegion(MatrixZoomData zd, Chromosome chrom, int resolution) {
+        // sliding along the diagonal
+        int maxChrLength = (chrom.getLength() / resolution);
+        for (int posIndex1 = 0; posIndex1 < maxChrLength - imgSliceWidth; posIndex1 += stride) {
+            getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1,
+                    posIndex1 + imgHalfSliceWidth, chrom.getName(), chrom.getName(),
+                    true, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                    posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                    posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
         }
     }
 
@@ -176,72 +296,14 @@ public class DistortionFinder implements RegionFinder {
         for (int posIndex1 = 0; posIndex1 < maxChrLength1 - imgHalfSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = 0; posIndex2 < maxChrLength2 - imgHalfSliceWidth; posIndex2 += stride) {
                 if (numberOfExamplesCounter++ < maxNumberOfExamplesForRegion) {
-                    getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2, chrom1.getName(), chrom2.getName(), false);
+                    getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2, chrom1.getName(), chrom2.getName(),
+                            false, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                            posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                            posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
                 } else {
                     return;
                 }
             }
-        }
-    }
-
-
-    private void getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
-                                              int box1XIndex, int box2XIndex, String chrom1Name, String chrom2Name,
-                                              boolean isContinuousRegion) {
-
-        int box1RectUL = box1XIndex;
-        int box1RectLR = box1XIndex + imgHalfSliceWidth;
-
-        int box2RectUL = box2XIndex;
-        int box2RectLR = box2XIndex + imgHalfSliceWidth;
-
-        try {
-            RealMatrix localizedRegionDataBox1 = HiCFileTools.extractLocalBoundedRegion(zd1,
-                    box1RectUL, box1RectLR, box1RectUL, box1RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox1, .3)) return;
-            RealMatrix localizedRegionDataBox2 = HiCFileTools.extractLocalBoundedRegion(zd2,
-                    box2RectUL, box2RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox2, .3)) return;
-            RealMatrix localizedRegionDataBox12 = HiCFileTools.extractLocalBoundedRegion(zd12,
-                    box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, false);
-
-            float[][] compositeMatrix = MatrixTools.generateCompositeMatrix(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
-            MatrixTools.cleanUpNaNs(compositeMatrix);
-            float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
-            GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
-
-            String filePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix";
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter, false);
-            GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", negPath, labelsMatrix, negLabelWriter, false);
-
-            if (generateImages) {
-                String imagePrefix = "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix." + imgFileType;
-                GrindUtils.saveGrindMatrixDataToImage(imagePrefix, negImgPath, compositeMatrix, negImgWriter, false);
-                GrindUtils.saveGrindMatrixDataToImage(imagePrefix + "_labels." + imgFileType, negImgPath, labelsMatrix, negImgLabelWriter, true);
-            }
-
-            int checkForMultipleOfN = 3;
-
-            for (int k = 0; k < numManipulations; k++) {
-                Pair<float[][], float[][]> alteredMatrices = GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
-                compositeMatrix = alteredMatrices.getFirst();
-                labelsMatrix = alteredMatrices.getSecond();
-
-                if (k % checkForMultipleOfN == 0) {
-                    filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix";
-                    GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter, false);
-                    GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", posPath, labelsMatrix, posLabelWriter, false);
-
-                    if (generateImages) {
-                        filePrefix = "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix." + imgFileType;
-                        GrindUtils.saveGrindMatrixDataToImage(filePrefix, posImgPath, compositeMatrix, posImgWriter, false);
-                        GrindUtils.saveGrindMatrixDataToImage(filePrefix + "_labels." + imgFileType, posImgPath, labelsMatrix, posImgLabelWriter, true);
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-
         }
     }
 }

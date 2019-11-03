@@ -30,23 +30,33 @@ import java.util.List;
 
 public class LocalGenomeRegion {
 
-    final int initialIndex;
+    private final int initialIndex;
     private List<Neighbor> neighbors = new ArrayList<>();
 
     public LocalGenomeRegion(int initialIndex) {
         this.initialIndex = initialIndex;
     }
 
-    public void addNeighbor(int y, float counts) {
+    public synchronized void addNeighbor(int y, float counts) {
         neighbors.add(new Neighbor(y, counts));
     }
 
-    public void filterDownValues(int numNeighborsAllowed) {
+    public synchronized void filterDownValues(int numNeighborsAllowed) {
         Collections.sort(neighbors, Collections.reverseOrder());
-        neighbors = neighbors.subList(0, Math.min(numNeighborsAllowed, neighbors.size()));
+        if (neighbors.size() > numNeighborsAllowed) {
+            float valueToKeep = neighbors.get(numNeighborsAllowed - 1).value;
+            int willKeepUpTo = neighbors.size();
+            for (int k = numNeighborsAllowed; k < neighbors.size(); k++) {
+                if (neighbors.get(k).value < valueToKeep) {
+                    willKeepUpTo = k;
+                    break;
+                }
+            }
+            neighbors = neighbors.subList(0, willKeepUpTo);
+        }
     }
 
-    public boolean notConnectedWith(int index) {
+    public synchronized boolean notConnectedWith(int index) {
         for (Neighbor neighbor : neighbors) {
             if (neighbor.index == index) {
                 return false;
@@ -55,7 +65,7 @@ public class LocalGenomeRegion {
         return true;
     }
 
-    public int getOutlierContacts(boolean isBadUpstream, int cliqueSize) {
+    public synchronized int getOutlierContacts(boolean isBadUpstream, int cliqueSize) {
 
         Collections.sort(neighbors, Collections.reverseOrder());
 
@@ -76,10 +86,10 @@ public class LocalGenomeRegion {
         return -1;
     }
 
-
     @Override
     public String toString() {
         StringBuilder nei = new StringBuilder();
+        Collections.sort(neighbors, Collections.reverseOrder());
         for (Neighbor neighbor : neighbors) {
             nei.append(neighbor.index).append("-").append(neighbor.value).append("__");
         }
@@ -88,8 +98,8 @@ public class LocalGenomeRegion {
     }
 
     private class Neighbor implements Comparable<Neighbor> {
-        int index;
-        Float value;
+        final Integer index;
+        final Float value;
 
         Neighbor(int index, float value) {
             this.index = index;
@@ -98,7 +108,11 @@ public class LocalGenomeRegion {
 
         @Override
         public int compareTo(Neighbor o) {
-            return value.compareTo(o.value);
+            int compareVal = value.compareTo(o.value);
+            if (compareVal == 0) {
+                return index.compareTo(o.index);
+            }
+            return compareVal;
         }
     }
 }
