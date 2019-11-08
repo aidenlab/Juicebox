@@ -1325,14 +1325,7 @@ public class HiC {
                 matrixWidth, matrixWidth, requestedNormType, true);
 
         MatrixTools.saveMatrixTextV2(outputMatrixFile.getAbsolutePath(), realMatrix);
-
     }
-
-
-
-
-
-
 
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {

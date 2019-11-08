@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.dev.Grind;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
@@ -75,18 +76,20 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
     private final Option useDenseLabelsOption = addBooleanOption("dense-labels");
     private final Option useWholeGenome = addBooleanOption("whole-genome");
-    private final Option useLoopOption = addBooleanOption("loops");
-    private final Option useDomainOption = addBooleanOption("domains");
-    private final Option useStripeOption = addBooleanOption("stripes");
     private final Option useDiagonalOption = addBooleanOption("diagonal");
-    private final Option useDistortionOption = addBooleanOption("distort");
     private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
     private final Option stride = addIntegerOption("stride");
     private final Option useIgnoreDirectionOrientationOption = addBooleanOption("ignore-feature-orientation");
     private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
     private final Option generateImageFormatPicturesOption = addStringOption("img");
     private final Option useAmorphicLabelingOption = addBooleanOption("amorphic-labeling");
+    private final Option useTxtInsteadOfNPYOption = addBooleanOption("text-output");
 
+    //iterate-down-diagonal, iterate-on-list, iterate-distortions, iterate-domains
+    private final Option useLoopOption = addBooleanOption("loops");
+    private final Option useDomainOption = addBooleanOption("domains");
+    private final Option useStripeOption = addBooleanOption("stripes");
+    private final Option useDistortionOption = addBooleanOption("distort");
 
     public CommandLineParserForJuicer() {
     }
@@ -100,13 +103,13 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public int getGrindDataSliceOption() {
         Object opt = getOptionValue(useLoopOption);
-        if (opt != null) return 1;
+        if (opt != null) return Grind.LOOP_OPTION;
         opt = getOptionValue(useDomainOption);
-        if (opt != null) return 2;
+        if (opt != null) return Grind.DOMAIN_OPTION;
         opt = getOptionValue(useStripeOption);
-        if (opt != null) return 3;
+        if (opt != null) return Grind.STRIPE_OPTION;
         opt = getOptionValue(useDistortionOption);
-        if (opt != null) return 4;
+        if (opt != null) return Grind.DISTORTION_OPTION;
         return 0;
     }
 
@@ -288,5 +291,9 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public String getGenerateImageFormatPicturesOption() {
         return optionToString(generateImageFormatPicturesOption);
+    }
+
+    public boolean getUseTxtInsteadOfNPY() {
+        return optionToBoolean(useTxtInsteadOfNPYOption);
     }
 }

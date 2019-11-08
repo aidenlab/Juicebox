@@ -40,6 +40,36 @@ public class GrindUtils {
 
     private static final Random generator = new Random(0);
 
+    public static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
+        int[][] transformedData = new int[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    public static double[][] appropriatelyTransformVerticalStripes(double[][] data) {
+        double[][] transformedData = new double[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
+    public static float[][] appropriatelyTransformVerticalStripes(float[][] data) {
+        float[][] transformedData = new float[data[0].length][data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length; j++) {
+                transformedData[data[0].length - j - 1][data.length - i - 1] = data[i][j];
+            }
+        }
+        return transformedData;
+    }
+
     public static float[][] generateDefaultDistortionLabelsFile(int length, int numSuperDiagonals, boolean isContinous) {
         float[][] labels = new float[length][length];
         for (int i = 0; i < length; i++) {
@@ -115,30 +145,38 @@ public class GrindUtils {
         return numNonZeroRows > data.length * maxAllowedPercentZeroedOutColumns;
     }
 
-    public static void saveGrindMatrixDataToFile(String fileName, String path, int[][] labels, Writer writer, boolean printToTxt) throws IOException {
-        if (printToTxt) {
+    public static void saveGrindMatrixDataToFile(String fileName, String path, int[][] labels, Writer writer, boolean useTxtInsteadOfNPY) throws IOException {
+        if (useTxtInsteadOfNPY) {
             String txtFileName = fileName + ".txt";
             MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, labels);
         } else {
             String npyFileName = fileName + ".npy";
             MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, labels);
         }
-        writer.write(fileName + "\n");
+        synchronized (writer) {
+            writer.write(fileName + "\n");
+        }
     }
 
-    public static void saveGrindMatrixDataToFile(String fileName, String path, double[][] data, Writer writer, boolean printToTxt) throws IOException {
-        if (printToTxt) {
+    public static void saveGrindMatrixDataToFile(String fileName, String path, RealMatrix matrix, Writer writer, boolean useTxtInsteadOfNPY) throws IOException {
+        saveGrindMatrixDataToFile(fileName, path, matrix.getData(), writer, useTxtInsteadOfNPY);
+    }
+
+    public static void saveGrindMatrixDataToFile(String fileName, String path, double[][] data, Writer writer, boolean useTxtInsteadOfNPY) throws IOException {
+        if (useTxtInsteadOfNPY) {
             String txtFileName = fileName + ".txt";
             MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, data);
         } else {
             String npyFileName = fileName + ".npy";
             MatrixTools.saveMatrixTextNumpy(path + "/" + npyFileName, data);
         }
-        writer.write(fileName + "\n");
+        synchronized (writer) {
+            writer.write(fileName + "\n");
+        }
     }
 
-    public static void saveGrindMatrixDataToFile(String fileName, String path, float[][] data, Writer writer, boolean printToTxt) throws IOException {
-        if (printToTxt) {
+    public static void saveGrindMatrixDataToFile(String fileName, String path, float[][] data, Writer writer, boolean useTxtInsteadOfNPY) throws IOException {
+        if (useTxtInsteadOfNPY) {
             String txtFileName = fileName + ".txt";
             MatrixTools.saveMatrixTextV2(path + "/" + txtFileName, data);
         } else {

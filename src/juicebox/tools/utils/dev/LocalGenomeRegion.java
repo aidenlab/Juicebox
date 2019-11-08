@@ -32,13 +32,19 @@ public class LocalGenomeRegion {
 
     private final int initialIndex;
     private List<Neighbor> neighbors = new ArrayList<>();
+    private final int maxNumValsToStore;
 
-    public LocalGenomeRegion(int initialIndex) {
+    public LocalGenomeRegion(int initialIndex, int maxNumValsToStore) {
         this.initialIndex = initialIndex;
+        this.maxNumValsToStore = maxNumValsToStore;
     }
 
     public synchronized void addNeighbor(int y, float counts) {
         neighbors.add(new Neighbor(y, counts));
+        if (neighbors.size() > maxNumValsToStore) {
+            Collections.sort(neighbors, Collections.reverseOrder());
+            neighbors.remove(neighbors.size() - 1);
+        }
     }
 
     public synchronized void filterDownValues(int numNeighborsAllowed) {

@@ -24,21 +24,15 @@
 
 package juicebox.tools.dev;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.grind.*;
-import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,28 +42,19 @@ import java.util.concurrent.Executors;
 
 public class Grind extends JuicerCLT {
 
-    private int x, y, z;
-    private int sliceTypeOption = 0;
-    private boolean useObservedOverExpected = false;
-    private Dataset ds;
-    private boolean useDenseLabels = false;
-    private boolean onlyMakePositiveExamples = false;
-    private boolean ignoreDirectionOrientation = false;
-    private boolean wholeGenome = false;
-    private File outputDirectory;
-    private Set<Integer> resolutions = new HashSet<>();
-    private String featureListPath;
-    private int offsetOfCornerFromDiagonal = 0;
-    private int stride = 1;
-    private String imgFileType = "";
-    private boolean useAmorphicPixelLabeling = false;
-    private boolean useDiagonal = false;
+    public static final int LOOP_OPTION = 1;
+    public static final int DOMAIN_OPTION = 2;
+    public static final int STRIPE_OPTION = 3;
+    public static final int DISTORTION_OPTION = 4;
+    private ParameterConfigurationContainer container = new ParameterConfigurationContainer();
 
     public Grind() {
         super("grind [-k NONE/KR/VC/VC_SQRT] [-r resolution] [--stride increment] " +
                 "[--off-from-diagonal max-dist-from-diag] " +
                 "--observed-over-expected --dense-labels --ignore-feature-orientation --only-make-positives " + //--whole-genome --distort
-                "<--loops --domains --stripes> <hic file> <bedpe positions> <x,y,z> <directory>");
+                "<mode> <hic file> <bedpe positions> <x,y,z> <directory>" +
+                "     \n" +
+                "     mode: --iterate-down-diagonal --iterate-on-list --iterate-distortions --iterate-domains");
     }
 
     @Override
@@ -78,99 +63,99 @@ public class Grind extends JuicerCLT {
             printUsageAndExit();
         }
 
-        ds = HiCFileTools.
+        container.ds = HiCFileTools.
                 extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        featureListPath = args[2];
+        container.featureListPath = args[2];
 
         // split on commas
         // save the dimensions
         String[] dimensions = args[3].split(",");
-        x = Integer.parseInt(dimensions[0]);
-        y = Integer.parseInt(dimensions[1]);
-        z = Integer.parseInt(dimensions[2]);
+        container.x = Integer.parseInt(dimensions[0]);
+        container.y = Integer.parseInt(dimensions[1]);
+        container.z = Integer.parseInt(dimensions[2]);
 
-        useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
-        ignoreDirectionOrientation = juicerParser.getUseIgnoreDirectionOrientationOption();
-        useAmorphicPixelLabeling = juicerParser.getUseAmorphicLabelingOption();
-        onlyMakePositiveExamples = juicerParser.getUseOnlyMakePositiveExamplesOption();
-        useDenseLabels = juicerParser.getDenseLabelsOption();
-        wholeGenome = juicerParser.getUseWholeGenome();
-        offsetOfCornerFromDiagonal = juicerParser.getCornerOffBy();
-        stride = juicerParser.getStride();
-        outputDirectory = HiCFileTools.createValidDirectory(args[4]);
-        useDiagonal = juicerParser.getUseGenomeDiagonal();
+        container.useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+        container.ignoreDirectionOrientation = juicerParser.getUseIgnoreDirectionOrientationOption();
+        container.useAmorphicPixelLabeling = juicerParser.getUseAmorphicLabelingOption();
+        container.onlyMakePositiveExamples = juicerParser.getUseOnlyMakePositiveExamplesOption();
+        container.useDenseLabelsNotBinary = juicerParser.getDenseLabelsOption();
+        container.wholeGenome = juicerParser.getUseWholeGenome();
+        container.offsetOfCornerFromDiagonal = juicerParser.getCornerOffBy();
+        container.stride = juicerParser.getStride();
+        container.outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        container.useDiagonal = juicerParser.getUseGenomeDiagonal();
+        container.useTxtInsteadOfNPY = juicerParser.getUseTxtInsteadOfNPY();
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(container.ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
+        container.norm = norm;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             for (String num : possibleResolutions) {
-                resolutions.add(Integer.parseInt(num));
+                container.resolutions.add(Integer.parseInt(num));
             }
         } else {
-            resolutions.add(10000);
+            container.resolutions.add(10000);
         }
 
-        sliceTypeOption = juicerParser.getGrindDataSliceOption();
-        imgFileType = juicerParser.getGenerateImageFormatPicturesOption();
+        container.grindIterationTypeOption = juicerParser.getGrindDataSliceOption();
+        container.imgFileType = juicerParser.getGenerateImageFormatPicturesOption();
     }
 
     @Override
     public void run() {
 
-        Feature2DList feature2DList = null;
+        container.chromosomeHandler = container.ds.getChromosomeHandler();
+
+        container.feature2DList = null;
         try {
-            feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
+            container.feature2DList = Feature2DParser.loadFeatures(container.featureListPath, container.chromosomeHandler, false, null, false);
         } catch (Exception e) {
-            if (sliceTypeOption != 4) {
+            if (container.grindIterationTypeOption != 4) {
                 System.err.println("Feature list failed to load");
                 e.printStackTrace();
                 System.exit(-9);
             }
         }
 
-        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         if (givenChromosomes != null)
-            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
+            container.chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, container.chromosomeHandler);
 
         RegionFinder finder = null;
-        if (sliceTypeOption == 1) {
-            finder = new LoopFinder(x, y, z, stride, ds, feature2DList, outputDirectory, chromosomeHandler, norm,
-                    useObservedOverExpected, useDenseLabels, resolutions, onlyMakePositiveExamples, useAmorphicPixelLabeling);
-        } else if (sliceTypeOption == 2) {
-            finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm,
-                    useObservedOverExpected, useDenseLabels, resolutions);
-        } else if (sliceTypeOption == 4) {
-            ExecutorService executor = Executors.newFixedThreadPool(resolutions.size());
-            for (final int resolution : resolutions) {
-                Runnable worker = new Runnable() {
-                    @Override
-                    public void run() {
-                        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-                        if (givenChromosomes != null)
-                            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
-
-                        RegionFinder finder = new DistortionFinder(x, y, z, ds, outputDirectory, chromosomeHandler, norm,
-                                useObservedOverExpected, useDenseLabels, resolution, stride, imgFileType, useDiagonal);
-                        finder.makeExamples();
-                    }
-                };
-                executor.execute(worker);
-            }
-            executor.shutdown();
-
-            // Wait until all threads finish
-            while (!executor.isTerminated()) {
-            }
+        if (container.grindIterationTypeOption == LOOP_OPTION) {
+            finder = new IterateOnFeatureListFinder(container);
+        } else if (container.grindIterationTypeOption == DOMAIN_OPTION) {
+            finder = new DomainFinder(container);
+        } else if (container.grindIterationTypeOption == DISTORTION_OPTION) {
+            runDistortionTypeOfIteration();
         } else {
-            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected,
-                    useDenseLabels, resolutions, offsetOfCornerFromDiagonal, stride, onlyMakePositiveExamples,
-                    ignoreDirectionOrientation, useAmorphicPixelLabeling);
+            finder = new IterateDownDiagonalFinder(container);
         }
+
         if (finder != null) {
             finder.makeExamples();
         }
     }
+
+    private void runDistortionTypeOfIteration() {
+        ExecutorService executor = Executors.newFixedThreadPool(container.resolutions.size());
+        for (final int resolution : container.resolutions) {
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    RegionFinder finder = new DistortionFinder(resolution, container);
+                    finder.makeExamples();
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
+        }
+    }
+
 }

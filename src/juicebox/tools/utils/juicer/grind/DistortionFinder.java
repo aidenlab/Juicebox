@@ -24,69 +24,46 @@
 
 package juicebox.tools.utils.juicer.grind;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
-public class DistortionFinder implements RegionFinder {
-
+public class DistortionFinder extends RegionFinder {
 
     private Integer imgSliceWidth, imgHalfSliceWidth;
     private Integer numManipulations;
-    private Dataset ds;
-    private String path;
-    private ChromosomeHandler chromosomeHandler;
-    private NormalizationType norm;
-    private boolean useObservedOverExpected;
-    private boolean useDenseLabels;
-    private boolean generateImages;
-    private final int resolution;
-    private int stride;
-    private String imgFileType;
+    private final int specificResolution;
     private Writer posDataWriter, posLabelWriter, negDataWriter, negLabelWriter, posImgWriter, posImgLabelWriter, negImgWriter, negImgLabelWriter;
     private String negPath, posPath, negImgPath, posImgPath;
     private int maxNumberOfExamplesForRegion = Integer.MAX_VALUE;
     private boolean ignoreNumberOfExamplesForRegion = false;
     private int counter = 0;
-    private boolean useDiagonal = false;
 
     // grind -k KR -r 5000,10000,25000,100000 --stride 3 -c 1,2,3 --dense-labels --distort <hic file> null <128,4,1000> <directory>
 
-    public DistortionFinder(int imgSliceWidth, int numManipulations, int maxNumberOfExamplesForRegion, Dataset ds, File outputDirectory,
-                            ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                            boolean useObservedOverExpected, boolean useDenseLabels, int resolution, int stride, String imgFileType,
-                            boolean useDiagonal) {
+    public DistortionFinder(int resolution, ParameterConfigurationContainer container) {
+        super(container);
 
-        this.imgSliceWidth = imgSliceWidth;
-        imgHalfSliceWidth = imgSliceWidth / 2;
-        this.numManipulations = numManipulations;
-        if (maxNumberOfExamplesForRegion > 0) {
-            this.maxNumberOfExamplesForRegion = maxNumberOfExamplesForRegion;
+        this.imgSliceWidth = x;
+        imgHalfSliceWidth = x / 2;
+        this.numManipulations = y;
+        if (z > 0) {
+            this.maxNumberOfExamplesForRegion = z;
         } else {
             ignoreNumberOfExamplesForRegion = true;
         }
-        this.ds = ds;
-        this.path = outputDirectory.getPath();
-        this.chromosomeHandler = chromosomeHandler;
-        this.norm = norm;
-        this.useObservedOverExpected = useObservedOverExpected;
-        this.useDenseLabels = useDenseLabels;
-        this.resolution = resolution;
-        this.stride = stride;
-        this.imgFileType = imgFileType;
-        generateImages = imgFileType != null && imgFileType.length() > 0;
-        this.useDiagonal = useDiagonal;
+        this.specificResolution = resolution;
     }
 
     public static void getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
@@ -105,17 +82,9 @@ public class DistortionFinder implements RegionFinder {
         int box2RectLR = box2XIndex + imgHalfSliceWidth;
 
         try {
-            RealMatrix localizedRegionDataBox1 = HiCFileTools.extractLocalBoundedRegion(zd1,
-                    box1RectUL, box1RectLR, box1RectUL, box1RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox1, .3)) return;
-            RealMatrix localizedRegionDataBox2 = HiCFileTools.extractLocalBoundedRegion(zd2,
-                    box2RectUL, box2RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
-            if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox2, .3)) return;
-            RealMatrix localizedRegionDataBox12 = HiCFileTools.extractLocalBoundedRegion(zd12,
-                    box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, false);
+            float[][] compositeMatrix = generateCompositeMatrixWithNansCleanedFromZDS(zd1, zd2, zd12,
+                    box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, norm);
 
-            float[][] compositeMatrix = MatrixTools.generateCompositeMatrix(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
-            MatrixTools.cleanUpNaNs(compositeMatrix);
             float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
             GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
 
@@ -160,81 +129,19 @@ public class DistortionFinder implements RegionFinder {
         }
     }
 
-    @Override
-    public void makeExamples() {
-        updateLatestMainPaths();
+    private static float[][] generateCompositeMatrixWithNansCleanedFromZDS(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
+                                                                           int box1RectUL, int box1RectLR, int box2RectUL, int box2RectLR,
+                                                                           int imgHalfSliceWidth, NormalizationType norm) throws Exception {
+        RealMatrix localizedRegionDataBox1 = HiCFileTools.extractLocalBoundedRegion(zd1,
+                box1RectUL, box1RectLR, box1RectUL, box1RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
+        if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox1, .3)) return null;
+        RealMatrix localizedRegionDataBox2 = HiCFileTools.extractLocalBoundedRegion(zd2,
+                box2RectUL, box2RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, true);
+        if (GrindUtils.mapRegionIsProblematic(localizedRegionDataBox2, .3)) return null;
+        RealMatrix localizedRegionDataBox12 = HiCFileTools.extractLocalBoundedRegion(zd12,
+                box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, imgHalfSliceWidth, norm, false);
 
-        try {
-
-            posDataWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_pos_file_names.txt"), StandardCharsets.UTF_8));
-            negDataWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_neg_file_names.txt"), StandardCharsets.UTF_8));
-            posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_pos_label_file_names.txt"), StandardCharsets.UTF_8));
-            negLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_neg_label_file_names.txt"), StandardCharsets.UTF_8));
-            if (generateImages) {
-                posImgWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_pos_img_names.txt"), StandardCharsets.UTF_8));
-                negImgWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_neg_img_names.txt"), StandardCharsets.UTF_8));
-                posImgLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_pos_label_img_names.txt"), StandardCharsets.UTF_8));
-                negImgLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + resolution + "_neg_label_img_names.txt"), StandardCharsets.UTF_8));
-            }
-            Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
-            for (int chrIndexI = 0; chrIndexI < chromosomes.length; chrIndexI++) {
-                Chromosome chromI = chromosomes[chrIndexI];
-                for (int chrIndexJ = chrIndexI; chrIndexJ < chromosomes.length; chrIndexJ++) {
-                    Chromosome chromJ = chromosomes[chrIndexJ];
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromI, chromJ, zoom);
-                    if (zd == null) continue;
-
-                    boolean isIntraChromosomal = chrIndexI == chrIndexJ;
-
-                    System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName() +
-                            " at resolution " + resolution);
-
-                    MatrixZoomData matrixZoomDataI, matrixZoomDataJ;
-                    if (isIntraChromosomal) {
-                        if (useDiagonal) {
-                            iterateDownDiagonalChromosomalRegion(zd, chromI, resolution);
-                        } else {
-                            iterateAcrossIntraChromosomalRegion(zd, chromI, resolution);
-                        }
-                    } else {
-                        // is Inter
-                        matrixZoomDataI = HiCFileTools.getMatrixZoomData(ds, chromI, chromI, zoom);
-                        matrixZoomDataJ = HiCFileTools.getMatrixZoomData(ds, chromJ, chromJ, zoom);
-                        if (matrixZoomDataI == null || matrixZoomDataJ == null) continue;
-
-                        iterateBetweenInterChromosomalRegions(matrixZoomDataI, matrixZoomDataJ, zd, chromI, chromJ, resolution);
-                    }
-                }
-            }
-            for (Writer writer : new Writer[]{posDataWriter, posLabelWriter, negDataWriter, negLabelWriter}) {
-                writer.close();
-            }
-            if (generateImages) {
-                for (Writer writer : new Writer[]{posImgWriter, posImgLabelWriter, negImgWriter, negImgLabelWriter}) {
-                    writer.close();
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void updateLatestMainPaths() {
-
-        negPath = path + "/negative_" + resolution + "_" + counter;
-        posPath = path + "/positive_" + resolution + "_" + counter;
-        UNIXTools.makeDir(negPath);
-        UNIXTools.makeDir(posPath);
-
-        if (generateImages) {
-            negImgPath = path + "/negativeImg_" + resolution + "_" + counter;
-            posImgPath = path + "/positiveImg_" + resolution + "_" + counter;
-            UNIXTools.makeDir(negImgPath);
-            UNIXTools.makeDir(posImgPath);
-        }
-        counter++;
+        return MatrixTools.generateCompositeMatrixWithNansCleaned(localizedRegionDataBox1, localizedRegionDataBox2, localizedRegionDataBox12);
     }
 
     private void iterateAcrossIntraChromosomalRegion(MatrixZoomData zd, Chromosome chrom, int resolution) {
@@ -305,5 +212,77 @@ public class DistortionFinder implements RegionFinder {
                 }
             }
         }
+    }
+
+    @Override
+    public void makeExamples() {
+        updateLatestMainPaths();
+
+        try {
+
+            posDataWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_pos_file_names.txt"), StandardCharsets.UTF_8));
+            negDataWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_neg_file_names.txt"), StandardCharsets.UTF_8));
+            posLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_pos_label_file_names.txt"), StandardCharsets.UTF_8));
+            negLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_neg_label_file_names.txt"), StandardCharsets.UTF_8));
+            if (generateImages) {
+                posImgWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_pos_img_names.txt"), StandardCharsets.UTF_8));
+                negImgWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_neg_img_names.txt"), StandardCharsets.UTF_8));
+                posImgLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_pos_label_img_names.txt"), StandardCharsets.UTF_8));
+                negImgLabelWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/" + specificResolution + "_neg_label_img_names.txt"), StandardCharsets.UTF_8));
+            }
+            Chromosome[] chromosomes = chromosomeHandler.getChromosomeArrayWithoutAllByAll();
+            for (int chrIndexI = 0; chrIndexI < chromosomes.length; chrIndexI++) {
+                Chromosome chromI = chromosomes[chrIndexI];
+                for (int chrIndexJ = chrIndexI; chrIndexJ < chromosomes.length; chrIndexJ++) {
+                    Chromosome chromJ = chromosomes[chrIndexJ];
+
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromI, chromJ, specificResolution);
+                    if (zd == null) continue;
+
+                    boolean isIntraChromosomal = chrIndexI == chrIndexJ;
+
+                    System.out.println("Currently processing: " + chromI.getName() + " - " + chromJ.getName() +
+                            " at specificResolution " + specificResolution);
+
+                    MatrixZoomData matrixZoomDataI, matrixZoomDataJ;
+                    if (isIntraChromosomal) {
+                        if (useDiagonal) {
+                            iterateDownDiagonalChromosomalRegion(zd, chromI, specificResolution);
+                        } else {
+                            iterateAcrossIntraChromosomalRegion(zd, chromI, specificResolution);
+                        }
+                    } else {
+                        // is Inter
+                        matrixZoomDataI = HiCFileTools.getMatrixZoomData(ds, chromI, chromI, specificResolution);
+                        matrixZoomDataJ = HiCFileTools.getMatrixZoomData(ds, chromJ, chromJ, specificResolution);
+                        if (matrixZoomDataI == null || matrixZoomDataJ == null) continue;
+
+                        iterateBetweenInterChromosomalRegions(matrixZoomDataI, matrixZoomDataJ, zd, chromI, chromJ, specificResolution);
+                    }
+                }
+            }
+            for (Writer writer : new Writer[]{posDataWriter, posLabelWriter, negDataWriter, negLabelWriter}) {
+                writer.close();
+            }
+            if (generateImages) {
+                for (Writer writer : new Writer[]{posImgWriter, posImgLabelWriter, negImgWriter, negImgLabelWriter}) {
+                    writer.close();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void updateLatestMainPaths() {
+
+        negPath = UNIXTools.makeDir(originalPath + "/negative_" + specificResolution + "_" + counter);
+        posPath = UNIXTools.makeDir(originalPath + "/positive_" + specificResolution + "_" + counter);
+
+        if (generateImages) {
+            negImgPath = UNIXTools.makeDir(originalPath + "/negativeImg_" + specificResolution + "_" + counter);
+            posImgPath = UNIXTools.makeDir(originalPath + "/positiveImg_" + specificResolution + "_" + counter);
+        }
+        counter++;
     }
 }

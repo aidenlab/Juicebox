@@ -889,14 +889,14 @@ public class MatrixTools {
         NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
     }
 
-    public static float[][] generateCompositeMatrix(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
-        return generateCompositeMatrix(
+    public static float[][] generateCompositeMatrixWithNansCleaned(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
+        return generateCompositeMatrixWithNansCleaned(
                 convertToFloatMatrix(matrixDiag1.getData()),
                 convertToFloatMatrix(matrixDiag2.getData()),
                 convertToFloatMatrix(matrix1vs2.getData()));
     }
 
-    private static float[][] generateCompositeMatrix(float[][] matrixDiag1, float[][] matrixDiag2, float[][] matrix1vs2) {
+    private static float[][] generateCompositeMatrixWithNansCleaned(float[][] matrixDiag1, float[][] matrixDiag2, float[][] matrix1vs2) {
         int newLength = matrixDiag1.length + matrixDiag2.length;
         float[][] compositeMatrix = new float[newLength][newLength];
 
@@ -910,6 +910,7 @@ public class MatrixTools {
             }
         }
 
+        MatrixTools.cleanUpNaNs(compositeMatrix);
         return compositeMatrix;
     }
 

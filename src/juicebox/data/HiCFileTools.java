@@ -292,10 +292,14 @@ public class HiCFileTools {
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
-                                                       NormalizationType norm, boolean fillUnderDiagonal) throws IOException {
-        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm, fillUnderDiagonal);
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, normalizationType, fillUnderDiagonal);
     }
 
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binYStart, int numRows, int numCols,
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, binXStart, binXStart + numRows, binYStart, binYStart + numCols, numRows, numCols, normalizationType, fillUnderDiagonal);
+    }
 
     /**
      * Extracts matrix from hic file for a specified region.
@@ -450,9 +454,13 @@ public class HiCFileTools {
 
     }
 
-    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
+    private static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
         Matrix matrix = ds.getMatrix(chrom1, chrom2);
-        if (matrix == null) return null;
+        if (matrix == null || zoom == null) return null;
         return matrix.getZoomData(zoom);
+    }
+
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, int resolution) {
+        return getMatrixZoomData(ds, chrom1, chrom2, ds.getZoomForBPResolution(resolution));
     }
 }

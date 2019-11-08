@@ -28,15 +28,18 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.dev.LocalGenomeRegion;
 import juicebox.tools.utils.juicer.grind.DistortionFinder;
+import juicebox.tools.utils.juicer.grind.GrindUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
@@ -120,6 +123,44 @@ public class Shuffle extends JuicerCLT {
         }
     }
 
+    public static void getContiguousDataAndSaveToFile(MatrixZoomData zd, int box1XIndex, String chrom1Name,
+                                                      int imgHalfSliceWidth, NormalizationType norm,
+                                                      String negPath, Writer negDataWriter) {
+
+        int fullWidth = 2 * imgHalfSliceWidth;
+        int box1RectUL = box1XIndex;
+        int box1Mid = box1XIndex + imgHalfSliceWidth;
+        int box1RectLR = box1XIndex + fullWidth;
+
+        try {
+            RealMatrix localizedRegionDataBox = HiCFileTools.extractLocalBoundedRegion(zd,
+                    box1RectUL, box1RectLR, box1RectUL, box1RectLR, fullWidth, fullWidth, norm, true);
+            float[][] compositeMatrix = MatrixTools.convertToFloatMatrix(localizedRegionDataBox.getData());
+            MatrixTools.cleanUpNaNs(compositeMatrix);
+
+            String filePrefix = "origDiag_" + chrom1Name + "_" + box1XIndex + "_" + chrom1Name + "_" + box1Mid + "_matrix";
+            GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter, false);
+
+        } catch (Exception e) {
+        }
+    }
+
+    private void assessOutlierContactAndPrintToFile(boolean isBadUpstream, int cliqueSize, FileWriter positionsBEDPE,
+                                                    LocalGenomeRegion selectedRegion, int currX1, int currX2) throws IOException {
+        int y1 = selectedRegion.getOutlierContacts(isBadUpstream, cliqueSize);
+        if (y1 > 0) {
+            int y2 = (y1 + 1) * resolution;
+            y1 = y1 * resolution;
+            if (y1 > currX1) {
+                positionsBEDPE.write("assembly\t" + currX1 + "\t" + currX2 +
+                        "\tassembly\t" + y1 + "\t" + y2 + "\t50,255,50\n");
+            } else {
+                positionsBEDPE.write("assembly\t" + y1 + "\t" + y2 +
+                        "\tassembly\t" + currX1 + "\t" + currX2 + "\t50,255,50\n");
+            }
+        }
+    }
+
     @Override
     public void run() {
 
@@ -136,7 +177,7 @@ public class Shuffle extends JuicerCLT {
 
             int maxIndex = chr.getLength() / resolution + 1;
             for (int k = 0; k < maxIndex; k++) {
-                indexToRegion.put(k, new LocalGenomeRegion(k));
+                indexToRegion.put(k, new LocalGenomeRegion(k, 2 * expectedCliqueSizeWithBuffer));
             }
 
             List<Block> blocks = zd.getNormalizedBlocksOverlapping(0, 0, maxIndex, maxIndex,
@@ -150,20 +191,6 @@ public class Shuffle extends JuicerCLT {
                                 final int x = cr.getBinX();
                                 final int y = cr.getBinY();
                                 final float counts = cr.getCounts();
-
-                            /*
-                            synchronized (indexToRegion) {
-                                if (!indexToRegion.containsKey(x)) {
-                                    indexToRegion.put(x, new LocalGenomeRegion(x));
-                                }
-                            }
-
-                            synchronized (indexToRegion) {
-                                if (!indexToRegion.containsKey(y)) {
-                                    indexToRegion.put(y, new LocalGenomeRegion(y));
-                                }
-                            }
-                             */
 
                                 synchronized (indexToRegion) {
                                     if (x != y) {
@@ -258,30 +285,16 @@ public class Shuffle extends JuicerCLT {
             positionsBEDPE.close();
 
             createInputForNeuralNet(ds, outputBEDPEFile, outputDirectory);
+            createDiagonalInputForNeuralNet(ds, outputDirectory);
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void assessOutlierContactAndPrintToFile(boolean isBadUpstream, int cliqueSize, FileWriter positionsBEDPE,
-                                                    LocalGenomeRegion selectedRegion, int currX1, int currX2) throws IOException {
-        int y1 = selectedRegion.getOutlierContacts(isBadUpstream, cliqueSize);
-        if (y1 > 0) {
-            int y2 = (y1 + 1) * resolution;
-            y1 = y1 * resolution;
-            if (y1 > currX1) {
-                positionsBEDPE.write("assembly\t" + currX1 + "\t" + currX2 +
-                        "\tassembly\t" + y1 + "\t" + y2 + "\t50,255,50\n");
-            } else {
-                positionsBEDPE.write("assembly\t" + y1 + "\t" + y2 +
-                        "\tassembly\t" + currX1 + "\t" + currX2 + "\t50,255,50\n");
-            }
         }
     }
 
     private void createInputForNeuralNet(Dataset ds, File outputBEDPEFile, File outputDirectory) {
 
         Feature2DList features = Feature2DParser.loadFeatures(outputBEDPEFile.getAbsolutePath(), ds.getChromosomeHandler(), false, null, true);
+        System.out.println("Neural Net Size " + neuralNetSize);
 
         features.processLists(new FeatureFunction() {
             @Override
@@ -310,10 +323,10 @@ public class Shuffle extends JuicerCLT {
                     ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
 
                     for (Feature2D feature2D : feature2DList) {
-                        int i0 = Math.max(0, (feature2D.getStart1() - resolution / 2) / highResolution);
-                        int j0 = Math.max(0, (feature2D.getStart2() - resolution / 2) / highResolution);
-                        int iMax = Math.min((feature2D.getEnd1() + resolution / 2) / highResolution, chrom.getLength() / highResolution);
-                        int jMax = Math.min((feature2D.getEnd2() + resolution / 2) / highResolution, chrom.getLength() / highResolution);
+                        int i0 = Math.max(0, (feature2D.getStart1() - resolution) / highResolution);
+                        int j0 = Math.max(0, (feature2D.getStart2() - resolution) / highResolution);
+                        int iMax = Math.min((feature2D.getEnd1() + resolution) / highResolution, chrom.getLength() / highResolution);
+                        int jMax = Math.min((feature2D.getEnd2() + resolution) / highResolution, chrom.getLength() / highResolution);
 
                         if (feature2D.getMidPt2() < feature2D.getMidPt1()) {
                             System.err.println("jM < iM; skipping - iM " + feature2D.getMidPt1() + " jM " + feature2D.getMidPt2() + " i0 " + i0 + " j0 " + j0);
@@ -322,8 +335,8 @@ public class Shuffle extends JuicerCLT {
                         Runnable worker = new Runnable() {
                             @Override
                             public void run() {
-                                for (int i = i0; i < iMax; i += neuralNetSize / 2) {
-                                    for (int j = j0; j < jMax; j += neuralNetSize / 2) {
+                                for (int i = i0; i < iMax; i += neuralNetSize / 4) {
+                                    for (int j = j0; j < jMax; j += neuralNetSize / 4) {
 
                                         if (j < i) {
                                             System.err.println("j < i; skipping - i " + i + " j " + j + " i0 " + i0 + " j0 " + j0);
@@ -337,11 +350,16 @@ public class Shuffle extends JuicerCLT {
                                             isContinuousRegion = true;
                                         }
 
-                                        DistortionFinder.getTrainingDataAndSaveToFile(zd, zd, zd, i, newJ,
-                                                "assembly", "assembly", isContinuousRegion, neuralNetSize / 2, norm,
-                                                false, 0, "", null, outputFolderForRes.getAbsolutePath(),
-                                                null, null, null, fileNameWriter, null, null,
-                                                null, null, null, null, false);
+                                        if (isContinuousRegion) {
+                                            getContiguousDataAndSaveToFile(zd, i, "assembly",
+                                                    neuralNetSize / 2, norm, outputFolderForRes.getAbsolutePath(), fileNameWriter);
+                                        } else {
+                                            DistortionFinder.getTrainingDataAndSaveToFile(zd, zd, zd, i, i,
+                                                    "assembly", "assembly", isContinuousRegion, neuralNetSize / 2, norm,
+                                                    false, 0, "", null, outputFolderForRes.getAbsolutePath(),
+                                                    null, null, null, fileNameWriter, null, null,
+                                                    null, null, null, null, false);
+                                        }
                                     }
                                 }
                             }
@@ -355,11 +373,78 @@ public class Shuffle extends JuicerCLT {
                     while (!executor.isTerminated()) {
                     }
 
-                } catch (FileNotFoundException e) {
+                    fileNameWriter.close();
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+
+    }
+
+    private void createDiagonalInputForNeuralNet(Dataset ds, File outputDirectory) {
+
+        System.out.println("Neural Net Size " + neuralNetSize);
+
+        Chromosome chrom = ds.getChromosomeHandler().getChromosomeFromName("assembly");
+
+        Matrix matrix = ds.getMatrix(chrom, chrom);
+        if (matrix == null) return;
+
+        HiCZoom zoom = ds.getZoomForBPResolution(highResolution);
+        final MatrixZoomData zd = matrix.getZoomData(zoom);
+
+        if (zd == null) return;
+
+        System.out.println("Currently on: " + chrom);
+
+        File outputFolderForRes = new File(outputDirectory, "neural_net_diag_run_" + highResolution);
+        UNIXTools.makeDir(outputFolderForRes);
+        String posPath = outputDirectory.getAbsolutePath() + "/diag_chr_" + chrom.getName() + "_" + highResolution;
+        UNIXTools.makeDir(posPath);
+
+        try {
+            Writer fileNameWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(posPath + ".txt"), StandardCharsets.UTF_8));
+
+
+            ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
+
+            int iMax = chrom.getLength() / highResolution;
+
+            int[] breakPoints = new int[numCPUThreads + 1];
+            for (int k = 1; k < numCPUThreads; k++) {
+                breakPoints[k] = (k * iMax / numCPUThreads) + 1;
+            }
+            breakPoints[numCPUThreads] = iMax;
+
+            for (int k = 0; k < numCPUThreads; k++) {
+                int iStart = breakPoints[k];
+                int iEnd = breakPoints[k + 1];
+
+                Runnable worker = new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = iStart; i < iEnd; i += neuralNetSize / 2) {
+                            getContiguousDataAndSaveToFile(zd, i, "assembly",
+                                    neuralNetSize / 2, norm, outputFolderForRes.getAbsolutePath(), fileNameWriter);
+                        }
+                    }
+                };
+                executor.execute(worker);
+            }
+
+            executor.shutdown();
+
+            // Wait until all threads finish
+            while (!executor.isTerminated()) {
+            }
+
+            fileNameWriter.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 }
