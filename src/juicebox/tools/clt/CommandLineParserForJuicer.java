@@ -86,10 +86,10 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option useTxtInsteadOfNPYOption = addBooleanOption("text-output");
 
     //iterate-down-diagonal, iterate-on-list, iterate-distortions, iterate-domains
-    private final Option useLoopOption = addBooleanOption("loops");
-    private final Option useDomainOption = addBooleanOption("domains");
-    private final Option useStripeOption = addBooleanOption("stripes");
-    private final Option useDistortionOption = addBooleanOption("distort");
+    private final Option useListIterationOption = addBooleanOption("iterate-on-list");
+    private final Option useDomainOption = addBooleanOption("iterate-domains");
+    private final Option useIterationDownDiagonalOption = addBooleanOption("iterate-down-diagonal");
+    private final Option useDistortionOption = addBooleanOption("iterate-distortions");
 
     public CommandLineParserForJuicer() {
     }
@@ -102,12 +102,12 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public int getGrindDataSliceOption() {
-        Object opt = getOptionValue(useLoopOption);
-        if (opt != null) return Grind.LOOP_OPTION;
+        Object opt = getOptionValue(useListIterationOption);
+        if (opt != null) return Grind.LIST_ITERATION_OPTION;
         opt = getOptionValue(useDomainOption);
         if (opt != null) return Grind.DOMAIN_OPTION;
-        opt = getOptionValue(useStripeOption);
-        if (opt != null) return Grind.STRIPE_OPTION;
+        opt = getOptionValue(useIterationDownDiagonalOption);
+        if (opt != null) return Grind.DOWN_DIAGONAL_OPTION;
         opt = getOptionValue(useDistortionOption);
         if (opt != null) return Grind.DISTORTION_OPTION;
         return 0;

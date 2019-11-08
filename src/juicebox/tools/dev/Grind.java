@@ -42,9 +42,9 @@ import java.util.concurrent.Executors;
 
 public class Grind extends JuicerCLT {
 
-    public static final int LOOP_OPTION = 1;
+    public static final int LIST_ITERATION_OPTION = 1;
     public static final int DOMAIN_OPTION = 2;
-    public static final int STRIPE_OPTION = 3;
+    public static final int DOWN_DIAGONAL_OPTION = 3;
     public static final int DISTORTION_OPTION = 4;
     private ParameterConfigurationContainer container = new ParameterConfigurationContainer();
 
@@ -108,7 +108,6 @@ public class Grind extends JuicerCLT {
     public void run() {
 
         container.chromosomeHandler = container.ds.getChromosomeHandler();
-
         container.feature2DList = null;
         try {
             container.feature2DList = Feature2DParser.loadFeatures(container.featureListPath, container.chromosomeHandler, false, null, false);
@@ -124,7 +123,7 @@ public class Grind extends JuicerCLT {
             container.chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, container.chromosomeHandler);
 
         RegionFinder finder = null;
-        if (container.grindIterationTypeOption == LOOP_OPTION) {
+        if (container.grindIterationTypeOption == LIST_ITERATION_OPTION) {
             finder = new IterateOnFeatureListFinder(container);
         } else if (container.grindIterationTypeOption == DOMAIN_OPTION) {
             finder = new DomainFinder(container);
