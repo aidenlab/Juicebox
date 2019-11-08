@@ -40,7 +40,7 @@ public class ParameterConfigurationContainer {
     public Dataset ds;
     public boolean useDenseLabelsNotBinary = false;
     public boolean onlyMakePositiveExamples = false;
-    public boolean ignoreDirectionOrientation = false;
+    public boolean featureDirectionOrientationIsImportant = false;
     public boolean wholeGenome = false;
     public File outputDirectory;
     public Set<Integer> resolutions = new HashSet<>();

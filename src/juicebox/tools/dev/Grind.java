@@ -76,7 +76,7 @@ public class Grind extends JuicerCLT {
         container.z = Integer.parseInt(dimensions[2]);
 
         container.useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
-        container.ignoreDirectionOrientation = juicerParser.getUseIgnoreDirectionOrientationOption();
+        container.featureDirectionOrientationIsImportant = juicerParser.getDontIgnoreDirectionOrientationOption();
         container.useAmorphicPixelLabeling = juicerParser.getUseAmorphicLabelingOption();
         container.onlyMakePositiveExamples = juicerParser.getUseOnlyMakePositiveExamplesOption();
         container.useDenseLabelsNotBinary = juicerParser.getDenseLabelsOption();

@@ -59,7 +59,7 @@ abstract public class RegionFinder {
     protected boolean useTxtInsteadOfNPY;
     protected boolean generateImages;
     protected boolean useDiagonal;
-    protected boolean ignoreDirectionOrientation;
+    protected boolean featureDirectionOrientationIsImportant;
     protected String imgFileType;
     protected Feature2DList inputFeature2DList;
     protected int offsetOfCornerFromDiagonal;
@@ -81,7 +81,7 @@ abstract public class RegionFinder {
         this.useAmorphicPixelLabeling = container.useAmorphicPixelLabeling;
         this.useTxtInsteadOfNPY = container.useTxtInsteadOfNPY;
         this.useDiagonal = container.useDiagonal;
-        this.ignoreDirectionOrientation = container.ignoreDirectionOrientation;
+        this.featureDirectionOrientationIsImportant = container.featureDirectionOrientationIsImportant;
         this.imgFileType = container.imgFileType;
         generateImages = imgFileType != null && imgFileType.length() > 0;
         inputFeature2DList = container.feature2DList;
@@ -109,7 +109,7 @@ abstract public class RegionFinder {
         int numRows = numInputRows;
         int numCols = numInputCols;
 
-        if (!ignoreDirectionOrientation && isVerticalFeature2D) {
+        if (featureDirectionOrientationIsImportant && isVerticalFeature2D) {
             rectULX = rowIndex - numInputCols;
             rectULY = colIndex - numInputRows;
             rectLRX = rowIndex;
@@ -146,7 +146,7 @@ abstract public class RegionFinder {
             int featureRowLength = Math.max(feature2D.getWidth1() / resolution, 1);
             int featureColLength = Math.max(feature2D.getWidth2() / resolution, 1);
 
-            if (ignoreDirectionOrientation || stripeIsCorrectOrientation(featureRowLength, featureColLength, isVerticalFeature2D)) {
+            if (!featureDirectionOrientationIsImportant || stripeIsCorrectOrientation(featureRowLength, featureColLength, isVerticalFeature2D)) {
 
                 int relativeStartRowFromOrigin = feature2D.getStart1() / resolution - rectULX;
                 int relativeStartColFromOrigin = feature2D.getStart2() / resolution - rectULY;
@@ -165,7 +165,7 @@ abstract public class RegionFinder {
 
 
         String orientationType = "";
-        if (!ignoreDirectionOrientation) {
+        if (featureDirectionOrientationIsImportant) {
             orientationType = "_Horzntl";
             if (isVerticalFeature2D) {
                 finalData = GrindUtils.appropriatelyTransformVerticalStripes(finalData);

@@ -79,7 +79,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option useDiagonalOption = addBooleanOption("diagonal");
     private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
     private final Option stride = addIntegerOption("stride");
-    private final Option useIgnoreDirectionOrientationOption = addBooleanOption("ignore-feature-orientation");
+    private final Option useDontIgnoreDirectionOrientationOption = addBooleanOption("use-feature-orientation");
     private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
     private final Option generateImageFormatPicturesOption = addStringOption("img");
     private final Option useAmorphicLabelingOption = addBooleanOption("amorphic-labeling");
@@ -138,8 +138,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return optionToBoolean(useDenseLabelsOption);
     }
 
-    public boolean getUseIgnoreDirectionOrientationOption() {
-        return optionToBoolean(useIgnoreDirectionOrientationOption);
+    public boolean getDontIgnoreDirectionOrientationOption() {
+        return optionToBoolean(useDontIgnoreDirectionOrientationOption);
     }
 
     public boolean getUseOnlyMakePositiveExamplesOption() {
