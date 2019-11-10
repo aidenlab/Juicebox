@@ -259,8 +259,8 @@ public class GrindUtils {
             newData = invertMatrixRegion(data, boundaries);
             newLabels = invertMatrixRegion(labels, boundaries);
 
-            // both with low probability
-            if (generator.nextBoolean() && generator.nextBoolean()) {
+            // both with lower probability
+            if (generator.nextBoolean()) {
                 // create translocation
                 newData = translocateMatrixRegion(newData, boundaries, newPosition);
                 newLabels = translocateMatrixRegion(newLabels, boundaries, newPosition);
@@ -349,7 +349,7 @@ public class GrindUtils {
     private static Pair<Integer, Integer> randomlyPickTwoIndices(int length) {
         Integer a = generator.nextInt(length);
         Integer b = generator.nextInt(length);
-        while (a.equals(b)) {
+        while (Math.abs(a - b) < 2) {
             b = generator.nextInt(length);
         }
         if (a < b) {
