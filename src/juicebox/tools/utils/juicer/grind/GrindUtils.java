@@ -38,8 +38,6 @@ import java.util.Random;
 
 public class GrindUtils {
 
-    private static final Random generator = new Random(0);
-
     public static int[][] appropriatelyTransformVerticalStripes(int[][] data) {
         int[][] transformedData = new int[data[0].length][data.length];
         for (int i = 0; i < data.length; i++) {
@@ -248,9 +246,9 @@ public class GrindUtils {
         ImageIO.write(image, "PNG", myNewPNGFile);
     }
 
-    public static Pair<float[][], float[][]> randomlyManipulateMatrix(float[][] data, float[][] labels) {
+    public static Pair<float[][], float[][]> randomlyManipulateMatrix(float[][] data, float[][] labels, Random generator) {
         float[][] newData, newLabels;
-        Pair<Integer, Integer> boundaries = randomlyPickTwoIndices(data.length);
+        Pair<Integer, Integer> boundaries = randomlyPickTwoIndices(data.length, generator);
         int lengthTranslocation = boundaries.getSecond() - boundaries.getFirst() + 1;
         int newPosition = generator.nextInt(data.length - lengthTranslocation);
 
@@ -346,7 +344,7 @@ public class GrindUtils {
         return new Pair<>(copyRegionNOTBeingTranslated, copyRegionBeingTranslated);
     }
 
-    private static Pair<Integer, Integer> randomlyPickTwoIndices(int length) {
+    private static Pair<Integer, Integer> randomlyPickTwoIndices(int length, Random generator) {
         Integer a = generator.nextInt(length);
         Integer b = generator.nextInt(length);
         while (Math.abs(a - b) < 2) {

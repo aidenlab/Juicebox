@@ -42,7 +42,7 @@ import java.util.Set;
 
 abstract public class RegionFinder {
 
-    final Random generator = new Random();
+    protected static final Random generator = new Random(0);
     protected Integer x;
     protected Integer y;
     protected Integer z;

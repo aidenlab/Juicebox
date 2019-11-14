@@ -87,7 +87,7 @@ public class DistortionFinder extends RegionFinder {
                     box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, norm);
 
             float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
-            GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
+            //GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
 
             String filePrefix = prefixString + "orig_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_matrix";
             GrindUtils.saveGrindMatrixDataToFile(filePrefix, negPath, compositeMatrix, negDataWriter, false);
@@ -103,15 +103,13 @@ public class DistortionFinder extends RegionFinder {
                 }
             }
 
-            int checkForMultipleOfN = 3;
-
             if (includeLabels) {
                 for (int k = 0; k < numManipulations; k++) {
-                    Pair<float[][], float[][]> alteredMatrices = GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix);
+                    Pair<float[][], float[][]> alteredMatrices = GrindUtils.randomlyManipulateMatrix(compositeMatrix, labelsMatrix, generator);
                     compositeMatrix = alteredMatrices.getFirst();
                     labelsMatrix = alteredMatrices.getSecond();
 
-                    if (k % checkForMultipleOfN == 0) {
+                    if (k == 0 || k == (numManipulations - 1) || generator.nextBoolean()) {
                         filePrefix = prefixString + "dstrt_" + chrom1Name + "_" + box1XIndex + "_" + chrom2Name + "_" + box2XIndex + "_" + k + "_matrix";
                         GrindUtils.saveGrindMatrixDataToFile(filePrefix, posPath, compositeMatrix, posDataWriter, false);
                         GrindUtils.saveGrindMatrixDataToFile(filePrefix + "_labels", posPath, labelsMatrix, posLabelWriter, false);
