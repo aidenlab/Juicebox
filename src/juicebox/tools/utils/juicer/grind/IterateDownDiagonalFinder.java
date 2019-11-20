@@ -76,7 +76,7 @@ public class IterateDownDiagonalFinder extends RegionFinder {
                             // sliding along the diagonal
                             for (int rowIndex = 0; rowIndex < (chrom.getLength() / resolution) - y; rowIndex += stride) {
                                 int startCol = Math.max(0, rowIndex - offsetOfCornerFromDiagonal);
-                                int endCol = Math.min(rowIndex + offsetOfCornerFromDiagonal, (chrom.getLength() / resolution) - y);
+                                int endCol = Math.min(rowIndex + offsetOfCornerFromDiagonal + 1, (chrom.getLength() / resolution) - y);
                                 for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                     getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                             posPath, negPath, writers[0], writers[2], writers[1], false);
@@ -95,7 +95,7 @@ public class IterateDownDiagonalFinder extends RegionFinder {
                                 // only rectangular regions require the double traveling
                                 for (int rowIndex = y; rowIndex < (chrom.getLength() / resolution); rowIndex += stride) {
                                     int startCol = Math.max(y, rowIndex - offsetOfCornerFromDiagonal);
-                                    int endCol = Math.min(rowIndex + offsetOfCornerFromDiagonal, (chrom.getLength() / resolution));
+                                    int endCol = Math.min(rowIndex + offsetOfCornerFromDiagonal + 1, (chrom.getLength() / resolution));
                                     for (int colIndex = startCol; colIndex < endCol; colIndex += stride) {
                                         getTrainingDataAndSaveToFile(zd, chrom, rowIndex, colIndex, resolution, feature2DHandler, x, y,
                                                 posPath, negPath, writers[0], writers[2], writers[1], true);

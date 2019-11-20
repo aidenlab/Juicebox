@@ -64,6 +64,27 @@ class UnitTests {
 
         Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
         newMerger.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.FINAL);
+
+        folder = "/Users/muhammad/Desktop/local_hiccups_gm12878/results3/";
+        baseLink = folder + "enriched_pixels_";
+        link1 = baseLink + "5000.bedpe";
+        link2 = baseLink + "10000.bedpe";
+        link3 = baseLink + "25000.bedpe";
+
+        map = new HashMap<>();
+        map.put(5000, Feature2DParser.loadFeatures(link1, "hg19", true, null, false));
+        map.put(10000, Feature2DParser.loadFeatures(link2, "hg19", true, null, false));
+        map.put(25000, Feature2DParser.loadFeatures(link3, "hg19", true, null, false));
+
+        Dataset ds1 = HiCFileTools.extractDatasetForCLT(Arrays.asList("/Users/muhammad/Desktop/local_hic_files/gm12878_intra_nofrag_30.hic"), true);
+
+        File outputDirectory = new File("/Users/muhammad/Desktop/local_hiccups_gm12878/results5");
+        File outputMergedGivenFile = new File(outputDirectory, HiCCUPSUtils.getMergedRequestedLoopsFileName());
+
+        HiCCUPSUtils.postProcess(map, ds1, ds1.getChromosomeHandler(),
+                HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers(),
+                NormalizationHandler.KR, outputDirectory,
+                false, outputMergedGivenFile);
     }
 
     public static void testingHiCCUPSPostprocessing() {

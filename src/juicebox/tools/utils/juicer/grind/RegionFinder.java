@@ -131,7 +131,7 @@ abstract public class RegionFinder {
             localizedRegionData = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd,
                     rectULX, rectLRX, rectULY, rectLRY,
                     numRows, numCols, norm, true, df,
-                    chrom.getIndex(), 2, true, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
+                    chrom.getIndex(), 4, true, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE);
         } else {
             localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
                     rectULX, rectLRX, rectULY, rectLRY,
