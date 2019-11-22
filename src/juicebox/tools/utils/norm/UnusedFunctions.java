@@ -49,6 +49,7 @@ class UnusedFunctions {
      */
     public static void internalTest(String[] args) throws IOException {
 
+        /*
         String path = args[0];
 
         if (args.length == 2) {

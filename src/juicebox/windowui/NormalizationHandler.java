@@ -34,7 +34,7 @@ public class NormalizationHandler {
     public static final String strKR = "KR";
     public static final String strGW_KR = "GW_KR";
     public static final String strINTER_KR = "INTER_KR";
-    public static final String strGW_VC = "GW_VC";
+    public static final String strGW_VC = "GW_VC"; // todo, should we add a GW_VC_SQRT?
     public static final String strINTER_VC = "INTER_VC";
     public static final String strSCALE = "SCALE";
     public static final String strGW_SCALE = "GW_SCALE";
@@ -93,5 +93,14 @@ public class NormalizationHandler {
         NormalizationType newNormType = new NormalizationType(text, text);
         currentlyAvailableNorms.add(newNormType);
         return newNormType;
+    }
+
+    public List<NormalizationType> getDefaultSetForHiCFileBuilding() {
+        List<NormalizationType> normalizationTypes = new ArrayList<>();
+        normalizationTypes.add(VC);
+        normalizationTypes.add(VC_SQRT);
+        normalizationTypes.add(KR);
+        normalizationTypes.add(SCALE);
+        return normalizationTypes;
     }
 }

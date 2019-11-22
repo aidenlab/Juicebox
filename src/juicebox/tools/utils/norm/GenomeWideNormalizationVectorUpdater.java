@@ -48,7 +48,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
 
-
         BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
         List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
@@ -66,7 +65,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             // compute genome-wide normalization
             // TODO make this dependent on memory, do as much as possible
             if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
-
                 for (NormalizationType normType : NormalizationHandler.getAllGWNormTypes(false)) {
 
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
@@ -81,7 +79,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                         expectedValueFunctionMap.put(key, calculation.getExpectedValueFunction());
                     }
                 }
-
             }
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
@@ -107,7 +104,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             }
         }
 
-
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
         reader.close();
@@ -115,6 +111,30 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         NormalizationVectorUpdater.update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
                 normVectorBuffer.getBytes());
         System.out.println("Finished normalization");
+    }
+
+
+    public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild, List<NormalizationVectorIndexEntry> normVectorIndices,
+                                                            BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
+        for (NormalizationType normType : normalizationsToBuild) {
+            if (NormalizationHandler.isGenomeWideNorm(normType)) {
+
+                long currentTime = System.currentTimeMillis();
+                Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("\n" + normType.getLabel() + " normalization genome wide at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                }
+
+                if (wgVectors != null) {
+                    Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
+                    for (Chromosome chromosome : nvMap.keySet()) {
+                        updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                    }
+
+                    expectedValueCalculations.add(wgVectors.getSecond());
+                }
+            }
+        }
     }
 
     /**
@@ -215,35 +235,5 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             addY = 0;
         }
         return recordArrayList;
-    }
-
-    public static void updateHicFileForGWfromPreOnly(Dataset ds, HiCZoom zoom, List<NormalizationVectorIndexEntry> normVectorIndices,
-                                                     BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
-
-        for (NormalizationType normType : NormalizationHandler.getAllGWNormTypes(true)) {
-
-            long currentTime = System.currentTimeMillis();
-            Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
-            if (HiCGlobals.printVerboseComments) {
-                System.out.println("\n" + normType.getLabel() + " normalization genome wide at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
-            }
-
-            if (wgVectors != null) {
-                Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
-                for (Chromosome chromosome : nvMap.keySet()) {
-
-                    NormalizationVector nv = nvMap.get(chromosome);
-
-                    int position = normVectorBuffer.bytesWritten();
-                    putArrayValuesIntoBuffer(normVectorBuffer, nv.getData());
-
-                    int sizeInBytes = normVectorBuffer.bytesWritten() - position;
-                    normVectorIndices.add(new NormalizationVectorIndexEntry(
-                            normType.toString(), chromosome.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-                }
-
-                expectedValueCalculations.add(wgVectors.getSecond());
-            }
-        }
     }
 }

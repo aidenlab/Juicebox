@@ -46,7 +46,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option matrixSizeOption = addIntegerOption('m', "matrix-window-width");
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
-    private final Option normalizationTypeOption = addStringOption('k', "normalization");
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
@@ -188,19 +187,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
                 normalizationTypes[1] = retrieveNormalization(bothNorms[0], normHandler2);
             }
             return normalizationTypes;
-        }
-        return null;
-    }
-
-    private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
-        if (norm == null || norm.length() < 1)
-            return null;
-
-        try {
-            return normalizationHandler.getNormTypeFromString(norm);
-        } catch (IllegalArgumentException error) {
-            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(7);
         }
         return null;
     }

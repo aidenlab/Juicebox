@@ -29,18 +29,19 @@ import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.NormalizationType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
-
     private String inputVectorFile = null;
-
     private int genomeWideResolution = -100;
-
     private String file;
-    private static boolean doNotSkipKRNorm = true;
+    private final List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -71,9 +72,8 @@ public class AddNorm extends JuiceboxCLT {
         }
         noFragNorm = parser1.getNoFragNormOption();
         genomeWideResolution = parser1.getGenomeWideOption();
-        doNotSkipKRNorm = parser1.getDoNotSkipKROption();
+        normalizationTypes.addAll(parser1.getAllNormalizationTypesOption());
         file = args[1];
-
     }
 
     @Override
@@ -83,11 +83,7 @@ public class AddNorm extends JuiceboxCLT {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
             }
             else {
-                boolean useGenomeWideResolution = genomeWideResolution != -100;
-                if (useGenomeWideResolution)
-                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm, doNotSkipKRNorm);
-                else
-                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm, doNotSkipKRNorm);
+                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, genomeWideResolution, noFragNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -25,6 +25,8 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.windowui.NormalizationHandler;
+import juicebox.windowui.NormalizationType;
 
 import java.util.*;
 
@@ -34,9 +36,9 @@ import java.util.*;
 public class CommandLineParser extends CmdLineParser {
 
     // available
-    // bijklou
+    // bijlou
     // used
-    // d h x v n p F V f t s g m q w c r z a y
+    // d h x v n p k F V f t s g m q w c r z a y
 
     // universal
     protected final Option verboseOption = addBooleanOption('v', "verbose");
@@ -50,7 +52,6 @@ public class CommandLineParser extends CmdLineParser {
     private final Option allPearsonsOption = addBooleanOption('p', "pearsons-all-resolutions");
     private final Option noFragNormOption = addBooleanOption('F', "no_fragment-normalization");
     private final Option randomizePositionOption = addBooleanOption("randomize_position");
-    private final Option skipKROption = addBooleanOption("skip-kr");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -59,6 +60,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option graphOption = addStringOption('g', "graphs");
     private final Option genomeIDOption = addStringOption('y', "genomeid");
     private final Option expectedVectorOption = addStringOption('e', "expected-vector-file");
+    protected final Option normalizationTypeOption = addStringOption('k', "normalization");
 
     // ints
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
@@ -104,10 +106,6 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
-
-    public boolean getDoNotSkipKROption() {
-        return !optionToBoolean(skipKROption);
-    }
 
     public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
 
@@ -229,4 +227,32 @@ public class CommandLineParser extends CmdLineParser {
     public Set<String> getResolutionOption() { return optionToStringSet(resolutionOption);}
 
     public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
+
+    public List<NormalizationType> getAllNormalizationTypesOption() {
+        NormalizationHandler normalizationHandler = new NormalizationHandler();
+        List<String> normStrings = optionToStringList(normalizationTypeOption);
+        if (normStrings == null || normStrings.size() < 1) {
+            return normalizationHandler.getDefaultSetForHiCFileBuilding();
+        }
+
+        List<NormalizationType> normalizationTypes = new ArrayList<>();
+        for (String normString : normStrings) {
+            normalizationTypes.add(retrieveNormalization(normString, normalizationHandler));
+        }
+
+        return normalizationTypes;
+    }
+
+    protected NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
+        if (norm == null || norm.length() < 1)
+            return null;
+
+        try {
+            return normalizationHandler.getNormTypeFromString(norm);
+        } catch (IllegalArgumentException error) {
+            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+            System.exit(7);
+        }
+        return null;
+    }
 }
