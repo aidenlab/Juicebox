@@ -72,7 +72,7 @@ public class NormalizationHandler {
     }
 
     public static boolean isGenomeWideNorm(NormalizationType norm) {
-        return norm.equals(GW_KR) || norm.equals(GW_VC) || norm.equals(GW_SCALE);
+        return isGenomeWideNormIntra(norm) || isGenomeWideNormInter(norm);
     }
 
     public static NormalizationType[] getAllGWNormTypes(boolean isUseOnlyScalingDefaults) {
@@ -80,6 +80,14 @@ public class NormalizationHandler {
             return new NormalizationType[]{GW_SCALE};
         }
         return new NormalizationType[]{GW_KR, GW_VC, GW_SCALE, INTER_KR, INTER_VC, INTER_SCALE};
+    }
+
+    public static boolean isGenomeWideNormIntra(NormalizationType norm) {
+        return norm.equals(GW_KR) || norm.equals(GW_VC) || norm.equals(GW_SCALE);
+    }
+
+    public static boolean isGenomeWideNormInter(NormalizationType norm) {
+        return norm.equals(INTER_KR) || norm.equals(INTER_VC) || norm.equals(INTER_SCALE);
     }
 
     public NormalizationType getNormTypeFromString(String text) {

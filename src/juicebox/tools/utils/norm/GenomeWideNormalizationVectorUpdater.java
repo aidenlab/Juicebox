@@ -144,20 +144,15 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
     private static Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> getWGVectors(Dataset dataset,
                                                                                                      HiCZoom zoom,
                                                                                                      NormalizationType norm) {
-
-        boolean includeIntra = false;
-        if (NormalizationHandler.isGenomeWideNorm(norm)) {
-            includeIntra = true;
-        }
+        boolean includeIntraData = NormalizationHandler.isGenomeWideNormIntra(norm); // default INTER type
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
-        final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntraData);
 
         int totalSize = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / resolution + 1;
         }
-
 
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
         double[] vector = calculations.getNorm(norm);
