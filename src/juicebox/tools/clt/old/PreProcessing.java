@@ -66,7 +66,7 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : --randomize_position randomize positions between fragment sites\n"
                 + "           : --random_seed <long> for seeding random number generator\n"
                 + "           : --frag_site_maps <fragment site files> for randomization\n"
-                + "           : --skip-kr skip KR normalization\n"
+                + "           : -k normalizations to include\n"
         );
     }
 
