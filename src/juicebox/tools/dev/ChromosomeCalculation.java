@@ -24,11 +24,12 @@
 
 package juicebox.tools.dev;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ContactRecord;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.ArrayTools;
-import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedWriter;
@@ -69,9 +70,7 @@ public class ChromosomeCalculation {
             Chromosome chromosome1 = chromosomes[i];
             for (int j = i; j < chromosomes.length; j++) {
                 Chromosome chromosome2 = chromosomes[j];
-                Matrix matrix = ds.getMatrix(chromosome1, chromosome2);
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(new HiCZoom(HiC.Unit.BP, resolution)); // 1,000,000 resolution
+                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome1, chromosome2, resolution); // 1,000,000 resolution
                 if (zd == null) continue;
                 // do the summing, iterate over contact records in matrixZoomData object
                 sumColumn(zd, chromosomeToColumnSumsMap, chromosomeToDiagonalValueMap, chromosome1, chromosome2);

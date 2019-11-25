@@ -100,9 +100,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-                Matrix matrix = ds.getMatrix(chr, chr);
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
+                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+                if (zd == null) continue;
 
                 NormalizationCalculations nc = new NormalizationCalculations(zd);
                 if (!nc.isEnoughMemory()) {

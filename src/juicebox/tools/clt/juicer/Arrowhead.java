@@ -256,9 +256,8 @@ public class Arrowhead extends JuicerCLT {
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
-
-                    Matrix matrix = ds.getMatrix(chr, chr);
-                    if (matrix != null) {
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+                    if (zd != null) {
 
                         ArrowheadScoreList list = new ArrowheadScoreList(inputList, chr, resolution);
                         ArrowheadScoreList control = new ArrowheadScoreList(inputControl, chr, resolution);
@@ -268,8 +267,7 @@ public class Arrowhead extends JuicerCLT {
                         }
 
                         // actual Arrowhead algorithm
-                        BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                                matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
+                        BlockBuster.run(chr, resolution, matrixSize, zd, norm, list, control, contactDomainsGenomeWide,
                                 contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
 
                         //todo should this be inside if? But the wouldn't increment for skipped chr;s?

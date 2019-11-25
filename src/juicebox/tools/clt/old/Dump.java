@@ -85,12 +85,7 @@ public class Dump extends JuiceboxCLT {
         // If in the future we wish to expose, we should use a more reasonable flag.
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
-            Matrix matrix =  dataset.getMatrix(chr, chr);
-            if (matrix == null) {
-                System.err.println("No All vs. All matrix");
-                System.exit(1);
-            }
-            MatrixZoomData zd = matrix.getZoomData(zoom);
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null){
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
@@ -127,10 +122,9 @@ public class Dump extends JuiceboxCLT {
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 final int chrIdx = chr.getIndex();
-                Matrix matrix = dataset.getMatrix(chr, chr);
+                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
+                if (zd == null) continue;
                 Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
                 while (iter.hasNext()) {
                     ContactRecord cr = iter.next();
@@ -229,18 +223,13 @@ public class Dump extends JuiceboxCLT {
         Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
         Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
 
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome2);
-        if (matrix == null) {
-            System.err.println("No reads in " + chr1 + " " + chr2);
-            return;
-        }
-
         if (chromosome2.getIndex() < chromosome1.getIndex()) {
             regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
         }
 
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome2, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chr1 + " " + chr2);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {

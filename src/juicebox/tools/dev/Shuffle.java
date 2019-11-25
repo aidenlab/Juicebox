@@ -37,7 +37,6 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
@@ -258,12 +257,7 @@ public class Shuffle extends JuicerCLT {
             public void process(String chr, List<Feature2D> feature2DList) {
                 Chromosome chrom = ds.getChromosomeHandler().getChromosomeFromName(feature2DList.get(0).getChr1());
 
-                Matrix matrix = ds.getMatrix(chrom, chrom);
-                if (matrix == null) return;
-
-                HiCZoom zoom = ds.getZoomForBPResolution(highResolution);
-                final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chrom, chrom, highResolution);
                 if (zd == null) return;
 
                 System.out.println("Currently on: " + chr);
@@ -358,11 +352,7 @@ public class Shuffle extends JuicerCLT {
 
         Chromosome chrom = ds.getChromosomeHandler().getChromosomeFromName("assembly");
 
-        Matrix matrix = ds.getMatrix(chrom, chrom);
-        if (matrix == null) return;
-
-        HiCZoom zoom = ds.getZoomForBPResolution(highResolution);
-        final MatrixZoomData zd = matrix.getZoomData(zoom);
+        final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chrom, chrom, highResolution);
 
         if (zd == null) return;
 
@@ -425,12 +415,9 @@ public class Shuffle extends JuicerCLT {
         System.out.println("Num of CPU threads: " + numCPUThreads);
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
 
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
         for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
-            Matrix matrix = ds.getMatrix(chr, chr);
-            if (matrix == null) continue;
-            MatrixZoomData zd = matrix.getZoomData(zoom);
-
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, resolution);
+            if (zd == null) continue;
 
             int maxIndex = chr.getLength() / resolution + 1;
             for (int k = 0; k < maxIndex; k++) {

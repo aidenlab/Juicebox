@@ -85,14 +85,9 @@ public class NormalizationVector {
     }
 
     public NormalizationVector mmbaScaleToVector(Dataset ds) {
-
         Chromosome chromosome = ds.getChromosomeHandler().getChromosomeFromIndex(chrIdx);
-
-        Matrix matrix = ds.getMatrix(chromosome, chromosome);
-        if (matrix == null) return null;
-        MatrixZoomData zd = matrix.getZoomData(new HiCZoom(unit, resolution));
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome, chromosome, new HiCZoom(unit, resolution));
         if (zd == null) return null;
-
         return mmbaScaleToVector(zd);
     }
 

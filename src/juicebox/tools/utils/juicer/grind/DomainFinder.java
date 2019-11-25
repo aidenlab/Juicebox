@@ -26,14 +26,12 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.FeatureFunction;
-import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
@@ -68,13 +66,7 @@ public class DomainFinder extends RegionFinder {
                 public void process(String chr, List<Feature2D> feature2DList) {
 
                     Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chr);
-
-                    Matrix matrix = ds.getMatrix(chromosome, chromosome);
-                    if (matrix == null) return;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome, chromosome, resolution);
                     if (zd == null) return;
 
                     for (int rowIndex = 0; rowIndex < chromosome.getLength() / resolution; rowIndex++) {

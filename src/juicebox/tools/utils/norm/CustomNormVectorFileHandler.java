@@ -178,11 +178,8 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
 
                 // Loop through chromosomes
                 for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-
-                    Matrix matrix = ds.getMatrix(chr, chr);
-
-                    if (matrix == null) continue;
-                    MatrixZoomData zd = matrix.getZoomData(zoom);
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+                    if (zd == null) continue;
 
                     handleLoadedVector(customNormType, chr.getIndex(), zoom, normalizationVectorMap.get(customNormType),
                                 normVectorBuffer, normVectorIndices, zd, evLoaded);

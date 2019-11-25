@@ -31,7 +31,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
-import juicebox.data.Matrix;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.DiskResidentBlockMatrix;
@@ -209,15 +209,9 @@ public class Pearsons extends JuiceboxCLT {
     @Override
     public void run() {
         HiCZoom zoom = new HiCZoom(unit, binSize);
-
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome1);
-        if (matrix == null) {
-            System.err.println("No reads in " + chromosome1);
-            System.exit(21);
-        }
-
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome1, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chromosome1);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {

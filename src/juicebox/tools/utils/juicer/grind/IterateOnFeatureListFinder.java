@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.grind;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
@@ -35,7 +34,6 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.track.feature.FeatureFunction;
-import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
@@ -225,15 +223,8 @@ public class IterateOnFeatureListFinder extends RegionFinder {
             public void process(String chr, List<Feature2D> feature2DList) {
 
                 Chromosome chrom = chromosomeHandler.getChromosomeFromName(chr);
-                Matrix matrix = ds.getMatrix(chrom, chrom);
-                if (matrix == null) {
-                    return;
-                }
-                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                final MatrixZoomData zd = matrix.getZoomData(zoom);
-                if (zd == null) {
-                    return;
-                }
+                final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chrom, chrom, resolution);
+                if (zd == null) return;
 
                 try {
                     final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "/pos_res_" + resolution + "_" + chrom.getName() + "_file_names.txt"), StandardCharsets.UTF_8));

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class DataCleanerV2 extends DataCleaner {
+public class DataCleanerV2 extends DataCleaner {
 
     private final List<Integer> dataSetSeparatingIndices;
     private final int numDatasets;

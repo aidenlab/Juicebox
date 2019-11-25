@@ -22,10 +22,16 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.dev;
 
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.dev.drink.DataCleaner;
+import juicebox.tools.utils.dev.drink.DataCleanerV2;
+import juicebox.tools.utils.dev.drink.DrinkUtils;
+import juicebox.tools.utils.dev.drink.SubcompartmentInterval;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
@@ -42,46 +48,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Clustering {
-
-    public static GenomeWideList<SubcompartmentInterval> extractAllInitialIntraSubcompartments(
-            Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm, double logThreshold,
-            double maxPercentAllowedToBeZeroThreshold, int numClusters, int maxIters) {
-
-        final GenomeWideList<SubcompartmentInterval> subcompartments = new GenomeWideList<>(chromosomeHandler);
-        final AtomicInteger numRunsToExpect = new AtomicInteger();
-        final AtomicInteger numRunsDone = new AtomicInteger();
-
-        for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
-            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome, chromosome, resolution);
-            if (zd == null) continue;
-
-            try {
-                ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
-
-                int maxBin = chromosome.getLength() / resolution + 1;
-                int maxSize = maxBin;
-
-                RealMatrix localizedRegionData = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
-                        0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
-                        false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
-
-                final DataCleaner dataCleaner = new DataCleaner(localizedRegionData.getData(), maxPercentAllowedToBeZeroThreshold, resolution);
-
-                if (dataCleaner.getLength() > 0) {
-                    launchKMeansForInitialSubcompartment(chromosome, dataCleaner, subcompartments, numClusters,
-                            maxIters, numRunsToExpect, numRunsDone, null, null);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        waitWhileCodeRuns(numRunsDone, numRunsToExpect, subcompartments.size());
-
-        return subcompartments;
-    }
-
-
+public class DRINKSUtils {
     /**
      * version with multiple hic files
      */
@@ -144,7 +111,6 @@ public class Clustering {
 
         DrinkUtils.writeFinalSubcompartmentsToFiles(comparativeSubcompartments, outputDirectory, inputHicFilePaths);
     }
-
 
     private static void launchKMeansForInitialSubcompartment(Chromosome chromosome, DataCleaner dataCleaner,
                                                              GenomeWideList<SubcompartmentInterval> subcompartments,
