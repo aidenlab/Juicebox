@@ -27,7 +27,6 @@ package juicebox.tools.utils.dev.drink;
 import juicebox.data.*;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
@@ -72,13 +71,7 @@ class ScaledGenomeWideMatrix {
                 Chromosome chr2 = chromosomes[j];
 
                 boolean isIntra = chr1.getIndex() == chr2.getIndex();
-                Matrix matrix = ds.getMatrix(chr1, chr2);
-
-                if (matrix == null) continue;
-
-                HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, resolution);
                 if (zd == null) continue;
 
                 ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chr1, isIntra);

@@ -96,7 +96,7 @@ public class CalcMatrixSum extends JuiceboxCLT {
                         MatrixZoomData zd;
                         try {
                             actualVector = normalizationVector.getData();
-                            zd = dataset.getMatrix(chromosome, chromosome).getZoomData(zoom);
+                            zd = HiCFileTools.getMatrixZoomData(dataset, chromosome, chromosome, zoom);
                         } catch (Exception e) {
                             System.err.println("No data for " + norm.getLabel() + " - " + chromosome + " at " + zoom);
                             return;

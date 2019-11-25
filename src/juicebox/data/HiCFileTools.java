@@ -434,13 +434,9 @@ public class HiCFileTools {
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
     }
 
-    public static RealMatrix getRealMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
-        // skip these matrices
-        Matrix matrix = ds.getMatrix(chromosome, chromosome);
-        if (matrix == null) return null;
+    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
 
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-        final MatrixZoomData zd = matrix.getZoomData(zoom);
+        final MatrixZoomData zd = getMatrixZoomData(ds, chromosome, chromosome, resolution);
         if (zd == null) return null;
 
         ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
@@ -454,7 +450,7 @@ public class HiCFileTools {
 
     }
 
-    private static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
         Matrix matrix = ds.getMatrix(chrom1, chrom2);
         if (matrix == null || zoom == null) return null;
         return matrix.getZoomData(zoom);

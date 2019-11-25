@@ -24,13 +24,15 @@
 
 package juicebox.tools.utils.juicer.grind;
 
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -80,12 +82,7 @@ class SectionParser {
                     Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
                     System.out.println("Currently handling chromosome: " + chrom.getName());
 
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chrom, chrom, resolution);
                     if (zd == null) return;
 
                     for (Feature2D feature2D : feature2DList) {
@@ -173,13 +170,7 @@ class SectionParser {
                     System.out.println("Doing " + chr);
 
                     Chromosome chrom = chromosomeHandler.getChromosomeFromName(feature2DList.get(0).getChr1());
-
-                    Matrix matrix = ds.getMatrix(chrom, chrom);
-                    if (matrix == null) return;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chrom, chrom, resolution);
                     if (zd == null) return;
 
                     for (Feature2D feature2D : feature2DList) {
@@ -340,17 +331,10 @@ class SectionParser {
                 for (final Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
                     // skip these matrices
-                    Matrix matrix = ds.getMatrix(chromosome, chromosome);
-                    if (matrix == null) continue;
-
                     if (chromosome.getName().toLowerCase().contains("m") || chromosome.getName().toLowerCase().contains("y"))
                         continue;
 
-                    if (chromosome.getIndex() > 2) continue;
-
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                    final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome, chromosome, resolution);
                     if (zd == null) continue;
 
                     int maxBin = chromosome.getLength() / resolution + 1;

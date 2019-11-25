@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class DataCleaner {
+public class DataCleaner {
 
     final private double[][] originalData;
     final private double[][] cleanData;

@@ -92,7 +92,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             // Loop through chromosomes
             for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
                 Matrix matrix = ds.getMatrix(chr, chr);
-
                 if (matrix == null) continue;
 
                 for (NormalizationType normType : NormalizationHandler.getAllNormTypes()) {
@@ -166,10 +165,10 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         // Loop through chromosomes
         for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             final int chrIdx = chr.getIndex();
-            Matrix matrix = dataset.getMatrix(chr, chr);
 
-            if (matrix == null) continue;
-            MatrixZoomData zd = matrix.getZoomData(zoom);
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
+            if (zd == null) continue;
+
             Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
@@ -210,17 +209,14 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
             for (Chromosome c2 : handler.getChromosomeArrayWithoutAllByAll()) {
                 if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    Matrix matrix = dataset.getMatrix(c1, c2);
-                    if (matrix != null) {
-                        MatrixZoomData zd = matrix.getZoomData(zoom);
-                        if (zd != null) {
-                            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-                            while (iter.hasNext()) {
-                                ContactRecord cr = iter.next();
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
+                    if (zd != null) {
+                        Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
+                        while (iter.hasNext()) {
+                            ContactRecord cr = iter.next();
+                            int binX = cr.getBinX() + addX;
+                            int binY = cr.getBinY() + addY;
+                            recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
                         }
                     }
                 }

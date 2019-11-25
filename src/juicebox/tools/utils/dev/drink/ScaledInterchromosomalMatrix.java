@@ -26,12 +26,11 @@ package juicebox.tools.utils.dev.drink;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
-import juicebox.data.Matrix;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
@@ -82,14 +81,7 @@ class ScaledInterchromosomalMatrix {
             Chromosome chr2 = chromosomes[j];
 
             if (chr1.getIndex() == chr2.getIndex()) continue;
-
-            Matrix matrix = ds.getMatrix(chr1, chr2);
-
-            if (matrix == null) continue;
-
-            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-            final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, resolution);
             if (zd == null) continue;
 
             // will need to flip across diagonal

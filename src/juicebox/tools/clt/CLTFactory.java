@@ -111,6 +111,8 @@ public class CLTFactory {
             return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
+        } else if (cmd.equals("drinks")) {
+            return new DRINKS();
         } else if (cmd.equals("drink")) {
             return new Drink();
         } else if (cmd.equals("grind")) {

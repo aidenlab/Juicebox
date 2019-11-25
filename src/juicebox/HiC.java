@@ -396,8 +396,6 @@ public class HiC {
 
     public Matrix getMatrix() {
         if (dataset == null || xContext == null || yContext == null) return null;
-
-
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
 
     }
