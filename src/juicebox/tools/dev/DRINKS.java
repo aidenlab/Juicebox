@@ -93,35 +93,10 @@ public class DRINKS extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        DRINKSUtils.extractAllComparativeIntraSubcompartments(datasetList, chromosomeHandler, resolution, norm, logThreshold,
-                maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory, inputHicFilePaths);
+        //  Clusterer.extractAllComparativeIntraSubcompartmentsTo(datasetList, chromosomeHandler, resolution, norm, logThreshold,
+        //          maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory, inputHicFilePaths);
 
-        /*
-        } else {
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments =
-                    Clustering.extractAllInitialIntraSubcompartments(ds, chromosomeHandler, resolution, norm, logThreshold,
-                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters);
 
-            DrinkUtils.saveFileBeforeAndAfterCollapsing(intraSubcompartments, outputDirectory, "result_intra_initial.bed", "result_intra_initial_collapsed.bed");
-            if (whichApproachtoUse == 1) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = OriginalGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments);
-                DrinkUtils.saveFileBeforeAndAfterCollapsing(finalSubcompartments, outputDirectory, "gw_result_initial.bed", "gw_result_collapsed.bed");
-            } else if (whichApproachtoUse == 2) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = SecondGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments, connectedComponentThreshold);
-                finalSubcompartments.simpleExport(new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed"));
-            } else if (whichApproachtoUse == 3) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = ThirdGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments, connectedComponentThreshold);
-                finalSubcompartments.simpleExport(new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed"));
-            }
-        }
-
-         */
     }
 
 }

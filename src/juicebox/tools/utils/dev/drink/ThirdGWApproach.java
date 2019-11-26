@@ -28,7 +28,6 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
@@ -51,11 +50,11 @@ public class ThirdGWApproach {
         final ScaledCompositeOddVsEvenInterchromosomalMatrix interMatrix = new ScaledCompositeOddVsEvenInterchromosomalMatrix(
                 chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold, true);
 
-        File outputFile = new File(outputDirectory, "inter_Odd_vs_Even_matrix_data.txt");
-        MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
+        //File outputFile = new File(outputDirectory, "inter_Odd_vs_Even_matrix_data.txt");
+        //MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
 
-        File outputFile2 = new File(outputDirectory, "inter_Even_vs_Odd_matrix_data.txt");
-        MatrixTools.exportData(interMatrix.getCleanedTransposedData(), outputFile2);
+        //File outputFile2 = new File(outputDirectory, "inter_Even_vs_Odd_matrix_data.txt");
+        //MatrixTools.exportData(interMatrix.getCleanedTransposedData(), outputFile2);
 
         GenomeWideList<SubcompartmentInterval> interOddSubcompartments = new GenomeWideList<>(chromosomeHandler);
         launchKmeansInterMatrix(interMatrix, interOddSubcompartments, numClusters, maxIters, numCompleted, false);
@@ -74,12 +73,6 @@ public class ThirdGWApproach {
             }
         }
 
-        File outputFile3 = new File(outputDirectory, "inter_odd_kmeans_clusters.bed");
-        interOddSubcompartments.simpleExport(outputFile3);
-
-        outputFile3 = new File(outputDirectory, "inter_even_kmeans_clusters.bed");
-        interEvenSubcompartments.simpleExport(outputFile3);
-
         return mergeIntraAndInterAnnotations(outputDirectory,
                 origIntraSubcompartments, interOddSubcompartments, interEvenSubcompartments, connectedComponentThreshold);
     }
@@ -91,7 +84,7 @@ public class ThirdGWApproach {
 
         final Map<SimpleInterval, Set<Integer>> intervalToClusterIDs = new HashMap<>();
 
-        System.out.println("Start Intra List Processing");
+        System.out.println("Start Intra List Processing 1");
         // set the initial set with cluster val
         origIntraSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
             @Override
@@ -103,9 +96,9 @@ public class ThirdGWApproach {
                 }
             }
         });
-        System.out.println("End Intra List Processing");
+        System.out.println("End Intra List Processing 1");
 
-        System.out.println("Start Inter List Processing");
+        System.out.println("Start Inter List Processing 2");
 
         //odds first
         interOddSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
@@ -128,13 +121,9 @@ public class ThirdGWApproach {
         });
 
 
-        System.out.println("End Inter List Processing");
+        System.out.println("End Inter List Processing 2");
 
         int[][] adjacencyMatrix = ConnectedComponents.generateAdjacencyMatrix(intervalToClusterIDs);
-
-        File outputFile = new File(outputDirectory, "subcompartment_adj_matrix_data.txt");
-        //MatrixTools.exportData(MatrixTools.convertToDoubleMatrix(adjacencyMatrix), outputFile);
-        MatrixTools.exportData(MatrixTools.convertToDoubleMatrix(adjacencyMatrix), outputFile);
 
         Set<Set<Integer>> connectedComponents = ConnectedComponents.calculateConnectedComponents(adjacencyMatrix, connectedComponentThreshold);
 

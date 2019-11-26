@@ -958,4 +958,40 @@ public class MatrixTools {
             }
         }
     }
+
+    // column length assumed identical and kept the same
+    public static double[][] stitchMultipleMatricesTogetherByRowDim(List<double[][]> data) {
+        // todo currently assuming each one identical...
+
+        int colNums = data.get(0)[0].length;
+        int rowNums = 0;
+        for (double[][] mtrx : data) {
+            rowNums += mtrx.length;
+        }
+
+        double[][] aggregate = new double[rowNums][colNums];
+
+        int rowOffSet = 0;
+        for (double[][] region : data) {
+            MatrixTools.copyFromAToBRegion(region, aggregate, rowOffSet, 0);
+            rowOffSet += region.length;
+        }
+
+        return aggregate;
+    }
+
+    public static double[][] takeDerivativeDownColumn(double[][] data) {
+        double[][] derivative = new double[data.length][data[0].length - 1];
+
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, derivative[i], 0, derivative[i].length);
+        }
+        for (int i = 0; i < derivative.length; i++) {
+            for (int j = 0; j < derivative[i].length; j++) {
+                derivative[i][j] -= data[i][j + 1];
+            }
+        }
+
+        return derivative;
+    }
 }

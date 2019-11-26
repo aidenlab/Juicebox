@@ -25,6 +25,7 @@
 package juicebox.tools.utils.dev.drink;
 
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import org.broad.igv.feature.Chromosome;
 
@@ -35,49 +36,54 @@ import java.util.Map;
 
 public class DataCleaner {
 
-    final private double[][] originalData;
     final private double[][] cleanData;
     private final Map<Integer, Integer> cleanIndexRowToOriginalIndexRow = new HashMap<>();
     private final Map<Integer, Integer> cleanIndexColToOriginalIndexCol = new HashMap<>();
     final private int resolution;
     private final double maxPercentAllowedToBeZeroThreshold;
 
-    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution) {
+    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution, boolean takeDerivative) {
         this.resolution = resolution;
         this.maxPercentAllowedToBeZeroThreshold = maxPercentAllowedToBeZeroThreshold;
-        originalData = data;
-        cleanData = cleanUpData();
+        if (takeDerivative) {
+            cleanData = cleanUpData(MatrixTools.takeDerivativeDownColumn(data));
+        } else {
+            cleanData = cleanUpData(data);
+        }
+        System.gc();
     }
 
-    private double[][] cleanUpData() {
+    private double[][] cleanUpData(double[][] originalData) {
 
-        //boolean[][] isZeroNanOrInf = new boolean[originalData.length][originalData[0].length];
-        int[] numZerosRowIndx = new int[originalData.length];
-        int[] numZerosColIndx = new int[originalData[0].length];
+        int numRows = originalData.length;
+        int numCols = originalData[0].length;
+        int[] numZerosRowIndx = new int[numRows];
+        double[] rowSums = new double[numRows];
+        int[] numZerosColIndx = new int[numCols];
+        double[] columnSums = new double[numCols];
 
         for (int i = 0; i < originalData.length; i++) {
             for (int j = 0; j < originalData[0].length; j++) {
-                //isZeroNanOrInf[i][j] = Double.isNaN(originalData[i][j]) || Double.isInfinite(originalData[i][j]) || isCloseToZero(originalData[i][j]);
-
                 if (Double.isNaN(originalData[i][j]) || Double.isInfinite(originalData[i][j]) || isCloseToZero(originalData[i][j])) {
                     originalData[i][j] = 0;
                     numZerosRowIndx[i]++;
                     numZerosColIndx[j]++;
                 }
+                double absValue = Math.abs(originalData[i][j]);
+                rowSums[i] += absValue;
+                columnSums[j] += absValue;
             }
         }
 
-        calculateWhichIndicesToKeep(numZerosRowIndx, cleanIndexRowToOriginalIndexRow);
-        calculateWhichIndicesToKeep(numZerosColIndx, cleanIndexColToOriginalIndexCol);
-
-        return makeCleanMatrix();
+        calculateWhichIndicesToKeep(numZerosRowIndx, rowSums, cleanIndexRowToOriginalIndexRow);
+        calculateWhichIndicesToKeep(numZerosColIndx, columnSums, cleanIndexColToOriginalIndexCol);
+        return makeCleanMatrix(originalData);
     }
 
-    private double[][] makeCleanMatrix() {
+    private double[][] makeCleanMatrix(double[][] originalData) {
 
         int numRows = cleanIndexRowToOriginalIndexRow.keySet().size();
         int numCols = cleanIndexColToOriginalIndexCol.keySet().size();
-        //System.out.println("cleaner "+numRows+" "+numCols);
 
         double[][] cleanMatrx = new double[numRows][numCols];
 
@@ -92,45 +98,21 @@ public class DataCleaner {
     }
 
 
-    private void calculateWhichIndicesToKeep(int[] numZerosIndxCount, Map<Integer, Integer> cleanIndexToOriginalIndex) {
+    private void calculateWhichIndicesToKeep(int[] numZerosIndxCount, double[] sumsAlongDimension,
+                                             Map<Integer, Integer> cleanIndexToOriginalIndex) {
 
         int maxNumAllowedToBeZeroCutOff = (int) (numZerosIndxCount.length * maxPercentAllowedToBeZeroThreshold);
         int counter = 0;
 
         for (int i0 = 0; i0 < numZerosIndxCount.length; i0++) {
-            if (numZerosIndxCount[i0] < maxNumAllowedToBeZeroCutOff) {
+            if (numZerosIndxCount[i0] < maxNumAllowedToBeZeroCutOff && sumsAlongDimension[i0] > 1) {
                 cleanIndexToOriginalIndex.put(counter, i0);
                 counter++;
             }
         }
     }
 
-    private boolean isCloseToZero(double v) {
-        return Math.abs(v) < 1E-30;
-    }
-
-
-    public double[][] getCleanedData() {
-        return cleanData;
-    }
-
-    public double[][] getOriginalData() {
-        return originalData;
-    }
-
-    int getOriginalIndexRow(int i) {
-        return cleanIndexRowToOriginalIndexRow.get(i);
-    }
-
-    private int getOriginalIndexCol(int i) {
-        return cleanIndexColToOriginalIndexCol.get(i);
-    }
-
-    public int getLength() {
-        return cleanData.length;
-    }
-
-    public void processKmeansResult(Chromosome chromosome, GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
+    public void postprocessKmeansResult(Chromosome chromosome, GenomeWideList<SubcompartmentInterval> subcompartments, Cluster[] clusters) {
         List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 
@@ -147,6 +129,27 @@ public class DataCleaner {
 
         DrinkUtils.reSort(subcompartments);
         subcompartments.addAll(subcompartmentIntervals);
+    }
+
+    private boolean isCloseToZero(double v) {
+        return Math.abs(v) < 1E-30;
+    }
+
+
+    public double[][] getCleanedData() {
+        return cleanData;
+    }
+
+    int getOriginalIndexRow(int i) {
+        return cleanIndexRowToOriginalIndexRow.get(i);
+    }
+
+    private int getOriginalIndexCol(int i) {
+        return cleanIndexColToOriginalIndexCol.get(i);
+    }
+
+    public int getLength() {
+        return cleanData.length;
     }
 
     int getResolution() {

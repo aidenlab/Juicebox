@@ -28,10 +28,9 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
-import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.dev.drink.*;
+import juicebox.tools.utils.dev.drink.Clusterer;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -51,9 +50,6 @@ public class Drink extends JuicerCLT {
     private Dataset ds;
     private File outputDirectory;
     private int numClusters = 10;
-    private final double maxPercentAllowedToBeZeroThreshold = 0.7;
-    private final int maxIters = 10000;
-    private final double logThreshold = 2;
     private final int connectedComponentThreshold = 50;
     private final int whichApproachtoUse = 0;
     private final List<Dataset> datasetList = new ArrayList<>();
@@ -107,32 +103,9 @@ public class Drink extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        if (whichApproachtoUse == 0 && datasetList.size() > 0) {
-            Clustering.extractAllComparativeIntraSubcompartments(datasetList, chromosomeHandler, resolution, norm, logThreshold,
-                    maxPercentAllowedToBeZeroThreshold, numClusters, maxIters, outputDirectory, inputHicFilePaths);
-
-        } else {
-            GenomeWideList<SubcompartmentInterval> intraSubcompartments =
-                    Clustering.extractAllInitialIntraSubcompartments(ds, chromosomeHandler, resolution, norm, logThreshold,
-                            maxPercentAllowedToBeZeroThreshold, numClusters, maxIters);
-
-            DrinkUtils.saveFileBeforeAndAfterCollapsing(intraSubcompartments, outputDirectory, "result_intra_initial.bed", "result_intra_initial_collapsed.bed");
-            if (whichApproachtoUse == 1) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = OriginalGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments);
-                DrinkUtils.saveFileBeforeAndAfterCollapsing(finalSubcompartments, outputDirectory, "gw_result_initial.bed", "gw_result_collapsed.bed");
-            } else if (whichApproachtoUse == 2) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = SecondGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments, connectedComponentThreshold);
-                finalSubcompartments.simpleExport(new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed"));
-            } else if (whichApproachtoUse == 3) {
-                GenomeWideList<SubcompartmentInterval> finalSubcompartments = ThirdGWApproach.extractFinalGWSubcompartments(
-                        ds, chromosomeHandler, resolution, norm, outputDirectory, numClusters, maxIters, logThreshold,
-                        intraSubcompartments, connectedComponentThreshold);
-                finalSubcompartments.simpleExport(new File(outputDirectory, "final_stitched_collapsed_subcompartments.bed"));
-            }
+        if (datasetList.size() > 0) {
+            Clusterer clusterer = new Clusterer(datasetList, chromosomeHandler, resolution, norm, numClusters);
+            clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
         }
     }
 }
