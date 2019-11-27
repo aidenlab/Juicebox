@@ -42,6 +42,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SecondGWApproach {
 
+    /**
+     * @param ds
+     * @param chromosomeHandler
+     * @param resolution
+     * @param norm
+     * @param outputDirectory
+     * @param numClusters
+     * @param maxIters
+     * @param logThreshold
+     * @param origIntraSubcompartments
+     * @param connectedComponentThreshold
+     * @return
+     * @deprecate
+     */
     public static GenomeWideList<SubcompartmentInterval>
     extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
                                   File outputDirectory, int numClusters, int maxIters, double logThreshold,

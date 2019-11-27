@@ -42,14 +42,10 @@ public class DataCleaner {
     final private int resolution;
     private final double maxPercentAllowedToBeZeroThreshold;
 
-    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution, boolean takeDerivative) {
+    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution) {
         this.resolution = resolution;
         this.maxPercentAllowedToBeZeroThreshold = maxPercentAllowedToBeZeroThreshold;
-        if (takeDerivative) {
-            cleanData = cleanUpData(MatrixTools.takeDerivativeDownColumn(data));
-        } else {
-            cleanData = cleanUpData(data);
-        }
+        cleanData = cleanUpData(MatrixTools.appendDerivativeDownColumn(data));
         System.gc();
     }
 

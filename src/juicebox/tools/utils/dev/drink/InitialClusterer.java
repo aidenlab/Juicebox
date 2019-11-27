@@ -42,36 +42,38 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Clusterer {
+public class InitialClusterer {
 
     /**
      * version with multiple hic files
      */
-    final AtomicInteger numRunsToExpect = new AtomicInteger();
-    final AtomicInteger numRunsDone = new AtomicInteger();
-    // save the kmeans centroid of each cluster
-    final Map<Integer, double[]> idToCentroidMap = new HashMap<>();
-    private final double maxPercentAllowBeZero = 0.5;
+    private final AtomicInteger numRunsToExpect = new AtomicInteger();
+    private final AtomicInteger numRunsDone = new AtomicInteger();
+    private final double maxPercentAllowBeZero = 0.75;
+    private final int maxIters;
     private final List<Dataset> datasets;
     private final int numDatasets;
     private final ChromosomeHandler chromosomeHandler;
     private final int resolution;
     private final NormalizationType norm;
-    private final int maxIters = 20000;
-    private final double logThreshold = 4;
+    private final double logThreshold;
+    private final long[] randomSeeds;
     private final int numClusters;
     private final List<Map<Chromosome, Map<Integer, List<Integer>>>> mapPosIndexToCluster = new ArrayList<>();
     private final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
-    private final long[] randomSeeds = new long[]{128971L, 22871L};
+    private Map<Integer, double[]> idToCentroidMap = new HashMap<>();
 
-    public Clusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                     int numClusters) {
+    public InitialClusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
+                            int numClusters, long[] randomSeeds, int maxIters, double logThreshold) {
         this.datasets = datasets;
         numDatasets = datasets.size();
         this.chromosomeHandler = chromosomeHandler;
         this.resolution = resolution;
         this.norm = norm;
         this.numClusters = numClusters;
+        this.randomSeeds = randomSeeds;
+        this.maxIters = maxIters;
+        this.logThreshold = logThreshold;
 
         for (int i = 0; i < numDatasets; i++) {
             comparativeSubcompartments.add(new GenomeWideList<>(chromosomeHandler));
@@ -79,70 +81,53 @@ public class Clusterer {
         }
     }
 
+    private static Map<Integer, double[]> generateMetaCentroidMap(Map<Integer, double[]> originalIDToCentroidMap, Map<Integer, List<Integer>> metaCIDtoOriginalCIDs) {
+
+        Map<Integer, double[]> metaIDToCentroidMap = new HashMap<>();
+        for (Integer metaID : metaCIDtoOriginalCIDs.keySet()) {
+            List<Integer> origIDs = metaCIDtoOriginalCIDs.get(metaID);
+            int comboLength = 0;
+            for (Integer origID : origIDs) {
+                comboLength += originalIDToCentroidMap.get(origID).length;
+            }
+
+            double[] comboVector = new double[comboLength];
+            int offsetIndex = 0;
+            for (Integer origID : origIDs) {
+                double[] currentVector = originalIDToCentroidMap.get(origID);
+                System.arraycopy(currentVector, 0, comboVector, offsetIndex, currentVector.length);
+                offsetIndex += currentVector.length;
+            }
+
+            metaIDToCentroidMap.put(metaID, comboVector);
+        }
+
+        return metaIDToCentroidMap;
+    }
+
     /**
      * @param outputDirectory
      * @param inputHicFilePaths
      */
-    public void extractAllComparativeIntraSubcompartmentsTo(File outputDirectory, List<String> inputHicFilePaths) {
+    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> extractAllComparativeIntraSubcompartmentsTo(File outputDirectory, List<String> inputHicFilePaths) {
 
         // each ds will need a respective list of assigned subcompartments
 
-        Map<Chromosome, Pair<DataCleanerV2, DataCleanerV2>> dataCleanerV2MapForChrom = getCleanedDatasets();
-        for (Chromosome chromosome : dataCleanerV2MapForChrom.keySet()) {
-            Pair<DataCleanerV2, DataCleanerV2> dataPair = dataCleanerV2MapForChrom.get(chromosome);
-            for (long seed : randomSeeds) {
-                launchKMeansClustering(chromosome, dataPair.getFirst(), seed);
-                launchKMeansClustering(chromosome, dataPair.getSecond(), seed);
+        Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = getCleanedDatasets();
+        for (long seed : randomSeeds) {
+            System.out.println("****Cluster with seed " + seed);
+            for (Chromosome chromosome : dataCleanerV2MapForChrom.keySet()) {
+                DataCleanerV2 cleanedData = dataCleanerV2MapForChrom.get(chromosome);
+                launchKMeansClustering(chromosome, cleanedData, seed);
             }
+            waitWhileCodeRuns();
         }
 
-        waitWhileCodeRuns();
+        Map<Integer, List<Integer>> metaCIDtoOriginalCIDs = collapseClustersAcrossRuns();
 
-        collapseClustersAcrossRuns();
+        Map<Integer, double[]> metaIDToCentroidMap = generateMetaCentroidMap(idToCentroidMap, metaCIDtoOriginalCIDs);
 
-        // process differences for diff vector
-        DrinkUtils.writeDiffVectorsRelativeToBaselineToFiles(comparativeSubcompartments, idToCentroidMap, outputDirectory,
-                inputHicFilePaths, chromosomeHandler, resolution, "drink_r_" + resolution + "_k_" + numClusters + "_diffs");
-
-        DrinkUtils.writeConsensusSubcompartmentsToFile(comparativeSubcompartments, outputDirectory);
-
-        DrinkUtils.writeFinalSubcompartmentsToFiles(comparativeSubcompartments, outputDirectory, inputHicFilePaths);
-    }
-
-    /**
-     *
-     * @return
-     */
-    private Map<Chromosome, Pair<DataCleanerV2, DataCleanerV2>> getCleanedDatasets() {
-        Map<Chromosome, Pair<DataCleanerV2, DataCleanerV2>> dataCleanerV2MapForChrom = new HashMap<>();
-
-        for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
-            try {
-                List<double[][]> matrices = new ArrayList<>();
-
-                for (Dataset ds : datasets) {
-                    RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, chromosome, resolution,
-                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED);
-                    if (localizedRegionData != null) {
-                        matrices.add(localizedRegionData.getData());
-                    }
-                }
-
-                // can't assess vs non existent map
-                if (matrices.size() != datasets.size()) continue;
-
-                DataCleanerV2 dataCleaner = new DataCleanerV2(matrices, maxPercentAllowBeZero, resolution, false);
-                DataCleanerV2 dataDerivative = new DataCleanerV2(matrices, maxPercentAllowBeZero, resolution, true);
-
-                if (dataCleaner.getLength() > 0 && dataDerivative.getLength() > 0) {
-                    dataCleanerV2MapForChrom.put(chromosome, new Pair<>(dataCleaner, dataDerivative));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return dataCleanerV2MapForChrom;
+        return new Pair<>(comparativeSubcompartments, metaIDToCentroidMap);
     }
 
 
@@ -209,12 +194,47 @@ public class Clusterer {
         }
     }
 
+    /**
+     * @return
+     */
+    private Map<Chromosome, DataCleanerV2> getCleanedDatasets() {
+        Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = new HashMap<>();
 
-    private void collapseClustersAcrossRuns() {
+        for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
+            try {
+                List<double[][]> matrices = new ArrayList<>();
+
+                for (Dataset ds : datasets) {
+                    RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, chromosome, resolution,
+                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED);
+                    if (localizedRegionData != null) {
+                        matrices.add(localizedRegionData.getData());
+                    }
+                }
+
+                // can't assess vs non existent map
+                if (matrices.size() != datasets.size()) continue;
+
+                DataCleanerV2 dataCleaner = new DataCleanerV2(matrices, maxPercentAllowBeZero, resolution);
+
+                if (dataCleaner.getLength() > 0) {
+                    dataCleanerV2MapForChrom.put(chromosome, dataCleaner);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return dataCleanerV2MapForChrom;
+    }
+
+    private Map<Integer, List<Integer>> collapseClustersAcrossRuns() {
 
         int metaCounter = 1;
         Map<String, Integer> stringToMetaID = new HashMap<>();
         List<List<SubcompartmentInterval>> subcompartmentIntervals = new ArrayList<>();
+
+        Map<Integer, List<Integer>> metaIDtoPriorIDs = new HashMap<>();
 
         for (int i = 0; i < numDatasets; i++) {
             Map<Chromosome, Map<Integer, List<Integer>>> chromToIDs = mapPosIndexToCluster.get(i);
@@ -223,12 +243,14 @@ public class Clusterer {
                 for (Integer index : chromToIDs.get(chromosome).keySet()) {
                     List<Integer> clusterIDs = chromToIDs.get(chromosome).get(index);
                     String idString = getUniqueStringFromIDs(clusterIDs);
+                    Collections.sort(clusterIDs);
                     Integer metaID;
                     if (stringToMetaID.containsKey(idString)) {
                         metaID = stringToMetaID.get(idString);
                     } else {
                         metaID = metaCounter++;
                         stringToMetaID.put(idString, metaID);
+                        metaIDtoPriorIDs.put(metaID, clusterIDs);
                     }
 
                     int x1 = index * resolution;
@@ -236,7 +258,6 @@ public class Clusterer {
 
                     subcompartmentIntervals.get(i).add(
                             new SubcompartmentInterval(chromosome.getIndex(), chromosome.getName(), x1, x2, metaID));
-
                 }
             }
         }
@@ -245,14 +266,11 @@ public class Clusterer {
             comparativeSubcompartments.get(i).addAll(subcompartmentIntervals.get(i));
         }
 
-        for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
-            DrinkUtils.reSort(gwList);
-        }
+        return metaIDtoPriorIDs;
     }
 
     private String getUniqueStringFromIDs(List<Integer> clusterIDs) {
         String idString = "";
-        Collections.sort(clusterIDs);
         for (Integer id : clusterIDs) {
             idString += id + ".";
         }

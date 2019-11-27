@@ -34,12 +34,9 @@ import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
@@ -55,7 +52,6 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
     public ScaledCompositeOddVsEvenInterchromosomalMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
                                                           GenomeWideList<SubcompartmentInterval> intraSubcompartments, double threshold,
                                                           boolean isOddVsEven) {
-
         this.chromosomeHandler = chromosomeHandler;
         this.norm = norm;
         this.resolution = resolution;
@@ -74,18 +70,12 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         // assuming Odd vs Even
         // height chromosomes
-        int h = calculateDimensionInterMatrix(oddChromosomes);
-        int[] heightIndices = calculateOffsetIndex(oddChromosomes);
+        Pair<Integer, int[]> oddsDimension = calculateDimensionInterMatrix(oddChromosomes);
 
         // width chromosomes
-        int w = calculateDimensionInterMatrix(evenChromosomes);
-        int[] widthIndices = calculateOffsetIndex(evenChromosomes);
+        Pair<Integer, int[]> evenDimension = calculateDimensionInterMatrix(evenChromosomes);
 
-
-        //System.out.println("Size "+h+" by "+w);
-
-        double[][] interMatrix = new double[h][w];
-
+        double[][] interMatrix = new double[oddsDimension.getFirst()][evenDimension.getFirst()];
         for (int i = 0; i < oddChromosomes.length; i++) {
             Chromosome chr1 = oddChromosomes[i];
 
@@ -98,31 +88,27 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
                 // will need to flip across diagonal
                 boolean needToFlip = chr2.getIndex() < chr1.getIndex();
-                fillInInterChromosomeRegion(interMatrix, zd, chr1, heightIndices[i], chr2, widthIndices[j], needToFlip);
+                fillInInterChromosomeRegion(interMatrix, zd, chr1, oddsDimension.getSecond()[i], chr2, evenDimension.getSecond()[j], needToFlip);
             }
         }
-
-        if (w > 0 && h > 0)
-            return MatrixTools.transpose(interMatrix);
 
         return interMatrix;
     }
 
-    private int calculateDimensionInterMatrix(Chromosome[] chromosomes) {
+    private Pair<Integer, int[]> calculateDimensionInterMatrix(Chromosome[] chromosomes) {
         int total = 0;
-        for (Chromosome chromosome : chromosomes) {
-            total += intraSubcompartments.getFeatures("" + chromosome.getIndex()).size();
-        }
-        return total;
-    }
-
-    private int[] calculateOffsetIndex(Chromosome[] chromosomes) {
         int[] indices = new int[chromosomes.length];
-        for (int i = 0; i < chromosomes.length - 1; i++) {
-            int chrIndex = chromosomes[i].getIndex();
-            indices[i + 1] = indices[i] + intraSubcompartments.getFeatures("" + chrIndex).size();
+
+        for (int i = 0; i < chromosomes.length; i++) {
+            for (SubcompartmentInterval interval : intraSubcompartments.getFeatures("" + chromosomes[i].getIndex())) {
+                total += interval.getWidthForResolution(resolution);
+            }
+            if (i < chromosomes.length - 1) {
+                indices[i + 1] = total;
+            }
         }
-        return indices;
+
+        return new Pair<>(total, indices);
     }
 
     private void fillInInterChromosomeRegion(double[][] matrix, MatrixZoomData zd, Chromosome chr1, int offsetIndex1,
@@ -140,68 +126,122 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
         List<SubcompartmentInterval> intervals1 = intraSubcompartments.getFeatures("" + chr1.getIndex());
         List<SubcompartmentInterval> intervals2 = intraSubcompartments.getFeatures("" + chr2.getIndex());
 
+        if (intervals1.size() == 0 || intervals2.size() == 0) return;
+        double[][] allDataForRegion = null;
         try {
-            if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            RealMatrix allDataForRegion;
             if (needToFlip) {
-                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr2,
-                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
-                //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
-                allDataForRegion = allDataForRegion.transpose();
-                //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
+                RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr2, 0, lengthChr1, lengthChr2, lengthChr1, norm, false);
+                allDataForRegionMatrix = allDataForRegionMatrix.transpose();
+                allDataForRegion = allDataForRegionMatrix.getData();
             } else {
-                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
-                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
+                RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr1, 0, lengthChr2, lengthChr1, lengthChr2, norm, false);
+                allDataForRegion = allDataForRegionMatrix.getData();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(99);
+        }
 
-            for (int i = 0; i < intervals1.size(); i++) {
-                SubcompartmentInterval interv1 = intervals1.get(i);
+        if (allDataForRegion == null) {
+            System.err.println("Missing Interchromosomal Data " + zd.getKey());
+            return;
+        }
 
-                int binXStart = interv1.getX1() / resolution;
-                int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
-                indexToInterval1Map.put(offsetIndex1 + i, interv1);
+        Map<String, Integer> allAreaBetweenClusters = new HashMap<>();
+        Map<String, Double> allContactsBetweenClusters = new HashMap<>();
 
-                for (int j = 0; j < intervals2.size(); j++) {
-                    SubcompartmentInterval interv2 = intervals2.get(j);
-                    indexToInterval2Map.put(offsetIndex2 + j, interv2);
-                    int binYStart = interv2.getX1() / resolution;
-                    int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
-                    double averagedValue = ExtractingOEDataUtils.extractAveragedOEFromRegion(allDataForRegion,
-                            binXStart, binXEnd, binYStart, binYEnd, threshold, false);
+        for (SubcompartmentInterval interv1 : intervals1) {
+            Integer id1 = interv1.getClusterID();
+            for (SubcompartmentInterval interv2 : intervals2) {
+                Integer id2 = interv2.getClusterID();
+                String regionKey = id1 + "-" + id2;
 
-                    try {
-                        matrix[offsetIndex1 + i][offsetIndex2 + j] = averagedValue;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.exit(99);
-                    }
+                double countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, lengthChr1, interv2, lengthChr2);
+                int areaBetweenClusters = interv1.getWidthForResolution(resolution) * interv2.getWidthForResolution(resolution);
+
+                if (allAreaBetweenClusters.containsKey(regionKey)) {
+                    allAreaBetweenClusters.put(regionKey, allAreaBetweenClusters.get(regionKey) + areaBetweenClusters);
+                    allContactsBetweenClusters.put(regionKey, allContactsBetweenClusters.get(regionKey) + countsBetweenClusters);
+                } else {
+                    allAreaBetweenClusters.put(regionKey, areaBetweenClusters);
+                    allContactsBetweenClusters.put(regionKey, countsBetweenClusters);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+
+        Map<String, Double> densityBetweenClusters = new HashMap<>();
+        for (String key : allAreaBetweenClusters.keySet()) {
+            densityBetweenClusters.put(key, 100. * allContactsBetweenClusters.get(key) / allAreaBetweenClusters.get(key));
+        }
+
+        int internalOffset1 = offsetIndex1;
+        for (SubcompartmentInterval interv1 : intervals1) {
+            Integer id1 = interv1.getClusterID();
+            int numRows = interv1.getWidthForResolution(resolution);
+
+            int internalOffset2 = offsetIndex2;
+            for (SubcompartmentInterval interv2 : intervals2) {
+                Integer id2 = interv2.getClusterID();
+                int numCols = interv2.getWidthForResolution(resolution);
+
+                String regionKey = id1 + "-" + id2;
+                double density = densityBetweenClusters.get(regionKey);
+                updateMasterMatrixWithRegionalDensities(matrix, density, interv1, internalOffset1, numRows, interv2, internalOffset2, numCols);
+                internalOffset2 += numCols;
+            }
+            internalOffset1 += numRows;
         }
     }
 
-    public void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments, boolean isTranspose) {
+    private void updateMasterMatrixWithRegionalDensities(double[][] matrix, double density,
+                                                         SubcompartmentInterval interv1, int offsetIndex1, int numRows,
+                                                         SubcompartmentInterval interv2, int offsetIndex2, int numCols) {
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                indexToInterval1Map.put(offsetIndex1 + i, interv1);
+                indexToInterval2Map.put(offsetIndex2 + j, interv2);
+                matrix[offsetIndex1 + i][offsetIndex2 + j] = density;
+            }
+        }
+    }
 
-        List<SubcompartmentInterval> subcompartmentIntervals = new ArrayList<>();
+    private double getSumTotalCounts(double[][] allDataForRegion, SubcompartmentInterval interv1, int lengthChr1,
+                                     SubcompartmentInterval interv2, int lengthChr2) {
+        double total = 0;
+        int binXStart = interv1.getX1() / resolution;
+        int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
+
+        int binYStart = interv2.getX1() / resolution;
+        int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
+
+        for (int i = binXStart; i < binXEnd; i++) {
+            for (int j = binYStart; j < binYEnd; j++) {
+                if (!Double.isNaN(allDataForRegion[i][j])) {
+                    total += allDataForRegion[i][j];
+                }
+            }
+        }
+        return total;
+    }
+
+    public synchronized void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments, boolean isTranspose) {
+
+        Set<SubcompartmentInterval> subcompartmentIntervals = new HashSet<>();
         System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
-            //System.out.println("Cluster " + currentClusterID);
-            //System.out.println(Arrays.toString(cluster.getMemberIndexes()));
+            int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.getAndIncrement();
+
             for (int i : cluster.getMemberIndexes()) {
 
                 try {
                     SubcompartmentInterval interv;
                     if (isTranspose) {
-                        interv = indexToInterval1Map.get(i);
-                    } else {
                         interv = indexToInterval2Map.get(i);
+                    } else {
+                        interv = indexToInterval1Map.get(i);
                     }
-
-                    //System.out.println(i + " - " + interv1);
+                    if (interv == null) continue; // probably a zero row
 
                     int chrIndex = interv.getChrIndex();
                     String chrName = interv.getChrName();
@@ -218,8 +258,8 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
             }
         }
 
+        subcompartments.addAll(new ArrayList<>(subcompartmentIntervals));
         DrinkUtils.reSort(subcompartments);
-        subcompartments.addAll(subcompartmentIntervals);
     }
 
     public int getLength() {

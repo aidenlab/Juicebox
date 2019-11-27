@@ -49,6 +49,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
+    private final Option randomSeedsOption = addStringOption("random-seeds");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
@@ -95,9 +96,10 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
-                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
+                || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("drinks")
+                || cmd.equals("shuffle") || cmd.equals("grind");
     }
 
     public int getGrindDataSliceOption() {
@@ -234,6 +236,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return optionToStringList(multipleChromosomesOption);
     }
 
+    // todo fix to return list of ints
     public List<String> getMultipleResolutionOptions() {
         return optionToStringList(multipleResolutionsOption);
     }
@@ -281,5 +284,17 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public boolean getUseTxtInsteadOfNPY() {
         return optionToBoolean(useTxtInsteadOfNPYOption);
+    }
+
+    public long[] getMultipleSeedsOption() {
+        List<String> possibleSeeds = optionToStringList(randomSeedsOption);
+        if (possibleSeeds != null) {
+            long[] seeds = new long[possibleSeeds.size()];
+            for (int i = 0; i < seeds.length; i++) {
+                seeds[i] = Long.parseLong(possibleSeeds.get(i));
+            }
+            return seeds;
+        }
+        return null;
     }
 }

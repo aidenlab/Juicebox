@@ -994,4 +994,21 @@ public class MatrixTools {
 
         return derivative;
     }
+
+    public static double[][] appendDerivativeDownColumn(double[][] data) {
+        int numColumns = data[0].length;
+        double[][] appendedDerivative = new double[data.length][2 * numColumns - 1];
+
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < numColumns - 1; j++) {
+                appendedDerivative[i][numColumns + j] = data[i][j] - data[i][j + 1];
+            }
+        }
+
+        return appendedDerivative;
+    }
 }

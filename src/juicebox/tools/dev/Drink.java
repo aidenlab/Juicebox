@@ -28,15 +28,18 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.dev.drink.Clusterer;
+import juicebox.tools.utils.dev.drink.*;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * experimental code
@@ -45,7 +48,6 @@ import java.util.List;
  */
 public class Drink extends JuicerCLT {
 
-    private boolean doDifferentialClustering = false;
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
@@ -54,10 +56,15 @@ public class Drink extends JuicerCLT {
     private final int whichApproachtoUse = 0;
     private final List<Dataset> datasetList = new ArrayList<>();
     private List<String> inputHicFilePaths = new ArrayList<>();
+    private final boolean compareOnlyNotSubcompartment;
+    private final int maxIters = 20000;
+    private final double logThreshold = 4;
+    private long[] randomSeeds = new long[]{128971L, 22871L};
 
-    public Drink() {
+    public Drink(boolean compareOnlyNotSubcompartment) {
         super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
         HiCGlobals.useCache = false;
+        this.compareOnlyNotSubcompartment = compareOnlyNotSubcompartment;
     }
 
     @Override
@@ -91,6 +98,11 @@ public class Drink extends JuicerCLT {
                 System.err.println("Only one resolution can be specified for Drink\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
+
+        long[] possibleSeeds = juicerParser.getMultipleSeedsOption();
+        if (possibleSeeds != null && possibleSeeds.length > 0) {
+            randomSeeds = possibleSeeds;
+        }
     }
 
     private void determineNumClusters(CommandLineParserForJuicer juicerParser) {
@@ -103,9 +115,35 @@ public class Drink extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        if (datasetList.size() > 0) {
-            Clusterer clusterer = new Clusterer(datasetList, chromosomeHandler, resolution, norm, numClusters);
-            clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
+        if (datasetList.size() < 1) return;
+
+        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numClusters, randomSeeds, maxIters, logThreshold);
+        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
+
+        if (compareOnlyNotSubcompartment) {
+            ComparativeSubcompartmentsProcessor processor = new ComparativeSubcompartmentsProcessor(initialClustering,
+                    chromosomeHandler, resolution);
+
+            // process differences for diff vector
+            processor.writeDiffVectorsRelativeToBaselineToFiles(outputDirectory, inputHicFilePaths,
+                    "drink_r_" + resolution + "_k_" + numClusters + "_diffs");
+
+            processor.writeConsensusSubcompartmentsToFile(outputDirectory);
+
+            processor.writeFinalSubcompartmentsToFiles(outputDirectory, inputHicFilePaths);
+        } else {
+            // todo
+            for (int i = 0; i < datasetList.size(); i++) {
+                OddAndEvenClusterer oddAndEvenClusterer = new OddAndEvenClusterer(datasetList.get(i), chromosomeHandler, resolution, norm,
+                        numClusters, maxIters, logThreshold, initialClustering.getFirst().get(i));
+
+                GenomeWideList<SubcompartmentInterval> gwList = oddAndEvenClusterer.extractFinalGWSubcompartments();
+                DrinkUtils.collapseGWList(gwList);
+
+                File outputFile2 = new File(outputDirectory, "final_gw_subcompartments_" + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".bed");
+                gwList.simpleExport(outputFile2);
+            }
         }
+
     }
 }

@@ -39,6 +39,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OriginalGWApproach {
 
+    /**
+     * @param ds
+     * @param chromosomeHandler
+     * @param resolution
+     * @param norm
+     * @param outputDirectory
+     * @param numClusters
+     * @param maxIters
+     * @param logThreshold
+     * @param intraSubcompartments
+     * @return
+     * @deprecate
+     */
     public static GenomeWideList<SubcompartmentInterval>
     extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
                                   File outputDirectory, int numClusters, int maxIters, double logThreshold,
