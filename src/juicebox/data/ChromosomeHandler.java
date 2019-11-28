@@ -222,7 +222,8 @@ public class ChromosomeHandler {
         // array without X and Y
         List<Chromosome> autosomes = new ArrayList<>();
         for (Chromosome chr : chromosomeArrayWithoutAllByAll) {
-            if (chr.getName().toLowerCase().contains("x") || chr.getName().toLowerCase().contains("y")) continue;
+            if (chr.getName().toLowerCase().contains("x") || chr.getName().toLowerCase().contains("y") || chr.getName().toLowerCase().contains("m"))
+                continue;
             autosomes.add(chr);
         }
 

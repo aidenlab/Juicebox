@@ -27,11 +27,13 @@ package juicebox.tools.utils.dev.drink;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
 import juicebox.windowui.NormalizationType;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,20 +61,17 @@ public class OddAndEvenClusterer {
         this.origIntraSubcompartments = origIntraSubcompartments;
     }
 
-    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments() {
+    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds, boolean isOddsVsEvenType) {
 
         final ScaledCompositeOddVsEvenInterchromosomalMatrix interMatrix = new ScaledCompositeOddVsEvenInterchromosomalMatrix(
-                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold, true);
+                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold, isOddsVsEvenType);
 
-        //File outputFile = new File(outputDirectory, "inter_Odd_vs_Even_matrix_data.txt");
-        //MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
-
-        //File outputFile2 = new File(outputDirectory, "inter_Even_vs_Odd_matrix_data.txt");
-        //MatrixTools.exportData(interMatrix.getCleanedTransposedData(), outputFile2);
+        File outputFile = new File(outputDirectory, isOddsVsEvenType + "inter_Odd_vs_Even_matrix_data.txt");
+        MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
 
         GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
-        launchKmeansInterMatrix(interMatrix, finalCompartments, false);
-        launchKmeansInterMatrix(interMatrix, finalCompartments, true);
+        launchKmeansInterMatrix(interMatrix, finalCompartments, false, seeds[0]);
+        launchKmeansInterMatrix(interMatrix, finalCompartments, true, seeds[1]);
 
         while (numCompleted.get() < 1) {
             System.out.println("So far portion completed is " + numCompleted.get() + "/2");
@@ -89,7 +88,7 @@ public class OddAndEvenClusterer {
 
 
     private void launchKmeansInterMatrix(final ScaledCompositeOddVsEvenInterchromosomalMatrix matrix,
-                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTranspose) {
+                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTranspose, final long seed) {
 
         if (matrix.getLength() > 0 && matrix.getWidth() > 0) {
             double[][] cleanData;
@@ -98,7 +97,7 @@ public class OddAndEvenClusterer {
             } else {
                 cleanData = matrix.getCleanedData();
             }
-            ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanData, numClusters, maxIters, 128971L);
+            ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanData, numClusters, maxIters, seed);
 
             KMeansListener kMeansListener = new KMeansListener() {
                 @Override
@@ -107,8 +106,10 @@ public class OddAndEvenClusterer {
 
                 @Override
                 public void kmeansComplete(Cluster[] clusters, long l) {
-                    numCompleted.incrementAndGet();
-                    matrix.processGWKmeansResult(clusters, interSubcompartments, isTranspose);
+                    synchronized (numCompleted) {
+                        numCompleted.incrementAndGet();
+                        matrix.processGWKmeansResult(clusters, interSubcompartments, isTranspose);
+                    }
                 }
 
                 @Override

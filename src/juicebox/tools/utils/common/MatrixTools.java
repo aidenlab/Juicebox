@@ -995,17 +995,32 @@ public class MatrixTools {
         return derivative;
     }
 
-    public static double[][] appendDerivativeDownColumn(double[][] data) {
+    public static double[][] smoothAndAppendDerivativeDownColumn(double[][] data, double[] convolution) {
+
         int numColumns = data[0].length;
+        if (convolution != null && convolution.length > 1) {
+            numColumns -= (convolution.length - 1);
+        }
+
         double[][] appendedDerivative = new double[data.length][2 * numColumns - 1];
 
-        for (int i = 0; i < data.length; i++) {
-            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        if (convolution != null && convolution.length > 1) {
+            for (int i = 0; i < data.length; i++) {
+                for (int j = 0; j < numColumns; j++) {
+                    for (int k = 0; k < convolution.length; k++) {
+                        appendedDerivative[i][j] += convolution[k] * data[i][j + k];
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < data.length; i++) {
+                System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+            }
         }
 
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < numColumns - 1; j++) {
-                appendedDerivative[i][numColumns + j] = data[i][j] - data[i][j + 1];
+                appendedDerivative[i][numColumns + j] = appendedDerivative[i][j] - appendedDerivative[i][j + 1];
             }
         }
 

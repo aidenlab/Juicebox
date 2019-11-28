@@ -62,9 +62,10 @@ public class InitialClusterer {
     private final List<Map<Chromosome, Map<Integer, List<Integer>>>> mapPosIndexToCluster = new ArrayList<>();
     private final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
     private Map<Integer, double[]> idToCentroidMap = new HashMap<>();
+    private double[] convolution1d;
 
     public InitialClusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                            int numClusters, long[] randomSeeds, int maxIters, double logThreshold) {
+                            int numClusters, long[] randomSeeds, int maxIters, double logThreshold, double[] convolution1d) {
         this.datasets = datasets;
         numDatasets = datasets.size();
         this.chromosomeHandler = chromosomeHandler;
@@ -74,6 +75,7 @@ public class InitialClusterer {
         this.randomSeeds = randomSeeds;
         this.maxIters = maxIters;
         this.logThreshold = logThreshold;
+        this.convolution1d = convolution1d;
 
         for (int i = 0; i < numDatasets; i++) {
             comparativeSubcompartments.add(new GenomeWideList<>(chromosomeHandler));
@@ -213,9 +215,9 @@ public class InitialClusterer {
                 }
 
                 // can't assess vs non existent map
-                if (matrices.size() != datasets.size()) continue;
+                if (matrices.size() != datasets.size() || matrices.size() < 1) continue;
 
-                DataCleanerV2 dataCleaner = new DataCleanerV2(matrices, maxPercentAllowBeZero, resolution);
+                DataCleanerV2 dataCleaner = new DataCleanerV2(matrices, maxPercentAllowBeZero, resolution, convolution1d);
 
                 if (dataCleaner.getLength() > 0) {
                     dataCleanerV2MapForChrom.put(chromosome, dataCleaner);

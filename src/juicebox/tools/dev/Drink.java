@@ -60,6 +60,7 @@ public class Drink extends JuicerCLT {
     private final int maxIters = 20000;
     private final double logThreshold = 4;
     private long[] randomSeeds = new long[]{128971L, 22871L};
+    private double[] convolution1d = null;
 
     public Drink(boolean compareOnlyNotSubcompartment) {
         super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
@@ -103,6 +104,8 @@ public class Drink extends JuicerCLT {
         if (possibleSeeds != null && possibleSeeds.length > 0) {
             randomSeeds = possibleSeeds;
         }
+
+        convolution1d = juicerParser.getConvolutionOption();
     }
 
     private void determineNumClusters(CommandLineParserForJuicer juicerParser) {
@@ -117,7 +120,7 @@ public class Drink extends JuicerCLT {
 
         if (datasetList.size() < 1) return;
 
-        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numClusters, randomSeeds, maxIters, logThreshold);
+        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numClusters, randomSeeds, maxIters, logThreshold, convolution1d);
         Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
 
         if (compareOnlyNotSubcompartment) {
@@ -132,18 +135,24 @@ public class Drink extends JuicerCLT {
 
             processor.writeFinalSubcompartmentsToFiles(outputDirectory, inputHicFilePaths);
         } else {
-            // todo
-            for (int i = 0; i < datasetList.size(); i++) {
-                OddAndEvenClusterer oddAndEvenClusterer = new OddAndEvenClusterer(datasetList.get(i), chromosomeHandler, resolution, norm,
-                        numClusters, maxIters, logThreshold, initialClustering.getFirst().get(i));
 
-                GenomeWideList<SubcompartmentInterval> gwList = oddAndEvenClusterer.extractFinalGWSubcompartments();
-                DrinkUtils.collapseGWList(gwList);
+            conductInterChromosomalClustering(initialClustering.getFirst(), true, chromosomeHandler, "final_gw_odd_even_subcompartments_");
 
-                File outputFile2 = new File(outputDirectory, "final_gw_subcompartments_" + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".bed");
-                gwList.simpleExport(outputFile2);
-            }
+            System.gc();
+
+            conductInterChromosomalClustering(initialClustering.getFirst(), false, chromosomeHandler, "final_gw_ordered_subcompartments_");
         }
 
+    }
+
+    private void conductInterChromosomalClustering(List<GenomeWideList<SubcompartmentInterval>> initialClusterings, boolean isOddsVsEvensType, ChromosomeHandler chromosomeHandler, String filestem) {
+        for (int i = 0; i < datasetList.size(); i++) {
+            OddAndEvenClusterer oddAndEvenClusterer = new OddAndEvenClusterer(datasetList.get(i), chromosomeHandler, resolution, norm,
+                    numClusters, maxIters, logThreshold, initialClusterings.get(i));
+
+            GenomeWideList<SubcompartmentInterval> gwList = oddAndEvenClusterer.extractFinalGWSubcompartments(outputDirectory, randomSeeds, isOddsVsEvensType);
+            DrinkUtils.collapseGWList(gwList);
+            gwList.simpleExport(new File(outputDirectory, filestem + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".bed"));
+        }
     }
 }

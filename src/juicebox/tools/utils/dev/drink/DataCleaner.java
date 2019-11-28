@@ -42,10 +42,10 @@ public class DataCleaner {
     final private int resolution;
     private final double maxPercentAllowedToBeZeroThreshold;
 
-    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution) {
+    public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution, double[] convolution1d) {
         this.resolution = resolution;
         this.maxPercentAllowedToBeZeroThreshold = maxPercentAllowedToBeZeroThreshold;
-        cleanData = cleanUpData(MatrixTools.appendDerivativeDownColumn(data));
+        cleanData = cleanUpData(MatrixTools.smoothAndAppendDerivativeDownColumn(data, convolution1d));
         System.gc();
     }
 
@@ -97,13 +97,22 @@ public class DataCleaner {
     private void calculateWhichIndicesToKeep(int[] numZerosIndxCount, double[] sumsAlongDimension,
                                              Map<Integer, Integer> cleanIndexToOriginalIndex) {
 
-        int maxNumAllowedToBeZeroCutOff = (int) (numZerosIndxCount.length * maxPercentAllowedToBeZeroThreshold);
+        int numEntireColAllZeros = 0;
+        for (int i0 = 0; i0 < numZerosIndxCount.length; i0++) {
+            if (sumsAlongDimension[i0] <= 1) {
+                numEntireColAllZeros++;
+            }
+        }
+
+        int maxNumAllowedToBeZeroCutOff = (int) ((numZerosIndxCount.length - numEntireColAllZeros) * maxPercentAllowedToBeZeroThreshold);
         int counter = 0;
 
         for (int i0 = 0; i0 < numZerosIndxCount.length; i0++) {
-            if (numZerosIndxCount[i0] < maxNumAllowedToBeZeroCutOff && sumsAlongDimension[i0] > 1) {
-                cleanIndexToOriginalIndex.put(counter, i0);
-                counter++;
+            if (sumsAlongDimension[i0] > 1) {
+                if (numZerosIndxCount[i0] - numEntireColAllZeros < maxNumAllowedToBeZeroCutOff) {
+                    cleanIndexToOriginalIndex.put(counter, i0);
+                    counter++;
+                }
             }
         }
     }

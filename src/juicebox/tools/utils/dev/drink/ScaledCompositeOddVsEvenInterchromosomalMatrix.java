@@ -48,10 +48,11 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
     private final double[][] gwCleanMatrix, transposedGWCleanMatrix;
     private final Map<Integer, SubcompartmentInterval> indexToInterval1Map = new HashMap<>();
     private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
+    private final boolean isOddVsEvenType;
 
     public ScaledCompositeOddVsEvenInterchromosomalMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
                                                           GenomeWideList<SubcompartmentInterval> intraSubcompartments, double threshold,
-                                                          boolean isOddVsEven) {
+                                                          boolean isOddVsEvenType) {
         this.chromosomeHandler = chromosomeHandler;
         this.norm = norm;
         this.resolution = resolution;
@@ -60,6 +61,7 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         gwCleanMatrix = makeCleanScaledInterMatrix(ds);
         transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
+        this.isOddVsEvenType = isOddVsEvenType;
         //System.out.println("Final Size "+gwCleanMatrix.length+" by "+gwCleanMatrix[0].length);
     }
 
@@ -67,6 +69,20 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
         Chromosome[] oddChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(true);
         Chromosome[] evenChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
+
+        if (!isOddVsEvenType) {
+            int firstBatchUpToChr = 8;
+            Chromosome[] array = chromosomeHandler.getAutosomalChromosomesArray();
+            oddChromosomes = new Chromosome[firstBatchUpToChr];
+            evenChromosomes = new Chromosome[array.length - firstBatchUpToChr];
+            for (int i = 0; i < array.length; i++) {
+                if (i < firstBatchUpToChr) {
+                    oddChromosomes[i] = array[i];
+                } else {
+                    evenChromosomes[i - firstBatchUpToChr] = array[i];
+                }
+            }
+        }
 
         // assuming Odd vs Even
         // height chromosomes
@@ -229,6 +245,14 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
         Set<SubcompartmentInterval> subcompartmentIntervals = new HashSet<>();
         System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
 
+        Map<Integer, SubcompartmentInterval> indexToIntervalMap;
+        if (isTranspose) {
+            indexToIntervalMap = indexToInterval2Map;
+        } else {
+            indexToIntervalMap = indexToInterval1Map;
+        }
+
+
         for (Cluster cluster : clusters) {
             int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.getAndIncrement();
 
@@ -236,20 +260,22 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
                 try {
                     SubcompartmentInterval interv;
-                    if (isTranspose) {
-                        interv = indexToInterval2Map.get(i);
+
+                    if (indexToIntervalMap.containsKey(i)) {
+                        interv = indexToIntervalMap.get(i);
+                        if (interv == null) continue; // probably a zero row
+
+                        int chrIndex = interv.getChrIndex();
+                        String chrName = interv.getChrName();
+                        int x1 = interv.getX1();
+                        int x2 = interv.getX2();
+
+                        subcompartmentIntervals.add(
+                                new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
                     } else {
-                        interv = indexToInterval1Map.get(i);
+                        System.err.println("is weird error?");
                     }
-                    if (interv == null) continue; // probably a zero row
 
-                    int chrIndex = interv.getChrIndex();
-                    String chrName = interv.getChrName();
-                    int x1 = interv.getX1();
-                    int x2 = interv.getX2();
-
-                    subcompartmentIntervals.add(
-                            new SubcompartmentInterval(chrIndex, chrName, x1, x2, currentClusterID));
                 } catch (Exception e) {
                     System.err.println(i + " - " + isTranspose);
                     e.printStackTrace();

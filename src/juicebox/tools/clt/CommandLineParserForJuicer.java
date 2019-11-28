@@ -50,6 +50,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
     private final Option randomSeedsOption = addStringOption("random-seeds");
+    private final Option convolutionOption = addStringOption("conv1d");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
@@ -294,6 +295,18 @@ public class CommandLineParserForJuicer extends CommandLineParser {
                 seeds[i] = Long.parseLong(possibleSeeds.get(i));
             }
             return seeds;
+        }
+        return null;
+    }
+
+    public double[] getConvolutionOption() {
+        List<String> conv1d = optionToStringList(convolutionOption);
+        if (conv1d != null) {
+            double[] values = new double[conv1d.size()];
+            for (int i = 0; i < values.length; i++) {
+                values[i] = Double.parseDouble(conv1d.get(i));
+            }
+            return values;
         }
         return null;
     }

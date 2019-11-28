@@ -37,8 +37,8 @@ public class DataCleanerV2 extends DataCleaner {
     private final List<Integer> dataSetSeparatingIndices = new ArrayList<>();
     private final int numDatasets;
 
-    public DataCleanerV2(List<double[][]> data, double maxPercentAllowedToBeZeroThreshold, int resolution) {
-        super(MatrixTools.stitchMultipleMatricesTogetherByRowDim(data), maxPercentAllowedToBeZeroThreshold, resolution);
+    public DataCleanerV2(List<double[][]> data, double maxPercentAllowedToBeZeroThreshold, int resolution, double[] convolution1d) {
+        super(MatrixTools.stitchMultipleMatricesTogetherByRowDim(data), maxPercentAllowedToBeZeroThreshold, resolution, convolution1d);
         numDatasets = data.size();
         determineSeparatingIndices(data);
     }
