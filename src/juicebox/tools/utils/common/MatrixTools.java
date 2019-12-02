@@ -34,6 +34,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -620,6 +621,16 @@ public class MatrixTools {
         return rowSum;
     }
 
+    public static double[] getAbsValColSums(double[][] matrix) {
+        double[] colSum = new double[matrix[0].length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                colSum[j] += Math.abs(matrix[i][j]);
+            }
+        }
+        return colSum;
+    }
+
     public static float[] getRowSums(float[][] matrix) {
         float[] rowSum = new float[matrix.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -1021,6 +1032,41 @@ public class MatrixTools {
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < numColumns - 1; j++) {
                 appendedDerivative[i][numColumns + j] = appendedDerivative[i][j] - appendedDerivative[i][j + 1];
+            }
+        }
+
+        return appendedDerivative;
+    }
+
+    public static double[][] getMainAppendedDerivativeDownColumn(double[][] data) {
+
+        int numColumns = data[0].length;
+        int numColumnsMinus1 = data[0].length - 1;
+
+        double[][] derivative = new double[data.length][numColumnsMinus1];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < numColumnsMinus1; j++) {
+                derivative[i][j] = data[i][j] - data[i][j + 1];
+            }
+        }
+
+        double[] columnSums = getAbsValColSums(derivative);
+        List<Integer> indicesToUse = new ArrayList<>();
+        for (int k = 0; k < columnSums.length; k++) {
+            if (columnSums[k] > 0) {
+                indicesToUse.add(k);
+            }
+        }
+
+        double[][] appendedDerivative = new double[data.length][numColumns + indicesToUse.size()];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            for (int k = 0; k < indicesToUse.size(); k++) {
+                int indexToUse = indicesToUse.get(k);
+                appendedDerivative[i][numColumns + k] = derivative[i][indexToUse];
             }
         }
 

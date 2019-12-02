@@ -38,65 +38,64 @@ import org.broad.igv.util.Pair;
 
 import java.util.*;
 
-class ScaledCompositeOddVsEvenInterchromosomalMatrix {
+public class CompositeInterchromDensityMatrix {
+
+    public CompositeInterchromDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
+                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments,
+                                            InterMapType mapType) {
+        this.chromosomeHandler = chromosomeHandler;
+        this.norm = norm;
+        this.resolution = resolution;
+        this.intraSubcompartments = intraSubcompartments;
+
+        gwCleanMatrix = makeCleanScaledInterMatrix(ds, mapType);
+        transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
+    }
 
     private final ChromosomeHandler chromosomeHandler;
     private final NormalizationType norm;
     private final int resolution;
     private final GenomeWideList<SubcompartmentInterval> intraSubcompartments;
-    private final double threshold;
     private final double[][] gwCleanMatrix, transposedGWCleanMatrix;
     private final Map<Integer, SubcompartmentInterval> indexToInterval1Map = new HashMap<>();
     private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
-    private final boolean isOddVsEvenType;
 
-    public ScaledCompositeOddVsEvenInterchromosomalMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                                          GenomeWideList<SubcompartmentInterval> intraSubcompartments, double threshold,
-                                                          boolean isOddVsEvenType) {
-        this.chromosomeHandler = chromosomeHandler;
-        this.norm = norm;
-        this.resolution = resolution;
-        this.intraSubcompartments = intraSubcompartments;
-        this.threshold = threshold;
+    private double[][] makeCleanScaledInterMatrix(Dataset ds, InterMapType mapType) {
 
-        gwCleanMatrix = makeCleanScaledInterMatrix(ds);
-        transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
-        this.isOddVsEvenType = isOddVsEvenType;
-        //System.out.println("Final Size "+gwCleanMatrix.length+" by "+gwCleanMatrix[0].length);
-    }
+        Chromosome[] rowsChromosomes;
+        Chromosome[] colsChromosomes;
 
-    private double[][] makeCleanScaledInterMatrix(Dataset ds) {
-
-        Chromosome[] oddChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(true);
-        Chromosome[] evenChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
-
-        if (!isOddVsEvenType) {
-            int firstBatchUpToChr = 8;
-            Chromosome[] array = chromosomeHandler.getAutosomalChromosomesArray();
-            oddChromosomes = new Chromosome[firstBatchUpToChr];
-            evenChromosomes = new Chromosome[array.length - firstBatchUpToChr];
-            for (int i = 0; i < array.length; i++) {
-                if (i < firstBatchUpToChr) {
-                    oddChromosomes[i] = array[i];
-                } else {
-                    evenChromosomes[i - firstBatchUpToChr] = array[i];
-                }
-            }
+        switch (mapType) {
+            case SKIP_BY_TWOS: // but start with CHR 1 separate
+                Pair<Chromosome[], Chromosome[]> splitByTwos = chromosomeHandler.splitAutosomesAndSkipByTwos();
+                rowsChromosomes = splitByTwos.getFirst();
+                colsChromosomes = splitByTwos.getSecond();
+                break;
+            case FIRST_HALF_VS_SECOND_HALF:
+                Pair<Chromosome[], Chromosome[]> firstHalfVsSecondHalf = chromosomeHandler.splitAutosomesIntoHalves();
+                rowsChromosomes = firstHalfVsSecondHalf.getFirst();
+                colsChromosomes = firstHalfVsSecondHalf.getSecond();
+                break;
+            case ODDS_VS_EVENS:
+            default:
+                rowsChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(true);
+                colsChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
+                break;
         }
 
         // assuming Odd vs Even
         // height chromosomes
-        Pair<Integer, int[]> oddsDimension = calculateDimensionInterMatrix(oddChromosomes);
+        Pair<Integer, int[]> rowsDimension = calculateDimensionInterMatrix(rowsChromosomes);
 
         // width chromosomes
-        Pair<Integer, int[]> evenDimension = calculateDimensionInterMatrix(evenChromosomes);
+        Pair<Integer, int[]> colsDimension = calculateDimensionInterMatrix(colsChromosomes);
 
-        double[][] interMatrix = new double[oddsDimension.getFirst()][evenDimension.getFirst()];
-        for (int i = 0; i < oddChromosomes.length; i++) {
-            Chromosome chr1 = oddChromosomes[i];
+        double[][] interMatrix = new double[rowsDimension.getFirst()][colsDimension.getFirst()];
+        for (int i = 0; i < rowsChromosomes.length; i++) {
+            Chromosome chr1 = rowsChromosomes[i];
 
-            for (int j = 0; j < evenChromosomes.length; j++) {
-                Chromosome chr2 = evenChromosomes[j];
+            for (int j = 0; j < colsChromosomes.length; j++) {
+                Chromosome chr2 = colsChromosomes[j];
 
                 if (chr1.getIndex() == chr2.getIndex()) continue;
                 final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, resolution);
@@ -104,12 +103,14 @@ class ScaledCompositeOddVsEvenInterchromosomalMatrix {
 
                 // will need to flip across diagonal
                 boolean needToFlip = chr2.getIndex() < chr1.getIndex();
-                fillInInterChromosomeRegion(interMatrix, zd, chr1, oddsDimension.getSecond()[i], chr2, evenDimension.getSecond()[j], needToFlip);
+                fillInInterChromosomeRegion(interMatrix, zd, chr1, rowsDimension.getSecond()[i], chr2, colsDimension.getSecond()[j], needToFlip);
             }
         }
 
         return interMatrix;
     }
+
+    public enum InterMapType {ODDS_VS_EVENS, FIRST_HALF_VS_SECOND_HALF, SKIP_BY_TWOS}
 
     private Pair<Integer, int[]> calculateDimensionInterMatrix(Chromosome[] chromosomes) {
         int total = 0;

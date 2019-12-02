@@ -45,29 +45,27 @@ public class OddAndEvenClusterer {
     private final NormalizationType norm;
     private final int numClusters;
     private final int maxIters;
-    private final double logThreshold;
     private final GenomeWideList<SubcompartmentInterval> origIntraSubcompartments;
     private final AtomicInteger numCompleted = new AtomicInteger(0);
 
     public OddAndEvenClusterer(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                               int numClusters, int maxIters, double logThreshold, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments) {
+                               int numClusters, int maxIters, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments) {
         this.ds = ds;
         this.chromosomeHandler = chromosomeHandler;
         this.resolution = resolution;
         this.norm = norm;
         this.numClusters = numClusters;
         this.maxIters = maxIters;
-        this.logThreshold = logThreshold;
         this.origIntraSubcompartments = origIntraSubcompartments;
     }
 
-    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds, boolean isOddsVsEvenType) {
+    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds, CompositeInterchromDensityMatrix.InterMapType mapType) {
 
-        final ScaledCompositeOddVsEvenInterchromosomalMatrix interMatrix = new ScaledCompositeOddVsEvenInterchromosomalMatrix(
-                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold, isOddsVsEvenType);
+        final CompositeInterchromDensityMatrix interMatrix = new CompositeInterchromDensityMatrix(
+                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, mapType);
 
-        File outputFile = new File(outputDirectory, isOddsVsEvenType + "inter_Odd_vs_Even_matrix_data.txt");
-        MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
+        //File outputFile = new File(outputDirectory, isOddsVsEvenType + "inter_Odd_vs_Even_matrix_data.txt");
+        //MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
 
         GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
         launchKmeansInterMatrix(interMatrix, finalCompartments, false, seeds[0]);
@@ -87,17 +85,19 @@ public class OddAndEvenClusterer {
     }
 
 
-    private void launchKmeansInterMatrix(final ScaledCompositeOddVsEvenInterchromosomalMatrix matrix,
-                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTranspose, final long seed) {
+    private void launchKmeansInterMatrix(final CompositeInterchromDensityMatrix matrix,
+                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTransposed, final long seed) {
 
         if (matrix.getLength() > 0 && matrix.getWidth() > 0) {
-            double[][] cleanData;
-            if (isTranspose) {
-                cleanData = matrix.getCleanedTransposedData();
+            double[][] cleanDataWithDeriv;
+            if (isTransposed) {
+                cleanDataWithDeriv = matrix.getCleanedTransposedData();
             } else {
-                cleanData = matrix.getCleanedData();
+                cleanDataWithDeriv = matrix.getCleanedData();
             }
-            ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanData, numClusters, maxIters, seed);
+            cleanDataWithDeriv = MatrixTools.getMainAppendedDerivativeDownColumn(cleanDataWithDeriv);
+
+            ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanDataWithDeriv, numClusters, maxIters, seed);
 
             KMeansListener kMeansListener = new KMeansListener() {
                 @Override
@@ -108,7 +108,7 @@ public class OddAndEvenClusterer {
                 public void kmeansComplete(Cluster[] clusters, long l) {
                     synchronized (numCompleted) {
                         numCompleted.incrementAndGet();
-                        matrix.processGWKmeansResult(clusters, interSubcompartments, isTranspose);
+                        matrix.processGWKmeansResult(clusters, interSubcompartments, isTransposed);
                     }
                 }
 

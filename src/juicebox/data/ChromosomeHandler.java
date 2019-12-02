@@ -32,6 +32,7 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.track.feature.Feature2DList;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.util.*;
@@ -351,4 +352,80 @@ public class ChromosomeHandler {
         }
         return subsetArray;
     }
+
+    public Pair<Chromosome[], Chromosome[]> splitAutosomesIntoHalves() {
+
+        int n = chromosomeArrayAutosomesOnly.length;
+        int autosomesLength = 0;
+        for (Chromosome chrom : chromosomeArrayAutosomesOnly) {
+            autosomesLength += chrom.getLength();
+        }
+        int halfLength = autosomesLength / 2;
+
+        // default assume chromosomes ordered with biggest first
+        // so for human, assuming first 8 chroms
+        int firstBatchUpToChr = n / 3 + 1;
+        int prevLength = 0;
+
+        for (int i = 0; i < n / 2; i++) {
+            int newLength = prevLength + chromosomeArrayAutosomesOnly[i].getLength();
+            if (prevLength <= halfLength && newLength >= halfLength) {
+                // midpoint found
+                if (Math.abs(prevLength - halfLength) < Math.abs(newLength - halfLength)) {
+                    firstBatchUpToChr = i - 1;
+                } else {
+                    firstBatchUpToChr = i;
+                }
+                break;
+            }
+            prevLength = newLength;
+        }
+        System.out.println("Splitting chromosomes; " +
+                chromosomeArrayAutosomesOnly[0].getName() + " to " + chromosomeArrayAutosomesOnly[firstBatchUpToChr].getName() + " and " +
+                chromosomeArrayAutosomesOnly[firstBatchUpToChr + 1].getName() + " to " + chromosomeArrayAutosomesOnly[n - 1].getName());
+
+        Chromosome[] rowsChromosomes = new Chromosome[firstBatchUpToChr];
+        Chromosome[] colsChromosomes = new Chromosome[n - firstBatchUpToChr];
+        for (int i = 0; i < n; i++) {
+            if (i < firstBatchUpToChr) {
+                rowsChromosomes[i] = chromosomeArrayAutosomesOnly[i];
+            } else {
+                colsChromosomes[i - firstBatchUpToChr] = chromosomeArrayAutosomesOnly[i];
+            }
+        }
+        return new Pair<>(rowsChromosomes, colsChromosomes);
+    }
+
+
+    public Pair<Chromosome[], Chromosome[]> splitAutosomesAndSkipByTwos() {
+        int n = chromosomeArrayAutosomesOnly.length;
+
+        List<Chromosome> part1 = new ArrayList<>();
+        List<Chromosome> part2 = new ArrayList<>();
+
+        part1.add(chromosomeArrayAutosomesOnly[0]);
+        int i = 1;
+        int counterOffset = 0;
+        boolean addToFirstOne = false;
+
+        while (i < n) {
+
+            if (addToFirstOne) {
+                part1.add(chromosomeArrayAutosomesOnly[i]);
+            } else {
+                part2.add(chromosomeArrayAutosomesOnly[i]);
+            }
+
+            counterOffset++;
+            i++;
+
+            if (counterOffset == 2) {
+                addToFirstOne = !addToFirstOne;
+                counterOffset = 0;
+            }
+        }
+
+        return new Pair<>((Chromosome[]) part1.toArray(), (Chromosome[]) part2.toArray());
+    }
+
 }
