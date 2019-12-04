@@ -621,8 +621,8 @@ public class MatrixTools {
         return rowSum;
     }
 
-    public static double[] getAbsValColSums(double[][] matrix) {
-        double[] colSum = new double[matrix[0].length];
+    public static float[] getAbsValColSums(float[][] matrix) {
+        float[] colSum = new float[matrix[0].length];
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 colSum[j] += Math.abs(matrix[i][j]);
@@ -1038,19 +1038,19 @@ public class MatrixTools {
         return appendedDerivative;
     }
 
-    public static double[][] getMainAppendedDerivativeDownColumn(double[][] data) {
+    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data) {
 
         int numColumns = data[0].length;
         int numColumnsMinus1 = data[0].length - 1;
 
-        double[][] derivative = new double[data.length][numColumnsMinus1];
+        float[][] derivative = new float[data.length][numColumnsMinus1];
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < numColumnsMinus1; j++) {
                 derivative[i][j] = data[i][j] - data[i][j + 1];
             }
         }
 
-        double[] columnSums = getAbsValColSums(derivative);
+        float[] columnSums = getAbsValColSums(derivative);
         List<Integer> indicesToUse = new ArrayList<>();
         for (int k = 0; k < columnSums.length; k++) {
             if (columnSums[k] > 0) {
@@ -1058,7 +1058,7 @@ public class MatrixTools {
             }
         }
 
-        double[][] appendedDerivative = new double[data.length][numColumns + indicesToUse.size()];
+        float[][] appendedDerivative = new float[data.length][numColumns + indicesToUse.size()];
         for (int i = 0; i < data.length; i++) {
             System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
         }

@@ -28,9 +28,9 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
+import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
+import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
+import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
 import juicebox.windowui.NormalizationType;
 
 import java.io.File;
@@ -89,7 +89,7 @@ public class OddAndEvenClusterer {
                                          final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTransposed, final long seed) {
 
         if (matrix.getLength() > 0 && matrix.getWidth() > 0) {
-            double[][] cleanDataWithDeriv;
+            float[][] cleanDataWithDeriv;
             if (isTransposed) {
                 cleanDataWithDeriv = matrix.getCleanedTransposedData();
             } else {

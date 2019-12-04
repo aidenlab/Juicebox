@@ -24,13 +24,14 @@
 
 package juicebox.tools.utils.dev.drink;
 
+import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
+import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
@@ -56,11 +57,11 @@ public class CompositeInterchromDensityMatrix {
     private final NormalizationType norm;
     private final int resolution;
     private final GenomeWideList<SubcompartmentInterval> intraSubcompartments;
-    private final double[][] gwCleanMatrix, transposedGWCleanMatrix;
+    private final float[][] gwCleanMatrix, transposedGWCleanMatrix;
     private final Map<Integer, SubcompartmentInterval> indexToInterval1Map = new HashMap<>();
     private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
 
-    private double[][] makeCleanScaledInterMatrix(Dataset ds, InterMapType mapType) {
+    private float[][] makeCleanScaledInterMatrix(Dataset ds, InterMapType mapType) {
 
         Chromosome[] rowsChromosomes;
         Chromosome[] colsChromosomes;
@@ -90,7 +91,7 @@ public class CompositeInterchromDensityMatrix {
         // width chromosomes
         Pair<Integer, int[]> colsDimension = calculateDimensionInterMatrix(colsChromosomes);
 
-        double[][] interMatrix = new double[rowsDimension.getFirst()][colsDimension.getFirst()];
+        float[][] interMatrix = new float[rowsDimension.getFirst()][colsDimension.getFirst()];
         for (int i = 0; i < rowsChromosomes.length; i++) {
             Chromosome chr1 = rowsChromosomes[i];
 
@@ -128,7 +129,7 @@ public class CompositeInterchromDensityMatrix {
         return new Pair<>(total, indices);
     }
 
-    private void fillInInterChromosomeRegion(double[][] matrix, MatrixZoomData zd, Chromosome chr1, int offsetIndex1,
+    private void fillInInterChromosomeRegion(float[][] matrix, MatrixZoomData zd, Chromosome chr1, int offsetIndex1,
                                              Chromosome chr2, int offsetIndex2, boolean needToFlip) {
 
         int chr1Index = chr1.getIndex();
@@ -144,15 +145,15 @@ public class CompositeInterchromDensityMatrix {
         List<SubcompartmentInterval> intervals2 = intraSubcompartments.getFeatures("" + chr2.getIndex());
 
         if (intervals1.size() == 0 || intervals2.size() == 0) return;
-        double[][] allDataForRegion = null;
+        float[][] allDataForRegion = null;
         try {
             if (needToFlip) {
                 RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr2, 0, lengthChr1, lengthChr2, lengthChr1, norm, false);
                 allDataForRegionMatrix = allDataForRegionMatrix.transpose();
-                allDataForRegion = allDataForRegionMatrix.getData();
+                allDataForRegion = MatrixTools.convertToFloatMatrix(allDataForRegionMatrix.getData());
             } else {
                 RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr1, 0, lengthChr2, lengthChr1, lengthChr2, norm, false);
-                allDataForRegion = allDataForRegionMatrix.getData();
+                allDataForRegion = MatrixTools.convertToFloatMatrix(allDataForRegionMatrix.getData());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,7 +166,7 @@ public class CompositeInterchromDensityMatrix {
         }
 
         Map<String, Integer> allAreaBetweenClusters = new HashMap<>();
-        Map<String, Double> allContactsBetweenClusters = new HashMap<>();
+        Map<String, Float> allContactsBetweenClusters = new HashMap<>();
 
         for (SubcompartmentInterval interv1 : intervals1) {
             Integer id1 = interv1.getClusterID();
@@ -173,7 +174,7 @@ public class CompositeInterchromDensityMatrix {
                 Integer id2 = interv2.getClusterID();
                 String regionKey = id1 + "-" + id2;
 
-                double countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, lengthChr1, interv2, lengthChr2);
+                float countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, lengthChr1, interv2, lengthChr2);
                 int areaBetweenClusters = interv1.getWidthForResolution(resolution) * interv2.getWidthForResolution(resolution);
 
                 if (allAreaBetweenClusters.containsKey(regionKey)) {
@@ -186,9 +187,9 @@ public class CompositeInterchromDensityMatrix {
             }
         }
 
-        Map<String, Double> densityBetweenClusters = new HashMap<>();
+        Map<String, Float> densityBetweenClusters = new HashMap<>();
         for (String key : allAreaBetweenClusters.keySet()) {
-            densityBetweenClusters.put(key, 100. * allContactsBetweenClusters.get(key) / allAreaBetweenClusters.get(key));
+            densityBetweenClusters.put(key, 100f * allContactsBetweenClusters.get(key) / allAreaBetweenClusters.get(key));
         }
 
         int internalOffset1 = offsetIndex1;
@@ -202,7 +203,7 @@ public class CompositeInterchromDensityMatrix {
                 int numCols = interv2.getWidthForResolution(resolution);
 
                 String regionKey = id1 + "-" + id2;
-                double density = densityBetweenClusters.get(regionKey);
+                float density = densityBetweenClusters.get(regionKey);
                 updateMasterMatrixWithRegionalDensities(matrix, density, interv1, internalOffset1, numRows, interv2, internalOffset2, numCols);
                 internalOffset2 += numCols;
             }
@@ -210,7 +211,7 @@ public class CompositeInterchromDensityMatrix {
         }
     }
 
-    private void updateMasterMatrixWithRegionalDensities(double[][] matrix, double density,
+    private void updateMasterMatrixWithRegionalDensities(float[][] matrix, float density,
                                                          SubcompartmentInterval interv1, int offsetIndex1, int numRows,
                                                          SubcompartmentInterval interv2, int offsetIndex2, int numCols) {
         for (int i = 0; i < numRows; i++) {
@@ -241,6 +242,25 @@ public class CompositeInterchromDensityMatrix {
         return total;
     }
 
+    private float getSumTotalCounts(float[][] allDataForRegion, SubcompartmentInterval interv1, int lengthChr1,
+                                    SubcompartmentInterval interv2, int lengthChr2) {
+        float total = 0;
+        int binXStart = interv1.getX1() / resolution;
+        int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
+
+        int binYStart = interv2.getX1() / resolution;
+        int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
+
+        for (int i = binXStart; i < binXEnd; i++) {
+            for (int j = binYStart; j < binYEnd; j++) {
+                if (!Float.isNaN(allDataForRegion[i][j])) {
+                    total += allDataForRegion[i][j];
+                }
+            }
+        }
+        return total;
+    }
+
     public synchronized void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments, boolean isTranspose) {
 
         Set<SubcompartmentInterval> subcompartmentIntervals = new HashSet<>();
@@ -256,6 +276,10 @@ public class CompositeInterchromDensityMatrix {
 
         for (Cluster cluster : clusters) {
             int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.getAndIncrement();
+
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("Size of cluster " + currentClusterID + " - " + cluster.getMemberIndexes().length);
+            }
 
             for (int i : cluster.getMemberIndexes()) {
 
@@ -293,11 +317,11 @@ public class CompositeInterchromDensityMatrix {
         return gwCleanMatrix.length;
     }
 
-    public double[][] getCleanedData() {
+    public float[][] getCleanedData() {
         return gwCleanMatrix;
     }
 
-    public double[][] getCleanedTransposedData() {
+    public float[][] getCleanedTransposedData() {
         return transposedGWCleanMatrix;
     }
 

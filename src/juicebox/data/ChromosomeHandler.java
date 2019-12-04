@@ -425,7 +425,15 @@ public class ChromosomeHandler {
             }
         }
 
-        return new Pair<>((Chromosome[]) part1.toArray(), (Chromosome[]) part2.toArray());
+        return new Pair<>(chromosomeListToArray(part1), chromosomeListToArray(part2));
+    }
+
+    private Chromosome[] chromosomeListToArray(List<Chromosome> chromosomes) {
+        Chromosome[] array = new Chromosome[chromosomes.size()];
+        for (int i = 0; i < chromosomes.size(); i++) {
+            array[i] = chromosomes.get(i);
+        }
+        return array;
     }
 
 }
