@@ -28,11 +28,15 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
 import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.MathException;
 import org.apache.commons.math.linear.RealMatrix;
+import org.apache.commons.math.stat.inference.ChiSquareTest;
+import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
@@ -120,7 +124,7 @@ public class InitialClusterer {
             System.out.println("****Cluster with seed " + seed);
             for (Chromosome chromosome : dataCleanerV2MapForChrom.keySet()) {
                 DataCleanerV2 cleanedData = dataCleanerV2MapForChrom.get(chromosome);
-                launchKMeansClustering(chromosome, cleanedData, seed);
+                launchKMeansClustering(outputDirectory, chromosome, cleanedData, seed);
             }
             waitWhileCodeRuns();
         }
@@ -133,7 +137,7 @@ public class InitialClusterer {
     }
 
 
-    private void launchKMeansClustering(Chromosome chromosome, DataCleanerV2 dataCleaner, long randomSeed) {
+    private void launchKMeansClustering(File directory, Chromosome chromosome, DataCleanerV2 dataCleaner, long randomSeed) {
         ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
                 maxIters, randomSeed);
 
@@ -146,6 +150,7 @@ public class InitialClusterer {
             @Override
             public void kmeansComplete(Cluster[] clusters, long l) {
                 System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
+                //saveChiSquareComparisonBetweenClusters(directory, chromosome.getName()+"_"+randomSeed, clusters);
                 List<Map<Integer, List<Integer>>> mapOfClusterIDForIndexForChrom = dataCleaner.postProcessKmeansResultV2(clusters, idToCentroidMap);
                 mapIterationRunToGlobalMap(chromosome, mapOfClusterIDForIndexForChrom);
                 numRunsDone.incrementAndGet();
@@ -277,5 +282,36 @@ public class InitialClusterer {
             idString += id + ".";
         }
         return idString;
+    }
+
+    private void saveChiSquareComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] pvalues = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                pvalues[i][j] = getPvalueChiSquared(clusters[j], expected);
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), pvalues);
+    }
+
+    private double getPvalueChiSquared(Cluster observed, Cluster expected) {
+        ChiSquareTest test = new ChiSquareTestImpl();
+        try {
+            return test.chiSquareTest(expected.getCenter(), toLongArray(observed));
+        } catch (MathException e) {
+            e.printStackTrace();
+        }
+        return Double.NaN;
+    }
+
+    private long[] toLongArray(Cluster cluster) {
+        double[] clusterData = cluster.getCenter();
+        long[] result = new long[clusterData.length];
+        for (int i = 0; i < clusterData.length; i++) {
+            result[i] = Math.round(clusterData[i]);
+        }
+        return result;
     }
 }

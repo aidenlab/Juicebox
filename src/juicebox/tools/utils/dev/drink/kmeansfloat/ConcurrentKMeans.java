@@ -104,14 +104,27 @@ public class ConcurrentKMeans implements KMeans {
     }
 
     /**
+     * Compute the Chi^2 statistic relative to cluster center (expected)
+     */
+    private static float distanceChi2(float[] coord, float[] center) {
+        int len = coord.length;
+        float chiSquared = 0f;
+        for (int i = 0; i < len; i++) {
+            float v = coord[i] - center[i];
+            chiSquared += (v * v) / center[i];
+        }
+        return chiSquared;
+    }
+
+    /**
      * Compute the euclidean distance between the two arguments.
      */
-    private static float distance(float[] coord, float[] center) {
+    private static float distanceL2Norm(float[] coord, float[] center) {
         int len = coord.length;
         float sumSquared = 0f;
         for (int i = 0; i < len; i++) {
             float v = coord[i] - center[i];
-            sumSquared += v * v;
+            sumSquared += (v * v);
         }
         return (float) Math.sqrt(sumSquared);
     }
@@ -359,9 +372,9 @@ public class ConcurrentKMeans implements KMeans {
 
     /**
      * Compute distances between coodinates and cluster centers,
-     * storing them in the distance cache.  Only distances that
+     * storing them in the distanceChi2 cache.  Only distances that
      * need to be computed are computed.  This is determined by
-     * distance update flags in the protocluster objects.
+     * distanceChi2 update flags in the protocluster objects.
      */
     private void computeDistances() throws InsufficientMemoryException {
 
@@ -960,7 +973,7 @@ public class ConcurrentKMeans implements KMeans {
                     for (int c = 0; c < numClusters; c++) {
                         ConcurrentKMeans.ProtoCluster cluster = mProtoClusters[c];
                         if (cluster.getConsiderForAssignment() && cluster.needsUpdate()) {
-                            mDistanceCache[i][c] = distance(mCoordinates[i], cluster.getCenter());
+                            mDistanceCache[i][c] = distanceL2Norm(mCoordinates[i], cluster.getCenter());
                         }
                     }
                 }

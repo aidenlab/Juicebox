@@ -261,7 +261,8 @@ public class CompositeInterchromDensityMatrix {
         return total;
     }
 
-    public synchronized void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments, boolean isTranspose) {
+    public synchronized void processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments,
+                                                   boolean isTranspose, Map<Integer, Integer> subcompartmentIDsToSize) {
 
         Set<SubcompartmentInterval> subcompartmentIntervals = new HashSet<>();
         System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
@@ -276,6 +277,7 @@ public class CompositeInterchromDensityMatrix {
 
         for (Cluster cluster : clusters) {
             int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.getAndIncrement();
+            subcompartmentIDsToSize.put(currentClusterID, cluster.getMemberIndexes().length);
 
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("Size of cluster " + currentClusterID + " - " + cluster.getMemberIndexes().length);
@@ -311,6 +313,17 @@ public class CompositeInterchromDensityMatrix {
 
         subcompartments.addAll(new ArrayList<>(subcompartmentIntervals));
         DrinkUtils.reSort(subcompartments);
+    }
+
+
+    public void stitchTogetherResults(GenomeWideList<SubcompartmentInterval> finalCompartmentsSoFar,
+                                      Map<Integer, Integer> subIDsToSize1, Map<Integer, Integer> subIDsToSize2) {
+        GenomeWideList<SubcompartmentInterval> finalStitchedCompartments = new GenomeWideList<>(chromosomeHandler);
+
+
+        //finalCompartmentsSoFar.processLists();
+
+
     }
 
     public int getLength() {

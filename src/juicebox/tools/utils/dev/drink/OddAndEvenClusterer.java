@@ -32,8 +32,13 @@ import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.stat.inference.ChiSquareTest;
+import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +64,8 @@ public class OddAndEvenClusterer {
         this.origIntraSubcompartments = origIntraSubcompartments;
     }
 
-    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds, CompositeInterchromDensityMatrix.InterMapType mapType) {
+    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds,
+                                                                                CompositeInterchromDensityMatrix.InterMapType mapType) {
 
         final CompositeInterchromDensityMatrix interMatrix = new CompositeInterchromDensityMatrix(
                 chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, mapType);
@@ -67,9 +73,12 @@ public class OddAndEvenClusterer {
         //File outputFile = new File(outputDirectory, isOddsVsEvenType + "inter_Odd_vs_Even_matrix_data.txt");
         //MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
 
+        Map<Integer, Integer> subcompartment1IDsToSize = new HashMap<>();
+        Map<Integer, Integer> subcompartment2IDsToSize = new HashMap<>();
+
         GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
-        launchKmeansInterMatrix(interMatrix, finalCompartments, false, seeds[0]);
-        launchKmeansInterMatrix(interMatrix, finalCompartments, true, seeds[1]);
+        launchKmeansInterMatrix(outputDirectory, mapType + "_" + false, interMatrix, finalCompartments, false, seeds[0], subcompartment1IDsToSize);
+        launchKmeansInterMatrix(outputDirectory, mapType + "_" + true, interMatrix, finalCompartments, true, seeds[1], subcompartment2IDsToSize);
 
         while (numCompleted.get() < 1) {
             System.out.println("So far portion completed is " + numCompleted.get() + "/2");
@@ -81,12 +90,15 @@ public class OddAndEvenClusterer {
             }
         }
 
+        interMatrix.stitchTogetherResults(finalCompartments, subcompartment1IDsToSize, subcompartment2IDsToSize);
+
         return finalCompartments;
     }
 
 
-    private void launchKmeansInterMatrix(final CompositeInterchromDensityMatrix matrix,
-                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments, final boolean isTransposed, final long seed) {
+    private void launchKmeansInterMatrix(File directory, String description, final CompositeInterchromDensityMatrix matrix,
+                                         final GenomeWideList<SubcompartmentInterval> interSubcompartments,
+                                         final boolean isTransposed, final long seed, Map<Integer, Integer> subcompartmentIDsToSize) {
 
         if (matrix.getLength() > 0 && matrix.getWidth() > 0) {
             float[][] cleanDataWithDeriv;
@@ -108,7 +120,10 @@ public class OddAndEvenClusterer {
                 public void kmeansComplete(Cluster[] clusters, long l) {
                     synchronized (numCompleted) {
                         numCompleted.incrementAndGet();
-                        matrix.processGWKmeansResult(clusters, interSubcompartments, isTransposed);
+                        saveChiSquareComparisonBetweenClusters(directory, description + "_pval", clusters);
+                        saveChiSquareValComparisonBetweenClusters(directory, description + "_chi", clusters);
+                        saveDistComparisonBetweenClusters(directory, description + "_dist", clusters);
+                        matrix.processGWKmeansResult(clusters, interSubcompartments, isTransposed, subcompartmentIDsToSize);
                     }
                 }
 
@@ -122,5 +137,122 @@ public class OddAndEvenClusterer {
             kMeans.addKMeansListener(kMeansListener);
             kMeans.run();
         }
+    }
+
+    private void saveChiSquareComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] pvalues = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                pvalues[i][j] = getPvalueChiSquared(clusters[j], expected);
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), pvalues);
+    }
+
+    private void saveDistComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] distances = new double[n][n];
+        double[][] distancesNormalized = new double[n][n];
+        double[][] numDiffEntries = new double[n][n];
+        double[][] numDiffEntriesNormalized = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                distances[i][j] = getDistance(clusters[j], expected);
+                distancesNormalized[i][j] = distances[i][j] / clusters[j].getCenter().length;
+                numDiffEntries[i][j] = getNumDiffEntries(clusters[j], expected);
+                numDiffEntriesNormalized[i][j] = numDiffEntries[i][j] / clusters[j].getCenter().length;
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), distances);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "_normed.npy").getAbsolutePath(), distancesNormalized);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries.npy").getAbsolutePath(), distances);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries_normed.npy").getAbsolutePath(), distancesNormalized);
+    }
+
+    private void saveChiSquareValComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] chi2Val = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                chi2Val[i][j] = getValueChiSquared(clusters[j], expected);
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), chi2Val);
+
+
+        int[][] sizeClusters = new int[1][n];
+        for (int i = 0; i < n; i++) {
+            sizeClusters[0][i] = clusters[i].getMemberIndexes().length;
+        }
+
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".sizes.npy").getAbsolutePath(), sizeClusters);
+    }
+
+    private double getValueChiSquared(Cluster observed, Cluster expected) {
+        ChiSquareTest test = new ChiSquareTestImpl();
+        return test.chiSquare(toHalfDoubleArray(expected), toHalfLongArray(observed));
+    }
+
+    private double getDistance(Cluster observed, Cluster expected) {
+        float[] expectedArray = expected.getCenter();
+        float[] obsArray = observed.getCenter();
+        double val = 0;
+
+        for (int k = 0; k < obsArray.length; k++) {
+            double v = expectedArray[k] - obsArray[k];
+            val += v * v;
+        }
+
+        return Math.sqrt(val);
+    }
+
+    private int getNumDiffEntries(Cluster observed, Cluster expected) {
+        float[] expectedArray = expected.getCenter();
+        float[] obsArray = observed.getCenter();
+        int count = 0;
+
+        for (int k = 0; k < obsArray.length; k++) {
+            double v = expectedArray[k] - obsArray[k];
+            v = (v * v) / Math.abs(expectedArray[k]);
+            if (v < .05) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private double getPvalueChiSquared(Cluster observed, Cluster expected) {
+        ChiSquareTest test = new ChiSquareTestImpl();
+        try {
+            return test.chiSquareTest(toHalfDoubleArray(expected), toHalfLongArray(observed));
+        } catch (MathException e) {
+            e.printStackTrace();
+        }
+        return Double.NaN;
+    }
+
+    private long[] toHalfLongArray(Cluster cluster) {
+        float[] clusterData = cluster.getCenter();
+        int n = (clusterData.length + 1) / 2; // trim derivative
+        long[] result = new long[n];
+        for (int i = 0; i < n; i++) {
+            result[i] = Math.round(clusterData[i]);
+        }
+        return result;
+    }
+
+    private double[] toHalfDoubleArray(Cluster cluster) {
+        float[] clusterData = cluster.getCenter();
+        int n = (clusterData.length + 1) / 2; // trim derivative
+        double[] result = new double[n];
+        for (int i = 0; i < n; i++) {
+            result[i] = clusterData[i];
+        }
+        return result;
     }
 }

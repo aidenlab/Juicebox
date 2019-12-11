@@ -51,7 +51,8 @@ public class Drink extends JuicerCLT {
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private int numClusters = 10;
+    private int numIntraClusters = 12;
+    private int numInterClusters = 7;
     private final int connectedComponentThreshold = 50;
     private final int whichApproachtoUse = 0;
     private final List<Dataset> datasetList = new ArrayList<>();
@@ -110,7 +111,10 @@ public class Drink extends JuicerCLT {
 
     private void determineNumClusters(CommandLineParserForJuicer juicerParser) {
         int n = juicerParser.getMatrixSizeOption();
-        if (n > 1) numClusters = n;
+        if (n > 1) {
+            numInterClusters = n;
+            numIntraClusters = n + 5;
+        }
     }
 
     @Override
@@ -120,7 +124,7 @@ public class Drink extends JuicerCLT {
 
         if (datasetList.size() < 1) return;
 
-        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numClusters, randomSeeds, maxIters, oeThreshold, convolution1d);
+        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numIntraClusters, randomSeeds, maxIters, oeThreshold, convolution1d);
         Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
 
         if (compareOnlyNotSubcompartment) {
@@ -129,7 +133,7 @@ public class Drink extends JuicerCLT {
 
             // process differences for diff vector
             processor.writeDiffVectorsRelativeToBaselineToFiles(outputDirectory, inputHicFilePaths,
-                    "drink_r_" + resolution + "_k_" + numClusters + "_diffs");
+                    "drink_r_" + resolution + "_k_" + numIntraClusters + "_diffs");
 
             processor.writeConsensusSubcompartmentsToFile(outputDirectory);
 
@@ -152,11 +156,12 @@ public class Drink extends JuicerCLT {
     private void conductInterChromosomalClustering(List<GenomeWideList<SubcompartmentInterval>> initialClusterings, CompositeInterchromDensityMatrix.InterMapType isOddsVsEvensType, ChromosomeHandler chromosomeHandler, String filestem) {
         for (int i = 0; i < datasetList.size(); i++) {
             OddAndEvenClusterer oddAndEvenClusterer = new OddAndEvenClusterer(datasetList.get(i), chromosomeHandler, resolution, norm,
-                    numClusters, maxIters, initialClusterings.get(i));
+                    numInterClusters, maxIters, initialClusterings.get(i));
 
             GenomeWideList<SubcompartmentInterval> gwList = oddAndEvenClusterer.extractFinalGWSubcompartments(outputDirectory, randomSeeds, isOddsVsEvensType);
             DrinkUtils.collapseGWList(gwList);
             gwList.simpleExport(new File(outputDirectory, filestem + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".bed"));
+
         }
     }
 }
