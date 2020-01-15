@@ -28,7 +28,10 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.apa.APADataStack;
@@ -209,10 +212,8 @@ public class AFA extends JuicerCLT {
                             APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
                             APADataStack testDataStack = new APADataStack (L, outputDirectory, "test" + resolution);
 
-                            Matrix matrix = ds.getMatrix(chr1, chr2);
-                            if (matrix == null) continue;
-
-                            MatrixZoomData zd = matrix.getZoomData(zoom);
+                            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
+                            if (zd == null) continue;
 
                             if (HiCGlobals.printVerboseComments) {
                                 System.out.println("CHR " + chr1.getName() + " " + chr1.getIndex() + " CHR " + chr2.getName() + " " + chr2.getIndex());

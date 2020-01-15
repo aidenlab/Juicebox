@@ -53,7 +53,7 @@ public class NormalizationCalculations {
     private int totSize;
     private boolean isEnoughMemory = false;
 
-    NormalizationCalculations(MatrixZoomData zd) {
+    public NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
@@ -322,6 +322,7 @@ public class NormalizationCalculations {
 
         if (norm != null) {
             double factor = getSumFactor(norm);
+            System.out.println();
             for (int i = 0; i < norm.length; i++) {
                 norm[i] = norm[i] * factor;
             }
@@ -359,7 +360,12 @@ public class NormalizationCalculations {
      * @param norm Normalization vector
      * @return Square root of ratio of original to normalized vector
      */
-    double getSumFactor(double[] norm) {
+    public double getSumFactor(double[] norm) {
+        Double[] normMatrixSums = getNormMatrixSumFactor(norm);
+        return Math.sqrt(normMatrixSums[0] / normMatrixSums[1]);
+    }
+
+    public Double[] getNormMatrixSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (ContactRecord cr : contactRecords) {
@@ -378,8 +384,21 @@ public class NormalizationCalculations {
 
             }
         }
-        return Math.sqrt(norm_sum / matrix_sum);
+        return new Double[]{norm_sum, matrix_sum};
     }
+
+
+    public int getNumberOfValidEntriesInVector(double[] norm) {
+        int counter = 0;
+        for (double val : norm) {
+            if (!Double.isNaN(val) && val > 0) {
+                counter++;
+            }
+        }
+        return counter;
+    }
+
+
 
     double[] computeKR() {
 

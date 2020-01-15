@@ -24,197 +24,146 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
+import juicebox.tools.dev.Grind;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Command Line Parser for Juicer commands (hiccups, arrowhead, apa)
  * @author Muhammad Shamim
  */
-public class CommandLineParserForJuicer extends CmdLineParser {
+public class CommandLineParserForJuicer extends CommandLineParser {
+
+    // used flags
+    // wmnxcrplafdptkqbvuhgjyz
+
+    // available flags
+    // oes
 
     // General
-    private static Option matrixSizeOption = null;
-    private static Option multipleChromosomesOption = null;
-    private static Option multipleResolutionsOption = null;
-    private static Option normalizationTypeOption = null;
-    private static Option bypassMinimumMapCountCheckOption = null;
-    private static Option verboseOption = null;
-    private static Option legacyOutputOption = null;
-    private static Option helpOption = null;
-    private static Option versionOption = null;
-    private static Option threadNumOption = null;
-
+    private final Option matrixSizeOption = addIntegerOption('m', "matrix-window-width");
+    private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
+    private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
+    private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
+    private final Option legacyOutputOption = addBooleanOption('g', "legacy");
+    private final Option threadNumOption = addIntegerOption('z', "threads");
+    private final Option randomSeedsOption = addStringOption("random-seeds");
+    private final Option convolutionOption = addStringOption("conv1d");
 
     // APA
-    private static Option apaWindowOption = null;
-    private static Option apaMinValOption = null;
-    private static Option apaMaxValOption = null;
-    private static Option multipleCornerRegionDimensionsOption = null;
-    private static Option includeInterChromosomalOption = null;
-    private static Option apaSaveAllData = null;
+    private final Option apaWindowOption = addIntegerOption('w', "window");
+    private final Option apaMinValOption = addDoubleOption('n', "min_dist");
+    private final Option apaMaxValOption = addDoubleOption('x', "max_dist");
+    private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner-width");
+    private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
+    private final Option apaSaveAllData = addBooleanOption('u', "all_data");
 
-    // for HiCCUPS
-    private static Option cpuVersionHiCCUPSOption = null;
-    private static Option restrictSearchRegionsOption = null;
-    private static Option fdrOption = null;
-    private static Option windowOption = null;
-    private static Option peakOption = null;
-    private static Option clusterRadiusOption = null;
-    private static Option thresholdOption = null;
+    // HICCUPS
+    private final Option fdrOption = addStringOption('f', "fdr-thresholds");
+    private final Option windowOption = addStringOption('i', "window-width");
+    private final Option peakOption = addStringOption('p', "peak-width");
+    private final Option clusterRadiusOption = addStringOption('d', "centroid-radii");
+    private final Option thresholdOption = addStringOption('t', "postprocessing-thresholds");
+    private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
+    private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
     // previously for AFA
-    private static Option relativeLocationOption = null;
-    private static Option multipleAttributesOption = null;
+    private final Option relativeLocationOption = addStringOption('l', "location-type");
+    private final Option multipleAttributesOption = addStringOption('a', "attributes");
 
     // for GRIND
-    private static Option useObservedOverExpectedOption = null;
-    private static Option useDenseLabelsOption = null;
-    private static Option useWholeGenome = null;
-    private static Option useStripeOption = null;
-    private static Option useDistortionOption = null;
-    private static Option useDomainOption = null;
-    private static Option useLoopOption = null;
-    private static Option cornerOffBy = null;
-    private static Option stride = null;
+    private final Option useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
+    private final Option useDenseLabelsOption = addBooleanOption("dense-labels");
+    private final Option useWholeGenome = addBooleanOption("whole-genome");
+    private final Option useDiagonalOption = addBooleanOption("diagonal");
+    private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
+    private final Option stride = addIntegerOption("stride");
+    private final Option useDontIgnoreDirectionOrientationOption = addBooleanOption("use-feature-orientation");
+    private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
+    private final Option generateImageFormatPicturesOption = addStringOption("img");
+    private final Option useAmorphicLabelingOption = addBooleanOption("amorphic-labeling");
+    private final Option useTxtInsteadOfNPYOption = addBooleanOption("text-output");
 
+    //iterate-down-diagonal, iterate-on-list, iterate-distortions, iterate-domains
+    private final Option useListIterationOption = addBooleanOption("iterate-on-list");
+    private final Option useDomainOption = addBooleanOption("iterate-domains");
+    private final Option useIterationDownDiagonalOption = addBooleanOption("iterate-down-diagonal");
+    private final Option useDistortionOption = addBooleanOption("iterate-distortions");
 
     public CommandLineParserForJuicer() {
-        // used flags
-        // wmnxcrplafdptkqbvuhgjyz
-
-        // available flags
-        // oes
-
-        // General
-        matrixSizeOption = addIntegerOption('m', "matrix_window_width");
-        multipleChromosomesOption = addStringOption('c', "chromosomes");
-        multipleResolutionsOption = addStringOption('r', "resolutions");
-        normalizationTypeOption = addStringOption('k', "normalization");
-        bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
-        verboseOption = addBooleanOption('v', "verbose");
-        legacyOutputOption = addBooleanOption('g', "legacy");
-        helpOption = addBooleanOption('h', "help");
-        versionOption = addBooleanOption('V', "version");
-        threadNumOption = addIntegerOption('z', "threads");
-
-        // APA
-        apaWindowOption = addIntegerOption('w', "window");
-        apaMinValOption = addDoubleOption('n', "min_dist");
-        apaMaxValOption = addDoubleOption('x', "max_dist");
-        multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
-        includeInterChromosomalOption = addBooleanOption('e', "include_inter_chr");
-        apaSaveAllData = addBooleanOption('u', "all_data");
-
-        // HICCUPS
-        fdrOption = addStringOption('f', "fdr_thresholds");
-        windowOption = addStringOption('i', "window_width");
-        peakOption = addStringOption('p', "peak_width");
-        clusterRadiusOption = addStringOption('d', "centroid_radii");
-        thresholdOption = addStringOption('t', "postprocessing_thresholds");
-        cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
-        restrictSearchRegionsOption = addBooleanOption('y', "restrict");
-
-        // previously for AFA
-        relativeLocationOption = addStringOption('l', "location_type");
-        multipleAttributesOption = addStringOption('a', "attributes");
-
-        // for GRIND
-        useObservedOverExpectedOption = addBooleanOption("obs_exp");
-        useDenseLabelsOption = addBooleanOption("dense_labels");
-        useWholeGenome = addBooleanOption("whole_genome");
-        useLoopOption = addBooleanOption("loops");
-        useDomainOption = addBooleanOption("domains");
-        useStripeOption = addBooleanOption("stripes");
-        useDistortionOption = addBooleanOption("distort");
-        cornerOffBy = addIntegerOption("corner_off_by");
-        stride = addIntegerOption("stride");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
-                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
+                || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("drinks")
+                || cmd.equals("shuffle") || cmd.equals("grind");
     }
 
     public int getGrindDataSliceOption() {
-        Object opt = getOptionValue(useLoopOption);
-        if (opt != null) return 1;
+        Object opt = getOptionValue(useListIterationOption);
+        if (opt != null) return Grind.LIST_ITERATION_OPTION;
         opt = getOptionValue(useDomainOption);
-        if (opt != null) return 2;
-        opt = getOptionValue(useStripeOption);
-        if (opt != null) return 3;
+        if (opt != null) return Grind.DOMAIN_OPTION;
+        opt = getOptionValue(useIterationDownDiagonalOption);
+        if (opt != null) return Grind.DOWN_DIAGONAL_OPTION;
         opt = getOptionValue(useDistortionOption);
-        if (opt != null) return 4;
+        if (opt != null) return Grind.DISTORTION_OPTION;
         return 0;
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
-        Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
-        return opt != null;
+        return optionToBoolean(bypassMinimumMapCountCheckOption);
     }
 
     // for GRIND
     public boolean getUseObservedOverExpectedOption() {
-        Object opt = getOptionValue(useObservedOverExpectedOption);
-        return opt != null;
+        return optionToBoolean(useObservedOverExpectedOption);
     }
 
+    public boolean getUseAmorphicLabelingOption() {
+        return optionToBoolean(useAmorphicLabelingOption);
+    }
 
     public boolean getUseWholeGenome() {
-        Object opt = getOptionValue(useWholeGenome);
-        return opt != null;
+        return optionToBoolean(useWholeGenome);
+    }
+
+    public boolean getUseGenomeDiagonal() {
+        return optionToBoolean(useDiagonalOption);
     }
 
     public boolean getDenseLabelsOption() {
-        Object opt = getOptionValue(useDenseLabelsOption);
-        return opt != null;
+        return optionToBoolean(useDenseLabelsOption);
     }
 
-    public boolean getVerboseOption() {
-        Object opt = getOptionValue(verboseOption);
-        return opt != null;
+    public boolean getDontIgnoreDirectionOrientationOption() {
+        return optionToBoolean(useDontIgnoreDirectionOrientationOption);
+    }
+
+    public boolean getUseOnlyMakePositiveExamplesOption() {
+        return optionToBoolean(useOnlyMakePositiveExamplesOption);
     }
 
     public boolean getLegacyOutputOption() {
-        Object opt = getOptionValue(legacyOutputOption);
-        return opt != null;
+        return optionToBoolean(legacyOutputOption);
     }
 
     public boolean getIncludeInterChromosomal() {
-        Object opt = getOptionValue(includeInterChromosomalOption);
-        return opt != null;
+        return optionToBoolean(includeInterChromosomalOption);
     }
 
 
     public boolean getAPASaveAllData() {
-        Object opt = getOptionValue(apaSaveAllData);
-        return opt != null;
-    }
-
-    public boolean getHelpOption() {
-        Object opt = getOptionValue(helpOption);
-        return opt != null;
-    }
-
-    public boolean getVersionOption() {
-        Object opt = getOptionValue(versionOption);
-        return opt != null;
+        return optionToBoolean(apaSaveAllData);
     }
 
     /**
      * String flags
      */
-    private String optionToString(Option option) {
-        Object opt = getOptionValue(option);
-        return opt == null ? null : opt.toString();
-    }
 
     public String getRelativeLocationOption() {
         return optionToString(relativeLocationOption);
@@ -245,27 +194,9 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return null;
     }
 
-    private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
-        if (norm == null || norm.length() < 1)
-            return null;
-
-        try {
-            return normalizationHandler.getNormTypeFromString(norm);
-        } catch (IllegalArgumentException error) {
-            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(7);
-        }
-        return null;
-    }
-
     /**
      * int flags
      */
-    private int optionToInt(Option option) {
-        Object opt = getOptionValue(option);
-        return opt == null ? -1 : ((Number) opt).intValue();
-    }
-
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
     }
@@ -289,10 +220,6 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     /**
      * double flags
      */
-    private double optionToDouble(Option option) {
-        Object opt = getOptionValue(option);
-        return opt == null ? -1 : ((Number) opt).doubleValue();
-    }
 
     public double getAPAMinVal() {
         return optionToDouble(apaMinValOption);
@@ -305,15 +232,12 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     /**
      * String Set flags
      */
-    private List<String> optionToStringList(Option option) {
-        Object opt = getOptionValue(option);
-        return opt == null ? null : new ArrayList<>(Arrays.asList(opt.toString().split(",")));
-    }
 
-    List<String> getChromosomeOption() {
+    List<String> getChromosomeListOption() {
         return optionToStringList(multipleChromosomesOption);
     }
 
+    // todo fix to return list of ints
     public List<String> getMultipleResolutionOptions() {
         return optionToStringList(multipleResolutionsOption);
     }
@@ -352,7 +276,38 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     }
 
     public boolean restrictSearchRegionsOptions() {
-        Object opt = getOptionValue(restrictSearchRegionsOption);
-        return opt != null;
+        return optionToBoolean(restrictSearchRegionsOption);
+    }
+
+    public String getGenerateImageFormatPicturesOption() {
+        return optionToString(generateImageFormatPicturesOption);
+    }
+
+    public boolean getUseTxtInsteadOfNPY() {
+        return optionToBoolean(useTxtInsteadOfNPYOption);
+    }
+
+    public long[] getMultipleSeedsOption() {
+        List<String> possibleSeeds = optionToStringList(randomSeedsOption);
+        if (possibleSeeds != null) {
+            long[] seeds = new long[possibleSeeds.size()];
+            for (int i = 0; i < seeds.length; i++) {
+                seeds[i] = Long.parseLong(possibleSeeds.get(i));
+            }
+            return seeds;
+        }
+        return null;
+    }
+
+    public double[] getConvolutionOption() {
+        List<String> conv1d = optionToStringList(convolutionOption);
+        if (conv1d != null) {
+            double[] values = new double[conv1d.size()];
+            for (int i = 0; i < values.length; i++) {
+                values[i] = Double.parseDouble(conv1d.get(i));
+            }
+            return values;
+        }
+        return null;
     }
 }

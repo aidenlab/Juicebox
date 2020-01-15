@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
+import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -326,6 +327,15 @@ public class Feature2DHandler {
 
     public Feature2DList getFeatureList() {
         return loopList;
+    }
+
+    public List<Feature2D> getContainedFeatures(Chromosome chrom, int rectULX, int rectULY, int rectLRX, int rectLRY, int resolution) {
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
+                rectULX * resolution,
+                rectULY * resolution,
+                rectLRX * resolution,
+                rectLRY * resolution);
+        return getContainedFeatures(chrom.getIndex(), chrom.getIndex(), currentWindow);
     }
 
     public class resultContainer {

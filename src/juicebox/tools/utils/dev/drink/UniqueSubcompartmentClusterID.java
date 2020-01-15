@@ -30,5 +30,7 @@ class UniqueSubcompartmentClusterID {
 
     public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
 
+    public final static AtomicInteger genomewideInitialClusterID = new AtomicInteger(0);
+
     public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }

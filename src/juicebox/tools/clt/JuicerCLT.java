@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
@@ -60,7 +59,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer)parser;
         assessIfChromosomesHaveBeenSpecified(juicerParser);
         readJuicerArguments(args, juicerParser);
@@ -70,7 +69,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
         int numThreads = juicerParser.getNumThreads();
         if (numThreads > 0) {
             numCPUThreads = numThreads;
-        } else if(numThreads == 0) {
+        } else if (numThreads < 0) {
             numCPUThreads = Runtime.getRuntime().availableProcessors();
         } else {
             numCPUThreads = 1;
@@ -81,7 +80,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
     protected abstract void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser);
 
     private void assessIfChromosomesHaveBeenSpecified(CommandLineParserForJuicer juicerParser) {
-        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
+        List<String> possibleChromosomes = juicerParser.getChromosomeListOption();
         if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
             givenChromosomes = new HashSet<>(possibleChromosomes);
         }

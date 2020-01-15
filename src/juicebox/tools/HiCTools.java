@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ public class HiCTools {
 
         String cmdName = argv[0].toLowerCase();
 
-        CmdLineParser parser = new CommandLineParser();
+        CommandLineParser parser = new CommandLineParser();
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
             HiCGlobals.useCache = false; //TODO until memory leak cleared
@@ -61,19 +61,17 @@ public class HiCTools {
         parser.parse(argv);
 
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
-            HiCGlobals.printVerboseComments = ((CommandLineParserForJuicer)parser).getVerboseOption();
             HiCGlobals.isLegacyOutputPrintingEnabled = ((CommandLineParserForJuicer) parser).getLegacyOutputOption();
-            help = ((CommandLineParserForJuicer)parser).getHelpOption();
-            version =  ((CommandLineParserForJuicer)parser).getVersionOption();
         }
         else {
-            HiCGlobals.printVerboseComments = ((CommandLineParser)parser).getVerboseOption();
-            help = ((CommandLineParser)parser).getHelpOption();
-            version = ((CommandLineParser)parser).getVersionOption();
-            if (((CommandLineParser)parser).getAllPearsonsOption()) {
+            if (parser.getAllPearsonsOption()) {
                 HiCGlobals.MAX_PEARSON_ZOOM = 1;
             }
         }
+        help = parser.getHelpOption();
+        version = parser.getVersionOption();
+        HiCGlobals.printVerboseComments = parser.getVerboseOption();
+
         String[] args = parser.getRemainingArgs();
 
         JuiceboxCLT instanceOfCLT;

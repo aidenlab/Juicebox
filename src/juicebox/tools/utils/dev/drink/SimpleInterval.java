@@ -79,6 +79,10 @@ public class SimpleInterval extends Feature implements Comparable<SimpleInterval
         return x2;
     }
 
+    public Integer getWidthForResolution(int resolution) {
+        return (x2 - x1) / resolution;
+    }
+
     public String getChrName() {
         return chrName;
     }

@@ -24,14 +24,71 @@
 
 package juicebox.tools.utils.dev.drink;
 
+import juicebox.data.feature.FeatureFunction;
+import juicebox.data.feature.GenomeWideList;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.linear.SingularValueDecomposition;
 import org.apache.commons.math.linear.SingularValueDecompositionImpl;
 
+import java.util.*;
+
 public class FourthApproach {
 
     // https://stackoverflow.com/questions/19957076/best-way-to-compute-a-truncated-singular-value-decomposition-in-java
+
+    private GenomeWideList<SubcompartmentInterval>
+    mergeIntraAndInterAnnotations(GenomeWideList<SubcompartmentInterval> origIntraSubcompartments,
+                                  GenomeWideList<SubcompartmentInterval> interOddSubcompartments,
+                                  GenomeWideList<SubcompartmentInterval> interEvenSubcompartments, int connectedComponentThreshold) {
+
+        final Map<SimpleInterval, Set<Integer>> intervalToClusterIDs = new HashMap<>();
+
+        System.out.println("Start Intra List Processing 1");
+        // set the initial set with cluster val
+        origIntraSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+            @Override
+            public void process(String chr, List<SubcompartmentInterval> featureList) {
+                for (SubcompartmentInterval interval : featureList) {
+                    Set<Integer> clusterIDs = new HashSet<>();
+                    clusterIDs.add(interval.getClusterID());
+                    intervalToClusterIDs.put(interval.getSimpleIntervalKey(), clusterIDs);
+                }
+            }
+        });
+        System.out.println("End Intra List Processing 1");
+
+        System.out.println("Start Inter List Processing 2");
+
+        //odds first
+        interOddSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+            @Override
+            public void process(String chr, List<SubcompartmentInterval> featureList) {
+                for (SubcompartmentInterval interval : featureList) {
+                    intervalToClusterIDs.get(interval.getSimpleIntervalKey()).add(interval.getClusterID());
+                }
+            }
+        });
+
+        //even next
+        interEvenSubcompartments.processLists(new FeatureFunction<SubcompartmentInterval>() {
+            @Override
+            public void process(String chr, List<SubcompartmentInterval> featureList) {
+                for (SubcompartmentInterval interval : featureList) {
+                    intervalToClusterIDs.get(interval.getSimpleIntervalKey()).add(interval.getClusterID());
+                }
+            }
+        });
+
+
+        System.out.println("End Inter List Processing 2");
+
+        int[][] adjacencyMatrix = ConnectedComponents.generateAdjacencyMatrix(intervalToClusterIDs);
+
+        Set<Set<Integer>> connectedComponents = ConnectedComponents.calculateConnectedComponents(adjacencyMatrix, connectedComponentThreshold);
+
+        return ConnectedComponents.stitchSubcompartments(connectedComponents, origIntraSubcompartments);
+    }
 
     public static double[][] getTruncatedSVD(double[][] matrix, final int k) {
         SingularValueDecomposition svd = new SingularValueDecompositionImpl(new Array2DRowRealMatrix(matrix));

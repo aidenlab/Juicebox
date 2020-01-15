@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
 
 package juicebox.tools.utils;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
@@ -53,7 +53,7 @@ public class Benchmark extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] argv, CmdLineParser parser)   {
+    public void readArguments(String[] argv, CommandLineParser parser) {
         Globals.setHeadless(true);
 
 

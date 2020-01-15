@@ -77,7 +77,6 @@ public class CLTFactory {
     public static JuiceboxCLT getCLTCommand(String cmd) {
 
         cmd = cmd.toLowerCase();
-
         if (cmd.equals("pre")) {
             return new PreProcessing();
         } else if (cmd.equals("dump")) {
@@ -102,6 +101,8 @@ public class CLTFactory {
             return new BPToFragment();
         } else if (cmd.equals("calcKR".toLowerCase())) {
             return new CalcKR();
+        } else if (cmd.equals("calcMatrixSum".toLowerCase())) {
+            return new CalcMatrixSum();
         } else if (cmd.equals("fragmentToBed".toLowerCase())) {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
@@ -110,8 +111,10 @@ public class CLTFactory {
             return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
+        } else if (cmd.equals("drinks")) {
+            return new Drink(false);
         } else if (cmd.equals("drink")) {
-            return new Drink();
+            return new Drink(true);
         } else if (cmd.equals("grind")) {
             return new Grind();
         } else if (cmd.equals("motifs")) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.tools.clt.old;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
@@ -85,12 +84,7 @@ public class Dump extends JuiceboxCLT {
         // If in the future we wish to expose, we should use a more reasonable flag.
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
-            Matrix matrix =  dataset.getMatrix(chr, chr);
-            if (matrix == null) {
-                System.err.println("No All vs. All matrix");
-                System.exit(1);
-            }
-            MatrixZoomData zd = matrix.getZoomData(zoom);
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null){
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
@@ -127,10 +121,9 @@ public class Dump extends JuiceboxCLT {
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 final int chrIdx = chr.getIndex();
-                Matrix matrix = dataset.getMatrix(chr, chr);
+                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
+                if (zd == null) continue;
                 Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
                 while (iter.hasNext()) {
                     ContactRecord cr = iter.next();
@@ -199,11 +192,8 @@ public class Dump extends JuiceboxCLT {
             pw.close();
 
         } else if (matrixType == MatrixType.EXPECTED) {
-            final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
-            if (df == null) {
-                System.err.println("Expected not available at " + zoom + " " + norm);
-                System.exit(10);
-            }
+            final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
+
             int length = df.getLength();
 
             if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
@@ -232,18 +222,13 @@ public class Dump extends JuiceboxCLT {
         Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
         Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
 
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome2);
-        if (matrix == null) {
-            System.err.println("No reads in " + chr1 + " " + chr2);
-            return;
-        }
-
         if (chromosome2.getIndex() < chromosome1.getIndex()) {
             regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
         }
 
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome2, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chr1 + " " + chr2);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {
@@ -259,11 +244,7 @@ public class Dump extends JuiceboxCLT {
 
         ExpectedValueFunction df = null;
         if (MatrixType.isExpectedValueType(matrixType)) {
-            df = dataset.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println(matrixType + " not available at " + chr1 + " " + zoom + " " + norm);
-                System.exit(14);
-            }
+            df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
         }
         zd.dump(pw, les, norm, matrixType, useRegionIndices, regionIndices, df, dense);
 
@@ -294,7 +275,7 @@ public class Dump extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         String ofile = null;
 
         if (args.length == 3 || args.length == 4) {
@@ -312,9 +293,9 @@ public class Dump extends JuiceboxCLT {
         }
         else {
             // -d in pre means diagonal, in dump means dense
-            dense = ((CommandLineParser) parser).getDiagonalsOption();
+            dense = parser.getDiagonalsOption();
             // -n in pre means no norm, in dump means includeIntra for the whole genome
-            includeIntra = ((CommandLineParser) parser).getNoNormOption();
+            includeIntra = parser.getNoNormOption();
 
             if (args.length < 7) {
                 printUsageAndExit();

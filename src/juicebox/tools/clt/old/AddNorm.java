@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,23 @@
 
 package juicebox.tools.clt.old;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.NormalizationType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
-
     private String inputVectorFile = null;
-
     private int genomeWideResolution = -100;
-
     private String file;
-    private static boolean doNotSkipKRNorm = true;
+    private final List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -48,7 +48,8 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
                 + " Above options ignored if input_vector_file present\n"
-                + "           : --skip-kr skip KR normalization\n"
+                + "           : -k normalizations to include\n"
+                + "           : -r resolutions for respective normalizations to build to\n"
         );
     }
 
@@ -57,9 +58,8 @@ public class AddNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParser parser1 = (CommandLineParser) parser;
-        if (parser1.getHelpOption()) {
+    public void readArguments(String[] args, CommandLineParser parser) {
+        if (parser.getHelpOption()) {
             printUsageAndExit();
         }
 
@@ -69,11 +69,11 @@ public class AddNorm extends JuiceboxCLT {
         else if (args.length != 2) {
             printUsageAndExit();
         }
-        noFragNorm = parser1.getNoFragNormOption();
-        genomeWideResolution = parser1.getGenomeWideOption();
-        doNotSkipKRNorm = parser1.getDoNotSkipKROption();
+        noFragNorm = parser.getNoFragNormOption();
+        genomeWideResolution = parser.getGenomeWideOption();
+        normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
+        //parser1
         file = args[1];
-
     }
 
     @Override
@@ -83,11 +83,7 @@ public class AddNorm extends JuiceboxCLT {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
             }
             else {
-                boolean useGenomeWideResolution = genomeWideResolution != -100;
-                if (useGenomeWideResolution)
-                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm, doNotSkipKRNorm);
-                else
-                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm, doNotSkipKRNorm);
+                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, genomeWideResolution, noFragNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();

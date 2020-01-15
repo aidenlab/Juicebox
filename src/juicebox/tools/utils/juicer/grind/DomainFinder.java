@@ -24,152 +24,89 @@
 
 package juicebox.tools.utils.juicer.grind;
 
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.FeatureFunction;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
 
+public class DomainFinder extends RegionFinder {
 
-public class DomainFinder implements RegionFinder {
-
-    private int x;
-    private int y;
-    private int z;
-    private Dataset ds;
-    private Feature2DList features;
-    private String path;
-    private File outputDirectory;
-    private ChromosomeHandler chromosomeHandler;
-    private NormalizationType norm;
-    private boolean useObservedOverExpected;
-    private boolean useDenseLabels;
-    private Set<Integer> resolutions;
-    private int x_dim;
-    private int y_dim;
-
-
-    public DomainFinder(int x, int y, int z, Dataset ds, Feature2DList features, File outputDirectory, ChromosomeHandler chromosomeHandler, NormalizationType norm,
-                        boolean useObservedOverExpected, boolean useDenseLabels, Set<Integer> resolutions) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.ds = ds;
-        this.features = features;
-        this.path = outputDirectory.getPath();
-        this.path = outputDirectory.getPath();
-        this.outputDirectory = outputDirectory;
-        this.chromosomeHandler = chromosomeHandler;
-        this.norm = norm;
-        this.useObservedOverExpected = useObservedOverExpected;
-        this.useDenseLabels = useDenseLabels;
-        this.resolutions = resolutions;
-        //this.x_dim = ds;
+    public DomainFinder(ParameterConfigurationContainer container) {
+        super(container);
     }
 
     @Override
-    public void makePositiveExamples() {
-        final Random generator = new Random();
+    public void makeExamples() {
 
-        //String loopListPath = "";
-
-        File file = new File(path);
-        if (!file.isDirectory()) {
-            file.mkdir();
-        }
-
+        UNIXTools.makeDir(originalPath);
 
         final ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-
         final int resolution = (int) resolutions.toArray()[0];
 
-        final int halfWidthI = x / 2;
-        final int halfWidthJ = y / 2;
-        final int maxk = z / features.getNumTotalFeatures();
-
         try {
-            final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "all_file_names.txt"), StandardCharsets.UTF_8));
+            final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(originalPath + "all_file_names.txt"), StandardCharsets.UTF_8));
 
-            final Feature2DHandler feature2DHandler = new Feature2DHandler(features);
+            final Feature2DHandler feature2DHandler = new Feature2DHandler(inputFeature2DList);
 
-
-
-
-
-            // Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, false, null, false);
-
-            features.processLists(new FeatureFunction() {
+            inputFeature2DList.processLists(new FeatureFunction() {
                 @Override
                 public void process(String chr, List<Feature2D> feature2DList) {
 
                     Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chr);
-
-                        Matrix matrix = ds.getMatrix(chromosome, chromosome);
-                    if (matrix == null) return;
-
-                        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-                        final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+                    final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chromosome, chromosome, resolution);
                     if (zd == null) return;
 
-                        for (int rowIndex = 0; rowIndex < chromosome.getLength() / resolution; rowIndex++) {
-                            for (int colIndex = rowIndex; colIndex < chromosome.getLength() / resolution; colIndex++) {
+                    for (int rowIndex = 0; rowIndex < chromosome.getLength() / resolution; rowIndex++) {
+                        for (int colIndex = rowIndex; colIndex < chromosome.getLength() / resolution; colIndex++) {
 
-                                // todo is far from diagonal, continue
+                            // todo is far from diagonal, continue
 
-                                try {
-                                    RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
-                                            rowIndex, rowIndex + x, colIndex, colIndex + y, x, y, norm, true);
+                            try {
+                                RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd,
+                                        rowIndex, rowIndex + x, colIndex, colIndex + y, x, y, norm, true);
 
-                                    if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
+                                if (MatrixTools.sum(localizedRegionData.getData()) > 0) {
 
-                                        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowIndex * resolution,
-                                                y * resolution, (rowIndex + x) * resolution, (colIndex + y) * resolution);
+                                    net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowIndex * resolution,
+                                            y * resolution, (rowIndex + x) * resolution, (colIndex + y) * resolution);
 
-                                        List<Feature2D> inputListFoundFeatures = feature2DHandler.getIntersectingFeatures(chromosome.getIndex(), chromosome.getIndex(),
-                                                currentWindow, true);
+                                    List<Feature2D> inputListFoundFeatures = feature2DHandler.getIntersectingFeatures(chromosome.getIndex(), chromosome.getIndex(),
+                                            currentWindow, true);
 
-                                        double[][] labelsMatrix = new double[x][y];
+                                    double[][] labelsMatrix = new double[x][y];
 
-                                        for (Feature2D feature2D : inputListFoundFeatures) {
-                                            labelsMatrix[feature2D.getStart1() / resolution - rowIndex][feature2D.getEnd2() / resolution - colIndex] = 1.0;
-                                        }
-
-
-                                        String exactFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".txt";
-                                        String exactLabelFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + ".label.txt";
-
-                                        MatrixTools.saveMatrixTextV2(path + exactFileName, localizedRegionData);
-                                        MatrixTools.saveMatrixTextV2(path + exactLabelFileName, labelsMatrix);
-                                        writer.write(exactFileName + "\n");
-
-
+                                    for (Feature2D feature2D : inputListFoundFeatures) {
+                                        labelsMatrix[feature2D.getStart1() / resolution - rowIndex][feature2D.getEnd2() / resolution - colIndex] = 1.0;
                                     }
-                                } catch (Exception ignored) {
+
+                                    String exactFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex;
+                                    String exactLabelFileName = chromosome.getName() + "_" + rowIndex + "_" + colIndex + "_label";
+
+                                    GrindUtils.saveGrindMatrixDataToFile(exactFileName, originalPath, localizedRegionData, writer, useTxtInsteadOfNPY);
+                                    GrindUtils.saveGrindMatrixDataToFile(exactLabelFileName, originalPath, labelsMatrix, writer, useTxtInsteadOfNPY);
+
                                 }
+                            } catch (Exception ignored) {
                             }
                         }
+                    }
                 }
             });
             writer.close();
         } catch (Exception ignored) {
-
         }
-    }
-
-    @Override
-    public void makeNegativeExamples() {
-
     }
 }

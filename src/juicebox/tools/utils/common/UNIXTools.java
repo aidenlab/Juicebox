@@ -41,11 +41,19 @@ public class UNIXTools {
         return strSplit[strSplit.length - i];
     }
 
-    public static void makeDir(String path) {
+    public static String makeDir(String path) {
         File file = new File(path);
         if (!file.isDirectory()) {
             file.mkdir();
         }
+        return path;
+    }
+
+    public static File makeDir(File folder) {
+        if (!folder.isDirectory()) {
+            folder.mkdir();
+        }
+        return folder;
     }
 
     public static void redirectOutput(List<String> command, String outputFilePath) {

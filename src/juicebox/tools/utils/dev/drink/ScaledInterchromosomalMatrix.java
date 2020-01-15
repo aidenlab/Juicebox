@@ -26,13 +26,13 @@ package juicebox.tools.utils.dev.drink;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
-import juicebox.data.Matrix;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -81,14 +81,7 @@ class ScaledInterchromosomalMatrix {
             Chromosome chr2 = chromosomes[j];
 
             if (chr1.getIndex() == chr2.getIndex()) continue;
-
-            Matrix matrix = ds.getMatrix(chr1, chr2);
-
-            if (matrix == null) continue;
-
-            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-            final MatrixZoomData zd = matrix.getZoomData(zoom);
-
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, resolution);
             if (zd == null) continue;
 
             // will need to flip across diagonal
@@ -149,16 +142,16 @@ class ScaledInterchromosomalMatrix {
 
         try {
             if (intervals1.size() == 0 || intervals2.size() == 0) return;
-            double[][] allDataForRegion;
+            RealMatrix allDataForRegion;
             if (needToFlip) {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr2,
-                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr2,
+                        0, lengthChr1, lengthChr2, lengthChr1, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
                 //System.out.println(allDataForRegion.length+" -- - -- "+allDataForRegion[0].length);
-                allDataForRegion = MatrixTools.transpose(allDataForRegion);
+                allDataForRegion = allDataForRegion.transpose();
                 //System.out.println(allDataForRegion.length+" -- flip -- "+allDataForRegion[0].length);
             } else {
-                allDataForRegion = ExtractingOEDataUtils.extractLocalOEBoundedRegion(zd, 0, lengthChr1,
-                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false);
+                allDataForRegion = ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, lengthChr1,
+                        0, lengthChr2, lengthChr1, lengthChr2, norm, false, null, chr1Index, threshold, false, ExtractingOEDataUtils.ThresholdType.LOCAL_BOUNDED);
             }
 
             for (int i = 0; i < intervals1.size(); i++) {

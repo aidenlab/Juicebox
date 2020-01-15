@@ -32,6 +32,7 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.util.*;
@@ -53,11 +54,14 @@ public class BlockBuster {
      *
      * @return contact domain list and scores for given list/control
      */
-    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth, MatrixZoomData zd,
+    public static void run(Chromosome chrom, int resolution, int matrixWidth, MatrixZoomData zd,
                            NormalizationType norm, ArrowheadScoreList list, ArrowheadScoreList control,
                            Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
                            Feature2DList contactDomainControlScoresGenomeWide) {
 
+        int chrIndex = chrom.getIndex();
+        String chrName = chrom.getName();
+        int chrLength = chrom.getLength();
         // used for sliding window across diagonal
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);

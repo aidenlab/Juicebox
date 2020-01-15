@@ -24,21 +24,17 @@
 
 package juicebox.tools.dev;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.grind.*;
-import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Generating Regions of Interest for Network Discovery
@@ -46,20 +42,19 @@ import java.util.Set;
 
 public class Grind extends JuicerCLT {
 
-    private int x, y, z;
-    private int sliceTypeOption = 0;
-    private boolean useObservedOverExpected = false;
-    private Dataset ds;
-    private boolean useDenseLabels = false;
-    private boolean wholeGenome = false;
-    private File outputDirectory;
-    private Set<Integer> resolutions = new HashSet<>();
-    private String featureListPath;
-    private int cornerOffBy = 0;
-    private int stride = 1;
+    public static final int LIST_ITERATION_OPTION = 1;
+    public static final int DOMAIN_OPTION = 2;
+    public static final int DOWN_DIAGONAL_OPTION = 3;
+    public static final int DISTORTION_OPTION = 4;
+    private ParameterConfigurationContainer container = new ParameterConfigurationContainer();
 
     public Grind() {
-        super("grind --loops --domains --stripes [hic file] [bedpe positions] [x,y,z] [directory]");
+        super("grind [-k NONE/KR/VC/VC_SQRT] [-r resolution] [--stride increment] " +
+                "[--off-from-diagonal max-dist-from-diag] " +
+                "--observed-over-expected --dense-labels --ignore-feature-orientation --only-make-positives " + //--whole-genome --distort
+                "<mode> <hic file> <bedpe positions> <x,y,z> <directory>" +
+                "     \n" +
+                "     mode: --iterate-down-diagonal --iterate-on-list --iterate-distortions --iterate-domains");
     }
 
     @Override
@@ -68,62 +63,98 @@ public class Grind extends JuicerCLT {
             printUsageAndExit();
         }
 
-        ds = HiCFileTools.
+        container.ds = HiCFileTools.
                 extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
 
-        featureListPath = args[2];
+        container.featureListPath = args[2];
 
         // split on commas
         // save the dimensions
         String[] dimensions = args[3].split(",");
-        x = Integer.parseInt(dimensions[0]);
-        y = Integer.parseInt(dimensions[1]);
-        z = Integer.parseInt(dimensions[2]);
+        container.x = Integer.parseInt(dimensions[0]);
+        container.y = Integer.parseInt(dimensions[1]);
+        container.z = Integer.parseInt(dimensions[2]);
 
-        useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
-        useDenseLabels = juicerParser.getDenseLabelsOption();
-        wholeGenome = juicerParser.getUseWholeGenome();
-        cornerOffBy = juicerParser.getCornerOffBy();
-        stride = juicerParser.getStride();
-        outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        container.useObservedOverExpected = juicerParser.getUseObservedOverExpectedOption();
+        container.featureDirectionOrientationIsImportant = juicerParser.getDontIgnoreDirectionOrientationOption();
+        container.useAmorphicPixelLabeling = juicerParser.getUseAmorphicLabelingOption();
+        container.onlyMakePositiveExamples = juicerParser.getUseOnlyMakePositiveExamplesOption();
+        container.useDenseLabelsNotBinary = juicerParser.getDenseLabelsOption();
+        container.wholeGenome = juicerParser.getUseWholeGenome();
+        container.offsetOfCornerFromDiagonal = juicerParser.getCornerOffBy();
+        container.stride = juicerParser.getStride();
+        container.outputDirectory = HiCFileTools.createValidDirectory(args[4]);
+        container.useDiagonal = juicerParser.getUseGenomeDiagonal();
+        container.useTxtInsteadOfNPY = juicerParser.getUseTxtInsteadOfNPY();
 
-
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(container.ds.getNormalizationHandler());
         if (preferredNorm != null) norm = preferredNorm;
+        container.norm = norm;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             for (String num : possibleResolutions) {
-                resolutions.add(Integer.parseInt(num));
+                container.resolutions.add(Integer.parseInt(num));
             }
         } else {
-            resolutions.add(10000);
+            container.resolutions.add(10000);
         }
 
-        sliceTypeOption = juicerParser.getGrindDataSliceOption();
+        container.grindIterationTypeOption = juicerParser.getGrindDataSliceOption();
+        container.imgFileType = juicerParser.getGenerateImageFormatPicturesOption();
     }
 
     @Override
     public void run() {
-        Feature2DList feature2DList = Feature2DParser.loadFeatures(featureListPath, ds.getChromosomeHandler(), false, null, false);
 
-        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        if (givenChromosomes != null)
-            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
-
-
-        RegionFinder finder;
-        if (sliceTypeOption == 1) {
-            finder = new LoopFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
-        } else if (sliceTypeOption == 2) {
-            finder = new DomainFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions);
-        } else if (sliceTypeOption == 4) {
-            finder = new DistortionFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, stride);
-        } else {
-            finder = new StripeFinder(x, y, z, ds, feature2DList, outputDirectory, chromosomeHandler, norm, useObservedOverExpected, useDenseLabels, resolutions, cornerOffBy, stride);
+        container.chromosomeHandler = container.ds.getChromosomeHandler();
+        container.feature2DList = null;
+        try {
+            container.feature2DList = Feature2DParser.loadFeatures(container.featureListPath, container.chromosomeHandler, false, null, false);
+        } catch (Exception e) {
+            if (container.grindIterationTypeOption != 4) {
+                System.err.println("Feature list failed to load");
+                e.printStackTrace();
+                System.exit(-9);
+            }
         }
 
-        finder.makePositiveExamples();
-        finder.makeNegativeExamples();
+        if (givenChromosomes != null)
+            container.chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, container.chromosomeHandler);
+
+        RegionFinder finder = null;
+        if (container.grindIterationTypeOption == LIST_ITERATION_OPTION) {
+            finder = new IterateOnFeatureListFinder(container);
+        } else if (container.grindIterationTypeOption == DOMAIN_OPTION) {
+            finder = new DomainFinder(container);
+        } else if (container.grindIterationTypeOption == DISTORTION_OPTION) {
+            runDistortionTypeOfIteration();
+        } else {
+            finder = new IterateDownDiagonalFinder(container);
+        }
+
+        if (finder != null) {
+            finder.makeExamples();
+        }
     }
+
+    private void runDistortionTypeOfIteration() {
+        ExecutorService executor = Executors.newFixedThreadPool(container.resolutions.size());
+        for (final int resolution : container.resolutions) {
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    RegionFinder finder = new DistortionFinder(resolution, container);
+                    finder.makeExamples();
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
+        }
+    }
+
 }

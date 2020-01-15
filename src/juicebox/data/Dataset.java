@@ -93,7 +93,7 @@ public class Dataset {
                 //    m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
                 //} else
                 if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
-                    System.err.println("Index key is " + key);
+                    if (HiCGlobals.printVerboseComments) System.out.println("Custom Chromosome Index key is " + key);
                     m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
                 } else if (HiCGlobals.isAssemblyMatCheck) {
                     m = Matrix.createAssemblyChromosomeMatrix(chromosomeHandler, matrices, reader);
@@ -256,6 +256,15 @@ public class Dataset {
         if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
         String key = ExpectedValueFunctionImpl.getKey(zoom, type);
         return expectedValueFunctionMap.get(key);
+    }
+
+    public ExpectedValueFunction getExpectedValuesOrExit(HiCZoom zoom, NormalizationType type, Chromosome chromosome, boolean isIntra) {
+        ExpectedValueFunction df = getExpectedValues(zoom, type);
+        if (isIntra && df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + type);
+            System.exit(14);
+        }
+        return df;
     }
 
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
