@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
         int numThreads = juicerParser.getNumThreads();
         if (numThreads > 0) {
             numCPUThreads = numThreads;
-        } else if(numThreads == 0) {
+        } else if (numThreads < 0) {
             numCPUThreads = Runtime.getRuntime().availableProcessors();
         } else {
             numCPUThreads = 1;
