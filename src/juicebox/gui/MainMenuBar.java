@@ -46,6 +46,7 @@ import java.io.IOException;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class MainMenuBar extends JMenuBar {
+
   private static final long serialVersionUID = 2342324643L;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
@@ -63,6 +64,7 @@ public class MainMenuBar extends JMenuBar {
   private static JMenuItem importMapAsFile;
   private static JMenuItem slideShow;
   private static JMenuItem showStats, showControlStats;
+  private static JMenuItem renameGenome;
   //private static JMenu annotationsMenu;
   private static JMenu viewMenu;
   private static JMenu bookmarksMenu;
@@ -575,6 +577,21 @@ public class MainMenuBar extends JMenuBar {
     }
 
 
+        renameGenome = new JMenuItem("Rename genome...");
+        renameGenome.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String curr_genome = superAdapter.getHiC().getDataset().getGenomeId();
+                String response = JOptionPane.showInputDialog("Current genome is " + curr_genome +
+                        "\nEnter another genome name or press cancel to exit");
+                if (response != null) {
+                    superAdapter.getHiC().getDataset().setGenomeId(response);
+                }
+            }
+        });
+        renameGenome.setEnabled(false);
+        fileMenu.add(renameGenome);
+        fileMenu.addSeparator();
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
     editPearsonsColorItem.addActionListener(new ActionListener() {
@@ -727,6 +744,7 @@ public class MainMenuBar extends JMenuBar {
         } catch (NumberFormatException t) {
           JOptionPane.showMessageDialog(null, "Value must be an integer!");
         }
+
       }
     });
 
@@ -748,11 +766,9 @@ public class MainMenuBar extends JMenuBar {
     setScale.setEnabled(true);
     assemblyMenu.add(setScale);
     assemblyMenu.add(exitAssembly);
-//        assemblyMenu.add(enableAssembly);
-
-
+    // assemblyMenu.add(enableAssembly);
     add(fileMenu);
-    //add(annotationsMenu);
+    // add(annotationsMenu);
     add(viewMenu);
     add(bookmarksMenu);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
@@ -761,7 +777,8 @@ public class MainMenuBar extends JMenuBar {
     add(devMenu);
   }
 
-  public RecentMenu getRecentLocationMenu() {
+  public RecentMenu 
+    () {
     return recentLocationMenu;
   }
 
