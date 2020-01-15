@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.tools.clt.old;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
@@ -276,7 +275,7 @@ public class Dump extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         String ofile = null;
 
         if (args.length == 3 || args.length == 4) {
@@ -294,9 +293,9 @@ public class Dump extends JuiceboxCLT {
         }
         else {
             // -d in pre means diagonal, in dump means dense
-            dense = ((CommandLineParser) parser).getDiagonalsOption();
+            dense = parser.getDiagonalsOption();
             // -n in pre means no norm, in dump means includeIntra for the whole genome
-            includeIntra = ((CommandLineParser) parser).getNoNormOption();
+            includeIntra = parser.getNoNormOption();
 
             if (args.length < 7) {
                 printUsageAndExit();

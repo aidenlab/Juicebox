@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
@@ -60,7 +59,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer)parser;
         assessIfChromosomesHaveBeenSpecified(juicerParser);
         readJuicerArguments(args, juicerParser);

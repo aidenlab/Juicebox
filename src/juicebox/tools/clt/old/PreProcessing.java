@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.old;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
@@ -75,8 +74,7 @@ public class PreProcessing extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParser parser1 = (CommandLineParser) parser;
+    public void readArguments(String[] args, CommandLineParser parser) {
 
         String genomeId = "";
         try {
@@ -91,30 +89,30 @@ public class PreProcessing extends JuiceboxCLT {
 
         inputFile = args[1];
         outputFile = args[2];
-        String tmpDir = parser1.getTmpdirOption();
-        double hicFileScalingFactor = parser1.getScalingOption();
+        String tmpDir = parser.getTmpdirOption();
+        double hicFileScalingFactor = parser.getScalingOption();
 
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-        preprocessor.setIncludedChromosomes(parser1.getChromosomeSetOption());
-        preprocessor.setCountThreshold(parser1.getCountThresholdOption());
-        preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
-        preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
-        preprocessor.setFragmentFile(parser1.getFragmentOption());
-        preprocessor.setExpectedVectorFile(parser1.getExpectedVectorOption());
+        preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
+        preprocessor.setCountThreshold(parser.getCountThresholdOption());
+        preprocessor.setMapqThreshold(parser.getMapqThresholdOption());
+        preprocessor.setDiagonalsOnly(parser.getDiagonalsOption());
+        preprocessor.setFragmentFile(parser.getFragmentOption());
+        preprocessor.setExpectedVectorFile(parser.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
-        preprocessor.setStatisticsFile(parser1.getStatsOption());
-        preprocessor.setGraphFile(parser1.getGraphOption());
-        preprocessor.setGenome(parser1.getGenomeOption());
-        preprocessor.setResolutions(parser1.getResolutionOption());
-        preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
-        preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
-        preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
-        preprocessor.setRandomizeFragMaps(parser1.getRandomizePositionMaps());
+        preprocessor.setStatisticsFile(parser.getStatsOption());
+        preprocessor.setGraphFile(parser.getGraphOption());
+        preprocessor.setGenome(parser.getGenomeOption());
+        preprocessor.setResolutions(parser.getResolutionOption());
+        preprocessor.setAlignmentFilter(parser.getAlignmentOption());
+        preprocessor.setRandomizePosition(parser.getRandomizePositionsOption());
+        preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
+        preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
 
-        noNorm = parser1.getNoNormOption();
-        genomeWide = parser1.getGenomeWideOption();
-        noFragNorm = parser1.getNoFragNormOption();
-        normalizationTypes.addAll(parser1.getAllNormalizationTypesOption());
+        noNorm = parser.getNoNormOption();
+        genomeWide = parser.getGenomeWideOption();
+        noFragNorm = parser.getNoFragNormOption();
+        normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
     }
 
     @Override

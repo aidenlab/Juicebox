@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.old;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
@@ -50,6 +49,7 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
                 + " Above options ignored if input_vector_file present\n"
                 + "           : -k normalizations to include\n"
+                + "           : -r resolutions for respective normalizations to build to\n"
         );
     }
 
@@ -58,9 +58,8 @@ public class AddNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParser parser1 = (CommandLineParser) parser;
-        if (parser1.getHelpOption()) {
+    public void readArguments(String[] args, CommandLineParser parser) {
+        if (parser.getHelpOption()) {
             printUsageAndExit();
         }
 
@@ -70,9 +69,10 @@ public class AddNorm extends JuiceboxCLT {
         else if (args.length != 2) {
             printUsageAndExit();
         }
-        noFragNorm = parser1.getNoFragNormOption();
-        genomeWideResolution = parser1.getGenomeWideOption();
-        normalizationTypes.addAll(parser1.getAllNormalizationTypesOption());
+        noFragNorm = parser.getNoFragNormOption();
+        genomeWideResolution = parser.getGenomeWideOption();
+        normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
+        //parser1
         file = args[1];
     }
 
