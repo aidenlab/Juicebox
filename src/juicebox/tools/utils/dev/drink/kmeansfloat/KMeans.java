@@ -22,15 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.kmeansfloat;
 
-import java.util.concurrent.atomic.AtomicInteger;
+/**
+ * Simple K-Means clustering interface.
+ */
+interface KMeans extends Runnable {
 
-class UniqueSubcompartmentClusterID {
+    /**
+     * Adds a KMeansListener to be notified of significant happenings.
+     *
+     * @param l the listener to be added.
+     */
+    void addKMeansListener(KMeansListener l);
 
-    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+    /**
+     * Removes a KMeansListener from the listener list.
+     *
+     * @param l the listener to be removed.
+     */
+    void removeKMeansListener(KMeansListener l);
 
-    public final static AtomicInteger genomewideInitialClusterID = new AtomicInteger(0);
+    /**
+     * Get the clusters computed by the algorithm.  This method should
+     * not be called until clustering has completed successfully.
+     *
+     * @return an array of Cluster objects.
+     */
+    Cluster[] getClusters();
 
-    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }
+

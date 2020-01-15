@@ -62,6 +62,13 @@ public class ExtractingOEDataUtils {
                             oeVal = Math.log(oeVal / expected);
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                             oeVal = (oeVal + threshold) / (2 * threshold);
+                        } else if (thresholdType.equals(ThresholdType.LINEAR_INVERSE_OE_BOUNDED)) {
+                            oeVal = oeVal / expected;
+                            if (oeVal < 1) {
+                                oeVal = -1.0 / oeVal;
+                            }
+                            oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
+                            oeVal = (oeVal + threshold) / (2 * threshold);
                         } else if (thresholdType.equals(ThresholdType.LOCAL_BOUNDED)) {
                             if (isIntra) {
                                 oeVal = Math.log(rec.getCounts() / expected);
@@ -79,7 +86,7 @@ public class ExtractingOEDataUtils {
     }
 
 
-    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE}
+    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, LINEAR_INVERSE_OE_BOUNDED}
 
     private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
         int x = rec.getBinX();

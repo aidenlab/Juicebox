@@ -22,15 +22,35 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.kmeansfloat;
 
-import java.util.concurrent.atomic.AtomicInteger;
+/**
+ * Defines object which register with implementation of <code>KMeans</code>
+ * to be notified of significant events during clustering.
+ */
+public interface KMeansListener {
 
-class UniqueSubcompartmentClusterID {
+    /**
+     * A message has been received.
+     *
+     * @param message
+     */
+    void kmeansMessage(String message);
 
-    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+    /**
+     * KMeans is complete.
+     *
+     * @param clusters      the output of clustering.
+     * @param executionTime the time in milliseconds taken to cluster.
+     */
+    void kmeansComplete(Cluster[] clusters, long executionTime);
 
-    public final static AtomicInteger genomewideInitialClusterID = new AtomicInteger(0);
+    /**
+     * An error occurred during KMeans clustering.
+     *
+     * @param t
+     */
+    void kmeansError(Throwable t);
 
-    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
 }
+

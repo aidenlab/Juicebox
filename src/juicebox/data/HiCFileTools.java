@@ -434,7 +434,7 @@ public class HiCFileTools {
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
     }
 
-    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
+    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold, ExtractingOEDataUtils.ThresholdType thresholdType) throws IOException {
 
         final MatrixZoomData zd = getMatrixZoomData(ds, chromosome, chromosome, resolution);
         if (zd == null) return null;
@@ -446,7 +446,7 @@ public class HiCFileTools {
 
         return ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
                 0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
-                false, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED);
+                false, thresholdType);
 
     }
 

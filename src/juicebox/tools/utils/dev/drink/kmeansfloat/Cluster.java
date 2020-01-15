@@ -22,15 +22,47 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.kmeansfloat;
 
-import java.util.concurrent.atomic.AtomicInteger;
 
-class UniqueSubcompartmentClusterID {
+/**
+ * Class to represent a cluster of coordinates.
+ */
+public class Cluster {
 
-    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+    // Indices of the member coordinates.
+    private final int[] mMemberIndexes;
+    // The cluster center.
+    private final float[] mCenter;
 
-    public final static AtomicInteger genomewideInitialClusterID = new AtomicInteger(0);
+    /**
+     * Constructor.
+     *
+     * @param memberIndexes indices of the member coordinates.
+     * @param center        the cluster center.
+     */
+    public Cluster(int[] memberIndexes, float[] center) {
+        mMemberIndexes = memberIndexes;
+        mCenter = center;
+    }
 
-    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
+    /**
+     * Get the member indices.
+     *
+     * @return an array containing the indices of the member coordinates.
+     */
+    public int[] getMemberIndexes() {
+        return mMemberIndexes;
+    }
+
+    /**
+     * Get the cluster center.
+     *
+     * @return a reference to the cluster center array.
+     */
+    public float[] getCenter() {
+        return mCenter;
+    }
+
 }
+

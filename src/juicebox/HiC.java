@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1244,9 +1244,9 @@ public class HiC {
         }
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, int g1, int g2) {
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
         try {
-            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, g1, g2);
+            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(name, g1, g2);
         } catch (Exception ignored) {
             return new ArrayList<>();
         }

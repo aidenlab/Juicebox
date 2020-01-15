@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     private static int posCount = 0;
     private static int negCount = 0;
     // critical components of a motif anchor
-    private final int chrIndex;
+    private final String chr;
     // references to original features if applicable
     private final List<Feature2D> originalFeatures1 = new ArrayList<>();
     private final List<Feature2D> originalFeatures2 = new ArrayList<>();
@@ -57,24 +57,24 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     /**
      * Inititalize anchor given parameters (e.g. from BED file)
      *
-     * @param chrIndex
+     * @param chr
      * @param x1
      * @param x2
      */
-    public MotifAnchor(int chrIndex, int x1, int x2) {
-        this.chrIndex = chrIndex;
+    public MotifAnchor(String chr, int x1, int x2) {
+        this.chr = chr;
         if (x1 <= x2) {
             // x1 < x2
             this.x1 = x1;
             this.x2 = x2;
         } else {
-            System.err.println("Improperly formatted Motif file: index " + chrIndex + " x1 " + x1 + " x2 " + x2);
+            System.err.println("Improperly formatted Motif file: chr " + chr + " x1 " + x1 + " x2 " + x2);
             // todo throw new InvalidObjectException();
         }
     }
 
-    public MotifAnchor(int chrIndex, int x1, int x2, String name) {
-        this(chrIndex, x1, x2);
+    public MotifAnchor(String chr, int x1, int x2, String name) {
+        this(chr, x1, x2);
         this.name = name;
     }
 
@@ -87,7 +87,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      * @param originalFeatures1
      * @param originalFeatures2
      */
-    public MotifAnchor(int chrIndex, int x1, int x2, List<Feature2D> originalFeatures1, List<Feature2D> originalFeatures2) {
+    public MotifAnchor(String chrIndex, int x1, int x2, List<Feature2D> originalFeatures1, List<Feature2D> originalFeatures2) {
         this(chrIndex, x1, x2);
         this.originalFeatures1.addAll(originalFeatures1);
         this.originalFeatures2.addAll(originalFeatures2);
@@ -95,12 +95,12 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     @Override
     public String getKey() {
-        return "" + chrIndex;
+        return "" + chr;
     }
 
     @Override
     public Feature deepClone() {
-        MotifAnchor clone = new MotifAnchor(chrIndex, x1, x2, originalFeatures1, originalFeatures2);
+        MotifAnchor clone = new MotifAnchor(chr, x1, x2, originalFeatures1, originalFeatures2);
         clone.name = name;
         if (fimoAttributesHaveBeenInitialized) {
             clone.setFIMOAttributes(score, pValue, qValue, strand, sequence);
@@ -112,8 +112,8 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     /**
      * @return chromosome name
      */
-    public int getChr() {
-        return chrIndex;
+    public String getChr() {
+        return chr;
     }
 
     /**
@@ -176,12 +176,12 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      * @return true if given anchor overlaps at either edge with this anchor
      */
     public boolean hasOverlapWith(MotifAnchor anchor) {
-        return chrIndex == anchor.chrIndex
+        return chr.equalsIgnoreCase(anchor.chr)
                 && (this.contains(anchor.x1) || this.contains(anchor.x2) || anchor.contains(x1) || anchor.contains(x2));
     }
 
     public void mergeWith(MotifAnchor anchor) {
-        if (chrIndex == anchor.chrIndex) {
+        if (chr.equalsIgnoreCase(anchor.chr)) {
             x1 = Math.min(x1, anchor.x1);
             x2 = Math.max(x2, anchor.x2);
             addFeatureReferencesFrom(anchor);
@@ -193,7 +193,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     @Override
     public String toString() {
-        return chrIndex + "\t" + x1 + "\t" + x2;
+        return chr + "\t" + x1 + "\t" + x2;
     }
 
     @Override
@@ -203,19 +203,19 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         }
         if (obj instanceof MotifAnchor) {
             MotifAnchor o = (MotifAnchor) obj;
-            return chrIndex == o.chrIndex && x1 == o.x1 && x2 == o.x2;
+            return chr.equalsIgnoreCase(o.chr) && x1 == o.x1 && x2 == o.x2;
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return x2 * chrIndex + x1;
+        return x2 * chr.hashCode() + x1;
     }
 
     @Override
     public int compareTo(MotifAnchor o) {
-        if (chrIndex == o.chrIndex) {
+        if (chr.equalsIgnoreCase(o.chr)) {
             if (x1 == o.x1) {
                 if (x2 == o.x2 && sequence != null && o.sequence != null) {
                     return sequence.compareTo(o.sequence);
@@ -224,7 +224,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
             }
             return Integer.compare(x1, o.x1);
         }
-        return Integer.compare(chrIndex, o.chrIndex);
+        return chr.compareTo(o.chr);
     }
 
     public void setFIMOAttributes(double score, double pValue, double qValue, boolean strand, String sequence) {

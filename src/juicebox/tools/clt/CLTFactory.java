@@ -112,9 +112,9 @@ public class CLTFactory {
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
         } else if (cmd.equals("drinks")) {
-            return new DRINKS();
+            return new Drink(false);
         } else if (cmd.equals("drink")) {
-            return new Drink();
+            return new Drink(true);
         } else if (cmd.equals("grind")) {
             return new Grind();
         } else if (cmd.equals("motifs")) {

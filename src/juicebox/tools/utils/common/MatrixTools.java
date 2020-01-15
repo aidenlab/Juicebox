@@ -34,6 +34,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -620,6 +621,16 @@ public class MatrixTools {
         return rowSum;
     }
 
+    public static float[] getAbsValColSums(float[][] matrix) {
+        float[] colSum = new float[matrix[0].length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                colSum[j] += Math.abs(matrix[i][j]);
+            }
+        }
+        return colSum;
+    }
+
     public static float[] getRowSums(float[][] matrix) {
         float[] rowSum = new float[matrix.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -957,5 +968,108 @@ public class MatrixTools {
                 }
             }
         }
+    }
+
+    // column length assumed identical and kept the same
+    public static double[][] stitchMultipleMatricesTogetherByRowDim(List<double[][]> data) {
+        // todo currently assuming each one identical...
+
+        int colNums = data.get(0)[0].length;
+        int rowNums = 0;
+        for (double[][] mtrx : data) {
+            rowNums += mtrx.length;
+        }
+
+        double[][] aggregate = new double[rowNums][colNums];
+
+        int rowOffSet = 0;
+        for (double[][] region : data) {
+            MatrixTools.copyFromAToBRegion(region, aggregate, rowOffSet, 0);
+            rowOffSet += region.length;
+        }
+
+        return aggregate;
+    }
+
+    public static double[][] takeDerivativeDownColumn(double[][] data) {
+        double[][] derivative = new double[data.length][data[0].length - 1];
+
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, derivative[i], 0, derivative[i].length);
+        }
+        for (int i = 0; i < derivative.length; i++) {
+            for (int j = 0; j < derivative[i].length; j++) {
+                derivative[i][j] -= data[i][j + 1];
+            }
+        }
+
+        return derivative;
+    }
+
+    public static double[][] smoothAndAppendDerivativeDownColumn(double[][] data, double[] convolution) {
+
+        int numColumns = data[0].length;
+        if (convolution != null && convolution.length > 1) {
+            numColumns -= (convolution.length - 1);
+        }
+
+        double[][] appendedDerivative = new double[data.length][2 * numColumns - 1];
+
+        if (convolution != null && convolution.length > 1) {
+            for (int i = 0; i < data.length; i++) {
+                for (int j = 0; j < numColumns; j++) {
+                    for (int k = 0; k < convolution.length; k++) {
+                        appendedDerivative[i][j] += convolution[k] * data[i][j + k];
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < data.length; i++) {
+                System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+            }
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < numColumns - 1; j++) {
+                appendedDerivative[i][numColumns + j] = appendedDerivative[i][j] - appendedDerivative[i][j + 1];
+            }
+        }
+
+        return appendedDerivative;
+    }
+
+    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data) {
+
+        int numColumns = data[0].length;
+        int numColumnsMinus1 = data[0].length - 1;
+
+        float[][] derivative = new float[data.length][numColumnsMinus1];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < numColumnsMinus1; j++) {
+                derivative[i][j] = data[i][j] - data[i][j + 1];
+            }
+        }
+
+        float[] columnSums = getAbsValColSums(derivative);
+        List<Integer> indicesToUse = new ArrayList<>();
+        for (int k = 0; k < columnSums.length; k++) {
+            if (columnSums[k] > 0) {
+                indicesToUse.add(k);
+            }
+        }
+
+        float[][] appendedDerivative = new float[data.length][numColumns + indicesToUse.size()];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            for (int k = 0; k < indicesToUse.size(); k++) {
+                int indexToUse = indicesToUse.get(k);
+                appendedDerivative[i][numColumns + k] = derivative[i][indexToUse];
+            }
+        }
+
+        return appendedDerivative;
     }
 }

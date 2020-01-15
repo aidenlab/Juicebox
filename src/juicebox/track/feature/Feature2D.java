@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 
 /**
@@ -55,8 +55,8 @@ public class Feature2D implements Comparable<Feature2D> {
     public static boolean allowHiCCUPSOrdering = false;
     final FeatureType featureType;
     final Map<String, String> attributes;
-    private final String chr1;
-    private final String chr2;
+    final String chr1;
+    final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
     final int start1;
     final int start2;
@@ -501,8 +501,8 @@ public class Feature2D implements Comparable<Feature2D> {
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
             List<Feature2D> emptyList = new ArrayList<>();
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
+            anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, emptyList));
+            anchors.add(new MotifAnchor(chr2, start2, end2, emptyList, originalFeatures));
         }
         return anchors;
     }
@@ -519,7 +519,11 @@ public class Feature2D implements Comparable<Feature2D> {
         isSelected = setIsSelectedColorUpdate;
     }
 
-  public enum FeatureType {
+    public Feature2DWithMotif toFeature2DWithMotif() {
+        return new Feature2DWithMotif(featureType, chr1, start1, end1, chr2, start2, end2, color, attributes);
+    }
+
+    public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
     }
 }
