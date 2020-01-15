@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,15 +31,20 @@ import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Arrowhead
@@ -107,7 +112,7 @@ public class Arrowhead extends JuicerCLT {
     private String featureList, controlList;
     // must be passed via command line
     private int resolution = 10000;
-    private String hicFile;
+    private Dataset ds;
     private boolean checkMapDensityThreshold = true;
 
     public Arrowhead() {
@@ -127,12 +132,13 @@ public class Arrowhead extends JuicerCLT {
             printUsageAndExit();  // this will exit
         }
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
+
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
-
-        hicFile = args[1];
-        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
@@ -154,14 +160,27 @@ public class Arrowhead extends JuicerCLT {
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
         }
+
+        updateNumberOfCPUThreads(juicerParser);
+
+        List<String> t = juicerParser.getThresholdOptions();
+        if (t != null && t.size() == 6) {
+            double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 6, Double.NaN);
+            if (thresholds.length == 6) {
+                if (!Double.isNaN(thresholds[0])) BlockBuster.varThreshold = thresholds[0];
+                if (!Double.isNaN(thresholds[1])) BlockBuster.highSignThreshold = thresholds[1];
+                if (!Double.isNaN(thresholds[2])) BlockBuster.maxLowSignThreshold = thresholds[2];
+                if (!Double.isNaN(thresholds[3])) BlockBuster.minLowSignThreshold = thresholds[3];
+                if (!Double.isNaN(thresholds[4])) BlockBuster.decrementLowSignThreshold = thresholds[4];
+                if (!Double.isNaN(thresholds[5])) BlockBuster.minBlockSize = (int) thresholds[5];
+            }
+        }
     }
 
     @Override
     public void run() {
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFile.split("\\+")), true);
-
         try {
-            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
             double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
@@ -200,12 +219,12 @@ public class Arrowhead extends JuicerCLT {
 
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
-        Feature2DList contactDomainsGenomeWide = new Feature2DList();
-        Feature2DList contactDomainListScoresGenomeWide = new Feature2DList();
-        Feature2DList contactDomainControlScoresGenomeWide = new Feature2DList();
+        final Feature2DList contactDomainsGenomeWide = new Feature2DList();
+        final Feature2DList contactDomainListScoresGenomeWide = new Feature2DList();
+        final Feature2DList contactDomainControlScoresGenomeWide = new Feature2DList();
 
-        Feature2DList inputList = new Feature2DList();
-        Feature2DList inputControl = new Feature2DList();
+        final Feature2DList inputList = new Feature2DList();
+        final Feature2DList inputControl = new Feature2DList();
         if (controlAndListProvided) {
             inputList.add(Feature2DParser.loadFeatures(featureList, chromosomeHandler, true, null, false));
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomeHandler, true, null, false));
@@ -224,29 +243,45 @@ public class Arrowhead extends JuicerCLT {
         if (givenChromosomes != null)
             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
-        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
+        final HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler);
-        int currentProgressStatus = 0;
+        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler);
+        final AtomicInteger currentProgressStatus = new AtomicInteger(0);
+        System.out.println("max " + maxProgressStatus);
 
-        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+        ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
 
-            Matrix matrix = ds.getMatrix(chr, chr);
-            if (matrix == null) continue;
+        for (final Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
-            ArrowheadScoreList list = new ArrowheadScoreList(inputList.get(chr.getIndex(), chr.getIndex()), resolution);
-            ArrowheadScoreList control = new ArrowheadScoreList(inputControl.get(chr.getIndex(), chr.getIndex()), resolution);
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+                    if (zd != null) {
 
-            if (HiCGlobals.printVerboseComments) {
-                System.out.println("\nProcessing " + chr.getName());
-            }
+                        ArrowheadScoreList list = new ArrowheadScoreList(inputList, chr, resolution);
+                        ArrowheadScoreList control = new ArrowheadScoreList(inputControl, chr, resolution);
 
-            // actual Arrowhead algorithm
-            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                    matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
-                    contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
+                        if (HiCGlobals.printVerboseComments) {
+                            System.out.println("\nProcessing " + chr.getName());
+                        }
 
-            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
+                        // actual Arrowhead algorithm
+                        BlockBuster.run(chr, resolution, matrixSize, zd, norm, list, control, contactDomainsGenomeWide,
+                                contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
+
+                        //todo should this be inside if? But the wouldn't increment for skipped chr;s?
+                        int currProg = currentProgressStatus.incrementAndGet();
+                        System.out.println(((int) Math.floor((100.0 * currProg) / maxProgressStatus)) + "% ");
+                    }
+                }
+            };
+            executor.execute(worker);
+        }
+
+        executor.shutdown();
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
         }
 
         // save the data on local machine

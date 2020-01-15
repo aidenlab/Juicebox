@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.util.*;
@@ -41,17 +42,26 @@ import java.util.*;
  */
 public class BlockBuster {
 
+    public static double varThreshold = 0.2;
+    public static double highSignThreshold = 0.5;
+    public static double maxLowSignThreshold = 0.4;
+    public static double minLowSignThreshold = 0;
+    public static double decrementLowSignThreshold = 0.1;
+    public static int minBlockSize = 60;
+
     /**
      * Actual Arrowhead algorithm - should be called separately for each chromosome
      *
      * @return contact domain list and scores for given list/control
      */
-    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth, MatrixZoomData zd,
-                           NormalizationType norm,
-                           ArrowheadScoreList list, ArrowheadScoreList control,
+    public static void run(Chromosome chrom, int resolution, int matrixWidth, MatrixZoomData zd,
+                           NormalizationType norm, ArrowheadScoreList list, ArrowheadScoreList control,
                            Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
                            Feature2DList contactDomainControlScoresGenomeWide) {
 
+        int chrIndex = chrom.getIndex();
+        String chrName = chrom.getName();
+        int chrLength = chrom.getLength();
         // used for sliding window across diagonal
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
@@ -59,7 +69,7 @@ public class BlockBuster {
         try {
             // get large number of blocks (lower confidence)
             CumulativeBlockResults results = null;
-            for (double signThreshold = 0.4; signThreshold >= 0; signThreshold -= 0.1) {
+            for (double signThreshold = maxLowSignThreshold; signThreshold >= minLowSignThreshold; signThreshold -= decrementLowSignThreshold) {
                 results = callSubBlockbuster(zd, maxDataLengthAtResolution, Double.NaN, signThreshold, matrixWidth,
                         increment, list, control, norm, resolution);
                 if (results.getCumulativeResults().size() > 0) {
@@ -69,14 +79,15 @@ public class BlockBuster {
 
             // high variance threshold, fewer blocks, high confidence
             CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution,
-                    0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(resolution),
+                    varThreshold, highSignThreshold, matrixWidth, increment, new ArrowheadScoreList(resolution),
                     new ArrowheadScoreList(resolution), norm, resolution);
 
             List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults(),
                     highConfidenceResults.getCumulativeResults());
 
             // remove the blocks that are small
-            List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
+            List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, minBlockSize);
+
             appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
 
             // merge the high/low confidence results
@@ -156,7 +167,7 @@ public class BlockBuster {
 
             // get data for window from hic file
             int n = limEnd - adjustedLimStart + 1;
-            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd, n, norm);
+            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd, n, norm, false);
             observed = MatrixTools.fillLowerLeftTriangle(observed);
 
             // get contact domains in window

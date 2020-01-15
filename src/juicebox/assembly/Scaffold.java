@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     private final String signedScaffoldIdAttributeKey = "Signed scaffold #";
     private final String scaffoldNameAttributeKey = "Scaffold name";
     // formality
-    private final int chrIndex = 1;
+    private final Integer chrIndex = 1;
     //invariant properties
     public String name;
     private final Color defaultColor = new Color(0, 255, 0);
@@ -146,6 +146,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         this.currentStart = currentStart;
     }
 
+    // todo refactor ; always inverted; rename var; what exactly does invertedVsInitial mean?
     public boolean getInvertedVsInitial() {
         return isInvertedVsInitial;
     }
@@ -261,7 +262,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
             return true;
         }
         Scaffold o = (Scaffold) obj;
-        if (new Integer(chrIndex).equals(o.chrIndex)) {
+        if (chrIndex.equals(o.chrIndex)) {
 
             if (length == o.length) {
                 return currentStart == o.currentStart;

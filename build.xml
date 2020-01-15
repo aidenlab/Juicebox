@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+  ~ Copyright (c) 2011-2019 Broad Institute, Aiden Lab
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@
 
     <property name="compiler.debug" value="on"/>
     <property name="compiler.generate.no.warnings" value="off"/>
-    <property name="compiler.args" value="-Xlint:all -target 1.7"/>
+    <property name="compiler.args" value="-Xlint:all -target 1.8"/>
     <property name="compiler.max.memory" value="700m"/>
     <patternset id="ignored.files">
         <exclude name="**/*.hprof/**"/>
@@ -161,14 +161,14 @@
     <property name="module.jdk.bin.juicebox" value="${project.jdk.bin}"/>
     <property name="module.jdk.classpath.juicebox" value="${project.jdk.classpath}"/>
 
-    <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.7  ${compiler.args}"/>
+    <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.8  ${compiler.args}"/>
 
     <property name="juicebox.output.dir" value="${module.juicebox.basedir}/out/production/Juicebox"/>
     <property name="juicebox.testoutput.dir" value="${module.juicebox.basedir}/out/test/Juicebox"/>
 
     <path id="juicebox.module.bootclasspath">
         <!-- Paths to be included in compilation bootclasspath -->
-        <pathelement location="${jdk.home.1.7}/jre/lib"/>
+        <pathelement location="${jdk.home.1.8}/jre/lib"/>
     </path>
 
     <path id="juicebox.module.production.classpath">
@@ -279,7 +279,7 @@
             <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
@@ -288,6 +288,9 @@
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
         </jar>
         <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
     </target>
@@ -304,13 +307,18 @@
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"
+                        excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar"
+                        excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
         </jar>
         <copy file="${temp.jar.path.juicer_tools.jar}"
               tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>
@@ -369,6 +377,7 @@
 		    jvmversion="1.8"
 		    version="${version}"
 		    highResolutionCapable="true"
+		    bundleid="org.aidenlab.Juicebox"
 		    copyright="©2014, Broad Institute and Aiden Lab"
 		    vmoptions="-Xms5g -Xmx10g -d64">
 
@@ -377,19 +386,23 @@
     </target>
 
     <target name="bundlebcm" depends="init.artifacts">
-        <jarbundler outputdirectory="${artifact.output.juicebox:jar}"
+        <property name="version" value="1.0 (1)"/>
+        <jarbundler dir="${artifact.output.juicebox:jar}"
                     name="Juicebox"
-                    displayname="Juicebox"
-                    identifier="juicebox.MainWindow"
+                    mainclass="juicebox.MainWindow"
                     icon="JuiceboxIcon.icns"
-                    mainclassname="juicebox.MainWindow">
-            <classpath file="${artifact.output.juicebox:jar}/Juicebox.jar"/>
-            <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
-            <option value="-Xms5g"/>
-            <option value="-Xmx10g"/>
-            <option value="-d64"/>
-            <option value="-Djnlp.loadMenu=http://adam.bcma.bcm.edu/hicInternalMenu.properties"/>
+                    jar="${artifact.output.juicebox:jar}/Juicebox.jar"
+                    stubfile="lib/universalJavaApplicationStub"
+                    useJavaXKey="true"
+                    jvmversion="1.8"
+                    version="${version}"
+                    highResolutionCapable="true"
+                    copyright="©2014, Broad Institute and Aiden Lab"
+                    vmoptions="-Xms5g -Xmx10g -d64">
+
         </jarbundler>
         <delete dir="${artifacts.temp.dir}"/>
     </target>
+
+
 </project>

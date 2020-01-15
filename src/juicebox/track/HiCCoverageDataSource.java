@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
     private final boolean isControl;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no, boolean isControl) {
-        this.name = no.getLabel();
+        this.name = no.getDescription();
         if (isControl) {
             this.name += " (Control)";
         }
@@ -63,7 +63,6 @@ public class HiCCoverageDataSource implements HiCDataSource {
         this.normalizationType = no;
         this.isControl = isControl;
     }
-
 
     private void initDataRange() {
         MatrixZoomData zd;

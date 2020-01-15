@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,13 @@ package juicebox.tools.utils.original;
 
 import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -139,25 +138,10 @@ public class ExpectedValueCalculation {
 
     }
 
-
     public int getGridSize() {
         return gridSize;
     }
 
-    /**
-     * Set list of chromosomesMap; need to do this when reading from file
-     *
-     * @param chromosomes1 Array of chromosomesMap to set
-     */
-    public void setChromosomesMap(Chromosome[] chromosomes1) {
-
-        this.chromosomesMap = new LinkedHashMap<>();
-        for (Chromosome chr : chromosomes1) {
-            if (chr != null) {
-                chromosomesMap.put(chr.getIndex(), chr);
-            }
-        }
-    }
 
     /**
      * Add an observed distance.  This is called for each pair in the data set
@@ -227,7 +211,7 @@ public class ExpectedValueCalculation {
             }
 
         }
-
+        //System.err.println("max # bins " + maxNumBins);
         densityAvg = new double[maxNumBins];
         // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
 
@@ -245,7 +229,7 @@ public class ExpectedValueCalculation {
                     denSum += possibleDistances[bound2];
                 }
             } else if (numSum >= 400 && bound2 - bound1 > 0) {
-                while (numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
+                while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
                     numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
                     denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
                     bound1++;
@@ -328,6 +312,20 @@ public class ExpectedValueCalculation {
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
         return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
+    }
+
+    // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
+    public void addDistancesFromIterator(int chrIndx, Iterator<ContactRecord> iter, double[] vector) {
+        while (iter.hasNext()) {
+            ContactRecord cr = iter.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+            if (NormVectorUpdater.isValidNormValue(vector[x]) & NormVectorUpdater.isValidNormValue(vector[y])) {
+                double value = counts / (vector[x] * vector[y]);
+                addDistance(chrIndx, x, y, value);
+            }
+        }
     }
 }
 

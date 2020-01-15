@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.windowui.LoadDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.util.ResourceLocator;
 
@@ -46,8 +47,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
@@ -200,12 +201,12 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
                 @SuppressWarnings("unchecked")
-                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
+                Enumeration<TreeNode> en = top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
                     String[] searchStrings = fTextField.getText().split(",");
                     colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
-                        DefaultMutableTreeNode leaf = en.nextElement();
+                        TreeNode leaf = en.nextElement();
                         String str = leaf.toString();
                         for (String term : searchStrings) {
                             if (str.contains(term)) {
@@ -241,7 +242,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
 
         Boolean localFilesAdded = Boolean.FALSE;
 
-        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+        File[] twoDfiles = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
         if (twoDfiles != null && twoDfiles.length > 0) {
             for (File file : twoDfiles) {
@@ -331,14 +332,15 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         }
     }
 
-    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
+    private void expandToWantedNode(TreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
-            TreePath path = new TreePath(dNode.getPath());
+            TreePath path = new TreePath(LoadDialog.getPathToRoot(dNode, 0));
             tree.scrollPathToVisible(path);
             tree.setSelectionPath(path);
         }
     }
+
 
     //Overriding in order to change text color
     private void colorSearchStrings(final String[] parts) {
@@ -366,8 +368,8 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
 
         // Add dataset-specific 2d annotations
         DefaultMutableTreeNode subParent = new DefaultMutableTreeNode(new ItemInfo("Dataset-specific 2D Features"), true);
-        ResourceLocator locators[] = {hic.getDataset().getPeaks(), hic.getDataset().getBlocks(), hic.getDataset().getSuperLoops()};
-        String locatorName[] = {"Peaks", "Contact Domains", "ChrX Super Loops"};
+        ResourceLocator[] locators = {hic.getDataset().getPeaks(), hic.getDataset().getBlocks(), hic.getDataset().getSuperLoops()};
+        String[] locatorName = {"Peaks", "Contact Domains", "ChrX Super Loops"};
 
         boolean datasetSpecificFeatureAdded = false;
         for (int i = 0; i < 3; i++) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,16 +44,15 @@ public class AssemblyFileExporter {
         this.listOfSuperscaffolds = assemblyScaffoldHandler.getListOfSuperscaffolds();
     }
 
-    public void exportCpropsAndAsm() {
+    public void exportAssemblyFile() {
         try {
-            //exportCprops();
-            //exportAsm();
             exportAssembly();
         } catch (IOException exception) {
             System.out.println("Exporting failed...");
         }
     }
 
+    @Deprecated
     private void exportCprops() throws IOException {
         PrintWriter cpropsWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
         for (Scaffold scaffold : listOfScaffolds) {
@@ -62,6 +61,7 @@ public class AssemblyFileExporter {
         cpropsWriter.close();
     }
 
+    @Deprecated
     private void exportAsm() throws IOException {
         PrintWriter asmWriter = new PrintWriter(buildAsmOutputPath(), "UTF-8");
         for (List<Integer> row : listOfSuperscaffolds) {
@@ -73,10 +73,10 @@ public class AssemblyFileExporter {
     private void exportAssembly() throws IOException {
         PrintWriter assemblyWriter = new PrintWriter(buildAssemblyOutputPath(), "UTF-8");
         for (Scaffold scaffold : listOfScaffolds) {
-            assemblyWriter.println(">" + scaffold.toString());
+            assemblyWriter.print(">" + scaffold.toString() + "\n"); // Use print to account for OS difference in control characters
         }
         for (List<Integer> row : listOfSuperscaffolds) {
-            assemblyWriter.println(superscaffoldToString(row));
+            assemblyWriter.print(superscaffoldToString(row) + "\n");
         }
         assemblyWriter.close();
     }
@@ -97,10 +97,12 @@ public class AssemblyFileExporter {
         return this.outputFilePath + "." + FILE_EXTENSIONS.ASSEMBLY.toString();
     }
 
+    @Deprecated
     private String buildCpropsOutputPath() {
         return this.outputFilePath + "." + FILE_EXTENSIONS.CPROPS.toString();
     }
 
+    @Deprecated
     private String buildAsmOutputPath() {
         return this.outputFilePath + "." + FILE_EXTENSIONS.ASM.toString();
     }

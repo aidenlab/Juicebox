@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,10 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
-import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
@@ -72,7 +72,7 @@ public class HiCTrackManager {
         if (isControl) {
             if (controlCoverageTracks.containsKey(no)) return; // Already loaded
             HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
-            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            ResourceLocator locator = new ResourceLocator(no.getDescription());
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             controlCoverageTracks.put(no, track);
             loadedTracks.add(track);
@@ -80,7 +80,7 @@ public class HiCTrackManager {
         } else {
             if (coverageTracks.containsKey(no)) return; // Already loaded
             HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
-            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            ResourceLocator locator = new ResourceLocator(no.getDescription());
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             coverageTracks.put(no, track);
             loadedTracks.add(track);
@@ -154,14 +154,14 @@ public class HiCTrackManager {
                 HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
                 loadedTracks.add(hicTrack);
             }
-        } else if (pathLC.endsWith(".bb")) {
+        } else if (pathLC.endsWith(".bb") || pathLC.endsWith(".bigbed")) {
             try {
                 BigWigDataSource src = new BigWigDataSource(new BBFileReader(locator.getPath()), genome);
                 HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
                 track.setName(locator.getTrackName());
                 loadedTracks.add(track);
             } catch (Exception e) {
-                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
+                System.err.println("Error loading bb track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
@@ -171,7 +171,7 @@ public class HiCTrackManager {
 
                 loadedTracks.addAll(tracks);
             } catch (Exception e) {
-                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
+                System.err.println("Error loading tribble track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
            /* FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
@@ -286,40 +286,18 @@ public class HiCTrackManager {
     */
 
     private Genome loadGenome() {
-        String genomePath;
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
-                    genomePath = Private.getGenome();
-                } else if (hic.getDataset().getGenomeId().equals("dMel")) {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
-                } else {
-                    genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
+                ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
+                if (chrMT != null) {
+                    chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
                 }
-            } else {
-                genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";
-            }
+                genome = new Genome(hic.getDataset().getGenomeId(), chrList);
 
-            try {
-                genome = GenomeManager.getInstance().loadGenome(genomePath, null);
-            } catch (IOException e) {
-                System.err.println("Error loading genome: " + genomePath + " " + e.getLocalizedMessage());
             }
-
         }
-        /**
-         * TODO potential fix for ASSEMBLY vs assembly @sa501428
-         List<Chromosome> cleanedChromosomes = new ArrayList<>();
-         for(String name : genome.getAllChromosomeNames()){
-         Chromosome chr = genome.getChromosome(name);
-         //cleanedChromosomes.add(chr);
-         cleanedChromosomes.add(new Chromosome(chr.getIndex(), ChromosomeHandler.cleanUpName(name), chr.getLength()));
-         }
-
-
-         Genome finalGenome = new Genome(genome.getId(), cleanedChromosomes);
-         */
 
         return genome;
     }
@@ -345,7 +323,7 @@ public class HiCTrackManager {
 
         // Set track properties from header
         Object header = tribbleFeatureSource.getHeader();
-        if (header != null && header instanceof FeatureFileHeader) {
+        if (header instanceof FeatureFileHeader) {
             FeatureFileHeader ffh = (FeatureFileHeader) header;
           /*  if (ffh.getTrackType() != null) {
                 t.setTrackType(ffh.getTrackType());

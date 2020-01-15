@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,27 +27,34 @@ package juicebox.tools.clt.old;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
+import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.NormalizationType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
-
+    private String inputVectorFile = null;
     private int genomeWideResolution = -100;
-
     private String file;
+    private final List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
                 + "           : -d use intra chromosome (diagonal) [false]\n"
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
+                + " Above options ignored if input_vector_file present\n"
+                + "           : -k normalizations to include\n"
         );
     }
 
     public static String getBasicUsage() {
-        return "addNorm <input_HiC_file>";
+        return "addNorm <input_HiC_file> [input_vector_file]";
     }
 
     @Override
@@ -57,24 +64,27 @@ public class AddNorm extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-        //setUsage("juicebox addNorm hicFile");
-        if (args.length != 2) {
+        if (args.length == 3) {
+            inputVectorFile = args[2];
+        }
+        else if (args.length != 2) {
             printUsageAndExit();
         }
         noFragNorm = parser1.getNoFragNormOption();
         genomeWideResolution = parser1.getGenomeWideOption();
+        normalizationTypes.addAll(parser1.getAllNormalizationTypesOption());
         file = args[1];
-
     }
 
     @Override
     public void run() {
         try {
-            boolean useGenomeWideResolution = false;
-            if (useGenomeWideResolution)
-                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
-            else
-                NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm);
+            if (inputVectorFile != null) {
+                CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
+            }
+            else {
+                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, genomeWideResolution, noFragNorm);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

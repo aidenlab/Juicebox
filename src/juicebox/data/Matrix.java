@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
@@ -44,7 +45,6 @@ public class Matrix {
     private final int chr2;
     List<MatrixZoomData> bpZoomData;
     List<MatrixZoomData> fragZoomData;
-
     /**
      * Constructor for creating a matrix from precomputed data.
      *
@@ -63,9 +63,75 @@ public class Matrix {
         return "" + chr1 + "_" + chr2;
     }
 
+    public static Matrix createAssemblyChromosomeMatrix(ChromosomeHandler handler,
+                                                        final Map<String, Matrix> matrices, DatasetReader reader) {
+        Map<HiCZoom, MatrixZoomData> assemblyZDs = new HashMap<>();
+
+        Matrix matrix = null;
+        int numAttempts = 0;
+        while (matrix == null && numAttempts < 3) {
+            try {
+                matrix = reader.readMatrix("1_1");
+            } catch (Exception ignored) {
+                numAttempts++;
+            }
+        }
+
+        int length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
+        for (MatrixZoomData zd : matrix.bpZoomData) {
+            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(), length / zd.getBinSize(), length / zd.getBinSize(), null, null, reader));
+        }
+
+
+        //TODO: assumption that we are doing this before modifying the handler
+
+//        for (Chromosome i : handler.getChromosomeArrayWithoutAllByAll()) {
+//            for (Chromosome j : handler.getChromosomeArrayWithoutAllByAll()) {
+//
+//                //System.out.println("from mtrx");
+//                String key = Matrix.generateKey(i, j);
+//                try {
+//                    Matrix m = matrices.get(key);
+//                    if (m == null) {
+//                        // TODO sometimes this fails once or twice, but later succeeds -
+//                        // TODO high priority, needs to be fixed??????
+//                        int numAttempts = 0;
+//                        while (m == null && numAttempts < 3) {
+//                            try {
+//                                m = reader.readMatrix(key);
+//                            } catch (Exception ignored) {
+//                                numAttempts++;
+//                            }
+//                        }
+//
+//                        for(MatrixZoomData tempMatrixZoomData : m.bpZoomData){
+//                            tempMatrixZoomData.
+//                        }
+//
+//
+//                        // modify m for each zoom
+////                        matrices.put(key, m); //perhaps move it to the end
+//                    }
+//                    for (MatrixZoomData zd : m.bpZoomData) {
+//                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, assemblyZDs, reader);
+//                    }
+////                    for (MatrixZoomData zd : m.fragZoomData) {
+////                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+////                    }
+//                } catch (Exception ee) {
+//                    System.err.println("Everything failed in creatingAssemblyChromosomeMatrix " + key);
+//                    ee.printStackTrace();
+//                }
+//            }
+//        }
+
+        Matrix m = new Matrix(handler.size(), handler.size(), new ArrayList<>(assemblyZDs.values()));
+        matrices.put(generateKey(handler.size(), handler.size()), m);
+        return m;
+    }
+
     public static Matrix createCustomChromosomeMatrix(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                                       final Map<String, Matrix> matrices, DatasetReader reader) {
-
         // TODO some weird null error when X chr in bed file?
         List<Chromosome> indicesForChr1 = getIndicesFromSubChromosomes(handler, chr1);
         List<Chromosome> indicesForChr2;
@@ -75,8 +141,10 @@ public class Matrix {
             indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
         }
 
-        System.out.println(indicesForChr1);
-        //System.out.println(indicesForChr2);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Indices_1 " + indicesForChr1);
+            System.out.println("Indices_2 " + indicesForChr2);
+        }
 
         // TODO need to sort first!!
         Chromosome newChr1 = chr1, newChr2 = chr2;
@@ -85,7 +153,7 @@ public class Matrix {
             newChr2 = chr1;
         }
 
-        Map<HiCZoom, MatrixZoomData> customZDs = new HashMap<>();
+        Map<HiCZoom, CustomMatrixZoomData> customZDs = new HashMap<>();
 
         // ensure all regions loaded
         for (Chromosome i : indicesForChr1) {
@@ -100,11 +168,17 @@ public class Matrix {
                         // TODO high priority, needs to be fixed
                         int numAttempts = 0;
                         while (m == null && numAttempts < 3) {
+                            numAttempts++;
                             try {
                                 m = reader.readMatrix(key);
                             } catch (Exception ignored) {
-                                numAttempts++;
                             }
+                        }
+                        if (m == null) {
+                            if (HiCGlobals.printVerboseComments) {
+                                System.out.println("nothing found for cc4 " + i.getName() + " - " + j.getName());
+                            }
+                            continue;
                         }
                         matrices.put(key, m);
                     }
@@ -116,8 +190,10 @@ public class Matrix {
                     }
                 } catch (Exception ee) {
                     System.err.println("Custom Chr Region Missing " + key);
-                    ee.printStackTrace();
+                    //ee.printStackTrace();
                 }
+                if (HiCGlobals.printVerboseComments)
+                    System.out.println("completed cc4 " + i.getName() + " - " + j.getName());
             }
         }
         return new Matrix(chr1.getIndex(), chr2.getIndex(), new ArrayList<>(customZDs.values()));
@@ -141,21 +217,23 @@ public class Matrix {
         } else {
             indices.add(chromosome);
         }
+
+        ChromosomeHandler.sort(indices);
         return indices;
     }
 
     private static void updateCustomZoomDataRegions(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                                     String regionKey, MatrixZoomData zd,
-                                                    Map<HiCZoom, MatrixZoomData> customZDs, DatasetReader reader) {
-        if (customZDs.containsKey(zd.getZoom())) {
-            ((CustomMatrixZoomData) customZDs.get(zd.getZoom())).expandAvailableZoomDatas(regionKey, zd);
-        } else {
-            customZDs.put(zd.getZoom(), new CustomMatrixZoomData(chr1, chr2, handler, regionKey, zd, reader));
+                                                    Map<HiCZoom, CustomMatrixZoomData> customZDs, DatasetReader reader) {
+        if (!customZDs.containsKey(zd.getZoom())) {
+            customZDs.put(zd.getZoom(), new CustomMatrixZoomData(chr1, chr2, handler, zd.getZoom(), reader));
         }
+
+        customZDs.get(zd.getZoom()).expandAvailableZoomDatas(regionKey, zd);
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
-        //System.out.println("c1 "+chr1 + " c2 "+chr2);
+        if (HiCGlobals.printVerboseComments) System.out.println("c1 " + chr1 + " c2 " + chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);
@@ -239,7 +317,7 @@ public class Matrix {
         return (unit == HiC.Unit.BP) ? bpZoomData.size() : fragZoomData.size();
     }
 
-    public boolean isIntra() {
-        return chr1 == chr2;
+    public boolean isNotIntra() {
+        return chr1 != chr2;
     }
 }

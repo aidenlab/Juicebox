@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ public class FileDropTargetListener implements DropTargetListener {
 
     public void dragEnter(DropTargetDragEvent event) {
 
-        if (!isDragAcceptable(event)) {
+        if (isDragNotAcceptable(event)) {
             event.rejectDrag();
         }
     }
@@ -61,7 +61,7 @@ public class FileDropTargetListener implements DropTargetListener {
     }
 
     public void dropActionChanged(DropTargetDragEvent event) {
-        if (!isDragAcceptable(event)) {
+        if (isDragNotAcceptable(event)) {
             event.rejectDrag();
         }
     }
@@ -101,10 +101,10 @@ public class FileDropTargetListener implements DropTargetListener {
         event.dropComplete(true);
     }
 
-    private boolean isDragAcceptable(DropTargetDragEvent event) {
+    private boolean isDragNotAcceptable(DropTargetDragEvent event) {
         //  Check the  available data flavors here
         //  Currently accepting all flavors
-        return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
+        return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) == 0;
     }
 
     private boolean isDropAcceptable(DropTargetDropEvent event) {

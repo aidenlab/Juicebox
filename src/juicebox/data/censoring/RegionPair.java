@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.data.censoring;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import org.broad.igv.util.Pair;
 
@@ -46,9 +47,12 @@ public class RegionPair {
         this.yTransRegion = yLocalRegion.getSecond();
     }
 
-    public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion) {
-        int xI = xRegion.getFirst().getChr();
-        int yI = yRegion.getFirst().getChr();
+    public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion, ChromosomeHandler handler) {
+        int xI = handler.getChromosomeFromName(xRegion.getFirst().getChr()).getIndex();
+        int yI = handler.getChromosomeFromName(yRegion.getFirst().getChr()).getIndex();
+
+        // todo debug for diff custom chrs against each other
+        //  return new RegionPair(xI, xRegion, yI, yRegion);
 
         if (xI <= yI) {
             return new RegionPair(xI, xRegion, yI, yRegion);

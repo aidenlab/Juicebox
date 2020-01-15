@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,8 @@ public class LayersPanel extends JDialog {
     //    private JPanel assemblyAnnotationsPanel;
     private final JPanel layerBoxGUI2DAnnotations = new JPanel(new GridLayout(0, 1));
     private final JTabbedPane tabbedPane;
+    final JPanel layerBox1DGUI = new JPanel();
+    final JPanel annotations1DPanel;
 
     public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
@@ -67,7 +69,7 @@ public class LayersPanel extends JDialog {
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
-        JPanel annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
+        annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
         if (annotations1DPanel != null) annotations1DPanel.setBorder(padding);
         layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         if (layers2DPanel != null) layers2DPanel.setBorder(padding);
@@ -122,9 +124,8 @@ public class LayersPanel extends JDialog {
 
     private JPanel generate1DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
 
-        final JPanel layerBoxGUI = new JPanel();
-        layerBoxGUI.setLayout(new GridLayout(0, 1));
-        JScrollPane scrollPane = new JScrollPane(layerBoxGUI, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+        layerBox1DGUI.setLayout(new GridLayout(0, 1));
+        JScrollPane scrollPane = new JScrollPane(layerBox1DGUI, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
@@ -150,9 +151,10 @@ public class LayersPanel extends JDialog {
         final Runnable repaint1DLayersPanel = new Runnable() {
             @Override
             public void run() {
-                redraw1DLayerPanels(superAdapter, layerBoxGUI, pane);
+                redraw1DLayerPanels(superAdapter);
             }
         };
+
         repaint1DLayersPanel.run();
 
         trackLoadAction = new LoadAction("Load Basic Annotations...", superAdapter.getMainWindow(),
@@ -200,23 +202,25 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.refresh();
-                redraw1DLayerPanels(superAdapter, layerBoxGUI, pane);
+                redraw1DLayerPanels(superAdapter);
             }
         });
         return pane;
     }
 
-    private void redraw1DLayerPanels(SuperAdapter superAdapter, JPanel layerBoxGUI, JPanel pane) {
-        layerBoxGUI.removeAll();
+    public void redraw1DLayerPanels(SuperAdapter superAdapter) {
+        layerBox1DGUI.removeAll();
         for (HiCTrack track : superAdapter.getHiC().getLoadedTracks()) {
             if (track != null) {
-                layerBoxGUI.add(new TrackConfigPanel(superAdapter, track));
+                layerBox1DGUI.add(new TrackConfigPanel(superAdapter, track));
             }
         }
-        layerBoxGUI.revalidate();
-        layerBoxGUI.repaint();
-        pane.revalidate();
-        pane.repaint();
+        layerBox1DGUI.revalidate();
+        layerBox1DGUI.repaint();
+        if (annotations1DPanel != null) {
+            annotations1DPanel.revalidate();
+            annotations1DPanel.repaint();
+        }
     }
 
     /**

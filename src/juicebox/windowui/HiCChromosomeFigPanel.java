@@ -134,6 +134,17 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 int scroll = e.getWheelRotation();
+
+              if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+                double precScroll = e.getPreciseWheelRotation();
+
+                if (precScroll >= 0) {
+                  scroll = (int) Math.ceil(precScroll);
+                } else {
+                  scroll = (int) Math.floor(precScroll);
+                }
+              }
+
                 if (isHorizontal()) {
                     hic.moveBy(scroll, 0);
                 } else {

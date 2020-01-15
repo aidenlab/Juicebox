@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,18 @@
 
 package juicebox.data;
 
+import htsjdk.samtools.seekablestream.SeekableHTTPStream;
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.tribble.util.LittleEndianInputStream;
+import juicebox.HiCGlobals;
+import juicebox.gui.SuperAdapter;
+import org.broad.igv.ui.util.MessageUtils;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +65,7 @@ public class DatasetReaderFactory {
     }
 
     private static DatasetReaderV2 getReaderForFile(String file) throws IOException {
-        String magicString = DatasetReaderV2.getMagicString(file);
+        String magicString = getMagicString(file);
 
         if(magicString != null) {
             if (magicString.equals("HIC")) {
@@ -65,6 +76,34 @@ public class DatasetReaderFactory {
                 // file not actually read, usually canceled the read of password-protected file
                 //if (reader.getVersion() == -1)
             }
+        }
+        return null;
+    }
+
+    static String getMagicString(String path) throws IOException {
+
+        SeekableStream stream = null;
+        LittleEndianInputStream dis = null;
+
+        try {
+            stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
+            dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        } catch (MalformedURLException e) {
+            try {
+                dis = new LittleEndianInputStream(new FileInputStream(path));
+            } catch (Exception e2) {
+                if (HiCGlobals.guiIsCurrentlyActive) {
+                    SuperAdapter.showMessageDialog("File could not be found\n(" + path + ")");
+                } else {
+                    MessageUtils.showErrorMessage("File could not be found\n(" + path + ")", e2);
+                }
+            }
+        } finally {
+            if (stream != null) stream.close();
+
+        }
+        if (dis != null) {
+            return dis.readString();
         }
         return null;
     }

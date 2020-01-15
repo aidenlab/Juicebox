@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,10 @@ public class CompareLists extends JuicerCLT {
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list.bedpe";
 
     public CompareLists() {
-        super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]");
+        super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]\n" +
+                "comparetype:   0 - overlap/intersect within distance threshold\n" +
+                "               1 - comparison with ctcf motifs\n" +
+                "               2 - convergence calculation for list1 with ctcf motifs");
         HiCGlobals.useCache = false;
     }
 
@@ -113,7 +116,8 @@ public class CompareLists extends JuicerCLT {
 
     private void generateHistogramMetrics(Feature2DList list) {
         final int[] metrics = MotifAnchorTools.calculateConvergenceHistogram(list);
-        System.out.println("++ : " + metrics[0] + " +- : " + metrics[1] + " -+ : " + metrics[2] + " -- : " + metrics[3]);
+        System.out.println("++ : " + metrics[0] + " +- : " + metrics[1] + " -+ : " + metrics[2] + " -- : " + metrics[3]
+                + " not unique : " + metrics[4] + " not complete : " + metrics[5]);
     }
 
     private void compareTwoLists(Feature2DList listA, Feature2DList listB, int compareTypeID) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,10 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.apa.APADataStack;
@@ -108,8 +111,9 @@ import java.util.*;
  */
 public class APA extends JuicerCLT {
     private boolean saveAllData = false;
-    private String hicFilePaths, loopListPath;
+    private String loopListPath;
     private File outputDirectory;
+    private Dataset ds;
 
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
@@ -138,7 +142,9 @@ public class APA extends JuicerCLT {
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int[] resolutions,double
             minPeakDist, double maxPeakDist){
         this.resolutions=resolutions;
-        this.hicFilePaths=inputHiCFileName;
+
+        List<String> summedHiCFiles = Arrays.asList(inputHiCFileName.split("\\+"));
+        ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         this.loopListPath=inputPeaksFile;
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -157,11 +163,13 @@ public class APA extends JuicerCLT {
             printUsageAndExit();
         }
 
-        hicFilePaths = args[1];
         loopListPath = args[2];
         outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
-        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        List<String> summedHiCFiles = Arrays.asList(args[1].split("\\+"));
+        ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption(ds.getNormalizationHandler());
         if (preferredNorm != null)
             norm = preferredNorm;
 
@@ -208,18 +216,14 @@ public class APA extends JuicerCLT {
 
     public APARegionStatistics runWithReturn() {
 
-        APARegionStatistics result=null;
+        APARegionStatistics result = null;
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;
-        List<String> summedHiCFiles = Arrays.asList(hicFilePaths.split("\\+"));
-
-        Integer[] gwPeakNumbers = new Integer[3];
-        for (int i = 0; i < gwPeakNumbers.length; i++)
-            gwPeakNumbers[i] = 0;
-
-        Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
+
+            Integer[] gwPeakNumbers = new Integer[3];
+            Arrays.fill(gwPeakNumbers, 0);
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;
@@ -239,7 +243,7 @@ public class APA extends JuicerCLT {
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             ChromosomeHandler handler = ds.getChromosomeHandler();
-            if (givenChromosomes != null)
+            if (givenChromosomes != null) //_where was this var declared?
                 handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
             // Metrics resulting from apa filtering
@@ -273,10 +277,8 @@ public class APA extends JuicerCLT {
                         if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
                             APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
 
-                            Matrix matrix = ds.getMatrix(chr1, chr2);
-                            if (matrix == null) continue;
-
-                            MatrixZoomData zd = matrix.getZoomData(zoom);
+                            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
+                            if (zd == null) continue;
 
                             if (HiCGlobals.printVerboseComments) {
                                 System.out.println("CHR " + chr1.getName() + " " + chr1.getIndex() + " CHR " + chr2.getName() + " " + chr2.getIndex());

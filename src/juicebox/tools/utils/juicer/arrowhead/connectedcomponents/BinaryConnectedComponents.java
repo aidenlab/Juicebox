@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,9 @@
 package juicebox.tools.utils.juicer.arrowhead.connectedcomponents;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
 import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -43,7 +43,7 @@ public class BinaryConnectedComponents {
      * @param threshold
      * @return list of connected components in image
      */
-    public static List<Set<Point>> detection(double[][] image, double threshold) {
+    public synchronized static List<Set<Point>> detection(double[][] image, double threshold) {
         int r = image.length;
         int c = image[0].length;
 
@@ -76,9 +76,8 @@ public class BinaryConnectedComponents {
         for (int i = 1; i < nextLabel; i++) {
             IndexNode current = indices.get(i);
             if (current.hasNotBeenIndexed()) {
-                Queue<IndexNode> queue = new LinkedBlockingQueue<>();
                 Set<Point> points = new HashSet<>(current.getMatrixIndices());
-                queue.addAll(current.getConnectedNodes());
+                Queue<IndexNode> queue = new LinkedBlockingQueue<>(current.getConnectedNodes());
                 current.index();
 
                 while (!queue.isEmpty()) {

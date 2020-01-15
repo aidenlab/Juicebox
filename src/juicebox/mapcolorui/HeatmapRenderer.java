@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,6 @@
 
 package juicebox.mapcolorui;
 
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Range;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
@@ -44,8 +40,8 @@ import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso
@@ -53,14 +49,14 @@ import java.util.List;
  */
 class HeatmapRenderer {
 
-    private final HiCColorScale pearsonColorScale;
+    private final PearsonColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
     private final PreDefColorScale preDefColorScale;
 
     public HeatmapRenderer() {
 
-        pearsonColorScale = new HiCColorScale();
+        pearsonColorScale = new PearsonColorScale();
 
         preDefColorScale = new PreDefColorScale("Template",
                 new Color[]{
@@ -117,8 +113,8 @@ class HeatmapRenderer {
         );
     }
 
-    public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption) {
-        return zd.getColorScaleKey(displayOption);
+    public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption, NormalizationType obsNorm, NormalizationType ctrlNorm) {
+        return zd.getColorScaleKey(displayOption, obsNorm, ctrlNorm);
     }
 
     public boolean render(int originX,
@@ -128,7 +124,8 @@ class HeatmapRenderer {
                           final MatrixZoomData zd,
                           final MatrixZoomData controlZD,
                           final MatrixType displayOption,
-                          final NormalizationType normalizationType,
+                          final NormalizationType observedNormalizationType,
+                          final NormalizationType controlNormalizationType,
                           final ExpectedValueFunction df,
                           final ExpectedValueFunction controlDF,
                           Graphics2D g,
@@ -161,23 +158,61 @@ class HeatmapRenderer {
         int maxX = x + width - 1;
         int maxY = y + height - 1;
 
+        String key = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
+        String controlKey = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
+
         switch (displayOption) {
+            case NORM2: {
+                BasicMatrix bm = zd.getNormSquared(observedNormalizationType);
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm, percentile);
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
+
+                break;
+            }
+            case NORM2CTRL: {
+                BasicMatrix bm = controlZD.getNormSquared(controlNormalizationType);
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm, percentile);
+
+                ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
+
+                break;
+            }
+            case NORM2OBSVSCTRL: {
+                if (controlDF == null) {
+                    System.err.println("Control DF is NULL");
+                    return false;
+                }
+
+                BasicMatrix bm1 = zd.getNormSquared(observedNormalizationType);
+                BasicMatrix bm2 = controlZD.getNormSquared(controlNormalizationType);
+
+                double percentile = isWholeGenome ? 99 : 95;
+                float max = computePercentile(bm1, percentile) + computePercentile(bm2, percentile);
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+                renderDenseMatrix(bm1, bm2, originX, originY, width, height, null, key, g, cs);
+                break;
+            }
             case PEARSON: {
-
-                String key = zd.getColorScaleKey(displayOption);
-
                 BasicMatrix bm = zd.getPearsons(df);
 
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(key)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
 
-                renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
 
                 break;
             }
             case PEARSONCTRL: {
-
                 if (controlDF == null) {
                     System.err.println("Control DF is NULL");
                     return false;
@@ -185,11 +220,10 @@ class HeatmapRenderer {
 
                 BasicMatrix bm = controlZD.getPearsons(controlDF);
 
-                String key = controlZD.getColorScaleKey(displayOption);
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(controlKey)) {
                     pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
                 }
-                renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
 
                 break;
             }
@@ -203,14 +237,13 @@ class HeatmapRenderer {
                 BasicMatrix bm1 = zd.getPearsons(df);
                 BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
-                String key = zd.getColorScaleKey(displayOption);
-                if (!pearsonColorScale.containsKey(key)) {
+                if (pearsonColorScale.doesNotContainKey(key)) {
                     float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
                     float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
                     pearsonColorScale.setMinMax(key, min, max);
                 }
 
-                renderPearsonMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
+                renderDenseMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g, null);
                 break;
             }
             default:
@@ -221,7 +254,7 @@ class HeatmapRenderer {
                 List<Block> blocks = null;
                 try {
                     if (zd != null)
-                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                        blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 } catch (Exception ignored) {
                     System.err.println("problems with MZD");
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
@@ -230,7 +263,7 @@ class HeatmapRenderer {
                 List<Block> ctrlBlocks = null;
                 try {
                     if (controlZD != null)
-                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                        ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 } catch (Exception ignored) {
                     if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
                 }
@@ -243,8 +276,7 @@ class HeatmapRenderer {
                 if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
                     if (controlZD != null && ctrlBlocks != null) {
 
-                        String key = controlZD.getColorScaleKey(displayOption);
-                        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks);
+                        ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
                         for (Block b : ctrlBlocks) {
 
@@ -290,7 +322,7 @@ class HeatmapRenderer {
                     } else {
                         return false;
                     }
-                } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS) {
+                } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
 
                     List<Block> comboBlocks = new ArrayList<>();
 
@@ -298,8 +330,7 @@ class HeatmapRenderer {
                     if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
                     if (comboBlocks.isEmpty()) return false;
 
-                    String key = zd.getColorScaleKey(displayOption);
-                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
+                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
 
                     double averageCount = zd.getAverageCount();
                     double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -323,15 +354,18 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
 
-                                    if (displayOption == MatrixType.OEVS) {
+                                    if (displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
                                         if (df != null) {
                                             int dist = Math.abs(binX - binY);
                                             double expected = df.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
+                                            if (displayOption == MatrixType.OEVS) {
+                                                score = rec.getCounts() / expected;
+                                            } else {
+                                                score = rec.getCounts() - expected;
+                                            }
                                         } else {
                                             continue;
                                         }
-
                                     }
                                     Color color = cs.getColor((float) score);
                                     g.setColor(color);
@@ -356,11 +390,17 @@ class HeatmapRenderer {
                                     int binX = rec.getBinX();
                                     int binY = rec.getBinY();
 
-                                    if (displayOption == MatrixType.OEVS) {
+                                    if (displayOption == MatrixType.OEVS || displayOption == MatrixType.OCMEVS) {
                                         if (controlDF != null) {
+                                            //score = getObservedComparedToExpected()
                                             int dist = Math.abs(binX - binY);
                                             double expected = controlDF.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
+
+                                            if (displayOption == MatrixType.OEVS) {
+                                                score = rec.getCounts() / expected;
+                                            } else {
+                                                score = rec.getCounts() - expected;
+                                            }
                                         } else {
                                             continue;
                                         }
@@ -385,12 +425,11 @@ class HeatmapRenderer {
                     Map<String, Block> controlBlocks = new HashMap<>();
                     if (hasControl) {
                         for (Block b : ctrlBlocks) {
-                            controlBlocks.put(b.getUniqueRegionID(), b);
+                            controlBlocks.put(controlZD.getNormLessBlockKey(b), b);
                         }
                     }
 
-                    String key = zd.getColorScaleKey(displayOption);
-                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
+                    ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
                     double averageCount = zd.getAverageCount();
                     double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -403,10 +442,10 @@ class HeatmapRenderer {
 
                             Map<String, ContactRecord> controlRecords = new HashMap<>();
                             if (hasControl) {
-                                Block cb = controlBlocks.get(b.getUniqueRegionID());
+                                Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
                                 if (cb != null) {
                                     for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                                        controlRecords.put(ctrlRec.getKey(), ctrlRec);
+                                        controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
                                     }
                                 }
                             }
@@ -436,14 +475,16 @@ class HeatmapRenderer {
                                         score = expected;
                                     }
                                 } else if (displayOption == MatrixType.RATIO && hasControl) {
-                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
+                                        //score = rec.getCounts() / ctrlRecord.getCounts();
+                                        // System.err.println(ctrlAverageCount + " " + averageCount);
                                         score = num / den;
                                     }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {
-                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
@@ -480,7 +521,7 @@ class HeatmapRenderer {
     }
 
 
-    private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
+    private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks, float givenMax) {
 
         if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE
                 || displayOption == MatrixType.OECTRL || displayOption == MatrixType.OEVS
@@ -501,7 +542,10 @@ class HeatmapRenderer {
                 ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
                 if (observedColorScale == null) {
                     double percentile = wholeGenome ? 99 : 95;
-                    float max = computePercentile(blocks, percentile);
+                    float max = givenMax;
+                    if (blocks != null) {
+                        max = computePercentile(blocks, percentile);
+                    }
 
                     //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                     if (HiCGlobals.isDarkulaModeEnabled) {
@@ -561,6 +605,18 @@ class HeatmapRenderer {
         return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
     }
 
+    private float computePercentile(BasicMatrix bm, double p) {
+        DoubleArrayList dal = new DoubleArrayList(10000);
+
+        for (int i = 0; i < bm.getRowDimension(); i++) {
+            for (int j = i + 1; j < bm.getColumnDimension(); j++) {
+                dal.add(bm.getEntry(i, j));
+            }
+        }
+
+        return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
+    }
+
 
     /**
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
@@ -569,12 +625,12 @@ class HeatmapRenderer {
      * @param bm2         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
-     * @param pearsonColorScale color scale to apply
+     * @param colorScale color scale to apply
      * @param key
      * @param g          graphics to render matrix into
      */
-    private void renderPearsonMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
-                                     HiCColorScale pearsonColorScale, String key, Graphics2D g) {
+    private void renderDenseMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
+                                   PearsonColorScale colorScale, String key, Graphics2D g, ColorScale cs) {
         int endX = Math.min(originX + width, bm1.getColumnDimension());
         int endY = Math.min(originY + height, bm1.getRowDimension());
 
@@ -583,7 +639,7 @@ class HeatmapRenderer {
             for (int col = originX; col < endX; col++) {
 
                 float score = bm1.getEntry(row, col);
-                Color color = getPearsonColor(key, score, pearsonColorScale);
+                Color color = getDenseMatrixColor(key, score, colorScale, cs);
                 int px = col - originX;
                 int py = row - originY;
                 g.setColor(color);
@@ -594,7 +650,7 @@ class HeatmapRenderer {
                 if (col != row) {
                     if (bm2 != null) {
                         float controlScore = bm2.getEntry(row, col);
-                        Color controlColor = getPearsonColor(key, controlScore, pearsonColorScale);
+                        Color controlColor = getDenseMatrixColor(key, controlScore, colorScale, cs);
                         px = row - originX;
                         py = col - originY;
                         g.setColor(controlColor);
@@ -609,12 +665,16 @@ class HeatmapRenderer {
         }
     }
 
-    private Color getPearsonColor(String key, float score, HiCColorScale colorScale) {
+    private Color getDenseMatrixColor(String key, float score, PearsonColorScale pearsonColorScale, ColorScale genericColorScale) {
         Color color;
         if (Float.isNaN(score)) {
             color = Color.gray;
         } else {
-            color = score == 0 ? Color.black : colorScale.getColor(key, score);
+            if (pearsonColorScale != null) {
+                color = score == 0 ? Color.black : pearsonColorScale.getColor(key, score);
+            } else {
+                color = genericColorScale.getColor(score);
+            }
         }
         return color;
     }
@@ -627,12 +687,12 @@ class HeatmapRenderer {
     private void updatePreDefColors() {
         int arrSize = MainViewPanel.preDefMapColorGradient.size();
 
-        ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
-        Integer[] arrTmp = set.toArray(new Integer[arrSize]);
+        //ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
+        //Integer[] arrTmp = new Integer[arrSize];//set.toArray(new Integer[arrSize]);
         final int[] arrScores = new int[arrSize];
 
         for (int idx = 0; idx < arrSize; idx++) {
-            arrScores[idx] = arrTmp[idx];
+            arrScores[idx] = idx;
         }
 
         preDefColorScale.updateColors(MainViewPanel.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
@@ -669,7 +729,7 @@ class HeatmapRenderer {
         }
     }
 
-    public HiCColorScale getPearsonColorScale() {
+    public PearsonColorScale getPearsonColorScale() {
         return pearsonColorScale;
     }
 }

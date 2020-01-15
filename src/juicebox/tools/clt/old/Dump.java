@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,12 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
+import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
-import juicebox.tools.utils.original.NormalizationCalculations;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
-import juicebox.windowui.NormalizationType;
+import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -52,9 +52,7 @@ public class Dump extends JuiceboxCLT {
     private static int[] regionIndices = new int[]{-1, -1, -1, -1};
     private static boolean useRegionIndices = false;
     private HiC.Unit unit = null;
-    private NormalizationType norm = null;
     private String chr1, chr2;
-    private Dataset dataset = null;
     private ChromosomeHandler chromosomeHandler;
     private int binSize = 0;
     private MatrixType matrixType = null;
@@ -73,7 +71,6 @@ public class Dump extends JuiceboxCLT {
         return "dump <observed/oe> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> [outfile]\n" +
                 "\tdump <norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]\n" +
                 "\tdump <loops/domains> <hicFile URL> [outfile]";
-
     }
 
     private void dumpGenomeWideData() {
@@ -84,21 +81,16 @@ public class Dump extends JuiceboxCLT {
         }
 
         // This is for internal purposes only - to print the All vs All matrix
-        // This matrix should not in general be exposed since it is arbitrairily binned
+        // This matrix should not in general be exposed since it is arbitrarily binned
         // If in the future we wish to expose, we should use a more reasonable flag.
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
-            Matrix matrix =  dataset.getMatrix(chr, chr);
-            if (matrix == null) {
-                System.err.println("No All vs. All matrix");
-                System.exit(1);
-            }
-            MatrixZoomData zd = matrix.getZoomData(zoom);
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null){
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
             }
-            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
                 pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
@@ -108,7 +100,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         // Build a "whole-genome" matrix
-        ArrayList<ContactRecord> recordArrayList = NormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        ArrayList<ContactRecord> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         if (recordArrayList.isEmpty()) {
             System.err.println("No reads found at " +  zoom +". Include intra is " + includeIntra);
@@ -125,16 +117,15 @@ public class Dump extends JuiceboxCLT {
 
         if (matrixType == MatrixType.NORM) {
 
-            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationType.GW_KR);
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationHandler.GW_KR);
             int addY = 0;
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 final int chrIdx = chr.getIndex();
-                Matrix matrix = dataset.getMatrix(chr, chr);
+                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
-                if (matrix == null) continue;
-                MatrixZoomData zd = matrix.getZoomData(zoom);
-                Iterator<ContactRecord> iter = zd.contactRecordIterator();
+                if (zd == null) continue;
+                Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
                 while (iter.hasNext()) {
                     ContactRecord cr = iter.next();
                     int x = cr.getBinX();
@@ -188,19 +179,22 @@ public class Dump extends JuiceboxCLT {
                 System.err.println("Norm not available at " + zoom + " " + norm);
                 System.exit(9);
             }
-
+            int count=0;
+            int total = (chromosome.getLength()/zoom.getBinSize())+1;
             // print out vector
             for (double element : nv.getData()) {
                 pw.println(element);
+                count++;
+                // Do not print out more entries than length of chromosome
+                if (zoom.getUnit() == HiC.Unit.BP) {
+                    if (count >= total) break;
+                }
             }
             pw.close();
 
         } else if (matrixType == MatrixType.EXPECTED) {
-            final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
-            if (df == null) {
-                System.err.println("Expected not available at " + zoom + " " + norm);
-                System.exit(10);
-            }
+            final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
+
             int length = df.getLength();
 
             if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
@@ -229,18 +223,13 @@ public class Dump extends JuiceboxCLT {
         Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
         Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
 
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome2);
-        if (matrix == null) {
-            System.err.println("No reads in " + chr1 + " " + chr2);
-            return;
-        }
-
         if (chromosome2.getIndex() < chromosome1.getIndex()) {
             regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
         }
 
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome2, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chr1 + " " + chr2);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {
@@ -256,11 +245,7 @@ public class Dump extends JuiceboxCLT {
 
         ExpectedValueFunction df = null;
         if (MatrixType.isExpectedValueType(matrixType)) {
-            df = dataset.getExpectedValues(zd.getZoom(), norm);
-            if (df == null) {
-                System.err.println(matrixType + " not available at " + chr1 + " " + zoom + " " + norm);
-                System.exit(14);
-            }
+            df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
         }
         zd.dump(pw, les, norm, matrixType, useRegionIndices, regionIndices, df, dense);
 
@@ -325,15 +310,7 @@ public class Dump extends JuiceboxCLT {
                 System.exit(15);
             }
 
-            norm = NormalizationType.enumValueFromString(args[2]);
-            if (norm == null) {
-                System.err.println("Normalization type " + args[2] + " unrecognized.  Normalization type must be one of \n" +
-                        "\"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
-                        " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-                System.exit(16);
-            }
-
-            dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[3].split("\\+")), false);
+            setDatasetAndNorm(args[3], args[2], false);
 
             chromosomeHandler = dataset.getChromosomeHandler();
 
@@ -346,12 +323,12 @@ public class Dump extends JuiceboxCLT {
 
             extractChromosomeRegionIndices(); // at the end of this, chr1&2 will just be the chr key names
 
-            if (!chromosomeHandler.containsChromosome(chr1)) {
+            if (chromosomeHandler.doesNotContainChromosome(chr1)) {
                 System.err.println("Unknown chromosome: " + chr1);
                 System.exit(18);
             }
 
-            if (!chromosomeHandler.containsChromosome(chr2)) {
+            if (chromosomeHandler.doesNotContainChromosome(chr2)) {
                 System.err.println("Unknown chromosome: " + chr2);
                 System.exit(19);
             }

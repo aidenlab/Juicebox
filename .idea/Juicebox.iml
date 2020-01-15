@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="true">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
@@ -10,6 +10,13 @@
     <orderEntry type="library" exported="" name="broadinstitute" level="project" />
     <orderEntry type="library" exported="" name="jcuda" level="project" />
     <orderEntry type="library" exported="" name="general" level="project" />
-    <orderEntry type="library" name="appbundler-1.0" level="project" />
+    <orderEntry type="library" exported="" name="jargs" level="project" />
+    <orderEntry type="library" exported="" name="jfreechart-1.0.19" level="project" />
+    <orderEntry type="library" exported="" name="log4j-core-2.11.0" level="project" />
+    <orderEntry type="library" exported="" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" exported="" name="npy" level="project" />
+    <orderEntry type="library" exported="" name="npy" level="project" />
+    <orderEntry type="library" name="org.tensorflow:tensorflow:1.11.0" level="project" />
+    <orderEntry type="library" name="org.deeplearning4j:deeplearning4j-core:1.0.0-beta4" level="project" />
   </component>
 </module>

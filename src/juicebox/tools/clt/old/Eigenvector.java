@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,17 @@ package juicebox.tools.clt.old;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 /**
  * Class for calculating Eigenvector (separated out from Dump)
@@ -45,8 +46,6 @@ import java.util.Arrays;
 public class Eigenvector extends JuiceboxCLT {
 
     private HiC.Unit unit = null;
-    private NormalizationType norm = null;
-    private Dataset dataset = null;
     private int binSize = 0;
     private Chromosome chromosome1;
     private PrintWriter pw;
@@ -65,18 +64,11 @@ public class Eigenvector extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-        norm = NormalizationType.enumValueFromString(args[1]);
-        if (norm == null) {
-            System.err.println("Normalization type " + args[1] + " unrecognized.  Normalization type must be one of \n" +
-                    "\"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
-                    " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(16);
-        }
+        setDatasetAndNorm(args[2], args[1], false);
 
-        dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), false);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
-        if (!chromosomeHandler.containsChromosome(args[3])) {
+        if (chromosomeHandler.doesNotContainChromosome(args[3])) {
             System.err.println("Unknown chromosome: " + args[3]);
             System.exit(18);
         }
@@ -123,14 +115,9 @@ public class Eigenvector extends JuiceboxCLT {
     public void run() {
         HiCZoom zoom = new HiCZoom(unit, binSize);
 
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome1);
-        if (matrix == null) {
-            System.err.println("No reads in " + chromosome1);
-            System.exit(21);
-        }
-
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome1, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chromosome1);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {
@@ -142,11 +129,7 @@ public class Eigenvector extends JuiceboxCLT {
             }
             System.exit(13);
         }
-        ExpectedValueFunction df = dataset.getExpectedValues(zd.getZoom(), norm);
-        if (df == null) {
-            System.err.println("Pearson's not available at " + chromosome1 + " " + zoom + " " + norm);
-            System.exit(14);
-        }
+        ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
         double[] vector = dataset.getEigenvector(chromosome1, zoom, 0, norm);
 
         // mean center and print

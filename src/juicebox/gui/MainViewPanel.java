@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public class MainViewPanel {
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();
-    private static JComboBox<String> normalizationComboBox;
+    private static JComboBox<String> observedNormalizationComboBox, controlNormalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JColorRangePanel colorRangePanel;
     private static ResolutionControl resolutionSlider;
@@ -104,12 +104,13 @@ public class MainViewPanel {
     private final JPanel chrButtonPanel = new JPanel();
     private final JPanel chrLabelPanel = new JPanel(new BorderLayout());
     private final JLabel chrLabel = new JLabel("Chromosomes");
-    private final JLabel normalizationLabel = new JLabel("Normalization");
+    private final JLabel normalizationLabel = new JLabel("Normalization  (Obs  |  Ctrl)");
     private final JLabel displayOptionLabel = new JLabel("Show");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
-    private boolean tooltipAllowedToUpdated = true;
+    private boolean tooltipAllowedToUpdate = true;
     private boolean ignoreUpdateThumbnail = false;
     private final JPanel tooltipPanel = new JPanel(new BorderLayout());
+    private boolean controlIsLoaded = false;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {
         ignoreUpdateThumbnail = flag;
@@ -213,7 +214,8 @@ public class MainViewPanel {
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeDisplayOptionComboBoxActionPerformed();
-                normalizationComboBox.setEnabled(!isWholeGenome());
+                observedNormalizationComboBox.setEnabled(!isWholeGenome());
+                controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -235,14 +237,24 @@ public class MainViewPanel {
         JPanel normalizationButtonPanel = new JPanel();
         normalizationButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
         normalizationButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        normalizationComboBox = new JComboBox<>(new String[]{NormalizationType.NONE.getLabel()});
-        normalizationComboBox.addPopupMenuListener(new BoundsPopupMenuListener<String>(true, false));
-        normalizationComboBox.addActionListener(new ActionListener() {
+        observedNormalizationComboBox = new JComboBox<>(new String[]{NormalizationHandler.NONE.getDescription()});
+        observedNormalizationComboBox.addPopupMenuListener(new BoundsPopupMenuListener<String>(true, false));
+        observedNormalizationComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                superAdapter.safeNormalizationComboBoxActionPerformed(e);
+                superAdapter.safeNormalizationComboBoxActionPerformed(e, false);
             }
         });
-        normalizationButtonPanel.add(normalizationComboBox);
+
+        controlNormalizationComboBox = new JComboBox<>(new String[]{NormalizationHandler.NONE.getDescription()});
+        controlNormalizationComboBox.addPopupMenuListener(new BoundsPopupMenuListener<String>(true, false));
+        controlNormalizationComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.safeNormalizationComboBoxActionPerformed(e, true);
+            }
+        });
+
+        normalizationButtonPanel.add(observedNormalizationComboBox);
+        normalizationButtonPanel.add(controlNormalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
         normalizationPanel.setPreferredSize(new Dimension(180, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
@@ -458,14 +470,14 @@ public class MainViewPanel {
 
     private void initialSetToFalse() {
         JComponent[] comps = new JComponent[]{chrBox1, chrBox2, refreshButton, displayOptionComboBox,
-                normalizationComboBox, toolbarPanel, miniAnnotationsLayerPanel, annotationsPanelToggleButton};
+                observedNormalizationComboBox, controlNormalizationComboBox, toolbarPanel, miniAnnotationsLayerPanel, annotationsPanelToggleButton};
         for (JComponent comp : comps) {
             comp.setEnabled(false);
         }
     }
 
     public void resetAllColors() {
-        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.darkGray : Color.WHITE;
         JComponent[] components = new JComponent[]{mainPanel, bigPanel, topPanel, trackLabelPanel,
                 leftPanel, chrSidePanel, chrSidePanel2, chrSidePanel3, bottomChromosomeFigPanel, wrapHeatmapPanel,
                 heatmapPanel, wrapGapPanel, hiCPanel, trackPanelX, trackPanelY, rulerPanelX, rulerPanelY,
@@ -495,7 +507,7 @@ public class MainViewPanel {
     }
 
     public void updateToolTipText(String s) {
-        if (tooltipAllowedToUpdated)
+        if (tooltipAllowedToUpdate)
             mouseHoverTextPanel.setText(s);
         mouseHoverTextPanel.setCaretPosition(0);
     }
@@ -589,6 +601,10 @@ public class MainViewPanel {
         return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
+    private boolean ifControlIsLoaded() {
+        return controlIsLoaded;
+    }
+
     private boolean isWholeGenome(HiC hic) {
         Chromosome chr1 = hic.getXContext().getChromosome();
         Chromosome chr2 = hic.getYContext().getChromosome();
@@ -601,7 +617,8 @@ public class MainViewPanel {
         if (isWholeGenome()) { // for now only allow observed
             hic.setDisplayOption(MatrixType.OBSERVED);
             displayOptionComboBox.setSelectedIndex(0);
-            normalizationComboBox.setSelectedIndex(0);
+            observedNormalizationComboBox.setSelectedIndex(0);
+            controlNormalizationComboBox.setSelectedIndex(0);
         } else if (isInterChromosomal()) {
             if (MatrixType.isOnlyIntrachromosomalType(hic.getDisplayOption())) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
@@ -609,7 +626,8 @@ public class MainViewPanel {
             }
         }
 
-        normalizationComboBox.setEnabled(!isWholeGenome(hic));
+        observedNormalizationComboBox.setEnabled(!isWholeGenome(hic));
+        controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
         displayOptionComboBox.setEnabled(true);
     }
 
@@ -652,7 +670,7 @@ public class MainViewPanel {
             try {
                 Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
                         thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
-                        hic.getDisplayOption(), hic.getNormalizationType());
+                        hic.getDisplayOption(), hic.getObsNormalizationType(), hic.getControlNormalizationType());
                 if (thumbnail != null) {
                     thumbnailPanel.setImage(thumbnail);
                     thumbnailPanel.repaint();
@@ -667,16 +685,24 @@ public class MainViewPanel {
         }
     }
 
+    public static void invertAssemblyMatCheck() {
+        HiCGlobals.isAssemblyMatCheck = !HiCGlobals.isAssemblyMatCheck;
+    }
+
     private void chrBox1ActionPerformed(ActionEvent e) {
-        if (chrBox1.getSelectedIndex() == 0) {
-            chrBox2.setSelectedIndex(0);
-        }
+      if (chrBox1.getSelectedIndex() == 0) {
+        chrBox2.setSelectedIndex(0);
+      } else if (HiCGlobals.isAssemblyMatCheck && chrBox1.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+        chrBox2.setSelectedIndex(chrBox1.getItemCount() - 1);
+      }
     }
 
     private void chrBox2ActionPerformed(ActionEvent e) {
-        if (chrBox2.getSelectedIndex() == 0) {
-            chrBox1.setSelectedIndex(0);
-        }
+      if (chrBox2.getSelectedIndex() == 0) {
+        chrBox1.setSelectedIndex(0);
+      } else if (HiCGlobals.isAssemblyMatCheck && chrBox2.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
+        chrBox1.setSelectedIndex(chrBox1.getItemCount() - 1);
+      }
     }
 
     public boolean setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
@@ -776,13 +802,10 @@ public class MainViewPanel {
         displayOptionComboBox.setSelectedIndex(indx);
     }
 
-    public void setNormalizationBox(int indx) {
-        normalizationComboBox.setSelectedIndex(indx);
-    }
-
     public void setNormalizationEnabledForReload() {
-        //normalizationComboBox.setEnabled(true);
-        normalizationComboBox.setEnabled(!isWholeGenome());
+        //observedNormalizationComboBox.setEnabled(true);
+        observedNormalizationComboBox.setEnabled(!isWholeGenome());
+        controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
     }
 
     public void setPositionChrLeft(String newPositionDate) {
@@ -829,13 +852,24 @@ public class MainViewPanel {
         colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
     }
 
-    public void setEnabledForNormalization(String[] normalizationOptions, boolean status) {
-        if (normalizationOptions.length == 1) {
-            normalizationComboBox.setEnabled(false);
+    public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean versionStatus) {
+        if (isControl) {
+            controlIsLoaded = true;
+            if (normalizationOptions != null && normalizationOptions.length == 1) {
+                controlNormalizationComboBox.setEnabled(false);
+            } else {
+                controlNormalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
+                controlNormalizationComboBox.setSelectedIndex(0);
+                controlNormalizationComboBox.setEnabled(versionStatus && !isWholeGenome() && ifControlIsLoaded());
+            }
         } else {
-            normalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
-            normalizationComboBox.setSelectedIndex(0);
-            normalizationComboBox.setEnabled(status && !isWholeGenome());
+            if (normalizationOptions.length == 1) {
+                observedNormalizationComboBox.setEnabled(false);
+            } else {
+                observedNormalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
+                observedNormalizationComboBox.setSelectedIndex(0);
+                observedNormalizationComboBox.setEnabled(versionStatus && !isWholeGenome());
+            }
         }
     }
 
@@ -878,16 +912,20 @@ public class MainViewPanel {
         return colorRangePanel;
     }
 
-    public boolean isTooltipAllowedToUpdated() {
-        return tooltipAllowedToUpdated;
+    public boolean isTooltipAllowedToUpdate() {
+        return tooltipAllowedToUpdate;
     }
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
-        this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
+        this.tooltipAllowedToUpdate = tooltipAllowedToUpdated;
     }
 
-    public JComboBox<String> getNormalizationComboBox() {
-        return normalizationComboBox;
+    public JComboBox<String> getObservedNormalizationComboBox() {
+        return observedNormalizationComboBox;
+    }
+
+    public JComboBox<String> getControlNormalizationComboBox() {
+        return controlNormalizationComboBox;
     }
 
     public HiCRulerPanel getRulerPanelY() {

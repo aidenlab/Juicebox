@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,16 @@
 
 package juicebox.tools.clt.old;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.JuiceboxCLT;
 
 import java.io.*;
-import java.util.List;
 import java.util.regex.Pattern;
 
 
 public class FragmentToBed extends JuiceboxCLT {
 
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
     private String filename;
 
     public FragmentToBed() {
@@ -63,13 +59,13 @@ public class FragmentToBed extends JuiceboxCLT {
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 //String[] tokens = pattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+                String[] tokens = splitToList(nextLine);
 
-                String chr = tokens.get(0);
+                String chr = tokens[0];
                 int fragNumber = 0;
-                int beg = Integer.parseInt(tokens.get(1)) - 1;  // 1 vs 0 based coords
-                for (int i = 2; i < tokens.size(); i++) {
-                    int end = Integer.parseInt(tokens.get(i)) - 1;
+                int beg = Integer.parseInt(tokens[1]) - 1;  // 1 vs 0 based coords
+                for (int i = 2; i < tokens.length; i++) {
+                    int end = Integer.parseInt(tokens[i]) - 1;
                     writer.println(chr + "\t" + beg + "\t" + end + "\t" + fragNumber);
                     beg = end;
                     fragNumber++;

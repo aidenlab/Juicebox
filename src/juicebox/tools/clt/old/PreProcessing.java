@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,13 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
+import juicebox.windowui.NormalizationType;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PreProcessing extends JuiceboxCLT {
 
@@ -44,6 +47,7 @@ public class PreProcessing extends JuiceboxCLT {
     private boolean noNorm = false;
     private boolean noFragNorm = false;
     private int genomeWide;
+    private List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -57,6 +61,12 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
+                + "           : -z <double> scale factor for hic file\n"
+                + "           : -a <1, 2, 3, 4> filter based on inner, outer, left-left, right-right pairs respectively\n"
+                + "           : --randomize_position randomize positions between fragment sites\n"
+                + "           : --random_seed <long> for seeding random number generator\n"
+                + "           : --frag_site_maps <fragment site files> for randomization\n"
+                + "           : -k normalizations to include\n"
         );
     }
 
@@ -82,20 +92,29 @@ public class PreProcessing extends JuiceboxCLT {
         inputFile = args[1];
         outputFile = args[2];
         String tmpDir = parser1.getTmpdirOption();
+        double hicFileScalingFactor = parser1.getScalingOption();
 
-        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler);
-        preprocessor.setIncludedChromosomes(parser1.getChromosomeOption());
+        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+        preprocessor.setIncludedChromosomes(parser1.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser1.getCountThresholdOption());
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
         preprocessor.setFragmentFile(parser1.getFragmentOption());
+        preprocessor.setExpectedVectorFile(parser1.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
+        preprocessor.setGenome(parser1.getGenomeOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
+        preprocessor.setAlignmentFilter(parser1.getAlignmentOption());
+        preprocessor.setRandomizePosition(parser1.getRandomizePositionsOption());
+        preprocessor.setPositionRandomizerSeed(parser1.getRandomPositionSeedOption());
+        preprocessor.setRandomizeFragMaps(parser1.getRandomizePositionMaps());
+
         noNorm = parser1.getNoNormOption();
         genomeWide = parser1.getGenomeWideOption();
         noFragNorm = parser1.getNoFragNormOption();
+        normalizationTypes.addAll(parser1.getAllNormalizationTypesOption());
     }
 
     @Override
@@ -107,7 +126,7 @@ public class PreProcessing extends JuiceboxCLT {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
-                NormalizationVectorUpdater.updateHicFile(outputFile, genomeWide, noFragNorm);
+                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, genomeWide, noFragNorm);
             }
             else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");

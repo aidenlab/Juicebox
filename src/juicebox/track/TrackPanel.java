@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,6 +79,7 @@ public class TrackPanel extends JPanel {
         hic.removeTrack(track);
         superAdapter.revalidate();
         superAdapter.repaint();
+        superAdapter.getLayersPanel().redraw1DLayerPanels(superAdapter);
     }
 
     public void moveTrackUp(HiCTrack track) {
@@ -155,7 +156,7 @@ public class TrackPanel extends JPanel {
                     if (r.contains(mouseEvent.getPoint())) {
 
                         HiCTrack track = p.getSecond();
-                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, superAdapter);
+                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, superAdapter, orientation);
                         menu.show(mouseEvent.getComponent(), mouseEvent.getX(), mouseEvent.getY());
                         repaint();
 

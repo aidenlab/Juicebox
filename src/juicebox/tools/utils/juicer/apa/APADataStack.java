@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -165,15 +165,15 @@ public class APADataStack {
     }
 
     public void addData(RealMatrix newData) {
-        RealMatrix nanFilteredData = MatrixTools.cleanUpNaNs(newData);
-        APAMatrix = APAMatrix.add(nanFilteredData);
-        normedAPAMatrix = normedAPAMatrix.add(APAUtils.standardNormalization(nanFilteredData));
-        centerNormedAPAMatrix = centerNormedAPAMatrix.add(APAUtils.centerNormalization(nanFilteredData));
-        rankAPAMatrix = rankAPAMatrix.add(APAUtils.rankPercentile(nanFilteredData));
-        enhancement.add(APAUtils.peakEnhancement(nanFilteredData));
+        MatrixTools.cleanUpNaNs(newData);
+        APAMatrix = APAMatrix.add(newData);
+        normedAPAMatrix = normedAPAMatrix.add(APAUtils.standardNormalization(newData));
+        centerNormedAPAMatrix = centerNormedAPAMatrix.add(APAUtils.centerNormalization(newData));
+        rankAPAMatrix = rankAPAMatrix.add(APAUtils.rankPercentile(newData));
+        enhancement.add(APAUtils.peakEnhancement(newData));
     }
 
-    public void updateGenomeWideData() {
+    public synchronized void updateGenomeWideData() {
         gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
         gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
         gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);

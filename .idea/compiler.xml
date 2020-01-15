@@ -15,9 +15,10 @@
       <entry name="?*.txt" />
       <entry name="?*.sizes" />
       <entry name="?*.cu" />
+      <entry name="?*.sizes" />
     </wildcardResourcePatterns>
   </component>
   <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.7" />
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.8" />
   </component>
 </project>

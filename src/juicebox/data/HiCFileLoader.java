@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
+import juicebox.windowui.RecentMenu;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
@@ -53,7 +54,7 @@ public class HiCFileLoader {
     private static Properties properties;
     private static LoadDialog loadDialog = null;
     private static String propertiesFileURL = null;
-    private static String RECENT_PROPERTIES_FILE = "recentPropertiesFile";
+    private static final String RECENT_PROPERTIES_FILE = "recentPropertiesFile";
 
     public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
@@ -73,7 +74,7 @@ public class HiCFileLoader {
                 path = f.getAbsolutePath();
             }
             openHiCPath = new File(path);
-            superAdapter.addRecentMapMenuEntry(str.toString().trim() + "@@" + files[0].getAbsolutePath(), true);
+            superAdapter.addRecentMapMenuEntry(str.toString().trim() + RecentMenu.delimiter + files[0].getAbsolutePath(), true);
             superAdapter.safeLoad(fileNames, control, str.toString());
         }
         return openHiCPath;
@@ -83,7 +84,7 @@ public class HiCFileLoader {
                                                      boolean control) {
 
         if (url != null) {
-            superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + url, true);
+            superAdapter.addRecentMapMenuEntry(title.trim() + RecentMenu.delimiter + url, true);
             superAdapter.safeLoad(Collections.singletonList(url), control, title);
         }
     }
@@ -191,7 +192,7 @@ public class HiCFileLoader {
         }
     }
 
-    public static void setPropertiesFileURL(String propertiesFileURL) {
+    private static void setPropertiesFileURL(String propertiesFileURL) {
         HiCFileLoader.propertiesFileURL = propertiesFileURL;
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
         prefs.put(RECENT_PROPERTIES_FILE, propertiesFileURL);

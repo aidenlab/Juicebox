@@ -25,10 +25,13 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
+import juicebox.gui.SuperAdapter;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -37,7 +40,8 @@ import java.util.Scanner;
  */
 public class AssemblyFileImporter {
 
-    // legacy format
+  private SuperAdapter superAdapter = null;
+  // legacy format
     private String cpropsFilePath;
     private String asmFilePath;
 
@@ -61,16 +65,22 @@ public class AssemblyFileImporter {
         this.modified = modified;
     }
 
-    public void importAssembly() {
+  public AssemblyFileImporter(SuperAdapter superAdapter) {
+    this.superAdapter = superAdapter;
+  }
+
+  public void importAssembly() {
         listOfScaffolds = new ArrayList<>();
         listOfSuperscaffolds = new ArrayList<>();
         // does it update assembly? //
         try {
             if (assemblyFilePath != null) {
                 parseAssemblyFile();
+            } else if (cpropsFilePath != null && asmFilePath != null) {
+              parseCpropsFile();
+              parseAsmFile();
             } else {
-                parseCpropsFile();
-                parseAsmFile();
+              parseChromSizes();
             }
             if (!modified)
                 setInitialState();
@@ -85,7 +95,15 @@ public class AssemblyFileImporter {
         assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
     }
 
-    private int updateAssemblyScale() {
+  private void parseChromSizes() {
+    for (Chromosome chr : superAdapter.getHiC().getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
+      Scaffold scaffold = new Scaffold(chr.getName(), chr.getIndex(), chr.getLength());
+      listOfScaffolds.add(scaffold);
+      listOfSuperscaffolds.add(Arrays.asList(chr.getIndex()));
+    }
+  }
+
+  private int updateAssemblyScale() {
         long totalLength = 0;
         for (Scaffold fragmentProperty : listOfScaffolds) {
             totalLength += fragmentProperty.getLength();

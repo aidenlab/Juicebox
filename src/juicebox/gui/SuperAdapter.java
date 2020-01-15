@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,13 @@ import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
-import juicebox.mapcolorui.HiCColorScale;
+import juicebox.mapcolorui.PearsonColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
-import juicebox.state.ImportFileDialog;
+import juicebox.state.ImportStateFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
+import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.*;
@@ -76,7 +77,7 @@ public class SuperAdapter {
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
     private AssemblyStateTracker assemblyStateTracker;
-    private HiCColorScale pearsonColorScale;
+    private PearsonColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
     public static boolean assemblyModeCurrentlyActive = false;
@@ -153,7 +154,7 @@ public class SuperAdapter {
     }
 
     public void launchImportState(File fileForExport) {
-        new ImportFileDialog(fileForExport, mainWindow);
+        new ImportStateFileDialog(fileForExport, mainWindow);
     }
 
     public void launchLoadStateFromXML(String mapPath) {
@@ -229,6 +230,7 @@ public class SuperAdapter {
     public void repaint() {
         mainWindow.revalidate();
         mainWindow.repaint();
+        if (layersPanel != null) layersPanel.repaint();
     }
 
     public void safeLoadFromURLActionPerformed(final Runnable refresh1DLayers) {
@@ -257,16 +259,6 @@ public class SuperAdapter {
     public String getLocationDescription() {
         return hic.getLocationDescription();
     }
-
-    /*
-    public void setShowLoops(boolean showLoops) {
-        hic.setShowLoops(showLoops);
-    }
-
-    public void addVisibleLoops(CustomAnnotationHandler handler) {
-        handler.addVisibleLoops(hic);
-    }
-    */
 
     public String getDescription(String item) {
         return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
@@ -440,27 +432,16 @@ public class SuperAdapter {
             if (control) {
                 hic.setControlDataset(dataset);
                 options = HiCGlobals.enabledMatrixTypesWithControl;
+                mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomeHandler(dataset.getChromosomeHandler());
                 mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
-                String[] normalizationOptions;
-                if (dataset.getVersion() < HiCGlobals.minVersion) {
-                    normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                } else {
-                    ArrayList<String> tmp = new ArrayList<>();
-                    tmp.add(NormalizationType.NONE.getLabel());
-                    for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                        tmp.add(t.getLabel());
-                    }
-
-                    normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                }
-
-                mainViewPanel.setEnabledForNormalization(normalizationOptions,
-                        hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
+                        dataset.getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
                     options = HiCGlobals.enabledMatrixTypesWithControl;
@@ -498,7 +479,7 @@ public class SuperAdapter {
     }
 
     public void safeLoad(final List<String> files, final boolean control, final String title) {
-        addRecentMapMenuEntry(title.trim() + "@@" + files.get(0), true);
+        addRecentMapMenuEntry(title.trim() + RecentMenu.delimiter + files.get(0), true);
         Runnable runnable = new Runnable() {
             public void run() {
                 boolean isRestorenMode = false;
@@ -514,7 +495,7 @@ public class SuperAdapter {
 
         getHeatmapPanel().disableAssemblyEditing();
         resetAnnotationLayers();
-        HiCGlobals.hicMapScale = (double) 1;
+        HiCGlobals.hicMapScale = 1;
 //        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
@@ -566,10 +547,10 @@ public class SuperAdapter {
         return retVal[0];
     }
 
-    void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
+    void safeNormalizationComboBoxActionPerformed(final ActionEvent e, final boolean isForControl) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeNormalizationComboBoxActionPerformed();
+                unsafeNormalizationComboBoxActionPerformed(isForControl);
             }
         };
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
@@ -587,7 +568,7 @@ public class SuperAdapter {
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
 
         if (MatrixType.isVSTypeDisplay(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
@@ -595,19 +576,19 @@ public class SuperAdapter {
         }
 
         if (MatrixType.isPearsonType(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
 
             } else {
                 try {
-                    if (hic.isPearsonsNotAvailable(false)) {
+                    if (hic.isPearsonsNotAvailableForFile(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }
-                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailableForFile(true)) {
                         JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
@@ -653,6 +634,7 @@ public class SuperAdapter {
 
     public void revalidate() {
         mainWindow.revalidate();
+        if (layersPanel != null) layersPanel.revalidate();
     }
 
     public void updateMainViewPanelToolTipText(String text) {
@@ -739,18 +721,16 @@ public class SuperAdapter {
         mainViewPanel.updateTrackPanel(hic.getLoadedTracks().size() > 0);
     }
 
-    private void unsafeNormalizationComboBoxActionPerformed() {
-        String value = (String) mainViewPanel.getNormalizationComboBox().getSelectedItem();
-        NormalizationType chosen = null;
-        for (NormalizationType type : NormalizationType.values()) {
-            if (type.getLabel().equals(value)) {
-                chosen = type;
-                break;
-            }
+    private void unsafeNormalizationComboBoxActionPerformed(boolean isForControl) {
+        if (isForControl) {
+            String value = (String) mainViewPanel.getControlNormalizationComboBox().getSelectedItem();
+            hic.setControlNormalizationType(value);
+            refreshMainOnly();
+        } else {
+            String value = (String) mainViewPanel.getObservedNormalizationComboBox().getSelectedItem();
+            hic.setObsNormalizationType(value);
+            refreshMainOnly();
         }
-        final NormalizationType passChosen = chosen;
-        hic.setNormalizationType(passChosen);
-        refreshMainOnly();
     }
 
     public MainViewPanel getMainViewPanel() {
@@ -758,7 +738,7 @@ public class SuperAdapter {
     }
 
     public boolean isTooltipAllowedToUpdated() {
-        return mainViewPanel.isTooltipAllowedToUpdated();
+        return mainViewPanel.isTooltipAllowedToUpdate();
     }
 
     public void toggleToolTipUpdates(boolean b) {
@@ -936,7 +916,7 @@ public class SuperAdapter {
         return n - 1 - currIndex;
     }
 
-    public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
+    public void setPearsonColorScale(PearsonColorScale pearsonColorScale) {
         this.pearsonColorScale = pearsonColorScale;
     }
 
@@ -998,9 +978,13 @@ public class SuperAdapter {
         }
     }
 
+    public void createAssemblyChromosome() {
+        Chromosome assembly = hic.getChromosomeHandler().generateAssemblyChromosome();
+        updateChrHandlerAndMVP(assembly);
+    }
+
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
-
         updateChrHandlerAndMVP(custom);
     }
 
@@ -1061,5 +1045,31 @@ public class SuperAdapter {
             resetAnnotationLayers();
             return true;
         }
+    }
+
+    public void safeLaunchImportNormalizations() {
+
+        final File[] files = FileDialogUtils.chooseMultiple("Choose custom normalization file(s)",
+                LoadDialog.LAST_LOADED_HIC_FILE_PATH, null);
+
+        Runnable runnable = new Runnable() {
+            public void run() {
+                if (files != null && files.length > 0) {
+                    LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
+
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
+                    mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
+                            hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+                    repaint();
+                }
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "safe add custom norms");
+
+    }
+
+    public void createGenomewideChromosomeFromChromDotSizes() {
+        Chromosome custom = hic.getChromosomeHandler().addGenomeWideChromosome();
+        updateChrHandlerAndMVP(custom);
     }
 }

@@ -128,7 +128,7 @@ public class AssemblyScaffoldHandler {
           nextScaffold.setCurrentStart(scaffoldShift);
           nextScaffold.setInvertedVsInitial(false);
           if (signScafId < 0 && (!listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) ||
-              signScafId > 0 && listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) {
+                  signScafId > 0 && listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) {
             nextScaffold.setInvertedVsInitial(true);
           }
           scaffoldFeature2DList.add(chrIndex, chrIndex, nextScaffold.getCurrentFeature2D());
@@ -148,7 +148,7 @@ public class AssemblyScaffoldHandler {
         nextScaffold.setCurrentStart(scaffoldShift);
         nextScaffold.setInvertedVsInitial(false);
         if (signScafId < 0 && (!listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) ||
-            signScafId > 0 && listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) {
+                signScafId > 0 && listOfScaffolds.get(Math.abs(signScafId) - 1).getOriginallyInverted()) {
           nextScaffold.setInvertedVsInitial(true);
         }
         scaffoldFeature2DList.add(chrIndex, chrIndex, nextScaffold.getCurrentFeature2D());
@@ -199,14 +199,14 @@ public class AssemblyScaffoldHandler {
     Map<String, String> attributes = new HashMap<>();
     attributes.put(superScaffoldIdAttributeKey, String.valueOf(i + 1));
     return new Feature2D(Feature2D.FeatureType.SUPERSCAFFOLD,
-        chrName,
-        (int) (start / HiCGlobals.hicMapScale),
-        (int) (end / HiCGlobals.hicMapScale),
-        chrName,
-        (int) (start / HiCGlobals.hicMapScale),
-        (int) (end / HiCGlobals.hicMapScale),
-        new Color(0, 0, 255),
-        attributes);
+            chrName,
+            (int) (start / HiCGlobals.hicMapScale),
+            (int) (end / HiCGlobals.hicMapScale),
+            chrName,
+            (int) (start / HiCGlobals.hicMapScale),
+            (int) (end / HiCGlobals.hicMapScale),
+            new Color(0, 0, 255),
+            attributes);
   }
 
   private void updateSuperscaffolds() {
@@ -218,8 +218,8 @@ public class AssemblyScaffoldHandler {
         superscaffoldLength += listOfScaffolds.get(Math.abs(scaffold) - 1).getLength();
       }
       Feature2D
-          superscaffoldFeature2D =
-          populateSuperscaffoldFeature2D(superscaffoldStart, superscaffoldStart + superscaffoldLength, superscaffold);
+              superscaffoldFeature2D =
+              populateSuperscaffoldFeature2D(superscaffoldStart, superscaffoldStart + superscaffoldLength, superscaffold);
       superscaffoldFeature2DList.add(chrIndex, chrIndex, superscaffoldFeature2D);
       superscaffoldStart += superscaffoldLength;
     }
@@ -335,47 +335,47 @@ public class AssemblyScaffoldHandler {
           startingFragmentNumber++;
         } // first ever split
         newListOfScaffolds.add(new Scaffold(scaffoldProperty.getOriginalScaffoldName() +
-            ":::fragment_" +
-            (startingFragmentNumber), scaffoldProperty.getIndexId(), startCut));
+                ":::fragment_" +
+                (startingFragmentNumber), scaffoldProperty.getIndexId(), startCut));
         newListOfScaffolds.add(new Scaffold(scaffoldProperty.getOriginalScaffoldName() +
-            ":::fragment_" +
-            (startingFragmentNumber + 1) +
-            ":::debris", scaffoldProperty.getIndexId() + 1, endCut - startCut));
+                ":::fragment_" +
+                (startingFragmentNumber + 1) +
+                ":::debris", scaffoldProperty.getIndexId() + 1, endCut - startCut));
         newListOfScaffolds.add(new Scaffold(scaffoldProperty.getOriginalScaffoldName() +
-            ":::fragment_" +
-            (startingFragmentNumber + 2), scaffoldProperty.getIndexId() + 2, scaffoldProperty.getLength() - endCut));
+                ":::fragment_" +
+                (startingFragmentNumber + 2), scaffoldProperty.getIndexId() + 2, scaffoldProperty.getLength() - endCut));
         // set their initial properties
         int lastIndexScaffolds = newListOfScaffolds.size();
         if (!targetScaffold.getOriginallyInverted()) {
           newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginalStart(targetScaffold.getOriginalStart());
           newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginallyInverted(false);
           newListOfScaffolds.get(lastIndexScaffolds - 2)
-              .setOriginalStart(targetScaffold.getOriginalStart() + startCut);
+                  .setOriginalStart(targetScaffold.getOriginalStart() + startCut);
           newListOfScaffolds.get(lastIndexScaffolds - 2).setOriginallyInverted(false);
           newListOfScaffolds.get(lastIndexScaffolds - 1)
-              .setOriginalStart(targetScaffold.getOriginalStart() + endCut);
+                  .setOriginalStart(targetScaffold.getOriginalStart() + endCut);
           newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginallyInverted(false);
         } else {
           newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginalStart(targetScaffold.getOriginalStart());
           newListOfScaffolds.get(lastIndexScaffolds - 1).setOriginallyInverted(true);
           newListOfScaffolds.get(lastIndexScaffolds - 2)
-              .setOriginalStart(targetScaffold.getOriginalEnd() - endCut - 1);
+                  .setOriginalStart(targetScaffold.getOriginalEnd() - endCut - 1);
           newListOfScaffolds.get(lastIndexScaffolds - 2).setOriginallyInverted(true);
           newListOfScaffolds.get(lastIndexScaffolds - 3)
-              .setOriginalStart(targetScaffold.getOriginalEnd() - startCut - 1);
+                  .setOriginalStart(targetScaffold.getOriginalEnd() - startCut - 1);
           newListOfScaffolds.get(lastIndexScaffolds - 3).setOriginallyInverted(true);
         }
       } else {
         if (scaffoldProperty.getOriginalScaffoldName().equals(targetScaffold.getOriginalScaffoldName())) {
           if (scaffoldProperty.isDebris()) {
             scaffoldProperty.setName(scaffoldProperty.getOriginalScaffoldName() +
-                ":::fragment_" +
-                (scaffoldProperty.getFragmentNumber() + 2) +
-                ":::debris");
+                    ":::fragment_" +
+                    (scaffoldProperty.getFragmentNumber() + 2) +
+                    ":::debris");
           } else {
             scaffoldProperty.setName(scaffoldProperty.getOriginalScaffoldName() +
-                ":::fragment_" +
-                (scaffoldProperty.getFragmentNumber() + 2));
+                    ":::fragment_" +
+                    (scaffoldProperty.getFragmentNumber() + 2));
           }
         }
         scaffoldProperty.setIndexId(scaffoldProperty.getIndexId() + 2);
@@ -415,7 +415,7 @@ public class AssemblyScaffoldHandler {
 
     if (gid1 == gid2) {
       Collections.reverse(listOfSuperscaffolds.get(gid1)
-          .subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid2).indexOf(id2) + 1));
+              .subList(listOfSuperscaffolds.get(gid1).indexOf(id1), listOfSuperscaffolds.get(gid2).indexOf(id2) + 1));
       for (int i = listOfSuperscaffolds.get(gid1).indexOf(id2); i <= listOfSuperscaffolds.get(gid2).indexOf(id1); i++) {
         listOfSuperscaffolds.get(gid1).set(i, -1 * listOfSuperscaffolds.get(gid1).get(i));
       }
@@ -552,18 +552,33 @@ public class AssemblyScaffoldHandler {
     if (super1 == super2) {
       splitSuperscaffold(super1, id1);
     } else {
-      mergeSuperscaffolds(super1, super2);
+      mergeSuperScaffolds(super1, super2);
     }
-
   }
 
+  public void multiMerge(Feature2D firstFeature, Feature2D lastFeature) {
+    int super1 = getSuperscaffoldId(getSignedIndexFromScaffoldFeature2D(firstFeature));
+    int super2 = getSuperscaffoldId(getSignedIndexFromScaffoldFeature2D(lastFeature));
 
-  private void mergeSuperscaffolds(int superscaffoldId1, int superscaffoldId2) {
+    mergeSuperScaffolds(super1, super2);
+  }
+
+  public void multiSplit(List<Feature2D> selectedFeatures) {
+    int id1 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(0));
+    int id2 = getSignedIndexFromScaffoldFeature2D(selectedFeatures.get(selectedFeatures.size() - 1));
+    int super1 = getSuperscaffoldId(id1);
+    int super2 = getSuperscaffoldId(id2);
+
+    multiSplitSuperscaffolds(id1, id2, super1, super2);
+  }
+
+  // SuperScaffold manipulations
+  private void mergeSuperScaffolds (int super1, int super2){
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
-    for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
-      if (i == superscaffoldId2) {
-        newSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(superscaffoldId2));
-      } else {
+    for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+      if(i>super1 && i<=super2){
+        newSuperscaffolds.get(super1).addAll(listOfSuperscaffolds.get(i));
+      }else{
         newSuperscaffolds.add(listOfSuperscaffolds.get(i));
       }
     }
@@ -571,19 +586,66 @@ public class AssemblyScaffoldHandler {
     listOfSuperscaffolds.addAll(newSuperscaffolds);
   }
 
+
   private void splitSuperscaffold(int superscaffoldId, int scaffoldId) {
     List<List<Integer>> newSuperscaffolds = new ArrayList<>();
-    for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
+    for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
       if (i == superscaffoldId) {
         newSuperscaffolds.add(listOfSuperscaffolds.get(superscaffoldId)
-            .subList(0, 1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId)));
+                .subList(0, 1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId)));
         newSuperscaffolds.add(listOfSuperscaffolds.get(superscaffoldId)
-            .subList(1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId),
-                listOfSuperscaffolds.get(superscaffoldId).size()));
-      } else {
+                .subList(1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId),
+                        listOfSuperscaffolds.get(superscaffoldId).size()));
+      }
+      else {
         newSuperscaffolds.add(listOfSuperscaffolds.get(i));
       }
     }
+    listOfSuperscaffolds.clear();
+    listOfSuperscaffolds.addAll(newSuperscaffolds);
+  }
+
+
+  private void multiSplitSuperscaffolds(int id1, int id2, int super1, int super2) {
+    List<List<Integer>> newSuperscaffolds = new ArrayList<>();
+    int startPoint = listOfSuperscaffolds.get(super1).indexOf(id1);
+    int endPoint = listOfSuperscaffolds.get(super2).indexOf(id2);
+    int jstart, jend;
+    boolean addEndScaff = false;
+
+    newSuperscaffolds.addAll(listOfSuperscaffolds.subList(0, super1));
+
+    for (int i = super1; i <= super2; i++) {
+      jstart = 0;
+      jend = listOfSuperscaffolds.get(i).size() - 1;
+
+      // If at first superscaffold and selected start scaffold not at beginning of current superscaffold
+      if (i == super1 && startPoint != 0) {
+        jstart = startPoint;
+
+        // Add rest of superscaffold to its own superscaffold
+        newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(0, jstart));
+      }
+      // If at last superscaffold and selected end scaffold not at end of current superscaffold
+      if (i == super2 && endPoint != jend) {
+        jend = endPoint;
+        addEndScaff = true;
+      }
+
+      // Add each inner scaffold to its own superscaffold group
+      for (int j = jstart; j <= jend; j++) {
+        newSuperscaffolds.add(Arrays.asList(listOfSuperscaffolds.get(i).get(j)));
+      }
+
+      // If did not end at last scaffold in last superscaffold selected
+      if (addEndScaff) {
+        // Add rest of superscaffold to its own superscaffold
+        newSuperscaffolds.add(listOfSuperscaffolds.get(i).subList(jend + 1, listOfSuperscaffolds.get(i).size()));
+      }
+    }
+
+    newSuperscaffolds.addAll(listOfSuperscaffolds.subList(super2 + 1, listOfSuperscaffolds.size()));
+
     listOfSuperscaffolds.clear();
     listOfSuperscaffolds.addAll(newSuperscaffolds);
   }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,11 @@ package juicebox.data;
 
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.tools.dev.Private;
+import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
@@ -52,6 +55,7 @@ public class Dataset {
     private final DatasetReader reader;
     private final LRUCache<String, double[]> eigenvectorCache;
     private final LRUCache<String, NormalizationVector> normalizationVectorCache;
+    private final Map<String, NormalizationVector> normalizationsVectorsOnlySavedInRAMCache;
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
     String genomeId;
     String restrictionEnzyme = null;
@@ -60,7 +64,7 @@ public class Dataset {
     private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
-    private Map<String, NormalizationVector> loadedNormalizationVectors;
+    protected NormalizationHandler normalizationHandler = new NormalizationHandler();
     private List<NormalizationType> normalizationTypes;
     private ChromosomeHandler chromosomeHandler;
 
@@ -68,6 +72,7 @@ public class Dataset {
         this.reader = reader;
         eigenvectorCache = new LRUCache<>(25);
         normalizationVectorCache = new LRUCache<>(25);
+        normalizationsVectorsOnlySavedInRAMCache = new HashMap<>();
         normalizationTypes = new ArrayList<>();
     }
 
@@ -88,11 +93,14 @@ public class Dataset {
                 //    m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
                 //} else
                 if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
-                    System.err.println("Index key is " + key);
+                    if (HiCGlobals.printVerboseComments) System.out.println("Custom Chromosome Index key is " + key);
                     m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
+                } else if (HiCGlobals.isAssemblyMatCheck) {
+                    m = Matrix.createAssemblyChromosomeMatrix(chromosomeHandler, matrices, reader);
                 } else {
                     m = reader.readMatrix(key);
                 }
+
                 matrices.put(key, m);
 
             } catch (Exception e) {
@@ -102,8 +110,8 @@ public class Dataset {
         }
 
         return m;
-
     }
+
 
     public ResourceLocator getSubcompartments() {
         ResourceLocator locator = null;
@@ -246,8 +254,17 @@ public class Dataset {
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
         if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
-        String key = zoom.getKey() + "_" + type.toString(); // getUnit() + "_" + zoom.getBinSize();
+        String key = ExpectedValueFunctionImpl.getKey(zoom, type);
         return expectedValueFunctionMap.get(key);
+    }
+
+    public ExpectedValueFunction getExpectedValuesOrExit(HiCZoom zoom, NormalizationType type, Chromosome chromosome, boolean isIntra) {
+        ExpectedValueFunction df = getExpectedValues(zoom, type);
+        if (isIntra && df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + type);
+            System.exit(14);
+        }
+        return df;
     }
 
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
@@ -289,29 +306,28 @@ public class Dataset {
     }
 
     private String getSoftware() {
-        if (attributes != null) return attributes.get("software");
+        if (attributes != null) return attributes.get(Preprocessor.SOFTWARE);
+        else return null;
+    }
+
+    public String getHiCFileScalingFactor() {
+        if (attributes != null) return attributes.get(Preprocessor.HIC_FILE_SCALING);
         else return null;
     }
 
     public String getStatistics() {
         String stats = null;
-        if (attributes != null) stats = attributes.get("statistics");
+        if (attributes != null) stats = attributes.get(Preprocessor.STATISTICS);
         if ((stats == null) || !stats.contains("<table>")) {
             try {
-                attributes.put("statistics", reader.readStats());
+                attributes.put(Preprocessor.STATISTICS, reader.readStats());
             } catch (IOException error) {
                 if (stats != null) {
-                    attributes.put("statistics", convertStats(stats));
+                    attributes.put(Preprocessor.STATISTICS, convertStats(stats));
                 } else return null;
             }
         }
-       /*
-        if (attributes.get("graphs") == null && FileUtils.resourceExists(location + "_hists.m")) {
-            attributes.put("graphs", readGraphs(location + "_hists.m"));
-        }
-        String graphs = checkGraphs(attributes.get("graphs"));
-        attributes.put("graphs", graphs);*/
-        return attributes.get("statistics");
+        return attributes.get(Preprocessor.STATISTICS);
     }
 
     private String convertStats(String oldStats) {
@@ -354,6 +370,9 @@ public class Dataset {
         }
         if (getSoftware() != null)  {
             newStats += "<tr> <td> Software: </td><td>" + getSoftware() + "</td></tr>";
+        }
+        if (getHiCFileScalingFactor() != null) {
+            newStats += "<tr> <td> File Scaling: </td><td>" + getHiCFileScalingFactor() + "</td></tr>";
         }
 
         newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
@@ -736,7 +755,7 @@ public class Dataset {
 
     public String getGraphs() {
         if (attributes == null) return null;
-        return attributes.get("graphs");
+        return attributes.get(Preprocessor.GRAPHS);
     }
 
     public List<HiCZoom> getBpZooms() {
@@ -838,13 +857,14 @@ public class Dataset {
     public NormalizationVector getNormalizationVector(int chrIdx, HiCZoom zoom, NormalizationType type) {
 
         String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
-        if (type == NormalizationType.NONE) {
+
+        if (normalizationsVectorsOnlySavedInRAMCache.containsKey(key)) {
+            return normalizationsVectorsOnlySavedInRAMCache.get(key);
+        }
+
+        if (type.equals(NormalizationHandler.NONE)) {
             return null;
-        } else if (type == NormalizationType.LOADED) {
-            return loadedNormalizationVectors == null ? null : loadedNormalizationVectors.get(key);
-
-        } else if (!normalizationVectorCache.containsKey(key)) {
-
+        }  else if (!normalizationVectorCache.containsKey(key)) {
             try {
                 NormalizationVector nv = reader.readNormalizationVector(type, chrIdx, zoom.getUnit(), zoom.getBinSize());
                 normalizationVectorCache.put(key, nv);
@@ -854,25 +874,11 @@ public class Dataset {
         }
 
         return normalizationVectorCache.get(key);
-
     }
 
-
-    public void putLoadedNormalizationVector(int chrIdx, int resolution, double[] data, double[] exp) {
-        NormalizationVector normalizationVector = new NormalizationVector(NormalizationType.LOADED, chrIdx, HiC.Unit.BP, resolution, data);
-        if (loadedNormalizationVectors == null) {
-            loadedNormalizationVectors = new HashMap<>();
-
-        }
-        loadedNormalizationVectors.put(normalizationVector.getKey(), normalizationVector);
-        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
-        String key = zoom.getKey() + "_LOADED";
-        ExpectedValueFunctionImpl function = (ExpectedValueFunctionImpl) getExpectedValues(zoom, NormalizationType.KR); // TODO is this supposed to be hardcoded to KR?
-
-        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, HiC.Unit.BP, resolution, exp, function.getNormFactors());
-        expectedValueFunctionMap.put(key, df);
+    public void addNormalizationVectorDirectlyToRAM(NormalizationVector normalizationVector) {
+        normalizationsVectorsOnlySavedInRAMCache.put(normalizationVector.getKey(), normalizationVector);
     }
-
 
     private String findRestrictionEnzyme(int sites) {
         if (genomeId == null) return null;
@@ -924,5 +930,16 @@ public class Dataset {
 
     public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
         return reader.getCheckBoxes(actionListeners);
+    }
+
+    public List<HiCZoom> getAllPossibleResolutions() {
+        List<HiCZoom> resolutions = new ArrayList<>();
+        resolutions.addAll(bpZooms);
+        resolutions.addAll(fragZooms);
+        return resolutions;
+    }
+
+    public NormalizationHandler getNormalizationHandler() {
+        return normalizationHandler;
     }
 }

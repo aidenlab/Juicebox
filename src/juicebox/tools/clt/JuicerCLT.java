@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
@@ -40,8 +41,9 @@ import java.util.Set;
  */
 public abstract class JuicerCLT extends JuiceboxCLT {
 
-    protected NormalizationType norm = NormalizationType.KR;
+    protected NormalizationType norm = NormalizationHandler.KR;
     protected Set<String> givenChromosomes = null; //TODO set to protected
+    protected static int numCPUThreads = 1;
 
     protected JuicerCLT(String usage) {
         super(usage);
@@ -59,15 +61,27 @@ public abstract class JuicerCLT extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer)parser;
         assessIfChromosomesHaveBeenSpecified(juicerParser);
         readJuicerArguments(args, juicerParser);
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParserForJuicer juicerParser) {
+        int numThreads = juicerParser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 
     protected abstract void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser);
 
     private void assessIfChromosomesHaveBeenSpecified(CommandLineParserForJuicer juicerParser) {
-        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
+        List<String> possibleChromosomes = juicerParser.getChromosomeListOption();
         if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
             givenChromosomes = new HashSet<>(possibleChromosomes);
         }

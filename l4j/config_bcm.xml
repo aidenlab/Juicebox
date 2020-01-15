@@ -35,7 +35,7 @@
         <runtimeBits>64</runtimeBits>
         <initialHeapSize>5000</initialHeapSize>
         <maxHeapSize>10000</maxHeapSize>
-        <opt>-Djnlp.loadMenu="http://adam.bcma.bcm.edu/hicInternalMenu.properties"</opt>
+        <opt>-Djnlp.loadMenu="http://hicfiles.s3.amazonaws.com/internal/hiculfite.properties"</opt>
     </jre>
     <splash>
         <file>juicebox.bmp</file>

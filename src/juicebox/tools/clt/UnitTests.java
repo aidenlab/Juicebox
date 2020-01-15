@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +29,15 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
@@ -61,6 +65,27 @@ class UnitTests {
 
         Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
         newMerger.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.FINAL);
+
+        folder = "/Users/muhammad/Desktop/local_hiccups_gm12878/results3/";
+        baseLink = folder + "enriched_pixels_";
+        link1 = baseLink + "5000.bedpe";
+        link2 = baseLink + "10000.bedpe";
+        link3 = baseLink + "25000.bedpe";
+
+        map = new HashMap<>();
+        map.put(5000, Feature2DParser.loadFeatures(link1, "hg19", true, null, false));
+        map.put(10000, Feature2DParser.loadFeatures(link2, "hg19", true, null, false));
+        map.put(25000, Feature2DParser.loadFeatures(link3, "hg19", true, null, false));
+
+        Dataset ds1 = HiCFileTools.extractDatasetForCLT(Arrays.asList("/Users/muhammad/Desktop/local_hic_files/gm12878_intra_nofrag_30.hic"), true);
+
+        File outputDirectory = new File("/Users/muhammad/Desktop/local_hiccups_gm12878/results5");
+        File outputMergedGivenFile = new File(outputDirectory, HiCCUPSUtils.getMergedRequestedLoopsFileName());
+
+        HiCCUPSUtils.postProcess(map, ds1, ds1.getChromosomeHandler(),
+                HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers(),
+                NormalizationHandler.KR, outputDirectory,
+                false, outputMergedGivenFile);
     }
 
     public static void testingHiCCUPSPostprocessing() {
@@ -70,7 +95,7 @@ class UnitTests {
         Dataset ds = HiCFileTools.extractDatasetForCLT(Collections.singletonList(folder + "inter_30.hic"), true);
         File outputMergedFile = new File(outputDirectory, "merged_loops");
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
-        NormalizationType norm = NormalizationType.KR;
+        NormalizationType norm = NormalizationHandler.KR;
 
         List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<>();
         filteredConfigurations.add(new HiCCUPSConfiguration(10000, 10, 2, 5, 20000));
@@ -84,11 +109,26 @@ class UnitTests {
         loopLists.put(5000, Feature2DParser.loadFeatures(link1, chromosomeHandler, true, null, false));
         loopLists.put(10000, Feature2DParser.loadFeatures(link2, chromosomeHandler, true, null, false));
 
-        Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
-                filteredConfigurations, norm, outputDirectory);
-        finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
-        System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
-                outputMergedFile.getAbsolutePath());
+        HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
+                filteredConfigurations, norm, outputDirectory, false, outputMergedFile);
+    }
+
+    public static void testCustomFastScaling() {
+        ArrayList<String> files = new ArrayList<>();
+        files.add("/Users/muhammad/Desktop/testtemp/imr90_intra_nofrag_30.hic");
+        Dataset ds = HiCFileTools.extractDatasetForCLT(files, false);
+        Chromosome chr1 = ds.getChromosomeHandler().getAutosomalChromosomesArray()[0];
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr1, 50000);
+
+        double[] targetVectorInitial = new double[(chr1.getLength() / 50000) + 1];
+        Arrays.fill(targetVectorInitial, 1);
+
+        HiCGlobals.printVerboseComments = true;
+
+        double[] result = ZeroScale.launchScalingWithDiffTolerances(zd.getContactRecordList(), targetVectorInitial,
+                .04, .01, zd.getKey());
+
+        System.out.println(Arrays.toString(result));
     }
 
     public void runUnitTests() {

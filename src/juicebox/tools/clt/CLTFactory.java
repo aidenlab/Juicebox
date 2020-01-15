@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,9 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
-import juicebox.tools.dev.APAvsDistance;
+import juicebox.tools.dev.*;
 import juicebox.tools.utils.Benchmark;
-import juicebox.tools.dev.GeneFinder;
+
 
 /**
  * Factory for command line tools to call different functions
@@ -77,7 +77,6 @@ public class CLTFactory {
     public static JuiceboxCLT getCLTCommand(String cmd) {
 
         cmd = cmd.toLowerCase();
-
         if (cmd.equals("pre")) {
             return new PreProcessing();
         } else if (cmd.equals("dump")) {
@@ -102,12 +101,22 @@ public class CLTFactory {
             return new BPToFragment();
         } else if (cmd.equals("calcKR".toLowerCase())) {
             return new CalcKR();
+        } else if (cmd.equals("calcMatrixSum".toLowerCase())) {
+            return new CalcMatrixSum();
         } else if (cmd.equals("fragmentToBed".toLowerCase())) {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
+        } else if (cmd.equals("shuffle")) {
+            return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
+        } else if (cmd.equals("drinks")) {
+            return new Drink(false);
+        } else if (cmd.equals("drink")) {
+            return new Drink(true);
+        } else if (cmd.equals("grind")) {
+            return new Grind();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -116,8 +125,6 @@ public class CLTFactory {
             return new SQLDatabase();
         } else if (cmd.equals("hiccupsdiff")) {
             return new HiCCUPSDiff();
-        } else if (cmd.equals("hiccups_postproc")) {
-            return new HiCCUPS_postproc();
         } else if (cmd.equals("ab_compdiff")) {
             return new ABCompartmentsDiff();
         } else if (cmd.equals("genes")) {
@@ -128,12 +135,13 @@ public class CLTFactory {
             return new Pearsons();
         } else if (cmd.equals("eigenvector")) {
             return new Eigenvector();
+        } else if (cmd.equals("librarycomplexity")) {
+            return new LibraryComplexity();
+        } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
+            return new APAvsDistance();
+        } else if (cmd.equals("afa")) { //added command for afa
+            return new AFA ();
         }
-        else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
-        return new APAvsDistance();
-        }
-
-
 
         return null;
     }

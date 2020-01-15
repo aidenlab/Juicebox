@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,25 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/29/15.
  */
-class UNIXTools {
+public class UNIXTools {
     public static String extractElement(String str, int i) {
         String[] strSplit = str.split("\t");
         return strSplit[strSplit.length - i];
+    }
+
+    public static String makeDir(String path) {
+        File file = new File(path);
+        if (!file.isDirectory()) {
+            file.mkdir();
+        }
+        return path;
+    }
+
+    public static File makeDir(File folder) {
+        if (!folder.isDirectory()) {
+            folder.mkdir();
+        }
+        return folder;
     }
 
     public static void redirectOutput(List<String> command, String outputFilePath) {
