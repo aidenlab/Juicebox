@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,8 +58,12 @@ public class Feature2DWithMotif extends Feature2D {
     private final String MFSEQ2 = "sequence_2";
     private final String MFO2 = "orientation_2";
     private final String MFU2 = "uniqueness_2";
-    private final int chr1Index;
-    private final int chr2Index;
+
+    private final String LEGACY_MFS1 = "motif_x1";
+    private final String LEGACY_MFE1 = "motif_x2";
+    private final String LEGACY_MFS2 = "motif_y1";
+    private final String LEGACY_MFE2 = "motif_y2";
+
     // true = +, false = -, null = NA
     private boolean strand1, strand2;
     // true - unique, false = inferred, null = NA
@@ -68,14 +72,10 @@ public class Feature2DWithMotif extends Feature2D {
     private int motifStart1, motifEnd1, motifStart2, motifEnd2;
     private double score1, score2;
 
-    public Feature2DWithMotif(FeatureType featureType, String chr1, int chr1Index, int start1, int end1,
-                              String chr2, int chr2Index, int start2, int end2, Color c, Map<String, String> attributes) {
+    public Feature2DWithMotif(FeatureType featureType, String chr1, int start1, int end1,
+                              String chr2, int start2, int end2, Color c, Map<String, String> attributes) {
         super(featureType, chr1, start1, end1, chr2, start2, end2, c, attributes);
-        this.chr1Index = chr1Index;
-        this.chr2Index = chr2Index;
-
         importAttributesForMotifInformation();
-
     }
 
 
@@ -134,12 +134,24 @@ public class Feature2DWithMotif extends Feature2D {
     }
 
     private void importAttributesForMotifInformation() {
-        try {
+        String sequence1 = getAttribute(MFSEQ1);
+        if (sequence1 != null && !sequence1.equalsIgnoreCase("null") && !sequence1.equalsIgnoreCase("na")) {
             boolean strand1 = getAttribute(MFO1).contains("p") || getAttribute(MFO1).contains("+");
             boolean unique1 = getAttribute(MFU1).contains("u");
-            String sequence1 = getAttribute(MFSEQ1);
-            int motifStart1 = Integer.parseInt(getAttribute(MFS1));
-            int motifEnd1 = Integer.parseInt(getAttribute(MFE1));
+
+            int motifStart1 = -1, motifEnd1 = -1;
+            try {
+                motifStart1 = Integer.parseInt(getAttribute(MFS1));
+                motifEnd1 = Integer.parseInt(getAttribute(MFE1));
+
+            } catch (Exception e) {
+                try {
+                    motifStart1 = Integer.parseInt(getAttribute(LEGACY_MFS1));
+                    motifEnd1 = Integer.parseInt(getAttribute(LEGACY_MFE1));
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                }
+            }
 
             attributes.remove(MFO1);
             attributes.remove(MFU1);
@@ -154,16 +166,24 @@ public class Feature2DWithMotif extends Feature2D {
             this.sequence1 = sequence1;
             this.motifStart1 = motifStart1;
             this.motifEnd1 = motifEnd1;
-        } catch (Exception e) {
-            // attributes not present
         }
-        try {
+
+        String sequence2 = getAttribute(MFSEQ2);
+        if (sequence2 != null && !sequence2.equalsIgnoreCase("null") && !sequence2.equalsIgnoreCase("na")) {
             boolean strand2 = getAttribute(MFO2).contains("p") || getAttribute(MFO2).contains("+");
             boolean unique2 = getAttribute(MFU2).contains("u");
-            String sequence2 = getAttribute(MFSEQ2);
-            int motifStart2 = Integer.parseInt(getAttribute(MFS2));
-            int motifEnd2 = Integer.parseInt(getAttribute(MFE2));
-
+            int motifStart2 = -1, motifEnd2 = -1;
+            try {
+                motifStart2 = Integer.parseInt(getAttribute(MFS2));
+                motifEnd2 = Integer.parseInt(getAttribute(MFE2));
+            } catch (Exception e) {
+                try {
+                    motifStart2 = Integer.parseInt(getAttribute(LEGACY_MFS2));
+                    motifEnd2 = Integer.parseInt(getAttribute(LEGACY_MFE2));
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                }
+            }
             attributes.remove(MFO2);
             attributes.remove(MFU2);
             attributes.remove(MFSEQ2);
@@ -177,8 +197,6 @@ public class Feature2DWithMotif extends Feature2D {
             this.sequence2 = sequence2;
             this.motifStart2 = motifStart2;
             this.motifEnd2 = motifEnd2;
-        } catch (Exception e) {
-            // attributes not present
         }
     }
 
@@ -251,15 +269,15 @@ public class Feature2DWithMotif extends Feature2D {
             if (onlyUninitializedFeatures) {
                 if (sequence1 == null || sequence1.equals("null")) {
                     sequence1 = null;
-                    anchors.add(new MotifAnchor(chr1Index, start1, end1, originalFeatures, emptyList));
+                    anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, emptyList));
                 }
                 if (sequence2 == null || sequence2.equals("null")) {
                     sequence2 = null;
-                    anchors.add(new MotifAnchor(chr2Index, start2, end2, emptyList, originalFeatures));
+                    anchors.add(new MotifAnchor(chr2, start2, end2, emptyList, originalFeatures));
                 }
             } else {
-                anchors.add(new MotifAnchor(chr1Index, start1, end1, originalFeatures, emptyList));
-                anchors.add(new MotifAnchor(chr2Index, start2, end2, emptyList, originalFeatures));
+                anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, emptyList));
+                anchors.add(new MotifAnchor(chr2, start2, end2, emptyList, originalFeatures));
             }
         }
         return anchors;
@@ -361,10 +379,12 @@ public class Feature2DWithMotif extends Feature2D {
                         return 3;
                     }
                 }
+            } else {
+                return 4;
             }
+        } else {
+            return 5;
         }
-
-        return 4;
     }
 
     @Override
@@ -373,8 +393,7 @@ public class Feature2DWithMotif extends Feature2D {
         for (String key : attributes.keySet()) {
             attrClone.put(key, attributes.get(key));
         }
-        Feature2DWithMotif clone = new Feature2DWithMotif(featureType, getChr1(), chr1Index, start1, end1, getChr2(), chr2Index, start2, end2,
-                getColor(), attrClone);
+        Feature2DWithMotif clone = new Feature2DWithMotif(featureType, getChr1(), start1, end1, getChr2(), start2, end2, getColor(), attrClone);
         clone.strand1 = strand1;
         clone.strand2 = strand2;
         clone.unique1 = unique1;

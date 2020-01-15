@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -220,7 +220,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                MotifAnchor anchor = new MotifAnchor(chr.getIndex(), start1, end1);
+                MotifAnchor anchor = new MotifAnchor(chr.getName(), start1, end1);
                 anchor.setFIMOAttributes(score, pValue, qValue, strand, sequence);
 
                 anchors.add(anchor);
@@ -298,7 +298,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                anchors.add(new MotifAnchor(chr.getIndex(), start1, end1));
+                anchors.add(new MotifAnchor(chr.getName(), start1, end1));
             }
         }
         if (anchors.size() < 1) System.err.println("BED File empty - file may have problems or error was encountered");

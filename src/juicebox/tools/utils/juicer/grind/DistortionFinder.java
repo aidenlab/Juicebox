@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,14 +67,14 @@ public class DistortionFinder extends RegionFinder {
         this.specificResolution = resolution;
     }
 
-    public static void getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
-                                                    int box1XIndex, int box2XIndex, String chrom1Name, String chrom2Name,
-                                                    boolean isContinuousRegion, int imgHalfSliceWidth, NormalizationType norm,
-                                                    boolean generateImages, int numManipulations, String imgFileType,
-                                                    String posPath, String negPath, String posImgPath, String negImgPath,
-                                                    Writer posDataWriter, Writer negDataWriter, Writer posLabelWriter, Writer negLabelWriter,
-                                                    Writer posImgWriter, Writer negImgWriter, Writer posImgLabelWriter, Writer negImgLabelWriter,
-                                                    boolean includeLabels) {
+    public static boolean getTrainingDataAndSaveToFile(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
+                                                       int box1XIndex, int box2XIndex, String chrom1Name, String chrom2Name,
+                                                       boolean isContinuousRegion, int imgHalfSliceWidth, NormalizationType norm,
+                                                       boolean generateImages, int numManipulations, String imgFileType,
+                                                       String posPath, String negPath, String posImgPath, String negImgPath,
+                                                       Writer posDataWriter, Writer negDataWriter, Writer posLabelWriter, Writer negLabelWriter,
+                                                       Writer posImgWriter, Writer negImgWriter, Writer posImgLabelWriter, Writer negImgLabelWriter,
+                                                       boolean includeLabels) {
 
         int box1RectUL = box1XIndex;
         int box1RectLR = box1XIndex + imgHalfSliceWidth;
@@ -85,6 +85,8 @@ public class DistortionFinder extends RegionFinder {
         try {
             float[][] compositeMatrix = generateCompositeMatrixWithNansCleanedFromZDS(zd1, zd2, zd12,
                     box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, norm);
+
+            if (GrindUtils.isTooEmpty(compositeMatrix)) return false;
 
             float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
             //GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);
@@ -126,6 +128,7 @@ public class DistortionFinder extends RegionFinder {
         } catch (Exception e) {
 
         }
+        return true;
     }
 
     private static float[][] generateCompositeMatrixWithNansCleanedFromZDS(MatrixZoomData zd1, MatrixZoomData zd2, MatrixZoomData zd12,
@@ -151,26 +154,25 @@ public class DistortionFinder extends RegionFinder {
         for (int posIndex1 = 0; posIndex1 < maxChrLength - imgSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = posIndex1 + imgHalfSliceWidth; posIndex2 < maxChrLength; posIndex2 += stride) {
                 if (ignoreNumberOfExamplesForRegion) {
-                    if (numberOfExamplesCounter++ < 1000) {
-                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
-                                posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
-                                posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
-                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
-                    } else {
+                    if (numberOfExamplesCounter > 1000) {
                         updateLatestMainPaths();
-                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
-                                posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
-                                posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
-                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
-                        numberOfExamplesCounter = 1;
+                        numberOfExamplesCounter = 0;
+                    }
+                    if (getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
+                            posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
+                            posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
+                            posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true)) {
+                        numberOfExamplesCounter++;
                     }
 
                 } else {
-                    if (numberOfExamplesCounter++ < maxNumberOfExamplesForRegion) {
-                        getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
+                    if (numberOfExamplesCounter < maxNumberOfExamplesForRegion) {
+                        if (getTrainingDataAndSaveToFile(zd, zd, zd, posIndex1, posIndex2, chrom.getName(), chrom.getName(),
                                 posIndex2 == posIndex1 + imgHalfSliceWidth, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
                                 posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
-                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
+                                posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true)) {
+                            numberOfExamplesCounter++;
+                        }
                     } else {
                         return;
                     }
@@ -201,11 +203,13 @@ public class DistortionFinder extends RegionFinder {
 
         for (int posIndex1 = 0; posIndex1 < maxChrLength1 - imgHalfSliceWidth; posIndex1 += stride) {
             for (int posIndex2 = 0; posIndex2 < maxChrLength2 - imgHalfSliceWidth; posIndex2 += stride) {
-                if (numberOfExamplesCounter++ < maxNumberOfExamplesForRegion) {
-                    getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2, chrom1.getName(), chrom2.getName(),
+                if (numberOfExamplesCounter < maxNumberOfExamplesForRegion) {
+                    if (getTrainingDataAndSaveToFile(zd1, zd2, zd12, posIndex1, posIndex2, chrom1.getName(), chrom2.getName(),
                             false, imgHalfSliceWidth, norm, generateImages, numManipulations, imgFileType,
                             posPath, negPath, posImgPath, negImgPath, posDataWriter, negDataWriter, posLabelWriter, negLabelWriter,
-                            posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true);
+                            posImgWriter, negImgWriter, posImgLabelWriter, negImgLabelWriter, true)) {
+                        numberOfExamplesCounter++;
+                    }
                 } else {
                     return;
                 }

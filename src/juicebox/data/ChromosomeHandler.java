@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -107,7 +107,7 @@ public class ChromosomeHandler {
 
         for (Chromosome c : getChromosomeArray()) {
             if (isAllByAll(c) || isGenomeWide(c)) continue;
-            MotifAnchor chromAnchor = new MotifAnchor(c.getIndex(), 0, c.getLength(), c.getName());
+            MotifAnchor chromAnchor = new MotifAnchor(c.getName(), 0, c.getLength(), c.getName());
             List<MotifAnchor> anchors = new ArrayList<>();
             anchors.add(chromAnchor);
             chromDotSizes.setFeatures("" + c.getIndex(), anchors);

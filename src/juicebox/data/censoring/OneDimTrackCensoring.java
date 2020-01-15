@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ public class OneDimTrackCensoring {
         int gx2 = endBin * binSize;
 
         //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getIndex(), gx1, gx2);
+        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getName(), gx1, gx2);
 
         List<HiCDataPoint[]> dataPointArrays = new ArrayList<>();
         for (Pair<MotifAnchor, MotifAnchor> regionPair : axisRegions) {
@@ -62,7 +62,7 @@ public class OneDimTrackCensoring {
             MotifAnchor originalRegion = regionPair.getFirst();
             MotifAnchor translatedRegion = regionPair.getSecond();
 
-            Chromosome orig = hic.getChromosomeHandler().getChromosomeFromIndex(originalRegion.getChr());
+            Chromosome orig = hic.getChromosomeHandler().getChromosomeFromName(originalRegion.getChr());
             HiCDataPoint[] array = dataSource.getData(orig, originalRegion.getX1() / binSize,
                     originalRegion.getX2() / binSize, gridAxis, scaleFactor, windowFunction);
             HiCDataPoint[] translatedArray = OneDimTrackCensoring.translateDataPointArray(zoom.getBinSize(), array, originalRegion, translatedRegion);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -355,5 +355,19 @@ public class GrindUtils {
         } else {
             return new Pair<>(b, a);
         }
+    }
+
+    public static boolean isTooEmpty(float[][] compositeMatrix) {
+
+        float[] rowSums = MatrixTools.getRowSums(compositeMatrix);
+
+        // if 5 rows in a row totally empty, let's skip
+        for (int k = 0; k < rowSums.length - 4; k++) {
+            if (rowSums[k] + rowSums[k + 1] + rowSums[k + 2] + rowSums[k + 3] + rowSums[k + 4] < 1e-5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
