@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -165,12 +165,12 @@ public class Preprocessor {
         }
     }
 
-    public void setResolutions(Set<String> resolutions) {
+    public void setResolutions(List<String> resolutions) {
         if (resolutions != null) {
             ArrayList<Integer> fragResolutions = new ArrayList<>();
             ArrayList<Integer> bpResolutions = new ArrayList<>();
 
-            for (String str:resolutions) {
+            for (String str : resolutions) {
                 boolean fragment = false;
                 int index = str.indexOf("f");
                 if (index != -1) {

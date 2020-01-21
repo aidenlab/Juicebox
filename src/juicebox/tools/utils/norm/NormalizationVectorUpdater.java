@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
     }
 
     public void updateHicFile(String path, List<NormalizationType> normalizationsToBuild,
-                              int genomeWideLowestResolutionAllowed, boolean noFrag) throws IOException {
+                              Map<NormalizationType, Integer> resolutionsToBuildTo, int genomeWideLowestResolutionAllowed, boolean noFrag) throws IOException {
+
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
@@ -84,7 +85,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
-                GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild,
+                GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
                         normVectorIndices, normVectorBuffer, expectedValueCalculations);
             }
 
@@ -110,32 +111,32 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 }
 
                 if (weShouldBuildVC || weShouldBuildVCSqrt) {
-                    buildVCOrVCSQRT(weShouldBuildVC, weShouldBuildVCSqrt, chr, nc, zoom, zd, evVC, evVCSqrt);
+                    buildVCOrVCSQRT(weShouldBuildVC && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC),
+                            weShouldBuildVCSqrt && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC_SQRT),
+                            chr, nc, zoom, zd, evVC, evVCSqrt);
                 }
 
                 // KR normalization
-                if (weShouldBuildKR) {
+                if (weShouldBuildKR && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
                     buildKR(chr, nc, zoom, zd, evKR);
                 }
 
                 // Fast scaling normalization
-                if (weShouldBuildScale) {
+                if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
                     buildScale(chr, nc, zoom, zd, evSCALE);
                 }
             }
 
-            if (weShouldBuildVC && evVC.hasData()) {
+            if (weShouldBuildVC && evVC.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC)) {
                 expectedValueCalculations.add(evVC);
             }
-            if (weShouldBuildVCSqrt && evVCSqrt.hasData()) {
+            if (weShouldBuildVCSqrt && evVCSqrt.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC_SQRT)) {
                 expectedValueCalculations.add(evVCSqrt);
             }
-            if (weShouldBuildKR && evKR.hasData()) {
-                if (evKR.hasData()) {
-                    expectedValueCalculations.add(evKR);
-                }
+            if (weShouldBuildKR && evKR.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
+                expectedValueCalculations.add(evKR);
             }
-            if (weShouldBuildScale && evSCALE.hasData()) {
+            if (weShouldBuildScale && evSCALE.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
                 expectedValueCalculations.add(evSCALE);
             }
         }

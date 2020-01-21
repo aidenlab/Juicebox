@@ -36,6 +36,7 @@ import juicebox.windowui.NormalizationType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PreProcessing extends JuiceboxCLT {
 
@@ -84,7 +85,6 @@ public class PreProcessing extends JuiceboxCLT {
             printUsageAndExit();
         }
 
-
         ChromosomeHandler chromHandler = HiCFileTools.loadChromosomes(genomeId);
 
         inputFile = args[1];
@@ -124,7 +124,8 @@ public class PreProcessing extends JuiceboxCLT {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
-                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, genomeWide, noFragNorm);
+                Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
+                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
             }
             else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");

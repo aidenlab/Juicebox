@@ -31,7 +31,9 @@ import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class AddNorm extends JuiceboxCLT {
@@ -41,6 +43,7 @@ public class AddNorm extends JuiceboxCLT {
     private int genomeWideResolution = -100;
     private String file;
     private final List<NormalizationType> normalizationTypes = new ArrayList<>();
+    private Map<NormalizationType, Integer> resolutionsToBuildTo;
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -55,6 +58,14 @@ public class AddNorm extends JuiceboxCLT {
 
     public static String getBasicUsage() {
         return "addNorm <input_HiC_file> [input_vector_file]";
+    }
+
+    public static Map<NormalizationType, Integer> defaultHashMapForResToBuildTo(List<NormalizationType> normalizationTypes) {
+        HashMap<NormalizationType, Integer> map = new HashMap<>();
+        for (NormalizationType norm : normalizationTypes) {
+            map.put(norm, 0);
+        }
+        return map;
     }
 
     @Override
@@ -72,7 +83,17 @@ public class AddNorm extends JuiceboxCLT {
         noFragNorm = parser.getNoFragNormOption();
         genomeWideResolution = parser.getGenomeWideOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
-        //parser1
+        resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
+        List<String> resolutions = parser.getResolutionOption();
+        for (int k = 0; k < resolutions.size(); k++) {
+            try {
+                int resVal = Integer.parseInt(resolutions.get(k));
+                resolutionsToBuildTo.put(normalizationTypes.get(k), resVal);
+            } catch (Exception e) {
+                resolutionsToBuildTo.put(normalizationTypes.get(k), 0);
+            }
+        }
+
         file = args[1];
     }
 
@@ -83,7 +104,7 @@ public class AddNorm extends JuiceboxCLT {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
             }
             else {
-                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, genomeWideResolution, noFragNorm);
+                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, resolutionsToBuildTo, genomeWideResolution, noFragNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();
