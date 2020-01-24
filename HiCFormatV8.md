@@ -23,8 +23,8 @@
 ||||
 |nAttributes	|Number of key-value pair attributes|	int||
 ||*List of key-value pair attributes (n = nAttributes).  See notes on common attributes below.*||
-||key	|Attribute key|	String	||
-||value|Attribute value|		String||	
+|key	|Attribute key|	String	||
+|value|Attribute value|		String||	
 |||||
 |nChrs|	Number of chromosomes|int||		
 ||*List of chromosome lengths (n = nChrs)*||
