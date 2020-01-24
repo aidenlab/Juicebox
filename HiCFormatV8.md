@@ -1,3 +1,16 @@
+# hic file format 
+
+## Structure
+
+* Header
+* Body
+    * Matrix
+    * Block
+* Footer
+    * Master index
+    * Expected value vectors
+
+
 
 ## Header
 
@@ -36,44 +49,43 @@
 The **Header** section is followed immediatly by the **Body**, which containe the contact map data for each 
 chromosome-chromosome pairing and each  resolution.   
 
-### Matrix
+### Matrix metadata
 
-This section contains the collection of contact matrices, one for each resolution for a chromosome-chromosome pair.
-It is repeated for all chromosome-chromosome pairings. It consists of a section of metatdata for each 
-resolution, followed by an index of data blocks and finally the blocks.  
+This section contains metadata  for the contact matrices.  It is repeated for all each chromosome-chromosome pair.  
+The master index contains an entry for each combination and is used to randomly access a specific
+matrix as needed.  The metadata in this section includes an index for data blocks which contain the actual
+contact data.  
 
 
 |Field	|Description|	Type|	Value|
 |------|------------|------|-------|
-|chr1Idx| Index for chromosome 1. See note below for chromsome index convention.|	int||	
+|chr1Idx| Index for chromosome 1.  This is the index into the array of chromosomes defined in the header above.  The first chromosome has index **0**.|	int||	
 |chr2Idx| Index for chromosome 2. |	int	||
 |nResolutions	|Total number of resolutions for this chromosome-chromosome pair, including base pair and fragment resolutions.	|int||	
 ||*Resolution metadata.  Repeat for each resolution. (n = nResolutions)*||
 |unit|	Distance unit, base-pairs or fragments	|String	|BP or FRAG|
-|resIdx	|Index number for this resolution level, an Array index into the bin size list of the header, first element is ```0```. |	int||	
+|resIdx	|Index number for this resolution level, an Array index into the bin size list of the header, first element is **0**. |	int||	
 |sumCounts|	Sum of all counts (or scores) across all bins at current resolution.|	float||	
-|occupiedCellCount|	Total count of cells that are occupied.  **Not currently used**|int||		
-|percent5|	Estimate of 5th percentile of counts among occupied bins. **Not currently used**|float||		
-|percent95|	Estimate of 95th percentile of counts among occupied bins **Not currently used**|float||		
+|occupiedCellCount|	Total count of cells that are occupied.  **Not currently used**|int|0|		
+|percent5|	Estimate of 5th percentile of counts among occupied bins. **Not currently used**|float|0|		
+|percent95|	Estimate of 95th percentile of counts among occupied bins **Not currently used**|float|0|		
 |binSize|	The bin size in base-pairs or fragments	|int||	
-|blockSize			|Dimension of each block in bins.  See description of grid strcture below|int||
+|blockSize			|Dimension of each block in bins.  Blocks are square, so the total number of bins is ```blockSize^2```.  See description of grid strcture below|int||
 |blockColumnCount|The number of columns in the grid of blocks.  |int||			
-|blockCount|The number of blocks stored in the file.  This can be < blockColumnCount * (# grid rows) as empty blocks are not stored.|||			
+|blockCount|The number of blocks stored in the file.  Note empty blocks are not stored.|||			
 |||||
-|*Block index  (n = nResolutions)*||
-|blockID	|Numeric id for block	|int|	
+|*Block index. Repeat for each resolution  (n = nResolutions)*||
+|blockNumber	|Numeric id for block.  This is the linear position of the block in the grid when counted in row-major order.   ```blockNumber = column * blockColumnCount + row``` where first row and column **0**	|int|	
 |blockPosition|	File position of block|	long|	
 |blockSizeBytes	|Size of block in bytes| int|	
 ||||	
-||*Resolution level data (n = nResolutions)*||
-||
-||*Block data (n = blockCount)*||
-| block | See block description below.  Repeated nResolutions * blockCount times |block||
+||*Block data*||
+| blocks | Compressed blocks for all matrices and resolutions.  See  description below.   |||
 
 
 #### Block  
 
-A block represents a square sub-matrix of the contact map for a specific resolution. 
+A block represents a square sub-matrix of a contact map. 
 
 ***Note: Blocks are indivdually compressed with ZLib***
 
@@ -92,7 +104,7 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |------|------------|------|-------|
 |rowCount | Number or rows | short ||
 ||
-|*rows (n = rowCount)
+|*rows (n = rowCount)*
 |rowNumber | Matrix row number, first row is ```0``` | short ||
 |recordCount | Number of records for this row. Row is sparse, zeroes are not recorded. | short ||
 ||
@@ -124,7 +136,7 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |nEntries|	Number of index entries|	int||
 ||	
 ||*List of index entries (n = nEntries)*||
-|key|	A key constructed from the indeces of the two chromosomes for this matrix.  The indeces are defined by the list of chromosomes in the header section with the first chromosome occupying index 0|String||	
+|key|	A key constructed from the indeces of the two chromosomes for this matrix.  The indeces are defined by the list of chromosomes in the header section with the first chromosome occupying index **0**|String||	
 |position	|Position of the start of the chromosome-chromosome matrix record in bytes	|long||	
 |size	|Size of the chromosome-chromsome matrix record in bytes.  This does not include the **Block** data.| int||	
 
@@ -139,28 +151,37 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |binSize	|Bin (grid) size for this calculation	|int||	
 |nValues	|Size of the vector|	int||	
 ||
-||*List of expected values (n = nValues)*||
+|*List of expected values (n = nValues)*|
 |value	|Expected value|	double||	
-|||||
 |nChrScaleFactors| Number of chromosome normalization factors| int||
 ||
 ||*List of normalization factors (n = nChrScaleFactors)*||
 |chrIndex|	Chromosome index|	int||	
 |chrScaleFactor|	Chromosome scale factor	|double||	
-|||||
+
+
+#### Normalized expected value vectors
+| Field |	Description|	Type |	Value |
+|------|------------|------|-------|
 |nNormExpectedValueVectors|	Number of normalized expected value vectors to follow	|int||	
-|Type|	Indicates type of normalization	|String|	VC:KR:INTER_KR:INTER_VC:GW_KR:GW_VC|
-|binSize|	Bin (grid) size for this calculation	|int||	
+||
+|*List of normalized vectors (n = nNormExpectedValueVectors)*||
+|type|	Indicates type of normalization	|String|	VC:KR:INTER_KR:INTER_VC:GW_KR:GW_VC|
 |unit	|Bin units either FRAG or BP.	|String|	FRAG : BP|
+|binSize|	Bin (grid) size for this calculation	|int||	
 |nValues|	Size of the vector	|int	||
+||
 ||*List of expected values (n = nValues)*||
 |value	|Expected value	|double||	
-|||||
-|nChrScaleFactors||||
+||
+|nChrScaleFactors|Number of normalizatoin factos for this vector|||
 ||*List of normalization factors (n = nChrScaleFactors)*||
 |chrIndex|	Chromosome index	|int	||
 |chrScaleFactor|	Chromosome scale factor	|double||	
-|||||
+
+#### Normalization vectors
+| Field |	Description|	Type |	Value |
+|------|------------|------|-------|
 ||*Normalization vector index*||
 |nNormVectors|	Number of normalization vectors |	int||	
 ||*List of normalization vectors (n=  nNormalizationVectors)*||
