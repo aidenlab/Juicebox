@@ -1,5 +1,5 @@
 
-##Header
+## Header
 
 |Field | Description |	Type | Value |
 |------|------------|------|-------|
@@ -31,7 +31,7 @@
 ||*List of sites (n = nSites)*||
 |sitePosition|	Site position in base pairs|	int||	
 
-##Body
+## Body
 
 The **Header** section is followed immediatly by the **Body**, which containe the contact map data for each 
 chromosome-chromosome pairing and each  resolution.   
@@ -71,7 +71,7 @@ resolution, followed by an index of data blocks and finally the blocks.
 | block | See block description below.  Repeated nResolutions * blockCount times |block||
 
 
-####Block  
+#### Block  
 
 A block represents a square sub-matrix of the contact map for a specific resolution. 
 
@@ -86,7 +86,8 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |matrixRepresentation | Representation of matrix used for the contact records.  If == 1 the representation is a ```list of rows```, if == 2 ```dense```. | byte |
 |blockData| The block matrix data.  See descriptions below, also  in the notes section.
 
-#####Block data - list of rows
+##### Block data - list of rows
+
 |Field	|Description|	Type|	Value|
 |------|------------|------|-------|
 |rowCount | Number or rows | short ||
@@ -100,7 +101,7 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |binY|	Y axis index|	long||	
 |value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
 
-#####Block data - dense
+##### Block data - dense
 |Field	|Description|	Type|	Value|
 |------|------------|------|-------|
 |nRecords | Number of contact records in this block.  | int ||
@@ -109,14 +110,15 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |*contact records (n = nRecords)*||
 |value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
 
-###Footer
+### Footer
 
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
 |nBytesV5|	Number of bytes for the “version 5” footer, that is everything up to the normalized expected vectors	|int||	
 ||*Master index for “Matrix” records*||
 
-####Master index
+#### Master index
+
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
 |nEntries|	Number of index entries|	int||
@@ -127,7 +129,8 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |position	|Position of the start of the chromosome-chromosome matrix record in bytes	|long||	
 |size	|Size of the chromosome-chromsome matrix record in bytes.  This does not include the **Block** data.| int||	
 
-####Expected value vectors
+#### Expected value vectors
+
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
 |nExpectedValueVectors|	Number of expected value vectors to follow.  These are expected values from the non-normalized observed matrix.| int|	
