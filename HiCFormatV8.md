@@ -182,7 +182,6 @@ A block represents a square sub-matrix of a contact map.
 #### Normalization vectors
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
-||*Normalization vector index*||
 |nNormVectors|	Number of normalization vectors |	int||	
 ||*List of normalization vectors (n=  nNormalizationVectors)*||
 |type	|Indicates type of normalization	|String|	VC:KR:INTER_KR:INTER_VC:GW_KR:GW_VC|
