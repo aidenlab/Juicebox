@@ -227,8 +227,6 @@ and in code, this parameter is referred to as **blockBinCount**.
 For intra chromosome matrices (chr1 == chr2) only the lower diagonal is stored (row >= column).  The upper diagonal
 can be inferred upon reading by tansposition.  
 
-**TODO -- explain block numbering**
-
 #### Block matrix representation
 
 The spatial unit for a block is a ```bin```, which can be computed from a genomic position with the formulat
