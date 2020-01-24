@@ -124,8 +124,7 @@ A block represents a square sub-matrix of the contact map for a specific resolut
 |nEntries|	Number of index entries|	int||
 ||	
 ||*List of index entries (n = nEntries)*||
-|key|	A key constructed from the indeces of the two chromosomes for this matrix.  The indeces are defined by list of
-	chromosomes in the header with the first chromosome occupying index ```0```|String||	
+|key|	A key constructed from the indeces of the two chromosomes for this matrix.  The indeces are defined by the list of chromosomes in the header section with the first chromosome occupying index 0|String||	
 |position	|Position of the start of the chromosome-chromosome matrix record in bytes	|long||	
 |size	|Size of the chromosome-chromsome matrix record in bytes.  This does not include the **Block** data.| int||	
 
