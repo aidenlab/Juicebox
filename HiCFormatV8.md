@@ -1,15 +1,17 @@
-###Header
+
+##Header
 
 |Field | Description |	Type | Value |
 |------|------------|------|-------|
 |Magic|HiC magic string|String|HIC|
 |Version|Version number|int|8|
-|mIdxPos|File position of master index|||
+|masterIndexPosition|File position of master index|long||
 |genomeId|	Genome identifier (e.g. hg19, mm9, etc)|	String||	
-|nAttributes	|Number of key-value pair attributes|	int||	
-||*List of key-value pair attributes (n = nAttributes)*||
-||key	|	String	||
-||value|		String||	
+||||
+|nAttributes	|Number of key-value pair attributes|	int||
+||*List of key-value pair attributes (n = nAttributes).  See notes on common attributes below.*||
+||key	|Attribute key|	String	||
+||value|Attribute value|		String||	
 |||||
 |nChrs|	Number of chromosomes|int||		
 ||*List of chromosome lengths (n = nChrs)*||
@@ -24,61 +26,122 @@
 ||*List of bin sizes for frag resolution levels (n = nFragResolutions)*||
 |resFrag	|Bin size in fragment units (1, 2, 5, etc)|	int||	
 |||||
-||*List of fragment sites per chromosome, in same order as chromosome list above (n = nChrs).  This section absent if nFragResolutions == 0.)*||
+||*List of fragment site positions per chromosome, in same order as chromosome list above (n = nChrs).  This section absent if nFragResolutions = 0.*||
 |nSites|	Number of sites for this chromosome|	int||	
 ||*List of sites (n = nSites)*||
-|site|	Site position in base pairs|	int||	
+|sitePosition|	Site position in base pairs|	int||	
 
-###Body
+##Body
+
+The **Header** section is followed immediatly by the **Body**, which containe the contact map data for each 
+chromosome-chromosome pairing and each  resolution.   
+
+### Matrix
+
+This section contains the collection of contact matrices, one for each resolution for a chromosome-chromosome pair.
+It is repeated for all chromosome-chromosome pairings. It consists of a section of metatdata for each 
+resolution, followed by an index of data blocks and finally the blocks.  
+
+
 |Field	|Description|	Type|	Value|
 |------|------------|------|-------|
-||*The section below is repeated for each chr-chr combination*||
-|chr1Idx|	Chr 1 index |	int||	
-|chr2Idx|	Chr 2 index |	int	||
-|nResolutions	|Total number of resolutions, including base pair and fragment resolutions.	|int||	
-||*Resolution headers (n = nResolutions)*||
-|unit|	Distance unit, base-pairs or fragments	|String	|FRAG : BP|
-|resIdx	|Index number for this resolution level.  |	int||	
-|sumCounts|	Sum of all counts (or scores) across all bins|	float||	
-|occupiedCellCount|	Total count of cells that are occupied|int||		
-|percent90|	Estimate of 90th percentile of counts among occupied bins|||		
-|percent95|	Estimate of 95th percentile of counts among occupied bins|||		
-|binSize|	The bin size in base-pairs or fragments	|||	
-|blockBinCount			||||
-|blockColumnCount||||			
-|blockCount||||			
-||*Block index  (n = nResolutions)*||
+|chr1Idx| Index for chromosome 1. See note below for chromsome index convention.|	int||	
+|chr2Idx| Index for chromosome 2. |	int	||
+|nResolutions	|Total number of resolutions for this chromosome-chromosome pair, including base pair and fragment resolutions.	|int||	
+||*Resolution metadata.  Repeat for each resolution. (n = nResolutions)*||
+|unit|	Distance unit, base-pairs or fragments	|String	|BP or FRAG|
+|resIdx	|Index number for this resolution level, an Array index into the bin size list of the header, first element is ```0```. |	int||	
+|sumCounts|	Sum of all counts (or scores) across all bins at current resolution.|	float||	
+|occupiedCellCount|	Total count of cells that are occupied.  **Not currently used**|int||		
+|percent5|	Estimate of 5th percentile of counts among occupied bins. **Not currently used**|float||		
+|percent95|	Estimate of 95th percentile of counts among occupied bins **Not currently used**|float||		
+|binSize|	The bin size in base-pairs or fragments	|int||	
+|blockSize			|Dimension of each block in bins.  See description of grid strcture below|int||
+|blockColumnCount|The number of columns in the grid of blocks.  |int||			
+|blockCount|The number of blocks stored in the file.  This can be < blockColumnCount * (# grid rows) as empty blocks are not stored.|||			
+|||||
+|*Block index  (n = nResolutions)*||
 |blockID	|Numeric id for block	|int|	
 |blockPosition|	File position of block|	long|	
-|blockSize	|Size of block in bytes||		
+|blockSizeBytes	|Size of block in bytes| int|	
+||||	
 ||*Resolution level data (n = nResolutions)*||
+||
 ||*Block data (n = blockCount)*||
-|cellCount	|Number or cells in this block (sparse matrix)|	int	|
-||*Cell data (n = cellCount)*||
+| block | See block description below.  Repeated nResolutions * blockCount times |block||
+
+
+####Block  
+
+A block represents a square sub-matrix of the contact map for a specific resolution. 
+
+***Note: Blocks are indivdually compressed with ZLib***
+
+|Field	|Description|	Type|	Value|
+|------|------------|------|-------|
+|nRecords	|Number or contact records in this block|	int	|
+|binXOffset | X offset for the contact records in this block.  The binX value below is relative to this offset.||
+|binYOffset | Y offset for the contact records in this block.  The binX value below is relative to this offset.
+|useShort | Flag indicating the ```value``` field in contact records for this block are recorded with data type ```short```.  If == 1 a ```short``` is used, otherwise type is ```float```| byte |
+|matrixRepresentation | Representation of matrix used for the contact records.  If == 1 the representation is a ```list of rows```, if == 2 ```dense```. | byte |
+|blockData| The block matrix data.  See descriptions below, also  in the notes section.
+
+#####Block data - list of rows
+|Field	|Description|	Type|	Value|
+|------|------------|------|-------|
+|rowCount | Number or rows | short ||
+||
+|*rows (n = rowCount)
+|rowNumber | Matrix row number, first row is ```0``` | short ||
+|recordCount | Number of records for this row. Row is sparse, zeroes are not recorded. | short ||
+||
+|*contact records (n = cellCount)*||
 |binX	|X axis index|	int||
 |binY|	Y axis index|	long||	
-|value	|Value (counts or score)|	float||	
+|value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
+
+#####Block data - dense
+|Field	|Description|	Type|	Value|
+|------|------------|------|-------|
+|nRecords | Number of contact records in this block.  | int ||
+|w | Width of the dense block.  This can be < the blockSize if the edge columns on either side are zeroes.  See discussion on block representation below | short ||
+||
+|*contact records (n = nRecords)*||
+|value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
 
 ###Footer
+
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
-|nBytesV5|	Number of bytes for the “v5” footer, that is everything up to the normalized expected vectors	|int||	
+|nBytesV5|	Number of bytes for the “version 5” footer, that is everything up to the normalized expected vectors	|int||	
 ||*Master index for “Matrix” records*||
-|nEntries|	Number of index entries|	int||	
+
+####Master index
+| Field |	Description|	Type |	Value |
+|------|------------|------|-------|
+|nEntries|	Number of index entries|	int||
+||	
 ||*List of index entries (n = nEntries)*||
-|key|	Key, constructed as <chr1>_<chr2>	|String||	
-|position	|Position of start of matrix record in bytes	|long||	
-|size	|Size of matrix record in bytes| int||	
-||*Expected value vectors*||
+|key|	A key constructed from the indeces of the two chromosomes for this matrix.  The indeces are defined by list of
+	chromosomes in the header with the first chromosome occupying index ```0```|String||	
+|position	|Position of the start of the chromosome-chromosome matrix record in bytes	|long||	
+|size	|Size of the chromosome-chromsome matrix record in bytes.  This does not include the **Block** data.| int||	
+
+####Expected value vectors
+| Field |	Description|	Type |	Value |
+|------|------------|------|-------|
 |nExpectedValueVectors|	Number of expected value vectors to follow.  These are expected values from the non-normalized observed matrix.| int|	
+||
 ||*List of expected value vectors (n = nExpectedValueVectors)*||
-|binSize	|Bin (grid) size for this calculation	|int||	
 |unit|	Bin units either FRAG or BP.	|String	|FRAG : BP|
+|binSize	|Bin (grid) size for this calculation	|int||	
 |nValues	|Size of the vector|	int||	
+||
 ||*List of expected values (n = nValues)*||
 |value	|Expected value|	double||	
 |||||
-|nChrScaleFactors||||
+|nChrScaleFactors| Number of chromosome normalization factors| int||
+||
 ||*List of normalization factors (n = nChrScaleFactors)*||
 |chrIndex|	Chromosome index|	int||	
 |chrScaleFactor|	Chromosome scale factor	|double||	
@@ -108,17 +171,74 @@
 ||*Normalization vector arrays (repeat for each entry above)*||
 |nValues|	Number of values in array|	int||	
 ||*Normalization vector values (n=  nValues)*||
-|value||		double	||
-|||||
-||*Attribute dictionary*||
-|nAttributes	|Number of attributes|	int||	
-||*List of key-value pair attributes (n = nAttributes)*||
-|key|		String	|||
-|value|		String	|||
 
 
 
+#### Notes
 
+##### Data types
 
+* Strings are null (0) terminated.  So for example the string "HIC" is represented by 4 bytes [48 49 43 0]
+* Other data types are Java
+    * short - 16 bit integer
+    * int - 32 bit integer
+    * long  -  64 bit integer
+    * float - 32 bit floating point
+    * double - 64 bit floating point
+    
+##### Attributes
+
+The attributes table in the header can contain an arbitrary number of key-value string pairs.  The **Juicer** tool
+inserts one or more of the following attributes.
+* "statistics":
+* "graphs":
+* "software":
+* "nviIndex":  reserved for future use
+* "nviLength":  reserved for future use
+
+#### Grid structure
+
+Each chr-chr matrix at a given resolution is subdivided into a grid structure of square **blocks**. 
+Each block consists of NxN bins, where N is referred to as **blockSize**.  In older versions of the spec,
+and in code, this parameter is referred to as **blockBinCount**.
+
+For intra chromosome matrices (chr1 == chr2) only the lower diagonal is stored (row >= column).  The upper diagonal
+can be inferred upon reading by tansposition.  
+
+**TODO -- explain block numbering**
+
+#### Block matrix representation
+
+The spatial unit for a block is a ```bin```, which can be computed from a genomic position with the formulat
+
+```bin = floor(position / binSize)```.
+
+The origin of a block is then 
+
+```floor(x / binsSize), floor(y / binSize)```
+
+where x and y are genomic positions in either base pairs or fragment number, depending on the
+
+* List of rows
+
+The list of rows is a sparse matrix format.  Each row is represented as follows
+
+```rowNumber rowSize [binX1 value1, binX2 value2, ...]``` 
+
+The first row in the matrix has ```rowNumber = 0```.  The highest row number possible is ```blockSize - 1```
+
+* Dense
+
+In dense matrix format all values including zero are output in row major order.  Allowance is made however for the 
+possibility that only a sub-matrix of the block is populated, specifically that leading or trailing columns of 
+the block might have no contacts (value = 0).   To account for this possibility the maximum column number within the block
+which has at least 1 non-zero value is determined, which we will call ```binXMax```.   The width of the block can
+then be determined and used to obtain the x and y coordinates in bin units for each value as follows.  
+
+         w = (binXMax - binXOffset + 1);
+         row = floor(i / w);
+         col = i - row * w;
+         binX = binXOffset + col;
+         binY = binYOffset + row;
 
 
