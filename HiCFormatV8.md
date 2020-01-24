@@ -127,7 +127,6 @@ A block represents a square sub-matrix of a contact map.
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
 |nBytesV5|	Number of bytes for the “version 5” footer, that is everything up to the normalized expected vectors	|int||	
-||*Master index for “Matrix” records*||
 
 #### Master index
 
