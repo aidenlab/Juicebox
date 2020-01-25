@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,7 +65,7 @@ public class OddAndEvenClusterer {
         this.origIntraSubcompartments = origIntraSubcompartments;
     }
 
-    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, long[] seeds,
+    public GenomeWideList<SubcompartmentInterval> extractFinalGWSubcompartments(File outputDirectory, Random generator,
                                                                                 CompositeInterchromDensityMatrix.InterMapType mapType) {
 
         final CompositeInterchromDensityMatrix interMatrix = new CompositeInterchromDensityMatrix(
@@ -77,8 +78,8 @@ public class OddAndEvenClusterer {
         Map<Integer, Integer> subcompartment2IDsToSize = new HashMap<>();
 
         GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
-        launchKmeansInterMatrix(outputDirectory, mapType + "_" + false, interMatrix, finalCompartments, false, seeds[0], subcompartment1IDsToSize);
-        launchKmeansInterMatrix(outputDirectory, mapType + "_" + true, interMatrix, finalCompartments, true, seeds[1], subcompartment2IDsToSize);
+        launchKmeansInterMatrix(outputDirectory, mapType + "_" + false, interMatrix, finalCompartments, false, generator.nextLong(), subcompartment1IDsToSize);
+        launchKmeansInterMatrix(outputDirectory, mapType + "_" + true, interMatrix, finalCompartments, true, generator.nextLong(), subcompartment2IDsToSize);
 
         while (numCompleted.get() < 1) {
             System.out.println("So far portion completed is " + numCompleted.get() + "/2");
@@ -90,7 +91,7 @@ public class OddAndEvenClusterer {
             }
         }
 
-        interMatrix.stitchTogetherResults(finalCompartments, subcompartment1IDsToSize, subcompartment2IDsToSize);
+        interMatrix.stitchTogetherResults(finalCompartments, ds, outputDirectory, "" + mapType);
 
         return finalCompartments;
     }
@@ -107,7 +108,10 @@ public class OddAndEvenClusterer {
             } else {
                 cleanDataWithDeriv = matrix.getCleanedData();
             }
-            cleanDataWithDeriv = MatrixTools.getMainAppendedDerivativeDownColumn(cleanDataWithDeriv);
+            //cleanDataWithDeriv = MatrixTools.getMainAppendedDerivativeDownColumn(cleanDataWithDeriv, 10);
+            cleanDataWithDeriv = MatrixTools.getNormalizedThresholdedAndAppendedDerivativeDownColumn(cleanDataWithDeriv, 2, 10, 5);
+            //cleanDataWithDeriv = MatrixTools.getRelevantDerivative(cleanDataWithDeriv);
+            MatrixTools.saveMatrixTextNumpy(new File(directory, description + "." + isTransposed + "clusterdata.npy").getAbsolutePath(), cleanDataWithDeriv);
 
             ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanDataWithDeriv, numClusters, maxIters, seed);
 
@@ -120,9 +124,9 @@ public class OddAndEvenClusterer {
                 public void kmeansComplete(Cluster[] clusters, long l) {
                     synchronized (numCompleted) {
                         numCompleted.incrementAndGet();
-                        saveChiSquareComparisonBetweenClusters(directory, description + "_pval", clusters);
-                        saveChiSquareValComparisonBetweenClusters(directory, description + "_chi", clusters);
-                        saveDistComparisonBetweenClusters(directory, description + "_dist", clusters);
+                        //saveChiSquareComparisonBetweenClusters(directory, description + "_pval", clusters);
+                        //saveChiSquareValComparisonBetweenClusters(directory, description + "_chi", clusters);
+                        //saveDistComparisonBetweenClusters(directory, description + "_dist", clusters);
                         matrix.processGWKmeansResult(clusters, interSubcompartments, isTransposed, subcompartmentIDsToSize);
                     }
                 }

@@ -360,14 +360,30 @@ public class GrindUtils {
     public static boolean isTooEmpty(float[][] compositeMatrix) {
 
         float[] rowSums = MatrixTools.getRowSums(compositeMatrix);
+        int numZeros = 0;
 
-        // if 5 rows in a row totally empty, let's skip
-        for (int k = 0; k < rowSums.length - 4; k++) {
-            if (rowSums[k] + rowSums[k + 1] + rowSums[k + 2] + rowSums[k + 3] + rowSums[k + 4] < 1e-5) {
-                return true;
+        // if n rows in a row totally empty, let's skip
+        for (float k : rowSums) {
+            if (k < 1e-5) {
+                numZeros++;
             }
         }
 
-        return false;
+        return numZeros > .66 * rowSums.length;
+    }
+
+    public static boolean isJustEmptyEnough(float[][] compositeMatrix) {
+
+        float[] rowSums = MatrixTools.getRowSums(compositeMatrix);
+        int numZeros = 0;
+
+        // if n rows in a row totally empty, let's skip
+        for (float k : rowSums) {
+            if (k < 1e-5) {
+                numZeros++;
+            }
+        }
+
+        return numZeros > .05 * rowSums.length && numZeros < .35 * rowSums.length;
     }
 }

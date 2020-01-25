@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1038,7 +1038,31 @@ public class MatrixTools {
         return appendedDerivative;
     }
 
-    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data) {
+    public static float[][] getNormalizedThresholdedAndAppendedDerivativeDownColumn(float[][] data, float maxVal, float scaleDerivFactor, float derivativeThreshold) {
+
+        double[] averageVal = new double[data.length];
+        for (int i = 0; i < data.length; i++) {
+            for (float val : data[i]) {
+                averageVal[i] += val;
+            }
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            averageVal[i] = averageVal[i] / data[i].length;
+        }
+
+        float[][] thresholdedData = new float[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                thresholdedData[i][j] = (float) Math.min(maxVal, data[i][j] / averageVal[i]);
+            }
+        }
+
+        return getMainAppendedDerivativeDownColumn(thresholdedData, scaleDerivFactor, derivativeThreshold);
+    }
+
+
+    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
 
         int numColumns = data[0].length;
         int numColumnsMinus1 = data[0].length - 1;
@@ -1066,10 +1090,40 @@ public class MatrixTools {
         for (int i = 0; i < data.length; i++) {
             for (int k = 0; k < indicesToUse.size(); k++) {
                 int indexToUse = indicesToUse.get(k);
-                appendedDerivative[i][numColumns + k] = derivative[i][indexToUse];
+
+                appendedDerivative[i][numColumns + k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor));
             }
         }
 
         return appendedDerivative;
+    }
+
+    public static float[][] getRelevantDerivative(float[][] data) {
+
+        float[][] derivative = new float[data.length][data[0].length - 1];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length - 1; j++) {
+                derivative[i][j] = data[i][j] - data[i][j + 1];
+            }
+        }
+
+        float[] columnSums = getAbsValColSums(derivative);
+        List<Integer> indicesToUse = new ArrayList<>();
+        for (int k = 0; k < columnSums.length; k++) {
+            if (columnSums[k] > 0) {
+                indicesToUse.add(k);
+            }
+        }
+
+        float[][] importantDerivative = new float[data.length][indicesToUse.size()];
+
+        for (int i = 0; i < data.length; i++) {
+            for (int k = 0; k < indicesToUse.size(); k++) {
+                int indexToUse = indicesToUse.get(k);
+                importantDerivative[i][k] = derivative[i][indexToUse];
+            }
+        }
+
+        return importantDerivative;
     }
 }

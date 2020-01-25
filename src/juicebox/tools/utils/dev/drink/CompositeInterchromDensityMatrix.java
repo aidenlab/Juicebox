@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,34 +37,26 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
+import java.io.File;
 import java.util.*;
 
 public class CompositeInterchromDensityMatrix {
 
-    public CompositeInterchromDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments,
-                                            InterMapType mapType) {
-        this.chromosomeHandler = chromosomeHandler;
-        this.norm = norm;
-        this.resolution = resolution;
-        this.intraSubcompartments = intraSubcompartments;
-
-        gwCleanMatrix = makeCleanScaledInterMatrix(ds, mapType);
-        transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
-    }
-
-    private final ChromosomeHandler chromosomeHandler;
     private final NormalizationType norm;
     private final int resolution;
     private final GenomeWideList<SubcompartmentInterval> intraSubcompartments;
     private final float[][] gwCleanMatrix, transposedGWCleanMatrix;
     private final Map<Integer, SubcompartmentInterval> indexToInterval1Map = new HashMap<>();
     private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
+    private final Chromosome[] rowsChromosomes;
+    private final Chromosome[] colsChromosomes;
 
-    private float[][] makeCleanScaledInterMatrix(Dataset ds, InterMapType mapType) {
-
-        Chromosome[] rowsChromosomes;
-        Chromosome[] colsChromosomes;
+    public CompositeInterchromDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
+                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments,
+                                            InterMapType mapType) {
+        this.norm = norm;
+        this.resolution = resolution;
+        this.intraSubcompartments = intraSubcompartments;
 
         switch (mapType) {
             case SKIP_BY_TWOS: // but start with CHR 1 separate
@@ -83,6 +75,12 @@ public class CompositeInterchromDensityMatrix {
                 colsChromosomes = chromosomeHandler.extractOddOrEvenAutosomes(false);
                 break;
         }
+
+        gwCleanMatrix = makeCleanScaledInterMatrix(ds);
+        transposedGWCleanMatrix = MatrixTools.transpose(gwCleanMatrix);
+    }
+
+    private float[][] makeCleanScaledInterMatrix(Dataset ds) {
 
         // assuming Odd vs Even
         // height chromosomes
@@ -223,25 +221,6 @@ public class CompositeInterchromDensityMatrix {
         }
     }
 
-    private double getSumTotalCounts(double[][] allDataForRegion, SubcompartmentInterval interv1, int lengthChr1,
-                                     SubcompartmentInterval interv2, int lengthChr2) {
-        double total = 0;
-        int binXStart = interv1.getX1() / resolution;
-        int binXEnd = Math.min(interv1.getX2() / resolution, lengthChr1);
-
-        int binYStart = interv2.getX1() / resolution;
-        int binYEnd = Math.min(interv2.getX2() / resolution, lengthChr2);
-
-        for (int i = binXStart; i < binXEnd; i++) {
-            for (int j = binYStart; j < binYEnd; j++) {
-                if (!Double.isNaN(allDataForRegion[i][j])) {
-                    total += allDataForRegion[i][j];
-                }
-            }
-        }
-        return total;
-    }
-
     private float getSumTotalCounts(float[][] allDataForRegion, SubcompartmentInterval interv1, int lengthChr1,
                                     SubcompartmentInterval interv2, int lengthChr2) {
         float total = 0;
@@ -316,14 +295,120 @@ public class CompositeInterchromDensityMatrix {
     }
 
 
-    public void stitchTogetherResults(GenomeWideList<SubcompartmentInterval> finalCompartmentsSoFar,
-                                      Map<Integer, Integer> subIDsToSize1, Map<Integer, Integer> subIDsToSize2) {
-        GenomeWideList<SubcompartmentInterval> finalStitchedCompartments = new GenomeWideList<>(chromosomeHandler);
+    public void stitchTogetherResults(GenomeWideList<SubcompartmentInterval> preFinalCompartments, Dataset ds, File directory, String filename) {
 
+        Map<String, Float> allContactsBetweenClusters = new HashMap<>();
+        Map<String, Integer> allAreasBetweenClusters = new HashMap<>();
+        Set<Integer> rowIDs = new HashSet<>();
+        Set<Integer> colIDs = new HashSet<>();
 
-        //finalCompartmentsSoFar.processLists();
+        for (int i = 0; i < rowsChromosomes.length; i++) {
+            Chromosome chr1 = rowsChromosomes[i];
 
+            for (int j = 0; j < colsChromosomes.length; j++) {
+                Chromosome chr2 = colsChromosomes[j];
 
+                if (chr1.getIndex() == chr2.getIndex()) continue;
+                final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, resolution);
+                if (zd == null) continue;
+
+                // will need to flip across diagonal
+                boolean needToFlip = chr2.getIndex() < chr1.getIndex();
+                getContactsBetweenGroups(zd, chr1, chr2, needToFlip, preFinalCompartments, allContactsBetweenClusters, allAreasBetweenClusters, rowIDs, colIDs);
+            }
+        }
+
+        double[][] contacts = new double[rowIDs.size() + 1][colIDs.size() + 1];
+        double[][] areas = new double[rowIDs.size() + 1][colIDs.size() + 1];
+        double[][] interactions = new double[rowIDs.size() + 1][colIDs.size() + 1];
+        List<Integer> rowIDsOrdered = new ArrayList<>(rowIDs);
+        List<Integer> colIDsOrdered = new ArrayList<>(colIDs);
+        for (int i = 1; i < rowIDsOrdered.size() + 1; i++) {
+            int rID = rowIDsOrdered.get(i - 1);
+            contacts[i][0] = rID;
+            areas[i][0] = rID;
+            interactions[i][0] = rID;
+
+            for (int j = 1; j < colIDsOrdered.size() + 1; j++) {
+                int cID = colIDsOrdered.get(j - 1);
+                contacts[0][j] = cID;
+                areas[0][j] = cID;
+                interactions[0][j] = cID;
+
+                String key = rID + "-" + cID;
+
+                if (allAreasBetweenClusters.containsKey(key)) {
+                    contacts[i][j] = allContactsBetweenClusters.get(key);
+                    areas[i][j] = allAreasBetweenClusters.get(key);
+                    interactions[i][j] = allContactsBetweenClusters.get(key) / allAreasBetweenClusters.get(key);
+                }
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".contacts.npy").getAbsolutePath(), contacts);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".areas.npy").getAbsolutePath(), areas);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".density.npy").getAbsolutePath(), interactions);
+
+    }
+
+    private void getContactsBetweenGroups(MatrixZoomData zd, Chromosome chr1, Chromosome chr2, boolean needToFlip,
+                                          GenomeWideList<SubcompartmentInterval> preFinalCompartments,
+                                          Map<String, Float> allContactsBetweenClusters,
+                                          Map<String, Integer> allAreasBetweenClusters,
+                                          Set<Integer> rowIDs, Set<Integer> colIDs) {
+
+        int chr1Index = chr1.getIndex();
+        int chr2Index = chr2.getIndex();
+        if (chr1Index == chr2Index) {
+            System.err.println("Same chr " + chr1.getName());
+            System.exit(989);
+        }
+
+        int lengthChr1 = chr1.getLength() / resolution;
+        int lengthChr2 = chr2.getLength() / resolution;
+        List<SubcompartmentInterval> intervals1 = preFinalCompartments.getFeatures("" + chr1.getIndex());
+        List<SubcompartmentInterval> intervals2 = preFinalCompartments.getFeatures("" + chr2.getIndex());
+
+        if (intervals1.size() == 0 || intervals2.size() == 0) return;
+        float[][] allDataForRegion = null;
+        try {
+            if (needToFlip) {
+                RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr2, 0, lengthChr1, lengthChr2, lengthChr1, norm, false);
+                allDataForRegionMatrix = allDataForRegionMatrix.transpose();
+                allDataForRegion = MatrixTools.convertToFloatMatrix(allDataForRegionMatrix.getData());
+            } else {
+                RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr1, 0, lengthChr2, lengthChr1, lengthChr2, norm, false);
+                allDataForRegion = MatrixTools.convertToFloatMatrix(allDataForRegionMatrix.getData());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(99);
+        }
+
+        if (allDataForRegion == null) {
+            System.err.println("Missing Interchromosomal Data " + zd.getKey());
+            return;
+        }
+
+        for (SubcompartmentInterval interv1 : intervals1) {
+            Integer id1 = interv1.getClusterID();
+            rowIDs.add(id1);
+            for (SubcompartmentInterval interv2 : intervals2) {
+                Integer id2 = interv2.getClusterID();
+                colIDs.add(id2);
+                String regionKey = id1 + "-" + id2;
+
+                float countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, lengthChr1, interv2, lengthChr2);
+                int areaBetweenClusters = interv1.getWidthForResolution(resolution) * interv2.getWidthForResolution(resolution);
+
+                if (allContactsBetweenClusters.containsKey(regionKey)) {
+                    allContactsBetweenClusters.put(regionKey, allContactsBetweenClusters.get(regionKey) + countsBetweenClusters);
+                    allAreasBetweenClusters.put(regionKey, allAreasBetweenClusters.get(regionKey) + areaBetweenClusters);
+                } else {
+                    allContactsBetweenClusters.put(regionKey, countsBetweenClusters);
+                    allAreasBetweenClusters.put(regionKey, areaBetweenClusters);
+                }
+            }
+        }
     }
 
     public int getLength() {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,14 +69,17 @@ public class InitialClusterer {
     private double[] convolution1d;
 
     public InitialClusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                            int numClusters, long[] randomSeeds, int maxIters, double logThreshold, double[] convolution1d) {
+                            int numClusters, Random generator, int maxIters, double logThreshold, double[] convolution1d, int numIters) {
         this.datasets = datasets;
         numDatasets = datasets.size();
         this.chromosomeHandler = chromosomeHandler;
         this.resolution = resolution;
         this.norm = norm;
         this.numClusters = numClusters;
-        this.randomSeeds = randomSeeds;
+        this.randomSeeds = new long[numIters];
+        for (int i = 0; i < numIters; i++) {
+            randomSeeds[i] = generator.nextLong();
+        }
         this.maxIters = maxIters;
         this.logThreshold = logThreshold;
         this.convolution1d = convolution1d;
