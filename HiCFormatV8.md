@@ -94,7 +94,7 @@ A block represents a square sub-matrix of a contact map.
 |nRecords	|Number or contact records in this block|	int	|
 |binXOffset | X offset for the contact records in this block.  The binX value below is relative to this offset.||
 |binYOffset | Y offset for the contact records in this block.  The binX value below is relative to this offset.
-|useShort | Flag indicating the ```value``` field in contact records for this block are recorded with data type ```short```.  If == 1 a ```short``` is used, otherwise type is ```float```| byte |
+|useFloat | Flag indicating the ```value``` field in contact records for this block are recorded with data type ```float```.  If == 1 a ```float``` is used, otherwise type is ```short```| byte |
 |matrixRepresentation | Representation of matrix used for the contact records.  If == 1 the representation is a ```list of rows```, if == 2 ```dense```. | byte |
 |blockData| The block matrix data.  See descriptions below, also  in the notes section.
 
@@ -109,9 +109,8 @@ A block represents a square sub-matrix of a contact map.
 |recordCount | Number of records for this row. Row is sparse, zeroes are not recorded. | short ||
 ||
 |*contact records (n = cellCount)*||
-|binX	|X axis index|	int||
-|binY|	Y axis index|	long||	
-|value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
+|binX	|X axis index|	short||
+|value	|Value (counts or score). The data type is determined by the ```useFloat``` flag above.|	float : short||	
 
 ##### Block data - dense
 |Field	|Description|	Type|	Value|
@@ -120,7 +119,7 @@ A block represents a square sub-matrix of a contact map.
 |w | Width of the dense block.  This can be < the blockSize if the edge columns on either side are zeroes.  See discussion on block representation below | short ||
 ||
 |*contact records (n = nRecords)*||
-|value	|Value (counts or score). The data type is determined by the ```useShort``` flag above.|	float : short||	
+|value	|Value (counts or score). The data type is determined by the ```useFloat``` flag above.|	float : short||	
 
 ### Footer
 
