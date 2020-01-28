@@ -145,24 +145,18 @@ public class Drink extends JuicerCLT {
             processor.writeFinalSubcompartmentsToFiles(outputDirectory, inputHicFilePaths);
         } else {
 
-            conductInterChromosomalClustering(initialClustering.getFirst(), CompositeInterchromDensityMatrix.InterMapType.ODDS_VS_EVENS, chromosomeHandler, "gw_odd_even_");
-            System.gc();
+            for (int i = 0; i < datasetList.size(); i++) {
+                FullGenomeOEWithinClusters withinClusters = new FullGenomeOEWithinClusters(datasetList.get(i),
+                        chromosomeHandler, resolution, norm,
+                        maxIters, initialClustering.getFirst().get(i));
 
-            conductInterChromosomalClustering(initialClustering.getFirst(), CompositeInterchromDensityMatrix.InterMapType.FIRST_HALF_VS_SECOND_HALF, chromosomeHandler, "gw_ordered");
-            System.gc();
-
-            conductInterChromosomalClustering(initialClustering.getFirst(), CompositeInterchromDensityMatrix.InterMapType.SKIP_BY_TWOS, chromosomeHandler, "gw_alternate_twos");
-        }
-    }
-
-    private void conductInterChromosomalClustering(List<GenomeWideList<SubcompartmentInterval>> initialClusterings, CompositeInterchromDensityMatrix.InterMapType isOddsVsEvensType, ChromosomeHandler chromosomeHandler, String filestem) {
-        for (int i = 0; i < datasetList.size(); i++) {
-            OddAndEvenClusterer oddAndEvenClusterer = new OddAndEvenClusterer(datasetList.get(i), chromosomeHandler, resolution, norm,
-                    numInterClusters, maxIters, initialClusterings.get(i));
-
-            GenomeWideList<SubcompartmentInterval> gwList = oddAndEvenClusterer.extractFinalGWSubcompartments(outputDirectory, generator, isOddsVsEvensType);
-            DrinkUtils.collapseGWList(gwList);
-            gwList.simpleExport(new File(outputDirectory, filestem + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".subcompartment.bed"));
+                Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator);
+                for (Integer key : gwListMap.keySet()) {
+                    GenomeWideList<SubcompartmentInterval> gwList = gwListMap.get(key);
+                    DrinkUtils.collapseGWList(gwList);
+                    gwList.simpleExport(new File(outputDirectory, "gw_full_" + key + "_clusters_" + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".subcompartment.bed"));
+                }
+            }
         }
     }
 }
