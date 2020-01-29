@@ -33,6 +33,7 @@ import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
 import juicebox.windowui.NormalizationType;
+import org.nd4j.linalg.primitives.AtomicDouble;
 
 import java.io.File;
 import java.util.HashMap;
@@ -48,7 +49,10 @@ public class FullGenomeOEWithinClusters {
     private final NormalizationType norm;
     private final int maxIters;
     private final GenomeWideList<SubcompartmentInterval> origIntraSubcompartments;
-    private final AtomicInteger numCompleted = new AtomicInteger(0);
+    private final AtomicInteger numActualClusters = new AtomicInteger(0);
+    private final AtomicDouble meanSquaredErrorForRun = new AtomicDouble(0);
+    private final int numRounds = 10;
+    private final int minIntervalSize = 2;
 
     public FullGenomeOEWithinClusters(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
                                       int maxIters, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments) {
@@ -61,12 +65,13 @@ public class FullGenomeOEWithinClusters {
         this.origIntraSubcompartments = origIntraSubcompartments;
     }
 
-    public Map<Integer, GenomeWideList<SubcompartmentInterval>> extractFinalGWSubcompartments(File outputDirectory, Random generator) {
+    public Map<Integer, GenomeWideList<SubcompartmentInterval>> extractFinalGWSubcompartments(File outputDirectory, Random generator,
+                                                                                              int derivativeStatus, boolean useNormalizationOfRows) {
 
         Map<Integer, GenomeWideList<SubcompartmentInterval>> numItersToResults = new HashMap<>();
 
         final CompositeGenomeWideDensityMatrix interMatrix = new CompositeGenomeWideDensityMatrix(
-                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments);
+                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, derivativeStatus, useNormalizationOfRows, minIntervalSize);
         System.out.println(interMatrix.getLength() + " -v- " + interMatrix.getWidth());
 
         MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "data_matrix.npy").getAbsolutePath(), interMatrix.getCleanedData());
@@ -74,12 +79,16 @@ public class FullGenomeOEWithinClusters {
 
         Map<Integer, Integer> subcompartment1IDsToSize = new HashMap<>();
 
-        for (int k = 2; k < 20; k++) {
+        double[][] iterToMSE = new double[2][numRounds];
+
+        for (int z = 0; z < numRounds; z++) {
+
+            int k = z + 5;
 
             GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
-            launchKmeansGWMatrix(outputDirectory, "final_gw", interMatrix, finalCompartments, generator.nextLong(),
+            launchKmeansGWMatrix(outputDirectory, "final_gw_" + z + "_", interMatrix, finalCompartments, generator.nextLong(),
                     subcompartment1IDsToSize, k);
-            while (numCompleted.get() < 1) {
+            while (numActualClusters.get() < 1 && meanSquaredErrorForRun.get() == 0.0) {
                 System.out.print(".");
                 try {
                     TimeUnit.SECONDS.sleep(10);
@@ -88,11 +97,20 @@ public class FullGenomeOEWithinClusters {
                 }
             }
             System.out.println(".");
-            numCompleted.set(0);
+            iterToMSE[0][z] = numActualClusters.getAndSet(0);
+            iterToMSE[1][z] = meanSquaredErrorForRun.getAndSet(0);
+
+            // reset for next round
+            UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
 
             numItersToResults.put(k, finalCompartments);
         }
 
+        if (minIntervalSize > 0) {
+            LeftOverClusterIdentifier.identify(chromosomeHandler, ds, norm, resolution, numItersToResults, origIntraSubcompartments, minIntervalSize);
+        }
+
+        MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "clusterSizeToMeanSquaredError.npy").getAbsolutePath(), iterToMSE);
 
         return numItersToResults;
     }
@@ -118,8 +136,9 @@ public class FullGenomeOEWithinClusters {
 
                 @Override
                 public void kmeansComplete(Cluster[] clusters, long l) {
-                    numCompleted.incrementAndGet();
-                    matrix.processGWKmeansResult(clusters, interSubcompartments, subcompartmentIDsToSize);
+                    double mse = matrix.processGWKmeansResult(directory, description, clusters, interSubcompartments, subcompartmentIDsToSize);
+                    numActualClusters.set(clusters.length);
+                    meanSquaredErrorForRun.set(mse);
                 }
 
                 @Override

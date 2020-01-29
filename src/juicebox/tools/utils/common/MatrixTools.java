@@ -28,6 +28,7 @@ import juicebox.data.ContactRecord;
 import juicebox.tools.utils.juicer.apa.APARegionStatistics;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.jetbrains.bio.npy.NpyFile;
 
 import java.io.*;
@@ -900,6 +901,10 @@ public class MatrixTools {
         NpyFile.write(Paths.get(filename), flattenedArray, new int[]{numRows, numCols});
     }
 
+    public static void saveMatrixTextNumpy(String filename, int[] matrix) {
+        NpyFile.write(Paths.get(filename), matrix, new int[]{1, matrix.length});
+    }
+
     public static float[][] generateCompositeMatrixWithNansCleaned(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
         return generateCompositeMatrixWithNansCleaned(
                 convertToFloatMatrix(matrixDiag1.getData()),
@@ -1061,44 +1066,50 @@ public class MatrixTools {
         return getMainAppendedDerivativeDownColumn(thresholdedData, scaleDerivFactor, derivativeThreshold);
     }
 
+    public static float[][] getNormalizedThresholdedByMedian(float[][] data, float maxVal) {
+
+        double[] medianVal = new double[data.length];
+        for (int i = 0; i < data.length; i++) {
+            medianVal[i] = getMedian(data[i]);
+        }
+
+        float[][] thresholdedData = new float[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                thresholdedData[i][j] = (float) Math.min(maxVal, data[i][j] / medianVal[i]);
+            }
+        }
+
+        return thresholdedData;
+    }
+
+    public static double getMedian(float[] values) {
+        double[] array = new double[values.length];
+        for (int k = 0; k < values.length; k++) {
+            array[k] = values[k];
+        }
+        Median median = new Median();
+        return median.evaluate(array);
+    }
+
 
     public static float[][] getMainAppendedDerivativeDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
 
         int numColumns = data[0].length;
-        int numColumnsMinus1 = data[0].length - 1;
-
-        float[][] derivative = new float[data.length][numColumnsMinus1];
-        for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < numColumnsMinus1; j++) {
-                derivative[i][j] = data[i][j] - data[i][j + 1];
-            }
-        }
-
-        float[] columnSums = getAbsValColSums(derivative);
-        List<Integer> indicesToUse = new ArrayList<>();
-        for (int k = 0; k < columnSums.length; k++) {
-            if (columnSums[k] > 0) {
-                indicesToUse.add(k);
-            }
-        }
-
-        float[][] appendedDerivative = new float[data.length][numColumns + indicesToUse.size()];
+        float[][] derivative = getRelevantDerivativeScaledPositive(data, scaleDerivFactor, threshold);
+        float[][] appendedDerivative = new float[data.length][numColumns + derivative[0].length];
         for (int i = 0; i < data.length; i++) {
             System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
         }
 
         for (int i = 0; i < data.length; i++) {
-            for (int k = 0; k < indicesToUse.size(); k++) {
-                int indexToUse = indicesToUse.get(k);
-
-                appendedDerivative[i][numColumns + k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor));
-            }
+            System.arraycopy(derivative[i], 0, appendedDerivative[i], numColumns, derivative[i].length);
         }
 
         return appendedDerivative;
     }
 
-    public static float[][] getRelevantDerivative(float[][] data) {
+    public static float[][] getRelevantDerivativeScaledPositive(float[][] data, float scaleDerivFactor, float threshold) {
 
         float[][] derivative = new float[data.length][data[0].length - 1];
         for (int i = 0; i < data.length; i++) {
@@ -1120,7 +1131,7 @@ public class MatrixTools {
         for (int i = 0; i < data.length; i++) {
             for (int k = 0; k < indicesToUse.size(); k++) {
                 int indexToUse = indicesToUse.get(k);
-                importantDerivative[i][k] = derivative[i][indexToUse];
+                importantDerivative[i][k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor)) + threshold;
             }
         }
 

@@ -45,11 +45,14 @@ import java.util.*;
  */
 public class Drink extends JuicerCLT {
 
+    public static final int USE_ONLY_DERIVATIVE = 1;
+    public static final int IGNORE_DERIVATIVE = 2;
+
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private final int numIntraIters = 1;
-    private int numIntraClusters = 10;
+    private final int numIntraIters = 2;
+    private int numIntraClusters = 8;
     private final int whichApproachtoUse = 0;
     private int numInterClusters = 8;
     private final List<Dataset> datasetList = new ArrayList<>();
@@ -59,6 +62,8 @@ public class Drink extends JuicerCLT {
     private final double oeThreshold = 4;
     private double[] convolution1d = null;
     private Random generator = new Random(22871L);
+    private int derivativeStatus = 0;
+    private boolean useNormalizationOfRows = false;
 
     public Drink(boolean compareOnlyNotSubcompartment) {
         super("drink [-r resolution] [-k NONE/VC/VC_SQRT/KR] [-m num_clusters] <input1.hic+input2.hic+input3.hic...> <output_file>");
@@ -106,6 +111,8 @@ public class Drink extends JuicerCLT {
         }
 
         convolution1d = juicerParser.getConvolutionOption();
+        derivativeStatus = juicerParser.getUsingDerivativeStatus();
+        useNormalizationOfRows = juicerParser.getUsingRowNomalizationStatus();
     }
 
     private void determineNumClusters(CommandLineParserForJuicer juicerParser) {
@@ -147,10 +154,9 @@ public class Drink extends JuicerCLT {
 
             for (int i = 0; i < datasetList.size(); i++) {
                 FullGenomeOEWithinClusters withinClusters = new FullGenomeOEWithinClusters(datasetList.get(i),
-                        chromosomeHandler, resolution, norm,
-                        maxIters, initialClustering.getFirst().get(i));
+                        chromosomeHandler, resolution, norm, maxIters, initialClustering.getFirst().get(i));
 
-                Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator);
+                Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator, derivativeStatus, useNormalizationOfRows);
                 for (Integer key : gwListMap.keySet()) {
                     GenomeWideList<SubcompartmentInterval> gwList = gwListMap.get(key);
                     DrinkUtils.collapseGWList(gwList);

@@ -110,7 +110,7 @@ public class OddAndEvenClusterer {
             }
             //cleanDataWithDeriv = MatrixTools.getMainAppendedDerivativeDownColumn(cleanDataWithDeriv, 10);
             cleanDataWithDeriv = MatrixTools.getNormalizedThresholdedAndAppendedDerivativeDownColumn(cleanDataWithDeriv, 2, 10, 5);
-            //cleanDataWithDeriv = MatrixTools.getRelevantDerivative(cleanDataWithDeriv);
+            //cleanDataWithDeriv = MatrixTools.getRelevantDerivativeScaledPositive(cleanDataWithDeriv);
             MatrixTools.saveMatrixTextNumpy(new File(directory, description + "." + isTransposed + "clusterdata.npy").getAbsolutePath(), cleanDataWithDeriv);
 
             ConcurrentKMeans kMeans = new ConcurrentKMeans(cleanDataWithDeriv, numClusters, maxIters, seed);
@@ -155,25 +155,20 @@ public class OddAndEvenClusterer {
         MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), pvalues);
     }
 
-    private void saveDistComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+
+    private void saveComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
         int n = clusters.length;
-        double[][] distances = new double[n][n];
-        double[][] distancesNormalized = new double[n][n];
         double[][] numDiffEntries = new double[n][n];
         double[][] numDiffEntriesNormalized = new double[n][n];
         for (int i = 0; i < n; i++) {
             Cluster expected = clusters[i];
             for (int j = 0; j < n; j++) {
-                distances[i][j] = getDistance(clusters[j], expected);
-                distancesNormalized[i][j] = distances[i][j] / clusters[j].getCenter().length;
                 numDiffEntries[i][j] = getNumDiffEntries(clusters[j], expected);
                 numDiffEntriesNormalized[i][j] = numDiffEntries[i][j] / clusters[j].getCenter().length;
             }
         }
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), distances);
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "_normed.npy").getAbsolutePath(), distancesNormalized);
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries.npy").getAbsolutePath(), distances);
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries_normed.npy").getAbsolutePath(), distancesNormalized);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries.npy").getAbsolutePath(), numDiffEntries);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "num_diff_entries_normed.npy").getAbsolutePath(), numDiffEntriesNormalized);
     }
 
     private void saveChiSquareValComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
@@ -201,18 +196,7 @@ public class OddAndEvenClusterer {
         return test.chiSquare(toHalfDoubleArray(expected), toHalfLongArray(observed));
     }
 
-    private double getDistance(Cluster observed, Cluster expected) {
-        float[] expectedArray = expected.getCenter();
-        float[] obsArray = observed.getCenter();
-        double val = 0;
 
-        for (int k = 0; k < obsArray.length; k++) {
-            double v = expectedArray[k] - obsArray[k];
-            val += v * v;
-        }
-
-        return Math.sqrt(val);
-    }
 
     private int getNumDiffEntries(Cluster observed, Cluster expected) {
         float[] expectedArray = expected.getCenter();
