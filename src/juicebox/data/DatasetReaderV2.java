@@ -25,7 +25,6 @@
 package juicebox.data;
 
 
-
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
@@ -34,6 +33,7 @@ import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.Globals;
 import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.CompressionUtils;
@@ -169,9 +169,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 stream.seek(position);
                 fragmentSitesIndex = new HashMap<>();
                 Map<String, Integer> map = new HashMap<>();
+                String firstChrName = null;
                 for (int i = 0; i < nchrs; i++) {
                     String chr = chromosomes.get(i).getName();
-
+                    if (!chr.equals(Globals.CHR_ALL)) {
+                        firstChrName = chr;
+                    }
                     byte[] buffer = new byte[4];
                     stream.readFully(buffer);
                     int nSites = (new LittleEndianInputStream(new ByteArrayInputStream(buffer))).readInt();
@@ -184,7 +187,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     stream.skip(nSites * 4);
                     position += nSites * 4;
                 }
-                dataset.setRestrictionEnzyme(map.get(chromosomes.get(1).getName()));
+                if (firstChrName != null) {
+                    dataset.setRestrictionEnzyme(map.get(firstChrName));
+                }
                 dataset.setFragmentCounts(map);
             }
 
@@ -242,8 +247,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         return zd;
     }
-
-
 
 
     public String readStats() throws IOException {
@@ -445,7 +448,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             try {
                 nExpectedValues = dis.readInt();
-            } catch (EOFException|HttpResponseException e) {
+            } catch (EOFException | HttpResponseException e) {
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("No normalization vectors");
                 }

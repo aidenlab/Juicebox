@@ -458,7 +458,7 @@ public class MainViewPanel {
         annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
         annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-      rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
+        rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
         annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         mainPanel.add(bigPanel, BorderLayout.CENTER);
@@ -541,7 +541,10 @@ public class MainViewPanel {
 
     public void unsafeRefreshChromosomes(SuperAdapter superAdapter) {
 
-        if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
+        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+
+        if (ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2)) {
             chrBox1.setSelectedIndex(0);
             chrBox2.setSelectedIndex(0);
             MatrixType matrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
@@ -552,8 +555,8 @@ public class MainViewPanel {
             }
         }
 
-        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
-        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+        chr1 = (Chromosome) chrBox1.getSelectedItem();
+        chr2 = (Chromosome) chrBox2.getSelectedItem();
 
         Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
@@ -877,8 +880,8 @@ public class MainViewPanel {
         return displayOptionComboBox;
     }
 
-    public void resetResolutionSlider() {
-        resolutionSlider.unit = HiC.Unit.BP;
+    public void resetResolutionSlider(HiC.Unit unit) {
+        resolutionSlider.unit = unit != null ? unit : HiC.Unit.BP;
         resolutionSlider.reset();
     }
 
