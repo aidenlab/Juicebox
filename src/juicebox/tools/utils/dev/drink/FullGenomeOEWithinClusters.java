@@ -36,6 +36,7 @@ import juicebox.windowui.NormalizationType;
 import org.nd4j.linalg.primitives.AtomicDouble;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -51,8 +52,9 @@ public class FullGenomeOEWithinClusters {
     private final GenomeWideList<SubcompartmentInterval> origIntraSubcompartments;
     private final AtomicInteger numActualClusters = new AtomicInteger(0);
     private final AtomicDouble meanSquaredErrorForRun = new AtomicDouble(0);
-    private final int numRounds = 10;
-    private final int minIntervalSize = 2;
+    private final int numRounds = 15;
+    private final int minIntervalSize = 3;
+    private final int numAttemptsForKMeans = 10;
 
     public FullGenomeOEWithinClusters(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
                                       int maxIters, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments) {
@@ -80,30 +82,40 @@ public class FullGenomeOEWithinClusters {
         Map<Integer, Integer> subcompartment1IDsToSize = new HashMap<>();
 
         double[][] iterToMSE = new double[2][numRounds];
+        Arrays.fill(iterToMSE[1], Double.MAX_VALUE);
 
         for (int z = 0; z < numRounds; z++) {
 
-            int k = z + 5;
+            int k = z + 2;
 
-            GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
-            launchKmeansGWMatrix(outputDirectory, "final_gw_" + z + "_", interMatrix, finalCompartments, generator.nextLong(),
-                    subcompartment1IDsToSize, k);
-            while (numActualClusters.get() < 1 && meanSquaredErrorForRun.get() == 0.0) {
-                System.out.print(".");
-                try {
-                    TimeUnit.SECONDS.sleep(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            for (int p = 0; p < numAttemptsForKMeans; p++) {
+
+                // reset for next round
+                UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
+
+                GenomeWideList<SubcompartmentInterval> finalCompartments = new GenomeWideList<>(chromosomeHandler);
+                launchKmeansGWMatrix(outputDirectory, "final_gw_" + k + "_", interMatrix, finalCompartments, generator.nextLong(),
+                        subcompartment1IDsToSize, k);
+
+                while (numActualClusters.get() < 1 && meanSquaredErrorForRun.get() == 0.0) {
+                    System.out.print(".");
+                    try {
+                        TimeUnit.SECONDS.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                System.out.println(".");
+
+                int numClusterThisAttempt = numActualClusters.getAndSet(0);
+                double mseThisAttempt = meanSquaredErrorForRun.getAndSet(0);
+
+                if (mseThisAttempt < iterToMSE[1][z]) {
+                    iterToMSE[0][z] = numClusterThisAttempt;
+                    iterToMSE[1][z] = mseThisAttempt;
+                    numItersToResults.put(k, finalCompartments);
                 }
             }
-            System.out.println(".");
-            iterToMSE[0][z] = numActualClusters.getAndSet(0);
-            iterToMSE[1][z] = meanSquaredErrorForRun.getAndSet(0);
-
-            // reset for next round
-            UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
-
-            numItersToResults.put(k, finalCompartments);
         }
 
         if (minIntervalSize > 0) {

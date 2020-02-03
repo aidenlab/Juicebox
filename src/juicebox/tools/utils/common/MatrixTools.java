@@ -632,6 +632,16 @@ public class MatrixTools {
         return colSum;
     }
 
+    public static int[] getAbsValColSums(int[][] matrix) {
+        int[] colSum = new int[matrix[0].length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                colSum[j] += Math.abs(matrix[i][j]);
+            }
+        }
+        return colSum;
+    }
+
     public static float[] getRowSums(float[][] matrix) {
         float[] rowSum = new float[matrix.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -1132,6 +1142,37 @@ public class MatrixTools {
             for (int k = 0; k < indicesToUse.size(); k++) {
                 int indexToUse = indicesToUse.get(k);
                 importantDerivative[i][k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor)) + threshold;
+            }
+        }
+
+        return importantDerivative;
+    }
+
+    public static float[][] getRelevantDiscreteIntDerivativeScaledPositive(float[][] data, float scaleDerivFactor, float threshold) {
+
+        int[][] derivative = new int[data.length][data[0].length - 1];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length - 1; j++) {
+                float tempVal = (data[i][j] - data[i][j + 1]);
+                tempVal = Math.min(threshold, Math.max(-threshold, tempVal * scaleDerivFactor));
+                derivative[i][j] = Math.round(tempVal);
+            }
+        }
+
+        int[] columnSums = getAbsValColSums(derivative);
+        List<Integer> indicesToUse = new ArrayList<>();
+        for (int k = 0; k < columnSums.length; k++) {
+            if (columnSums[k] > 0) {
+                indicesToUse.add(k);
+            }
+        }
+
+        float[][] importantDerivative = new float[data.length][indicesToUse.size()];
+
+        for (int i = 0; i < data.length; i++) {
+            for (int k = 0; k < indicesToUse.size(); k++) {
+                int indexToUse = indicesToUse.get(k);
+                importantDerivative[i][k] = derivative[i][indexToUse] + threshold;
             }
         }
 

@@ -51,8 +51,8 @@ public class Drink extends JuicerCLT {
     private int resolution = 100000;
     private Dataset ds;
     private File outputDirectory;
-    private final int numIntraIters = 2;
-    private int numIntraClusters = 8;
+    private final int numIntraIters = 3;
+    private int numIntraClusters = 10;
     private final int whichApproachtoUse = 0;
     private int numInterClusters = 8;
     private final List<Dataset> datasetList = new ArrayList<>();

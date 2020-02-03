@@ -340,7 +340,7 @@ public class CompositeGenomeWideDensityMatrix {
             }
         }
 
-        ClusterTools.saveDistComparisonBetweenClusters(directory, description, clusters, ids);
+        ClusterTools.saveDistComparisonBetweenClusters(directory, description + "dist", clusters, ids);
 
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Final MSE " + meanSquaredErrorWithinClusters);
