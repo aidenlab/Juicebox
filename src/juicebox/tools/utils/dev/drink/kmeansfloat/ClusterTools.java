@@ -25,12 +25,29 @@
 package juicebox.tools.utils.dev.drink.kmeansfloat;
 
 import juicebox.tools.utils.common.MatrixTools;
+import org.apache.commons.math.stat.inference.ChiSquareTest;
+import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
 
 import java.io.File;
 
 public class ClusterTools {
 
-    public static void saveDistComparisonBetweenClusters(File directory, String filename, Cluster[] clusters, int[] ids) {
+    public static void performStatisticalAnalysisBetweenClusters(File directory, String description, Cluster[] clusters, int[] ids) {
+
+        File statsFolder = new File(directory, description + "_cluster_stats");
+        statsFolder.mkdir();
+
+        MatrixTools.saveMatrixTextNumpy(new File(statsFolder, description + "cluster.ids.npy").getAbsolutePath(), ids);
+
+        saveClusterSizes(statsFolder, "sizes", clusters);
+        saveDistComparisonBetweenClusters(statsFolder, "distances", clusters);
+        saveComparisonBetweenClusters(statsFolder, "num.differences", clusters);
+        saveChiSquarePvalComparisonBetweenClusters(statsFolder, "chi2.pval", clusters);
+        saveChiSquareValComparisonBetweenClusters(statsFolder, "chi2", clusters);
+
+    }
+
+    private static void saveDistComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
         int n = clusters.length;
         double[][] distances = new double[n][n];
         double[][] distancesNormalized = new double[n][n];
@@ -42,9 +59,61 @@ public class ClusterTools {
             }
         }
 
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".ids.npy").getAbsolutePath(), ids);
         MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), distances);
         MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "_normed.npy").getAbsolutePath(), distancesNormalized);
+    }
+
+    private static void saveChiSquarePvalComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] pvalues = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                pvalues[i][j] = getPvalueChiSquared(clusters[j], expected);
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), pvalues);
+    }
+
+
+    private static void saveComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] numDiffEntries = new double[n][n];
+        double[][] numDiffEntriesNormalized = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                numDiffEntries[i][j] = getNumDiffEntries(clusters[j], expected);
+                numDiffEntriesNormalized[i][j] = numDiffEntries[i][j] / clusters[j].getCenter().length;
+            }
+        }
+
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), numDiffEntries);
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + "_normed.npy").getAbsolutePath(), numDiffEntriesNormalized);
+    }
+
+    private static void saveChiSquareValComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+        double[][] chi2Val = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            Cluster expected = clusters[i];
+            for (int j = 0; j < n; j++) {
+                chi2Val[i][j] = getValueChiSquared(clusters[j], expected);
+            }
+        }
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), chi2Val);
+
+    }
+
+    private static void saveClusterSizes(File directory, String filename, Cluster[] clusters) {
+        int n = clusters.length;
+
+        int[][] sizeClusters = new int[1][n];
+        for (int i = 0; i < n; i++) {
+            sizeClusters[0][i] = clusters[i].getMemberIndexes().length;
+        }
+
+        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), sizeClusters);
     }
 
     public static double getDistance(Cluster observed, Cluster expected) {
@@ -73,6 +142,69 @@ public class ClusterTools {
             newVector[k] = vector[k] / total;
         }
         return newVector;
+    }
+
+    private static double getValueChiSquared(Cluster observed, Cluster expected) {
+        ChiSquareTest test = new ChiSquareTestImpl();
+        try {
+            return test.chiSquare(toHalfDoubleArray(expected), toHalfLongArray(observed));
+        } catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
+    private static double getPvalueChiSquared(Cluster observed, Cluster expected) {
+        ChiSquareTest test = new ChiSquareTestImpl();
+        try {
+            return test.chiSquareTest(toHalfDoubleArray(expected), toHalfLongArray(observed));
+        } catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
+    private static int getNumDiffEntries(Cluster observed, Cluster expected) {
+        float[] expectedArray = expected.getCenter();
+        float[] obsArray = observed.getCenter();
+        int count = 0;
+
+        for (int k = 0; k < obsArray.length; k++) {
+            double v = expectedArray[k] - obsArray[k];
+            v = (v * v) / Math.abs(expectedArray[k]);
+            if (v < .05) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static long[] toHalfLongArray(Cluster cluster) {
+        float[] clusterData = cluster.getCenter();
+        int n = (clusterData.length + 1) / 2; // trim derivative
+        long[] result = new long[n];
+        for (int i = 0; i < n; i++) {
+            result[i] = Math.round(clusterData[i]);
+        }
+        return result;
+    }
+
+    private static double[] toHalfDoubleArray(Cluster cluster) {
+        float[] clusterData = cluster.getCenter();
+        int n = (clusterData.length + 1) / 2; // trim derivative
+        double[] result = new double[n];
+        for (int i = 0; i < n; i++) {
+            result[i] = clusterData[i];
+        }
+        return result;
+    }
+
+    public static Cluster[] clone(Cluster[] input) {
+        Cluster[] clone = new Cluster[input.length];
+        for (int k = 0; k < input.length; k++) {
+            clone[k] = input[k].getClone();
+        }
+
+        return clone;
     }
 }
 

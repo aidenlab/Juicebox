@@ -42,7 +42,7 @@ import java.util.Map;
 
 public class LeftOverClusterIdentifier {
     public static void identify(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                Map<Integer, GenomeWideList<SubcompartmentInterval>> results, GenomeWideList<SubcompartmentInterval> preSubcompartments, int minIntervalSize) {
+                                Map<Integer, GenomeWideList<SubcompartmentInterval>> results, GenomeWideList<SubcompartmentInterval> preSubcompartments, int minIntervalSizeAllowed) {
 
         int threshold = CompositeGenomeWideDensityMatrix.threshold;
 
@@ -77,7 +77,7 @@ public class LeftOverClusterIdentifier {
             List<Integer> indicesMissing = new ArrayList<>();
 
             for (SubcompartmentInterval preInterv : preIntervals) {
-                if (preInterv.getWidthForResolution(resolution) <= minIntervalSize) {
+                if (preInterv.getWidthForResolution(resolution) < minIntervalSizeAllowed) {
                     int binXStart = preInterv.getX1() / resolution;
                     int binXEnd = preInterv.getX2() / resolution;
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,17 @@
 package juicebox.tools.utils.dev.drink.kmeansfloat;
 
 
+import java.util.Arrays;
+
 /**
  * Class to represent a cluster of coordinates.
  */
 public class Cluster {
 
     // Indices of the member coordinates.
-    private final int[] mMemberIndexes;
+    private final int[] memberIndexes;
     // The cluster center.
-    private final float[] mCenter;
+    private final float[] center;
 
     /**
      * Constructor.
@@ -42,8 +44,8 @@ public class Cluster {
      * @param center        the cluster center.
      */
     public Cluster(int[] memberIndexes, float[] center) {
-        mMemberIndexes = memberIndexes;
-        mCenter = center;
+        this.memberIndexes = memberIndexes;
+        this.center = center;
     }
 
     /**
@@ -52,7 +54,7 @@ public class Cluster {
      * @return an array containing the indices of the member coordinates.
      */
     public int[] getMemberIndexes() {
-        return mMemberIndexes;
+        return memberIndexes;
     }
 
     /**
@@ -61,8 +63,17 @@ public class Cluster {
      * @return a reference to the cluster center array.
      */
     public float[] getCenter() {
-        return mCenter;
+        return center;
     }
 
+    public Cluster getClone() {
+        if (memberIndexes != null && center != null) {
+            int[] membersCopy = Arrays.copyOf(memberIndexes, memberIndexes.length);
+            float[] centerCopy = Arrays.copyOf(center, center.length);
+            return new Cluster(membersCopy, centerCopy);
+        }
+
+        return null;
+    }
 }
 

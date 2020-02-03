@@ -58,7 +58,6 @@ public class Drink extends JuicerCLT {
     private final List<Dataset> datasetList = new ArrayList<>();
     private List<String> inputHicFilePaths = new ArrayList<>();
     private final boolean compareOnlyNotSubcompartment;
-    private final int maxIters = 20000;
     private final double oeThreshold = 4;
     private double[] convolution1d = null;
     private Random generator = new Random(22871L);
@@ -132,8 +131,9 @@ public class Drink extends JuicerCLT {
 
         if (datasetList.size() < 1) return;
 
-        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numIntraClusters, generator, maxIters, oeThreshold, convolution1d, numIntraIters);
-        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo(outputDirectory, inputHicFilePaths);
+        InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numIntraClusters, generator, oeThreshold, convolution1d, numIntraIters);
+        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo();
+        System.out.println("\nInitial clustering done");
 
         for (int i = 0; i < datasetList.size(); i++) {
             initialClustering.getFirst().get(i).simpleExport(new File(outputDirectory, DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + "." + i + ".init.bed"));
@@ -154,7 +154,7 @@ public class Drink extends JuicerCLT {
 
             for (int i = 0; i < datasetList.size(); i++) {
                 FullGenomeOEWithinClusters withinClusters = new FullGenomeOEWithinClusters(datasetList.get(i),
-                        chromosomeHandler, resolution, norm, maxIters, initialClustering.getFirst().get(i));
+                        chromosomeHandler, resolution, norm, initialClustering.getFirst().get(i));
 
                 Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator, derivativeStatus, useNormalizationOfRows);
                 for (Integer key : gwListMap.keySet()) {
@@ -162,6 +162,7 @@ public class Drink extends JuicerCLT {
                     DrinkUtils.collapseGWList(gwList);
                     gwList.simpleExport(new File(outputDirectory, "gw_full_" + key + "_clusters_" + DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + ".subcompartment.bed"));
                 }
+                System.out.println("\nClustering complete");
             }
         }
     }

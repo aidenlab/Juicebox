@@ -39,7 +39,6 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
-import java.io.File;
 import java.util.*;
 
 public class CompositeGenomeWideDensityMatrix {
@@ -50,11 +49,11 @@ public class CompositeGenomeWideDensityMatrix {
     private final Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
     private final Chromosome[] chromosomes;
     public static int threshold = 2;
-    private final int minIntervalSize;
+    private final int minIntervalSizeAllowed;
 
     public CompositeGenomeWideDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments, int derivativeStatus, boolean useNormalizationOfRows, int minIntervalSize) {
-        this.minIntervalSize = minIntervalSize;
+                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments, int derivativeStatus, boolean useNormalizationOfRows, int minIntervalSizeAllowed) {
+        this.minIntervalSizeAllowed = minIntervalSizeAllowed;
         this.norm = norm;
         this.resolution = resolution;
         this.intraSubcompartments = intraSubcompartments;
@@ -109,7 +108,7 @@ public class CompositeGenomeWideDensityMatrix {
             List<SubcompartmentInterval> intervals = intraSubcompartments.getFeatures("" + chrom.getIndex());
             for (SubcompartmentInterval interval : intervals) {
                 int numCols = interval.getWidthForResolution(resolution);
-                if (numCols > minIntervalSize) {
+                if (numCols >= minIntervalSizeAllowed) {
                     val += numCols;
                 }
             }
@@ -174,10 +173,10 @@ public class CompositeGenomeWideDensityMatrix {
         Map<String, Float> allContactsBetweenClusters = new HashMap<>();
 
         for (SubcompartmentInterval interv1 : intervals1) {
-            if (interv1.getWidthForResolution(resolution) > minIntervalSize) {
+            if (interv1.getWidthForResolution(resolution) >= minIntervalSizeAllowed) {
                 Integer id1 = interv1.getClusterID();
                 for (SubcompartmentInterval interv2 : intervals2) {
-                    if (interv2.getWidthForResolution(resolution) > minIntervalSize) {
+                    if (interv2.getWidthForResolution(resolution) >= minIntervalSizeAllowed) {
                         Integer id2 = interv2.getClusterID();
                         String regionKey = id1 + "-" + id2;
 
@@ -227,12 +226,12 @@ public class CompositeGenomeWideDensityMatrix {
         for (SubcompartmentInterval interv1 : intervals1) {
             Integer id1 = interv1.getClusterID();
             int numRows = interv1.getWidthForResolution(resolution);
-            if (numRows > minIntervalSize) {
+            if (numRows >= minIntervalSizeAllowed) {
                 int internalOffset2 = offsetIndex2;
                 for (SubcompartmentInterval interv2 : intervals2) {
                     Integer id2 = interv2.getClusterID();
                     int numCols = interv2.getWidthForResolution(resolution);
-                    if (numCols > minIntervalSize) {
+                    if (numCols >= minIntervalSizeAllowed) {
                         String regionKey = id1 + "-" + id2;
                         float density = densityBetweenClusters.get(regionKey);
                         updateMasterMatrixWithRegionalDensities(matrix, density, interv1, internalOffset1, numRows, interv2, internalOffset2, numCols, isIntra);
@@ -292,11 +291,12 @@ public class CompositeGenomeWideDensityMatrix {
         return total;
     }
 
-    public synchronized double processGWKmeansResult(File directory, String description, Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments,
-                                                     Map<Integer, Integer> subcompartmentIDsToSize) {
+    public synchronized Pair<Double, int[]> processGWKmeansResult(Cluster[] clusters, GenomeWideList<SubcompartmentInterval> subcompartments) {
 
         Set<SubcompartmentInterval> subcompartmentIntervals = new HashSet<>();
-        System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("GW Composite data vs clustered into " + clusters.length + " clusters");
+        }
 
         double meanSquaredErrorWithinClusters = 0;
 
@@ -305,7 +305,6 @@ public class CompositeGenomeWideDensityMatrix {
             Cluster cluster = clusters[z];
             int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.incrementAndGet();
             ids[z] = currentClusterID;
-            subcompartmentIDsToSize.put(currentClusterID, cluster.getMemberIndexes().length);
 
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("Size of cluster " + currentClusterID + " - " + cluster.getMemberIndexes().length);
@@ -340,8 +339,6 @@ public class CompositeGenomeWideDensityMatrix {
             }
         }
 
-        ClusterTools.saveDistComparisonBetweenClusters(directory, description + "dist", clusters, ids);
-
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Final MSE " + meanSquaredErrorWithinClusters);
         }
@@ -349,7 +346,7 @@ public class CompositeGenomeWideDensityMatrix {
         subcompartments.addAll(new ArrayList<>(subcompartmentIntervals));
         DrinkUtils.reSort(subcompartments);
 
-        return meanSquaredErrorWithinClusters;
+        return new Pair<>(meanSquaredErrorWithinClusters, ids);
     }
 
     public float[][] getCleanedData() {
