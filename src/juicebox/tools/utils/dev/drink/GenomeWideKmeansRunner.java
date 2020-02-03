@@ -57,20 +57,15 @@ public class GenomeWideKmeansRunner {
     private int numClusters = 0;
 
     public GenomeWideKmeansRunner(ChromosomeHandler chromosomeHandler, CompositeGenomeWideDensityMatrix interMatrix, Random generator) {
-
         matrix = interMatrix;
         this.generator = generator;
         this.chromosomeHandler = chromosomeHandler;
-
-        // set for new round
-        UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
-        recentClusters = null;
-        recentIDs = null;
-
-
     }
 
     public void prepareForNewRun(int numClusters) {
+        UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
+        recentClusters = null;
+        recentIDs = null;
         this.numClusters = numClusters;
         numActualClusters.set(0);
         meanSquaredErrorForRun.set(0);

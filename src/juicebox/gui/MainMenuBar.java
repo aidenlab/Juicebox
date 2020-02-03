@@ -518,15 +518,25 @@ public class MainMenuBar extends JMenuBar {
     devMenu = new JMenu("Dev");
     devMenu.setEnabled(false);
 
-    final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
-    addCustomNorms.addActionListener(new ActionListener() {
+      final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
+      addCustomNormsObs.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        superAdapter.safeLaunchImportNormalizations();
+          superAdapter.safeLaunchImportNormalizations(false);
       }
     });
+
+      final JMenuItem addCustomNormsCtrl = new JMenuItem("Add Custom Norms to Control...");
+      addCustomNormsCtrl.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              superAdapter.safeLaunchImportNormalizations(true);
+          }
+      });
+
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-      devMenu.add(addCustomNorms);
+        devMenu.add(addCustomNormsObs);
+        devMenu.add(addCustomNormsCtrl);
     }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");

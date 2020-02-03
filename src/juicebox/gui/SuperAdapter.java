@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1047,7 +1047,7 @@ public class SuperAdapter {
         }
     }
 
-    public void safeLaunchImportNormalizations() {
+    public void safeLaunchImportNormalizations(boolean isControl) {
 
         final File[] files = FileDialogUtils.chooseMultiple("Choose custom normalization file(s)",
                 LoadDialog.LAST_LOADED_HIC_FILE_PATH, null);
@@ -1057,9 +1057,15 @@ public class SuperAdapter {
                 if (files != null && files.length > 0) {
                     LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
 
-                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
-                    mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
-                            hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, isControl);
+
+                    boolean versionStatus = hic.getDataset().getVersion() >= HiCGlobals.minVersion;
+                    if (isControl) {
+                        versionStatus = hic.getControlDataset().getVersion() >= HiCGlobals.minVersion;
+                    }
+
+                    mainViewPanel.setEnabledForNormalization(isControl, hic.getNormalizationOptions(isControl), versionStatus);
                     repaint();
                 }
             }
