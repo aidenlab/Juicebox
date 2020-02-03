@@ -72,7 +72,7 @@ public abstract class JuiceboxCLT {
         if (norm == null) {
             System.err.println("Normalization type " + norm + " unrecognized.  Normalization type must be one of \n" +
                     "\"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
-                    " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+                    " \"GW_VC\", \"INTER_KR\", \"INTER_VC\", or a custom added normalization.");
             System.exit(16);
         }
     }

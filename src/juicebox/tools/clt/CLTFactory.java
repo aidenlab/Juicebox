@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,6 +81,8 @@ public class CLTFactory {
             return new PreProcessing();
         } else if (cmd.equals("dump")) {
             return new Dump();
+        } else if (cmd.equals("compare-vectors")) {
+            return new CompareVectors();
         } else if (cmd.equals("validate")) {
             return new ValidateFile();
         } else if (cmd.equals("addGWNorm".toLowerCase())) {
