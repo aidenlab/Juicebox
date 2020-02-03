@@ -167,7 +167,7 @@ public class MainViewPanel {
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
-        chrBox1 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox1 = new JComboBox<>(); //new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox1.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -178,7 +178,7 @@ public class MainViewPanel {
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
-        chrBox2 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox2 = new JComboBox<>(); //new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox2.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
