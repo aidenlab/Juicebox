@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -243,7 +243,7 @@ public class APA extends JuicerCLT {
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             ChromosomeHandler handler = ds.getChromosomeHandler();
-            if (givenChromosomes != null) //_where was this var declared?
+            if (givenChromosomes != null)
                 handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
             // Metrics resulting from apa filtering

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.dev.drink;
 
+import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
@@ -54,7 +55,7 @@ public class InitialClusterer {
     private final AtomicInteger numRunsToExpect = new AtomicInteger();
     private final AtomicInteger numRunsDone = new AtomicInteger();
     private final double maxPercentAllowBeZero = 0.75;
-    private final int maxIters;
+    private final int maxIters = 20000;
     private final List<Dataset> datasets;
     private final int numDatasets;
     private final ChromosomeHandler chromosomeHandler;
@@ -69,15 +70,18 @@ public class InitialClusterer {
     private double[] convolution1d;
 
     public InitialClusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                            int numClusters, long[] randomSeeds, int maxIters, double logThreshold, double[] convolution1d) {
+                            int numClusters, Random generator, double logThreshold, double[] convolution1d, int numIters) {
         this.datasets = datasets;
         numDatasets = datasets.size();
         this.chromosomeHandler = chromosomeHandler;
         this.resolution = resolution;
         this.norm = norm;
         this.numClusters = numClusters;
-        this.randomSeeds = randomSeeds;
-        this.maxIters = maxIters;
+        this.randomSeeds = new long[numIters];
+        for (int i = 0; i < numIters; i++) {
+            randomSeeds[i] = generator.nextLong();
+        }
+
         this.logThreshold = logThreshold;
         this.convolution1d = convolution1d;
 
@@ -111,20 +115,18 @@ public class InitialClusterer {
         return metaIDToCentroidMap;
     }
 
-    /**
-     * @param outputDirectory
-     * @param inputHicFilePaths
-     */
-    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> extractAllComparativeIntraSubcompartmentsTo(File outputDirectory, List<String> inputHicFilePaths) {
+    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> extractAllComparativeIntraSubcompartmentsTo() {
 
         // each ds will need a respective list of assigned subcompartments
 
         Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = getCleanedDatasets();
         for (long seed : randomSeeds) {
-            System.out.println("****Cluster with seed " + seed);
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("** Cluster with seed " + seed);
+            }
             for (Chromosome chromosome : dataCleanerV2MapForChrom.keySet()) {
                 DataCleanerV2 cleanedData = dataCleanerV2MapForChrom.get(chromosome);
-                launchKMeansClustering(outputDirectory, chromosome, cleanedData, seed);
+                launchKMeansClustering(chromosome, cleanedData, seed);
             }
             waitWhileCodeRuns();
         }
@@ -137,7 +139,7 @@ public class InitialClusterer {
     }
 
 
-    private void launchKMeansClustering(File directory, Chromosome chromosome, DataCleanerV2 dataCleaner, long randomSeed) {
+    private void launchKMeansClustering(Chromosome chromosome, DataCleanerV2 dataCleaner, long randomSeed) {
         ConcurrentKMeans kMeans = new ConcurrentKMeans(dataCleaner.getCleanedData(), numClusters,
                 maxIters, randomSeed);
 
@@ -149,8 +151,11 @@ public class InitialClusterer {
 
             @Override
             public void kmeansComplete(Cluster[] clusters, long l) {
-                System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
-                //saveChiSquareComparisonBetweenClusters(directory, chromosome.getName()+"_"+randomSeed, clusters);
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
+                }
+                System.out.print(".");
+
                 List<Map<Integer, List<Integer>>> mapOfClusterIDForIndexForChrom = dataCleaner.postProcessKmeansResultV2(clusters, idToCentroidMap);
                 mapIterationRunToGlobalMap(chromosome, mapOfClusterIDForIndexForChrom);
                 numRunsDone.incrementAndGet();
@@ -213,7 +218,7 @@ public class InitialClusterer {
 
                 for (Dataset ds : datasets) {
                     RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, chromosome, resolution,
-                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED);
+                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, false);
                     if (localizedRegionData != null) {
                         matrices.add(localizedRegionData.getData());
                     }

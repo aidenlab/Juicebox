@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -434,10 +434,19 @@ public class HiCFileTools {
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
     }
 
-    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold, ExtractingOEDataUtils.ThresholdType thresholdType) throws IOException {
+    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm,
+                                                          double logThreshold, ExtractingOEDataUtils.ThresholdType thresholdType, boolean fillUnderDiagonal) throws IOException {
 
         final MatrixZoomData zd = getMatrixZoomData(ds, chromosome, chromosome, resolution);
         if (zd == null) return null;
+
+        return getRealOEMatrixForChromosome(ds, zd, chromosome, resolution, norm, logThreshold, thresholdType, fillUnderDiagonal);
+
+    }
+
+    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, MatrixZoomData zd, Chromosome chromosome,
+                                                          int resolution, NormalizationType norm, double logThreshold,
+                                                          ExtractingOEDataUtils.ThresholdType thresholdType, boolean fillUnderDiagonal) throws IOException {
 
         ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
 
@@ -446,7 +455,7 @@ public class HiCFileTools {
 
         return ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
                 0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
-                false, thresholdType);
+                fillUnderDiagonal, thresholdType);
 
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.dev.Drink;
 import juicebox.tools.dev.Grind;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -92,6 +93,12 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option useIterationDownDiagonalOption = addBooleanOption("iterate-down-diagonal");
     private final Option useDistortionOption = addBooleanOption("iterate-distortions");
 
+    // DRINKS
+    private final Option useDerivativeOption = addBooleanOption("derivative");
+    private final Option ignoreDerivativeOption = addBooleanOption("ignore-derivative");
+    private final Option usingRowNormalizationOption = addBooleanOption("normalize-rows");
+
+
     public CommandLineParserForJuicer() {
     }
 
@@ -113,6 +120,18 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         opt = getOptionValue(useDistortionOption);
         if (opt != null) return Grind.DISTORTION_OPTION;
         return 0;
+    }
+
+    public int getUsingDerivativeStatus() {
+        Object opt = getOptionValue(useDerivativeOption);
+        if (opt != null) return Drink.USE_ONLY_DERIVATIVE;
+        opt = getOptionValue(ignoreDerivativeOption);
+        if (opt != null) return Drink.IGNORE_DERIVATIVE;
+        return 0;
+    }
+
+    public boolean getUsingRowNomalizationStatus() {
+        return optionToBoolean(usingRowNormalizationOption);
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {

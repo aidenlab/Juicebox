@@ -86,7 +86,7 @@ public class DistortionFinder extends RegionFinder {
             float[][] compositeMatrix = generateCompositeMatrixWithNansCleanedFromZDS(zd1, zd2, zd12,
                     box1RectUL, box1RectLR, box2RectUL, box2RectLR, imgHalfSliceWidth, norm);
 
-            if (GrindUtils.isTooEmpty(compositeMatrix)) return false;
+            if (!GrindUtils.isJustEmptyEnough(compositeMatrix)) return false;
 
             float[][] labelsMatrix = GrindUtils.generateDefaultDistortionLabelsFile(compositeMatrix.length, 4, isContinuousRegion);
             //GrindUtils.cleanUpLabelsMatrixBasedOnData(labelsMatrix, compositeMatrix);

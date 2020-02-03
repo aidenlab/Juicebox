@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,10 +62,12 @@ public class ExtractingOEDataUtils {
                             oeVal = Math.log(oeVal / expected);
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                             oeVal = (oeVal + threshold) / (2 * threshold);
-                        } else if (thresholdType.equals(ThresholdType.LINEAR_INVERSE_OE_BOUNDED)) {
+                        } else if (thresholdType.equals(ThresholdType.LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE)) {
                             oeVal = oeVal / expected;
                             if (oeVal < 1) {
-                                oeVal = -1.0 / oeVal;
+                                oeVal = 1 - 1 / oeVal;
+                            } else {
+                                oeVal -= 1;
                             }
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                             oeVal = (oeVal + threshold) / (2 * threshold);
@@ -86,7 +88,7 @@ public class ExtractingOEDataUtils {
     }
 
 
-    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, LINEAR_INVERSE_OE_BOUNDED}
+    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE}
 
     private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
         int x = rec.getBinX();

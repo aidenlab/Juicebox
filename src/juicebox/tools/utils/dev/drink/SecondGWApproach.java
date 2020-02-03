@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,82 +24,15 @@
 
 package juicebox.tools.utils.dev.drink;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
-import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SecondGWApproach {
 
-    /**
-     * @param ds
-     * @param chromosomeHandler
-     * @param resolution
-     * @param norm
-     * @param outputDirectory
-     * @param numClusters
-     * @param maxIters
-     * @param logThreshold
-     * @param origIntraSubcompartments
-     * @param connectedComponentThreshold
-     * @return
-     * @deprecate
-     */
-    public static GenomeWideList<SubcompartmentInterval>
-    extractFinalGWSubcompartments(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                                  File outputDirectory, int numClusters, int maxIters, double logThreshold,
-                                  GenomeWideList<SubcompartmentInterval> origIntraSubcompartments, int connectedComponentThreshold) {
-
-        Chromosome[] chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
-
-        AtomicInteger numToExpect = new AtomicInteger(0);
-        AtomicInteger numCompleted = new AtomicInteger(0);
-
-        Map<Integer, GenomeWideList<SubcompartmentInterval>> interSubcompartmentMap = new HashMap<>();
-
-        for (Chromosome chromosome : chromosomes) {
-            final ScaledInterchromosomalMatrix interMatrix = new ScaledInterchromosomalMatrix(chromosome,
-                    chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, logThreshold);
-
-            File outputFile = new File(outputDirectory, "inter_" + chromosome.getIndex() + "_matrix_data.txt");
-            MatrixTools.exportData(interMatrix.getCleanedData(), outputFile);
-
-
-            GenomeWideList<SubcompartmentInterval> interSubcompartments = new GenomeWideList<>(chromosomeHandler);
-            launchKmeansInterMatrix(interMatrix, interSubcompartments, numClusters, maxIters, numToExpect, numCompleted);
-            interSubcompartmentMap.put(chromosome.getIndex(), interSubcompartments);
-
-
-        }
-
-        while (numToExpect.get() > numCompleted.get()) {
-            System.out.println("So far portion completed is " + numCompleted.get() + "/" + numToExpect.get());
-            System.out.println("Wait another minute");
-            try {
-                TimeUnit.MINUTES.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for (Integer key : interSubcompartmentMap.keySet()) {
-            File outputFile = new File(outputDirectory, "inter_kmeans_" + key + "_clusters.bed");
-            interSubcompartmentMap.get(key).simpleExport(outputFile);
-        }
-
-        return mergeIntraAndInterAnnotations(outputDirectory, origIntraSubcompartments, interSubcompartmentMap, connectedComponentThreshold);
-    }
 
     private static GenomeWideList<SubcompartmentInterval>
     mergeIntraAndInterAnnotations(File outputDirectory, GenomeWideList<SubcompartmentInterval> origIntraSubcompartments,
@@ -143,41 +76,6 @@ public class SecondGWApproach {
         Set<Set<Integer>> connectedComponents = ConnectedComponents.calculateConnectedComponents(adjacencyMatrix, connectedComponentThreshold);
 
         return ConnectedComponents.stitchSubcompartments(connectedComponents, origIntraSubcompartments);
-    }
-
-
-    private static void launchKmeansInterMatrix(final ScaledInterchromosomalMatrix matrix,
-                                                final GenomeWideList<SubcompartmentInterval> interSubcompartments, int numClusters,
-                                                int maxIters, AtomicInteger numToExpect, final AtomicInteger numCompleted) {
-
-        if (matrix.getLength() > 0) {
-
-            ConcurrentKMeans kMeans = new ConcurrentKMeans(matrix.getCleanedData(), numClusters,
-                    maxIters, 128971L);
-
-            KMeansListener kMeansListener = new KMeansListener() {
-                @Override
-                public void kmeansMessage(String s) {
-                }
-
-                @Override
-                public void kmeansComplete(Cluster[] clusters, long l) {
-                    numCompleted.incrementAndGet();
-                    matrix.processGWKmeansResult(clusters, interSubcompartments);
-                }
-
-                @Override
-                public void kmeansError(Throwable throwable) {
-                    throwable.printStackTrace();
-                    System.err.println("gw drink - err - " + throwable.getLocalizedMessage());
-                    System.exit(98);
-                }
-            };
-            kMeans.addKMeansListener(kMeansListener);
-            numToExpect.incrementAndGet();
-            kMeans.run();
-
-        }
     }
 }
 
