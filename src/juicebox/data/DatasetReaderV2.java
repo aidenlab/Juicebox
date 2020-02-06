@@ -135,8 +135,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 position += 4;
 
                 chromosomes.add(new Chromosome(i, ChromosomeHandler.cleanUpName(name), size));
-            } // todo is the genomewide chr included already?
-            dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes, false));
+            }
+            boolean createWholeChr = false;
+            dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes, createWholeChr));
             // guess genomeID from chromosomes
             String genomeId1 = dataset.getChromosomeHandler().getGenomeId();
             // if cannot find matching genomeID, set based on file
