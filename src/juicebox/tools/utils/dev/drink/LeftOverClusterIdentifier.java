@@ -42,9 +42,7 @@ import java.util.Map;
 
 public class LeftOverClusterIdentifier {
     public static void identify(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                Map<Integer, GenomeWideList<SubcompartmentInterval>> results, GenomeWideList<SubcompartmentInterval> preSubcompartments, int minIntervalSizeAllowed) {
-
-        int threshold = CompositeGenomeWideDensityMatrix.threshold;
+                                Map<Integer, GenomeWideList<SubcompartmentInterval>> results, GenomeWideList<SubcompartmentInterval> preSubcompartments, int minIntervalSizeAllowed, float threshold) {
 
         for (Chromosome chr1 : chromosomeHandler.getAutosomalChromosomesArray()) {
             final MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr1, resolution);

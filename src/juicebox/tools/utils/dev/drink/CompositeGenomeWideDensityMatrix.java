@@ -48,31 +48,33 @@ public class CompositeGenomeWideDensityMatrix {
     private final float[][] gwCleanMatrix;
     private final Map<Integer, SubcompartmentInterval> indexToIntervalMap = new HashMap<>();
     private final Chromosome[] chromosomes;
-    public static int threshold = 2;
+    private final float threshold;
     private final int minIntervalSizeAllowed;
+    private final int OFFSET = 1;
 
     public CompositeGenomeWideDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
-                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments, int derivativeStatus, boolean useNormalizationOfRows, int minIntervalSizeAllowed) {
+                                            GenomeWideList<SubcompartmentInterval> intraSubcompartments, float oeThreshold, int derivativeStatus, boolean useNormalizationOfRows, int minIntervalSizeAllowed) {
         this.minIntervalSizeAllowed = minIntervalSizeAllowed;
         this.norm = norm;
         this.resolution = resolution;
         this.intraSubcompartments = intraSubcompartments;
+        threshold = oeThreshold;
         chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
         if (useNormalizationOfRows) {
             if (derivativeStatus == Drink.USE_ONLY_DERIVATIVE) {
-                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), 2 * threshold, threshold / 2), threshold);
+                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), threshold / 2, threshold), threshold);
             } else if (derivativeStatus == Drink.IGNORE_DERIVATIVE) {
                 gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(makeCleanScaledInterMatrix(ds), threshold);
             } else {
-                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), 2 * threshold, threshold / 2), threshold);
+                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), threshold / 2, threshold), threshold);
             }
         } else {
             if (derivativeStatus == Drink.USE_ONLY_DERIVATIVE) {
-                gwCleanMatrix = MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), 2 * threshold, threshold / 2);
+                gwCleanMatrix = MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), threshold / 2, threshold);
             } else if (derivativeStatus == Drink.IGNORE_DERIVATIVE) {
                 gwCleanMatrix = makeCleanScaledInterMatrix(ds);
             } else {
-                gwCleanMatrix = MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), 2 * threshold, threshold / 2);
+                gwCleanMatrix = MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), threshold / 2, threshold);
             }
         }
     }
@@ -144,8 +146,8 @@ public class CompositeGenomeWideDensityMatrix {
         float[][] allDataForRegion = null;
         try {
             if (isIntra) {
-                RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, zd, chr1, resolution,
-                        norm, threshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, true);
+                //RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, zd, chr1, resolution, norm, threshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, true);
+                RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, zd, chr1, resolution, norm, threshold, ExtractingOEDataUtils.ThresholdType.LOG_OE_SCALED_BOUNDED_MADE_POS, true);
                 allDataForRegion = MatrixTools.convertToFloatMatrix(localizedRegionData.getData());
             } else {
                 RealMatrix allDataForRegionMatrix = HiCFileTools.extractLocalBoundedRegion(zd, 0, lengthChr1, 0, lengthChr2, lengthChr1, lengthChr2, norm, isIntra);
@@ -180,8 +182,8 @@ public class CompositeGenomeWideDensityMatrix {
                         Integer id2 = interv2.getClusterID();
                         String regionKey = id1 + "-" + id2;
 
-                        float countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, interv2);
-                        int areaBetweenClusters = interv1.getWidthForResolution(resolution) * interv2.getWidthForResolution(resolution);
+                        float countsBetweenClusters = getSumTotalCounts(allDataForRegion, interv1, interv2, OFFSET);
+                        int areaBetweenClusters = (interv1.getWidthForResolution(resolution) - 2 * OFFSET) * (interv2.getWidthForResolution(resolution) - 2 * OFFSET);
 
                         if (allAreaBetweenClusters.containsKey(regionKey)) {
                             allAreaBetweenClusters.put(regionKey, allAreaBetweenClusters.get(regionKey) + areaBetweenClusters);
@@ -209,16 +211,17 @@ public class CompositeGenomeWideDensityMatrix {
         for (String key : allAreaBetweenClusters.keySet()) {
             float initDensityOE = densityBetweenClusters.get(key) / avgDensity;
             /*
-              was in 140
+            //  was in 140
+
             if (initDensityOE < 1) {
                 initDensityOE = 1 - 1 / initDensityOE;
             } else {
                 initDensityOE -= 1;
             }
 
-             */
+            // */
 
-            initDensityOE = Math.min(threshold, Math.max(-threshold, initDensityOE));
+            initDensityOE = ((float) Math.min(threshold, Math.max(-threshold, Math.log(initDensityOE)))) + threshold;
             densityBetweenClusters.put(key, initDensityOE);
         }
 
@@ -263,7 +266,7 @@ public class CompositeGenomeWideDensityMatrix {
         }
     }
 
-    private float getSumTotalCounts(float[][] allDataForRegion, SubcompartmentInterval interv1, SubcompartmentInterval interv2) {
+    private float getSumTotalCounts(float[][] allDataForRegion, SubcompartmentInterval interv1, SubcompartmentInterval interv2, int offset) {
         float total = 0;
         int binXStart = interv1.getX1() / resolution;
         int binXEnd = interv1.getX2() / resolution;
@@ -271,8 +274,8 @@ public class CompositeGenomeWideDensityMatrix {
         int binYStart = interv2.getX1() / resolution;
         int binYEnd = interv2.getX2() / resolution;
 
-        for (int i = binXStart; i < binXEnd; i++) {
-            for (int j = binYStart; j < binYEnd; j++) {
+        for (int i = binXStart + offset; i < binXEnd - offset; i++) {
+            for (int j = binYStart + offset; j < binYEnd - offset; j++) {
                 try {
                     if (!Float.isNaN(allDataForRegion[i][j])) {
                         total += allDataForRegion[i][j];

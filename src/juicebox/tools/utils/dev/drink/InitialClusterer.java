@@ -29,19 +29,14 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
-import juicebox.tools.utils.dev.drink.kmeans.ConcurrentKMeans;
-import juicebox.tools.utils.dev.drink.kmeans.KMeansListener;
+import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
+import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
+import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.MathException;
 import org.apache.commons.math.linear.RealMatrix;
-import org.apache.commons.math.stat.inference.ChiSquareTest;
-import org.apache.commons.math.stat.inference.ChiSquareTestImpl;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -66,11 +61,11 @@ public class InitialClusterer {
     private final int numClusters;
     private final List<Map<Chromosome, Map<Integer, List<Integer>>>> mapPosIndexToCluster = new ArrayList<>();
     private final List<GenomeWideList<SubcompartmentInterval>> comparativeSubcompartments = new ArrayList<>();
-    private Map<Integer, double[]> idToCentroidMap = new HashMap<>();
+    private Map<Integer, float[]> idToCentroidMap = new HashMap<>();
     private double[] convolution1d;
 
     public InitialClusterer(List<Dataset> datasets, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                            int numClusters, Random generator, double logThreshold, double[] convolution1d, int numIters) {
+                            int numClusters, Random generator, float logThreshold, double[] convolution1d, int numIters) {
         this.datasets = datasets;
         numDatasets = datasets.size();
         this.chromosomeHandler = chromosomeHandler;
@@ -91,9 +86,9 @@ public class InitialClusterer {
         }
     }
 
-    private static Map<Integer, double[]> generateMetaCentroidMap(Map<Integer, double[]> originalIDToCentroidMap, Map<Integer, List<Integer>> metaCIDtoOriginalCIDs) {
+    private static Map<Integer, float[]> generateMetaCentroidMap(Map<Integer, float[]> originalIDToCentroidMap, Map<Integer, List<Integer>> metaCIDtoOriginalCIDs) {
 
-        Map<Integer, double[]> metaIDToCentroidMap = new HashMap<>();
+        Map<Integer, float[]> metaIDToCentroidMap = new HashMap<>();
         for (Integer metaID : metaCIDtoOriginalCIDs.keySet()) {
             List<Integer> origIDs = metaCIDtoOriginalCIDs.get(metaID);
             int comboLength = 0;
@@ -101,10 +96,10 @@ public class InitialClusterer {
                 comboLength += originalIDToCentroidMap.get(origID).length;
             }
 
-            double[] comboVector = new double[comboLength];
+            float[] comboVector = new float[comboLength];
             int offsetIndex = 0;
             for (Integer origID : origIDs) {
-                double[] currentVector = originalIDToCentroidMap.get(origID);
+                float[] currentVector = originalIDToCentroidMap.get(origID);
                 System.arraycopy(currentVector, 0, comboVector, offsetIndex, currentVector.length);
                 offsetIndex += currentVector.length;
             }
@@ -115,7 +110,7 @@ public class InitialClusterer {
         return metaIDToCentroidMap;
     }
 
-    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> extractAllComparativeIntraSubcompartmentsTo() {
+    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> extractAllComparativeIntraSubcompartmentsTo() {
 
         // each ds will need a respective list of assigned subcompartments
 
@@ -133,7 +128,7 @@ public class InitialClusterer {
 
         Map<Integer, List<Integer>> metaCIDtoOriginalCIDs = collapseClustersAcrossRuns();
 
-        Map<Integer, double[]> metaIDToCentroidMap = generateMetaCentroidMap(idToCentroidMap, metaCIDtoOriginalCIDs);
+        Map<Integer, float[]> metaIDToCentroidMap = generateMetaCentroidMap(idToCentroidMap, metaCIDtoOriginalCIDs);
 
         return new Pair<>(comparativeSubcompartments, metaIDToCentroidMap);
     }
@@ -218,7 +213,7 @@ public class InitialClusterer {
 
                 for (Dataset ds : datasets) {
                     RealMatrix localizedRegionData = HiCFileTools.getRealOEMatrixForChromosome(ds, chromosome, resolution,
-                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, false);
+                            norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED, true);
                     if (localizedRegionData != null) {
                         matrices.add(localizedRegionData.getData());
                     }
@@ -287,36 +282,5 @@ public class InitialClusterer {
             idString += id + ".";
         }
         return idString;
-    }
-
-    private void saveChiSquareComparisonBetweenClusters(File directory, String filename, Cluster[] clusters) {
-        int n = clusters.length;
-        double[][] pvalues = new double[n][n];
-        for (int i = 0; i < n; i++) {
-            Cluster expected = clusters[i];
-            for (int j = 0; j < n; j++) {
-                pvalues[i][j] = getPvalueChiSquared(clusters[j], expected);
-            }
-        }
-        MatrixTools.saveMatrixTextNumpy(new File(directory, filename + ".npy").getAbsolutePath(), pvalues);
-    }
-
-    private double getPvalueChiSquared(Cluster observed, Cluster expected) {
-        ChiSquareTest test = new ChiSquareTestImpl();
-        try {
-            return test.chiSquareTest(expected.getCenter(), toLongArray(observed));
-        } catch (MathException e) {
-            e.printStackTrace();
-        }
-        return Double.NaN;
-    }
-
-    private long[] toLongArray(Cluster cluster) {
-        double[] clusterData = cluster.getCenter();
-        long[] result = new long[clusterData.length];
-        for (int i = 0; i < clusterData.length; i++) {
-            result[i] = Math.round(clusterData[i]);
-        }
-        return result;
     }
 }

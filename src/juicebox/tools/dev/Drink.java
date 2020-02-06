@@ -58,7 +58,7 @@ public class Drink extends JuicerCLT {
     private final List<Dataset> datasetList = new ArrayList<>();
     private List<String> inputHicFilePaths = new ArrayList<>();
     private final boolean compareOnlyNotSubcompartment;
-    private final double oeThreshold = 4;
+    private final float oeThreshold = 3f;
     private double[] convolution1d = null;
     private Random generator = new Random(22871L);
     private int derivativeStatus = 0;
@@ -132,7 +132,7 @@ public class Drink extends JuicerCLT {
         if (datasetList.size() < 1) return;
 
         InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numIntraClusters, generator, oeThreshold, convolution1d, numIntraIters);
-        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo();
+        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo();
         System.out.println("\nInitial clustering done");
 
         for (int i = 0; i < datasetList.size(); i++) {
@@ -154,9 +154,10 @@ public class Drink extends JuicerCLT {
 
             for (int i = 0; i < datasetList.size(); i++) {
                 FullGenomeOEWithinClusters withinClusters = new FullGenomeOEWithinClusters(datasetList.get(i),
-                        chromosomeHandler, resolution, norm, initialClustering.getFirst().get(i));
+                        chromosomeHandler, resolution, norm, initialClustering.getFirst().get(i), oeThreshold, derivativeStatus, useNormalizationOfRows);
 
-                Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator, derivativeStatus, useNormalizationOfRows);
+                Map<Integer, GenomeWideList<SubcompartmentInterval>> gwListMap = withinClusters.extractFinalGWSubcompartments(outputDirectory, generator);
+
                 for (Integer key : gwListMap.keySet()) {
                     GenomeWideList<SubcompartmentInterval> gwList = gwListMap.get(key);
                     DrinkUtils.collapseGWList(gwList);

@@ -46,30 +46,33 @@ public class FullGenomeOEWithinClusters {
     private final NormalizationType norm;
     private final GenomeWideList<SubcompartmentInterval> origIntraSubcompartments;
     private final int numRounds = 15;
-    private final int minIntervalSizeAllowed = 4;
+    private final int minIntervalSizeAllowed = 5;
     private final int numAttemptsForKMeans = 10;
+    private final CompositeGenomeWideDensityMatrix interMatrix;
+    private final float oeThreshold;
 
     public FullGenomeOEWithinClusters(Dataset ds, ChromosomeHandler chromosomeHandler, int resolution, NormalizationType norm,
-                                      GenomeWideList<SubcompartmentInterval> origIntraSubcompartments) {
+                                      GenomeWideList<SubcompartmentInterval> origIntraSubcompartments, float oeThreshold, int derivativeStatus, boolean useNormalizationOfRows) {
         this.ds = ds;
         this.chromosomeHandler = chromosomeHandler;
         this.resolution = resolution;
         this.norm = norm;
+        this.oeThreshold = oeThreshold;
         DrinkUtils.collapseGWList(origIntraSubcompartments);
         this.origIntraSubcompartments = origIntraSubcompartments;
+
+        interMatrix = new CompositeGenomeWideDensityMatrix(
+                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, oeThreshold, derivativeStatus, useNormalizationOfRows, minIntervalSizeAllowed);
     }
 
-    public Map<Integer, GenomeWideList<SubcompartmentInterval>> extractFinalGWSubcompartments(File outputDirectory, Random generator,
-                                                                                              int derivativeStatus, boolean useNormalizationOfRows) {
+    public Map<Integer, GenomeWideList<SubcompartmentInterval>> extractFinalGWSubcompartments(File outputDirectory, Random generator) {
 
         Map<Integer, GenomeWideList<SubcompartmentInterval>> numItersToResults = new HashMap<>();
 
-        final CompositeGenomeWideDensityMatrix interMatrix = new CompositeGenomeWideDensityMatrix(
-                chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, derivativeStatus, useNormalizationOfRows, minIntervalSizeAllowed);
         if (HiCGlobals.printVerboseComments) {
             System.out.println(interMatrix.getLength() + " -v- " + interMatrix.getWidth());
+            MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "data_matrix.npy").getAbsolutePath(), interMatrix.getCleanedData());
         }
-        MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "data_matrix.npy").getAbsolutePath(), interMatrix.getCleanedData());
 
         GenomeWideKmeansRunner kmeansRunner = new GenomeWideKmeansRunner(chromosomeHandler, interMatrix, generator);
 
@@ -103,7 +106,7 @@ public class FullGenomeOEWithinClusters {
         }
 
         if (minIntervalSizeAllowed > 0) {
-            LeftOverClusterIdentifier.identify(chromosomeHandler, ds, norm, resolution, numItersToResults, origIntraSubcompartments, minIntervalSizeAllowed);
+            LeftOverClusterIdentifier.identify(chromosomeHandler, ds, norm, resolution, numItersToResults, origIntraSubcompartments, minIntervalSizeAllowed, oeThreshold);
         }
 
         MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "clusterSizeToMeanSquaredError.npy").getAbsolutePath(), iterToMSE);

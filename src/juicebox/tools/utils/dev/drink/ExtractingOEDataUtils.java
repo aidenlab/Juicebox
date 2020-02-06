@@ -36,16 +36,16 @@ public class ExtractingOEDataUtils {
 
     public static RealMatrix extractObsOverExpBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                             int binYStart, int binYEnd, int numRows, int numCols,
-                                                            NormalizationType normalizationType, boolean isIntra,
+                                                            NormalizationType normalizationType,
                                                             ExpectedValueFunction df, int chrIndex, double threshold,
-                                                            boolean fillUnderDiagonal, ThresholdType thresholdType) throws IOException {
-        if (isIntra && df == null) {
+                                                            boolean isIntraFillUnderDiagonal, ThresholdType thresholdType) throws IOException {
+        if (isIntraFillUnderDiagonal && df == null) {
             System.err.println("DF is null");
             return null;
         }
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
+        List<Block> blocks = HiCFileTools.getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, isIntraFillUnderDiagonal);
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
         double averageCount = zd.getAverageCount();
@@ -53,11 +53,14 @@ public class ExtractingOEDataUtils {
             for (Block b : blocks) {
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-                        double expected = getExpected(rec, df, chrIndex, isIntra, averageCount);
+                        double expected = getExpected(rec, df, chrIndex, isIntraFillUnderDiagonal, averageCount);
                         double oeVal = rec.getCounts();
                         if (thresholdType.equals(ThresholdType.LOG_OE_BOUNDED)) {
-                            oeVal = Math.log(oeVal / expected);
+                            oeVal = (threshold / 2) * Math.log(oeVal / expected);
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
+                        } else if (thresholdType.equals(ThresholdType.LOG_OE_SCALED_BOUNDED_MADE_POS)) {
+                            oeVal = (threshold / 2) * Math.log(oeVal / expected);
+                            oeVal = Math.min(Math.max(-threshold, oeVal), threshold) + threshold;
                         } else if (thresholdType.equals(ThresholdType.LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE)) {
                             oeVal = Math.log(oeVal / expected);
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
@@ -71,13 +74,8 @@ public class ExtractingOEDataUtils {
                             }
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                             oeVal = (oeVal + threshold) / (2 * threshold);
-                        } else if (thresholdType.equals(ThresholdType.LOCAL_BOUNDED)) {
-                            if (isIntra) {
-                                oeVal = Math.log(rec.getCounts() / expected);
-                            }
-                            if (Double.isNaN(oeVal)) oeVal = 0;
                         }
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntra);
+                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data);
                     }
                 }
             }
@@ -87,8 +85,27 @@ public class ExtractingOEDataUtils {
         return data;
     }
 
-
-    public enum ThresholdType {LOG_OE_BOUNDED, LOCAL_BOUNDED, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE}
+    /**
+     * place oe value in relative position
+     *
+     * @param oeVal
+     * @param rec
+     * @param binXStart
+     * @param binYStart
+     * @param numRows
+     * @param numCols
+     * @param data
+     */
+    private static void placeOEValInRelativePosition(double oeVal, ContactRecord rec, int binXStart, int binYStart,
+                                                     int numRows, int numCols, RealMatrix data) {
+        int relativeX = rec.getBinX() - binXStart;
+        int relativeY = rec.getBinY() - binYStart;
+        if (relativeX >= 0 && relativeX < numRows) {
+            if (relativeY >= 0 && relativeY < numCols) {
+                data.addToEntry(relativeX, relativeY, oeVal);
+            }
+        }
+    }
 
     private static double getExpected(ContactRecord rec, ExpectedValueFunction df, int chrIndex, boolean isIntra, double averageCount) {
         int x = rec.getBinX();
@@ -136,36 +153,5 @@ public class ExtractingOEDataUtils {
         return average;
     }
 
-    /**
-     * place oe value in relative position
-     *
-     * @param oeVal
-     * @param rec
-     * @param binXStart
-     * @param binYStart
-     * @param numRows
-     * @param numCols
-     * @param data
-     */
-    private static void placeOEValInRelativePosition(double oeVal, ContactRecord rec, int binXStart, int binYStart,
-                                                     int numRows, int numCols, RealMatrix data, boolean isIntra) {
-        int relativeX = rec.getBinX() - binXStart;
-        int relativeY = rec.getBinY() - binYStart;
-        if (relativeX >= 0 && relativeX < numRows) {
-            if (relativeY >= 0 && relativeY < numCols) {
-                data.addToEntry(relativeX, relativeY, oeVal);
-            }
-        }
-
-        if (isIntra) {
-            // check if the other half of matrix should also be displayed/passed in
-            relativeX = rec.getBinY() - binXStart;
-            relativeY = rec.getBinX() - binYStart;
-            if (relativeX >= 0 && relativeX < numRows) {
-                if (relativeY >= 0 && relativeY < numCols) {
-                    data.addToEntry(relativeX, relativeY, oeVal);
-                }
-            }
-        }
-    }
+    public enum ThresholdType {LOG_OE_BOUNDED, LOG_OE_SCALED_BOUNDED_MADE_POS, LOG_OE_BOUNDED_SCALED_BTWN_ZERO_ONE, LINEAR_INVERSE_OE_BOUNDED_SCALED_BTWN_ZERO_ONE}
 }

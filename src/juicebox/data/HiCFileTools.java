@@ -454,7 +454,7 @@ public class HiCFileTools {
         int maxSize = maxBin;
 
         return ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold,
+                0, maxBin, maxSize, maxSize, norm, df, chromosome.getIndex(), logThreshold,
                 fillUnderDiagonal, thresholdType);
 
     }
