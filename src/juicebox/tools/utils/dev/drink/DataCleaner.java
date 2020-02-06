@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DataCleaner {
 
@@ -41,6 +42,7 @@ public class DataCleaner {
     private final Map<Integer, Integer> cleanIndexColToOriginalIndexCol = new HashMap<>();
     final private int resolution;
     private final double maxPercentAllowedToBeZeroThreshold;
+    protected final static AtomicInteger initialClusterID = new AtomicInteger(0);
 
     public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution, double[] convolution1d) {
         this.resolution = resolution;
@@ -122,7 +124,7 @@ public class DataCleaner {
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
+            int currentClusterID = initialClusterID.getAndIncrement();
             for (int i : cluster.getMemberIndexes()) {
                 int x1 = getOriginalIndexRow(i) * resolution;
                 int x2 = x1 + resolution;

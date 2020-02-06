@@ -302,11 +302,12 @@ public class CompositeGenomeWideDensityMatrix {
         }
 
         double meanSquaredErrorWithinClusters = 0;
+        int genomewideCompartmentID = 0;
 
         int[] ids = new int[clusters.length];
         for (int z = 0; z < clusters.length; z++) {
             Cluster cluster = clusters[z];
-            int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.incrementAndGet();
+            int currentClusterID = ++genomewideCompartmentID;
             ids[z] = currentClusterID;
 
             if (HiCGlobals.printVerboseComments) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +22,24 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.obsolete;
 
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.dev.drink.DrinkUtils;
+import juicebox.tools.utils.dev.drink.SimpleInterval;
+import juicebox.tools.utils.dev.drink.SubcompartmentInterval;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class ConnectedComponents {
 
+    public final static AtomicInteger tempInitialClusterID = new AtomicInteger(0);
+    public final static AtomicInteger finalClusterID = new AtomicInteger(0);
+
     public static int[][] generateAdjacencyMatrix(Map<SimpleInterval, Set<Integer>> intervalToClusterIDs) {
-        int n = UniqueSubcompartmentClusterID.tempInitialClusterID.get();
+        int n = tempInitialClusterID.get();
         int[][] incidence = new int[n][n];
 
         for (Set<Integer> clusterIDs : intervalToClusterIDs.values()) {
@@ -50,7 +57,7 @@ class ConnectedComponents {
 
         Set<Set<Integer>> setOfConnectedClusterIDs = new HashSet<>();
 
-        int n = UniqueSubcompartmentClusterID.tempInitialClusterID.get();
+        int n = tempInitialClusterID.get();
         boolean[] nodeVisited = new boolean[n];
 
         for (int idx = 0; idx < n; idx++) {
@@ -135,7 +142,7 @@ class ConnectedComponents {
      * @return
      */
     public static boolean[][] generateBooleanAdjacencyMatrix(Map<SimpleInterval, Set<Integer>> intervalToClusterIDs) {
-        int n = UniqueSubcompartmentClusterID.tempInitialClusterID.get();
+        int n = tempInitialClusterID.get();
         boolean[][] incidence = new boolean[n][n];
 
         for (Set<Integer> clusterIDs : intervalToClusterIDs.values()) {
@@ -157,7 +164,7 @@ class ConnectedComponents {
 
         final Map<Integer, Integer> tempClusterIdToUniqueClusterID = new HashMap<>();
         for (Set<Integer> connectedComponent : connectedComponents) {
-            int uniqueClusterIDX = UniqueSubcompartmentClusterID.finalClusterID.getAndIncrement();
+            int uniqueClusterIDX = finalClusterID.getAndIncrement();
             for (Integer node : connectedComponent) {
                 tempClusterIdToUniqueClusterID.put(node, uniqueClusterIDX);
             }

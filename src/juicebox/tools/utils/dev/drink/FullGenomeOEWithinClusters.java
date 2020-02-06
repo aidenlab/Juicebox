@@ -87,6 +87,7 @@ public class FullGenomeOEWithinClusters {
 
             for (int p = 0; p < numAttemptsForKMeans; p++) {
 
+
                 kmeansRunner.prepareForNewRun(k);
                 kmeansRunner.launchKmeansGWMatrix();
 

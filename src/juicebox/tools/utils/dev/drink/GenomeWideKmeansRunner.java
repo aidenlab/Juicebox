@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GenomeWideKmeansRunner {
 
-
     private static Cluster[] recentClusters;
     private static int[] recentIDs;
 
@@ -63,7 +62,6 @@ public class GenomeWideKmeansRunner {
     }
 
     public void prepareForNewRun(int numClusters) {
-        UniqueSubcompartmentClusterID.genomewideInitialClusterID.set(0);
         recentClusters = null;
         recentIDs = null;
         this.numClusters = numClusters;

@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.obsolete;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
@@ -31,6 +31,8 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.dev.drink.DrinkUtils;
+import juicebox.tools.utils.dev.drink.SubcompartmentInterval;
 import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -39,6 +41,7 @@ import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CompositeInterchromDensityMatrix {
 
@@ -50,6 +53,8 @@ public class CompositeInterchromDensityMatrix {
     private final Map<Integer, SubcompartmentInterval> indexToInterval2Map = new HashMap<>();
     private final Chromosome[] rowsChromosomes;
     private final Chromosome[] colsChromosomes;
+
+    public final static AtomicInteger genomewideInitialClusterID = new AtomicInteger(0);
 
     public CompositeInterchromDensityMatrix(ChromosomeHandler chromosomeHandler, Dataset ds, NormalizationType norm, int resolution,
                                             GenomeWideList<SubcompartmentInterval> intraSubcompartments,
@@ -255,7 +260,7 @@ public class CompositeInterchromDensityMatrix {
 
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.genomewideInitialClusterID.getAndIncrement();
+            int currentClusterID = genomewideInitialClusterID.getAndIncrement();
             subcompartmentIDsToSize.put(currentClusterID, cluster.getMemberIndexes().length);
 
             if (HiCGlobals.printVerboseComments) {

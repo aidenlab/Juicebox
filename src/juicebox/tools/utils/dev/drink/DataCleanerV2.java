@@ -67,7 +67,7 @@ public class DataCleanerV2 extends DataCleaner {
         }
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
+            int currentClusterID = initialClusterID.getAndIncrement();
             synchronized (idToCentroidMap) {
                 idToCentroidMap.put(currentClusterID, cluster.getCenter());
             }

@@ -22,11 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.dev.drink;
+package juicebox.tools.utils.dev.drink.obsolete;
 
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.dev.drink.SimpleInterval;
+import juicebox.tools.utils.dev.drink.SubcompartmentInterval;
 
 import java.io.File;
 import java.util.*;
