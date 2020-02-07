@@ -245,7 +245,7 @@ public class HiCFileTools {
      * @param handler as Chromosome objects
      * @return the specified Chromosomes corresponding to the given strings
      */
-    public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
+    public static ChromosomeHandler stringToChromosomes(List<String> chromosomesSpecified,
                                                         ChromosomeHandler handler) {
         List<Chromosome> chromosomes = new ArrayList<>();
         chromosomes.add(0, null);

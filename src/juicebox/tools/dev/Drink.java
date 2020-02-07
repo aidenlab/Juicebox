@@ -31,6 +31,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.dev.drink.*;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.util.Pair;
@@ -132,11 +133,14 @@ public class Drink extends JuicerCLT {
         if (datasetList.size() < 1) return;
 
         InitialClusterer clusterer = new InitialClusterer(datasetList, chromosomeHandler, resolution, norm, numIntraClusters, generator, oeThreshold, convolution1d, numIntraIters);
-        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo();
+
+        File initialClusteringOut = new File(outputDirectory, "initial_clustering");
+        UNIXTools.makeDir(initialClusteringOut);
+        Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> initialClustering = clusterer.extractAllComparativeIntraSubcompartmentsTo(initialClusteringOut);
         System.out.println("\nInitial clustering done");
 
         for (int i = 0; i < datasetList.size(); i++) {
-            initialClustering.getFirst().get(i).simpleExport(new File(outputDirectory, DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + "." + i + ".init.bed"));
+            initialClustering.getFirst().get(i).simpleExport(new File(initialClusteringOut, DrinkUtils.cleanUpPath(inputHicFilePaths.get(i)) + "." + i + ".init.bed"));
         }
 
         if (compareOnlyNotSubcompartment) {

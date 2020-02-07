@@ -29,6 +29,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
@@ -37,6 +38,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -110,11 +112,11 @@ public class InitialClusterer {
         return metaIDToCentroidMap;
     }
 
-    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> extractAllComparativeIntraSubcompartmentsTo() {
+    public Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> extractAllComparativeIntraSubcompartmentsTo(File outputDirectory) {
 
         // each ds will need a respective list of assigned subcompartments
 
-        Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = getCleanedDatasets();
+        Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = getCleanedDatasets(outputDirectory);
         for (long seed : randomSeeds) {
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("** Cluster with seed " + seed);
@@ -204,7 +206,7 @@ public class InitialClusterer {
     /**
      * @return
      */
-    private Map<Chromosome, DataCleanerV2> getCleanedDatasets() {
+    private Map<Chromosome, DataCleanerV2> getCleanedDatasets(File outputDirectory) {
         Map<Chromosome, DataCleanerV2> dataCleanerV2MapForChrom = new HashMap<>();
 
         for (final Chromosome chromosome : chromosomeHandler.getAutosomalChromosomesArray()) {
@@ -216,6 +218,9 @@ public class InitialClusterer {
                             norm, logThreshold, ExtractingOEDataUtils.ThresholdType.LOG_OE_BOUNDED, true);
                     if (localizedRegionData != null) {
                         matrices.add(localizedRegionData.getData());
+                        if (HiCGlobals.printVerboseComments) {
+                            MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, chromosome.getName() + "_matrix.npy").getAbsolutePath(), localizedRegionData.getData());
+                        }
                     }
                 }
 

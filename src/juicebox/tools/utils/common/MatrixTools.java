@@ -1073,7 +1073,7 @@ public class MatrixTools {
             }
         }
 
-        return getMainAppendedDerivativeDownColumn(thresholdedData, scaleDerivFactor, derivativeThreshold);
+        return getMainAppendedDerivativeScaledPosDownColumn(thresholdedData, scaleDerivFactor, derivativeThreshold);
     }
 
     public static float[][] getNormalizedThresholdedByMedian(float[][] data, float maxVal) {
@@ -1103,10 +1103,26 @@ public class MatrixTools {
     }
 
 
-    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
+    public static float[][] getMainAppendedDerivativeScaledPosDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
 
         int numColumns = data[0].length;
         float[][] derivative = getRelevantDerivativeScaledPositive(data, scaleDerivFactor, threshold);
+        float[][] appendedDerivative = new float[data.length][numColumns + derivative[0].length];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(derivative[i], 0, appendedDerivative[i], numColumns, derivative[i].length);
+        }
+
+        return appendedDerivative;
+    }
+
+    public static float[][] getMainAppendedDerivativeDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
+
+        int numColumns = data[0].length;
+        float[][] derivative = getRelevantDerivative(data, scaleDerivFactor, threshold);
         float[][] appendedDerivative = new float[data.length][numColumns + derivative[0].length];
         for (int i = 0; i < data.length; i++) {
             System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
@@ -1142,6 +1158,35 @@ public class MatrixTools {
             for (int k = 0; k < indicesToUse.size(); k++) {
                 int indexToUse = indicesToUse.get(k);
                 importantDerivative[i][k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor)) + threshold;
+            }
+        }
+
+        return importantDerivative;
+    }
+
+    public static float[][] getRelevantDerivative(float[][] data, float scaleDerivFactor, float threshold) {
+
+        float[][] derivative = new float[data.length][data[0].length - 1];
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[0].length - 1; j++) {
+                derivative[i][j] = data[i][j] - data[i][j + 1];
+            }
+        }
+
+        float[] columnSums = getAbsValColSums(derivative);
+        List<Integer> indicesToUse = new ArrayList<>();
+        for (int k = 0; k < columnSums.length; k++) {
+            if (columnSums[k] > 0) {
+                indicesToUse.add(k);
+            }
+        }
+
+        float[][] importantDerivative = new float[data.length][indicesToUse.size()];
+
+        for (int i = 0; i < data.length; i++) {
+            for (int k = 0; k < indicesToUse.size(); k++) {
+                int indexToUse = indicesToUse.get(k);
+                importantDerivative[i][k] = Math.min(threshold, Math.max(-threshold, derivative[i][indexToUse] * scaleDerivFactor));
             }
         }
 

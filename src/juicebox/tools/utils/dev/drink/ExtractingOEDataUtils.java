@@ -75,7 +75,7 @@ public class ExtractingOEDataUtils {
                             oeVal = Math.min(Math.max(-threshold, oeVal), threshold);
                             oeVal = (oeVal + threshold) / (2 * threshold);
                         }
-                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data);
+                        placeOEValInRelativePosition(oeVal, rec, binXStart, binYStart, numRows, numCols, data, isIntraFillUnderDiagonal);
                     }
                 }
             }
@@ -97,12 +97,23 @@ public class ExtractingOEDataUtils {
      * @param data
      */
     private static void placeOEValInRelativePosition(double oeVal, ContactRecord rec, int binXStart, int binYStart,
-                                                     int numRows, int numCols, RealMatrix data) {
+                                                     int numRows, int numCols, RealMatrix data, boolean isIntra) {
         int relativeX = rec.getBinX() - binXStart;
         int relativeY = rec.getBinY() - binYStart;
         if (relativeX >= 0 && relativeX < numRows) {
             if (relativeY >= 0 && relativeY < numCols) {
                 data.addToEntry(relativeX, relativeY, oeVal);
+            }
+        }
+
+        if (isIntra) {
+            // check if the other half of matrix should also be displayed/passed in
+            relativeX = rec.getBinY() - binXStart;
+            relativeY = rec.getBinX() - binYStart;
+            if (relativeX >= 0 && relativeX < numRows) {
+                if (relativeY >= 0 && relativeY < numCols) {
+                    data.addToEntry(relativeX, relativeY, oeVal);
+                }
             }
         }
     }

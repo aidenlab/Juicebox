@@ -63,6 +63,7 @@ public class FullGenomeOEWithinClusters {
 
         interMatrix = new CompositeGenomeWideDensityMatrix(
                 chromosomeHandler, ds, norm, resolution, origIntraSubcompartments, oeThreshold, derivativeStatus, useNormalizationOfRows, minIntervalSizeAllowed);
+        System.gc();
     }
 
     public Map<Integer, GenomeWideList<SubcompartmentInterval>> extractFinalGWSubcompartments(File outputDirectory, Random generator) {

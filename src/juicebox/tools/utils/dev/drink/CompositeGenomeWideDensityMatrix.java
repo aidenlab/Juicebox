@@ -60,21 +60,23 @@ public class CompositeGenomeWideDensityMatrix {
         this.intraSubcompartments = intraSubcompartments;
         threshold = oeThreshold;
         chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
+        float[][] tempCleanData = makeCleanScaledInterMatrix(ds);
+
         if (useNormalizationOfRows) {
             if (derivativeStatus == Drink.USE_ONLY_DERIVATIVE) {
-                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), threshold / 2, threshold), threshold);
+                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getRelevantDerivativeScaledPositive(tempCleanData, threshold / 2, threshold), threshold);
             } else if (derivativeStatus == Drink.IGNORE_DERIVATIVE) {
-                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(makeCleanScaledInterMatrix(ds), threshold);
+                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(tempCleanData, threshold);
             } else {
-                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), threshold / 2, threshold), threshold);
+                gwCleanMatrix = MatrixTools.getNormalizedThresholdedByMedian(MatrixTools.getMainAppendedDerivativeScaledPosDownColumn(tempCleanData, threshold / 2, threshold), threshold);
             }
         } else {
             if (derivativeStatus == Drink.USE_ONLY_DERIVATIVE) {
-                gwCleanMatrix = MatrixTools.getRelevantDerivativeScaledPositive(makeCleanScaledInterMatrix(ds), threshold / 2, threshold);
+                gwCleanMatrix = MatrixTools.getRelevantDerivative(tempCleanData, threshold / 2, threshold);
             } else if (derivativeStatus == Drink.IGNORE_DERIVATIVE) {
-                gwCleanMatrix = makeCleanScaledInterMatrix(ds);
+                gwCleanMatrix = tempCleanData;
             } else {
-                gwCleanMatrix = MatrixTools.getMainAppendedDerivativeDownColumn(makeCleanScaledInterMatrix(ds), threshold / 2, threshold);
+                gwCleanMatrix = MatrixTools.getMainAppendedDerivativeDownColumn(tempCleanData, threshold / 2, threshold);
             }
         }
     }
@@ -220,8 +222,7 @@ public class CompositeGenomeWideDensityMatrix {
             }
 
             // */
-
-            initDensityOE = ((float) Math.min(threshold, Math.max(-threshold, Math.log(initDensityOE)))) + threshold;
+            initDensityOE = ((float) Math.min(threshold, Math.max(-threshold, Math.log(initDensityOE))));
             densityBetweenClusters.put(key, initDensityOE);
         }
 
