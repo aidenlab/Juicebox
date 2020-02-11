@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.dev.drink;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.feature.GenomeWideList;
@@ -32,7 +33,6 @@ import juicebox.tools.utils.dev.drink.kmeansfloat.ClusterTools;
 import juicebox.tools.utils.dev.drink.kmeansfloat.ConcurrentKMeans;
 import juicebox.tools.utils.dev.drink.kmeansfloat.KMeansListener;
 import org.broad.igv.util.Pair;
-import org.nd4j.linalg.primitives.AtomicDouble;
 
 import java.util.Arrays;
 import java.util.Random;
