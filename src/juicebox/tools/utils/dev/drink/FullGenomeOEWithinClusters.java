@@ -71,8 +71,7 @@ public class FullGenomeOEWithinClusters {
         Map<Integer, GenomeWideList<SubcompartmentInterval>> numItersToResults = new HashMap<>();
 
         if (HiCGlobals.printVerboseComments) {
-            System.out.println(interMatrix.getLength() + " -v- " + interMatrix.getWidth());
-            MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "data_matrix.npy").getAbsolutePath(), interMatrix.getCleanedData());
+            interMatrix.exportData(outputDirectory);
         }
 
         GenomeWideKmeansRunner kmeansRunner = new GenomeWideKmeansRunner(chromosomeHandler, interMatrix, generator);

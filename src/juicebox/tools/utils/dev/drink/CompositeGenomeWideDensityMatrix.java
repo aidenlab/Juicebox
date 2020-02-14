@@ -39,6 +39,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
+import java.io.File;
 import java.util.*;
 
 public class CompositeGenomeWideDensityMatrix {
@@ -61,6 +62,7 @@ public class CompositeGenomeWideDensityMatrix {
         threshold = oeThreshold;
         chromosomes = chromosomeHandler.getAutosomalChromosomesArray();
         float[][] tempCleanData = makeCleanScaledInterMatrix(ds);
+        //gwCleanMatrix = MatrixTools.getMainAppendedDerivativeDownColumnV2(tempCleanData, threshold / 2, threshold);
 
         if (useNormalizationOfRows) {
             if (derivativeStatus == Drink.USE_ONLY_DERIVATIVE) {
@@ -364,5 +366,10 @@ public class CompositeGenomeWideDensityMatrix {
 
     public int getWidth() {
         return gwCleanMatrix[0].length;
+    }
+
+    public void exportData(File outputDirectory) {
+        System.out.println(getLength() + " -v- " + getWidth());
+        MatrixTools.saveMatrixTextNumpy(new File(outputDirectory, "data_matrix.npy").getAbsolutePath(), getCleanedData());
     }
 }

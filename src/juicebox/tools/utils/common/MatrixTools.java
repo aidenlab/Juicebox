@@ -1119,6 +1119,28 @@ public class MatrixTools {
         return appendedDerivative;
     }
 
+    public static float[][] getMainAppendedDerivativeDownColumnV2(float[][] data, float scaleDerivFactor, float threshold) {
+
+        int numColumns = data[0].length;
+        float[][] derivative = getRelevantDerivative(data, scaleDerivFactor, threshold);
+        float[][] appendedDerivative = new float[data.length][numColumns + derivative[0].length];
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(data[i], 0, appendedDerivative[i], 0, numColumns);
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            for (int j = 0; j < data[i].length; j++) {
+                appendedDerivative[i][j] = Math.min(.5f, Math.max(-.5f, appendedDerivative[i][j]));
+            }
+        }
+
+        for (int i = 0; i < data.length; i++) {
+            System.arraycopy(derivative[i], 0, appendedDerivative[i], numColumns, derivative[i].length);
+        }
+
+        return appendedDerivative;
+    }
+
     public static float[][] getMainAppendedDerivativeDownColumn(float[][] data, float scaleDerivFactor, float threshold) {
 
         int numColumns = data[0].length;
