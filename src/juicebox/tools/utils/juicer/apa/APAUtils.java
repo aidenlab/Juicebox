@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -116,7 +116,7 @@ public class APAUtils {
         int rows = matrix.getRowDimension();
         int center = rows / 2;
         double centerVal = matrix.getEntry(center, center);
-        double remainingSum = APARegionStatistics.sum(matrix.getData()) - centerVal;
+        double remainingSum = MatrixTools.sum(matrix.getData()) - centerVal;
         double remainingAverage = remainingSum / (rows * rows - 1);
         return centerVal / remainingAverage;
     }
