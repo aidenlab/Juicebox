@@ -144,9 +144,16 @@
         </fileset>
     </path>
 
+    <path id="library.kotlin.classpath">
+        <fileset dir="${basedir}/lib/kotlin">
+            <patternset refid="library.patterns"/>
+        </fileset>
+    </path>
+
     <path id="library.jsi1.1.classpath">
         <pathelement location="${basedir}/lib/general/jsi1.1.jar"/>
     </path>
+
 
 
     <!-- Modules -->
@@ -175,6 +182,7 @@
         <path refid="${module.jdk.classpath.juicebox}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
+	<path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
     </path>
@@ -183,6 +191,7 @@
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
+	<path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
     </path>
@@ -192,6 +201,7 @@
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
+	<path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
     </path>
@@ -201,6 +211,7 @@
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
+	<path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
     </path>
@@ -281,16 +292,28 @@
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/igv.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar"
+			excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test.jar"/>
             <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
             <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+
         </jar>
         <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
     </target>
@@ -310,15 +333,27 @@
             <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"
                         excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
+            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar"
+			excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
             <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test-sources.jar"/>
+	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test.jar"/>
             <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar"
                         excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+
         </jar>
         <copy file="${temp.jar.path.juicer_tools.jar}"
               tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>
