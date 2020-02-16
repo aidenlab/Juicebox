@@ -67,7 +67,7 @@ public class HiC {
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
-    private MatrixType displayOption;
+    private MatrixType displayOption = MatrixType.OBSERVED;
     private NormalizationType obsNormalizationType, ctrlNormalizationType;
     private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
@@ -117,8 +117,15 @@ public class HiC {
         return null;
     }
 
+    public Unit getDefaultUnit() {
+        return dataset.getBpZooms().size() > 0 ? Unit.BP : Unit.FRAG;
+    }
+
     public void reset() {
         dataset = null;
+        controlDataset = null;
+        displayOption = MatrixType.OBSERVED;
+        currentZoom = null;
         resetContexts();
         chromosomeHandler = null;
         eigenvectorTrack = null;
@@ -128,6 +135,7 @@ public class HiC {
         obsNormalizationType = NormalizationHandler.NONE;
         ctrlNormalizationType = NormalizationHandler.NONE;
         zoomActionTracker.clear();
+        binSizeDictionary.clear();
         clearFeatures();
     }
 
@@ -736,9 +744,9 @@ public class HiC {
      * @param newZoom
      * @param genomeX
      * @param genomeY
-     * @param scaleFactor (pass -1 if scaleFactor should be calculated)
+     * @param scaleFactor      (pass -1 if scaleFactor should be calculated)
      * @param resolutionLocked (pass -1 if status of lock button should not be saved)
-     * @param storeZoomAction (pass false if function is being used to undo/redo zoom, true otherwise)
+     * @param storeZoomAction  (pass false if function is being used to undo/redo zoom, true otherwise)
      * @return
      */
     public boolean unsafeActuallySetZoomAndLocation(String chrXName, String chrYName,

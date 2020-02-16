@@ -52,10 +52,16 @@ public class ChromosomeHandler {
     public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
+        this(chromosomes, true);
+    }
+
+    public ChromosomeHandler(List<Chromosome> chromosomes, boolean createAllChr) {
 
         // set the global chromosome list
-        long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
-        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        if (createAllChr) {
+            long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
+            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        }
 
         initializeCleanedChromosomesList(chromosomes);
         initializeInternalVariables();
@@ -314,13 +320,13 @@ public class ChromosomeHandler {
     }
 
     public String getGenomeId() {
-        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38","aedAeg1", "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2", "felCat8", "galGal4", "hg18",  "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4", "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
+        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38", "aedAeg1", "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2", "felCat8", "galGal4", "hg18", "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4", "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
 
 
-        for (String id:chrom_sizes)  {
+        for (String id : chrom_sizes) {
             ChromosomeHandler handler = HiCFileTools.loadChromosomes(id);
-            for (Chromosome chr:handler.cleanedChromosomes) {
-                for (Chromosome chr2:this.cleanedChromosomes) {
+            for (Chromosome chr : handler.cleanedChromosomes) {
+                for (Chromosome chr2 : this.cleanedChromosomes) {
                     if (!chr.getName().equalsIgnoreCase("ALL") &&
                             chr.getName().equals(chr2.getName()) &&
                             chr.getLength() == chr2.getLength()) {
