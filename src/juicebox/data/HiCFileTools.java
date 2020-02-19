@@ -346,7 +346,8 @@ public class HiCFileTools {
             }
         }
         // force cleanup
-        System.gc();
+        blocks = null;
+        //System.gc();
 
         return data;
     }
