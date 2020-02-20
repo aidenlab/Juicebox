@@ -529,7 +529,7 @@ public class Preprocessor {
      * @return Matrix with counts in each bin
      * @throws IOException
      */
-    private MatrixPP computeWholeGenomeMatrix(String file, Alignment alignmentFilter) throws IOException {
+    private MatrixPP computeWholeGenomeMatrix(String file) throws IOException {
 
 
         MatrixPP matrix;
@@ -580,11 +580,10 @@ public class Preprocessor {
                             continue;
                         }
                     }
-                    
-                    if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+
+                    if (alignmentFilter != null && !alignmentsAreEqual(calculateAlignment(pair), alignmentFilter)) {
                         continue;
                     }
-
 
                     if (chr1 == chr2 && frag1 == frag2) {
                         intraFrag++;
@@ -618,6 +617,17 @@ public class Preprocessor {
 
         matrix.parsingComplete();
         return matrix;
+    }
+
+    private boolean alignmentsAreEqual(Alignment alignment, Alignment alignmentStandard) {
+        if (alignment == alignmentStandard) {
+            return true;
+        }
+        if (alignmentStandard == Alignment.TANDEM) {
+            return alignment == Alignment.LL || alignment == Alignment.RR;
+        }
+
+        return false;
     }
 
 
@@ -656,7 +666,7 @@ public class Preprocessor {
     }
 
     private void writeBody(String inputFile) throws IOException {
-        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile, this.alignmentFilter);
+        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
 
         writeMatrix(wholeGenomeMatrix);
 
@@ -706,7 +716,7 @@ public class Preprocessor {
                         continue;
                     }
                 }
-                if (alignmentFilter != null && calculateAlignment(pair) != alignmentFilter) {
+                if (alignmentFilter != null && !alignmentsAreEqual(calculateAlignment(pair), alignmentFilter)) {
                     continue;
                 }
 

@@ -547,9 +547,31 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.getHeatmapPanel().repaint();
       }
     });
+    final JCheckBoxMenuItem hackColorScale = new JCheckBoxMenuItem("Hack color scale");
+    hackColorScale.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE = !HiCGlobals.HACK_COLORSCALE;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
+    final JCheckBoxMenuItem hackColorScaleEqual = new JCheckBoxMenuItem("Hack color scale equally");
+    hackColorScaleEqual.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE_EQUAL = !HiCGlobals.HACK_COLORSCALE_EQUAL;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
     displayTiles.setSelected(HiCGlobals.displayTiles);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(displayTiles);
+      devMenu.add(hackColorScaleEqual);
+      devMenu.add(hackColorScale);
+
+
     }
 
     final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Recolor 1D Annotations in Assembly Mode");

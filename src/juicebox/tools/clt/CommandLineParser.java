@@ -161,6 +161,8 @@ public class CommandLineParser extends CmdLineParser {
             return Alignment.LL;
         } else if (alignmentInt == 4) {
             return Alignment.RR;
+        } else if (alignmentInt == 5) {
+            return Alignment.TANDEM;
         } else {
             throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
         }
@@ -191,9 +193,7 @@ public class CommandLineParser extends CmdLineParser {
         return optionToLong(randomSeedOption);
     }
 
-    public enum Alignment {
-        INNER, OUTER, LL, RR
-    }
+    public enum Alignment {INNER, OUTER, LL, RR, TANDEM}
 
     /**
      * double flags
