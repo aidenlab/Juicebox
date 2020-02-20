@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -258,7 +258,7 @@ public class MatrixZoomData {
             }
         }
 
-        if (getBelowDiagonal && binX2 > binY1) {
+        if (getBelowDiagonal && binY1 < binX2) {
             for (int r = row1; r <= row2; r++) {
                 for (int c = col1; c <= col2; c++) {
                     populateBlocksToLoad(c, r, no, blockList, blocksToLoad);

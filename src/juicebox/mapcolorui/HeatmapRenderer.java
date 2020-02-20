@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -421,7 +421,7 @@ class HeatmapRenderer {
                     }
                 } else {
 
-                    boolean hasControl = controlZD != null && ctrlBlocks != null && MatrixType.isSimpleControlType(displayOption);
+                    boolean hasControl = controlZD != null && ctrlBlocks != null;// && MatrixType.isSimpleControlType(displayOption);
                     Map<String, Block> controlBlocks = new HashMap<>();
                     if (hasControl) {
                         for (Block b : ctrlBlocks) {
@@ -474,13 +474,50 @@ class HeatmapRenderer {
                                     } else {
                                         score = expected;
                                     }
+                                } else if ((displayOption == MatrixType.OERATIO || displayOption == MatrixType.OERATIOMINUS) && hasControl) {
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                    if (ctrlRecord != null && ctrlRecord.getCounts() > 0 && df != null && controlDF != null) {
+                                        double num = rec.getCounts();
+                                        double den = ctrlRecord.getCounts();
+
+                                        int binX = rec.getBinX();
+                                        int binY = rec.getBinY();
+                                        int dist = Math.abs(binX - binY);
+
+                                        double obsExpected;
+                                        if (chr1 == chr2) {
+                                            obsExpected = df.getExpectedValue(chr1, dist);
+                                        } else {
+                                            obsExpected = (averageCount > 0 ? averageCount : 1);
+                                        }
+
+                                        double ctrlExpected;
+                                        if (chr1 == chr2) {
+                                            ctrlExpected = controlDF.getExpectedValue(chr1, dist);
+                                        } else {
+                                            ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+                                        }
+
+                                        if (displayOption == MatrixType.OERATIOMINUS) {
+                                            score = (num / obsExpected) - (den / ctrlExpected);
+                                        } else {
+                                            score = (num / obsExpected) / (den / ctrlExpected);
+                                        }
+
+
+                                    }
                                 } else if (displayOption == MatrixType.RATIO && hasControl) {
                                     ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                         double num = rec.getCounts() / averageCount;
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
-                                        //score = rec.getCounts() / ctrlRecord.getCounts();
-                                        // System.err.println(ctrlAverageCount + " " + averageCount);
+                                        score = num / den;
+                                    }
+                                } else if (displayOption == MatrixType.RATIO0 && hasControl) {
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                    if (ctrlRecord != null && ctrlRecord.getCounts() > 0 && df != null && controlDF != null) {
+                                        double num = rec.getCounts() / df.getExpectedValue(chr1, 0);
+                                        double den = ctrlRecord.getCounts() / controlDF.getExpectedValue(chr1, 0);
                                         score = num / den;
                                     }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {
@@ -523,10 +560,7 @@ class HeatmapRenderer {
 
     private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks, float givenMax) {
 
-        if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE
-                || displayOption == MatrixType.OECTRL || displayOption == MatrixType.OEVS
-                || displayOption == MatrixType.DIFF) {
-
+        if (MatrixType.isComparisonType(displayOption)) {
             OEColorScale oeColorScale = ratioColorScaleMap.get(key);
             if (oeColorScale == null) {
                 oeColorScale = new OEColorScale(displayOption);

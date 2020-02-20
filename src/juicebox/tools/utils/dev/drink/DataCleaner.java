@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +26,23 @@ package juicebox.tools.utils.dev.drink;
 
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
+import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DataCleaner {
 
-    final private double[][] cleanData;
+    final private float[][] cleanData;
     private final Map<Integer, Integer> cleanIndexRowToOriginalIndexRow = new HashMap<>();
     private final Map<Integer, Integer> cleanIndexColToOriginalIndexCol = new HashMap<>();
     final private int resolution;
     private final double maxPercentAllowedToBeZeroThreshold;
+    protected final static AtomicInteger initialClusterID = new AtomicInteger(0);
 
     public DataCleaner(double[][] data, double maxPercentAllowedToBeZeroThreshold, int resolution, double[] convolution1d) {
         this.resolution = resolution;
@@ -49,7 +51,7 @@ public class DataCleaner {
         System.gc();
     }
 
-    private double[][] cleanUpData(double[][] originalData) {
+    private float[][] cleanUpData(double[][] originalData) {
 
         int numRows = originalData.length;
         int numCols = originalData[0].length;
@@ -73,7 +75,7 @@ public class DataCleaner {
 
         calculateWhichIndicesToKeep(numZerosRowIndx, rowSums, cleanIndexRowToOriginalIndexRow);
         calculateWhichIndicesToKeep(numZerosColIndx, columnSums, cleanIndexColToOriginalIndexCol);
-        return makeCleanMatrix(originalData);
+        return MatrixTools.convertToFloatMatrix(makeCleanMatrix(originalData));
     }
 
     private double[][] makeCleanMatrix(double[][] originalData) {
@@ -122,7 +124,7 @@ public class DataCleaner {
         System.out.println("Chromosome " + chromosome.getName() + " clustered into " + clusters.length + " clusters");
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
+            int currentClusterID = initialClusterID.getAndIncrement();
             for (int i : cluster.getMemberIndexes()) {
                 int x1 = getOriginalIndexRow(i) * resolution;
                 int x2 = x1 + resolution;
@@ -137,11 +139,11 @@ public class DataCleaner {
     }
 
     private boolean isCloseToZero(double v) {
-        return Math.abs(v) < 1E-30;
+        return Math.abs(v) < 1E-10;
     }
 
 
-    public double[][] getCleanedData() {
+    public float[][] getCleanedData() {
         return cleanData;
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 package juicebox.tools.utils.dev.drink;
 
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.kmeans.Cluster;
+import juicebox.tools.utils.dev.drink.kmeansfloat.Cluster;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +59,7 @@ public class DataCleanerV2 extends DataCleaner {
     }
 
     public synchronized List<Map<Integer, List<Integer>>> postProcessKmeansResultV2(Cluster[] clusters,
-                                                                                    Map<Integer, double[]> idToCentroidMap) {
+                                                                                    Map<Integer, float[]> idToCentroidMap) {
 
         List<Map<Integer, List<Integer>>> mapPosIndexToCluster = new ArrayList<>();
         for (int i = 0; i < numDatasets; i++) {
@@ -67,7 +67,7 @@ public class DataCleanerV2 extends DataCleaner {
         }
 
         for (Cluster cluster : clusters) {
-            int currentClusterID = UniqueSubcompartmentClusterID.tempInitialClusterID.getAndIncrement();
+            int currentClusterID = initialClusterID.getAndIncrement();
             synchronized (idToCentroidMap) {
                 idToCentroidMap.put(currentClusterID, cluster.getCenter());
             }

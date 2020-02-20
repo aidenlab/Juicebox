@@ -36,6 +36,7 @@ import juicebox.windowui.NormalizationType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PreProcessing extends JuiceboxCLT {
 
@@ -61,7 +62,7 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
                 + "           : -n Don't normalize the matrices\n"
                 + "           : -z <double> scale factor for hic file\n"
-                + "           : -a <1, 2, 3, 4> filter based on inner, outer, left-left, right-right pairs respectively\n"
+                + "           : -a <1, 2, 3, 4, 5> filter based on inner, outer, left-left, right-right, tandem pairs respectively\n"
                 + "           : --randomize_position randomize positions between fragment sites\n"
                 + "           : --random_seed <long> for seeding random number generator\n"
                 + "           : --frag_site_maps <fragment site files> for randomization\n"
@@ -83,7 +84,6 @@ public class PreProcessing extends JuiceboxCLT {
             System.err.println("No genome ID given");
             printUsageAndExit();
         }
-
 
         ChromosomeHandler chromHandler = HiCFileTools.loadChromosomes(genomeId);
 
@@ -124,7 +124,8 @@ public class PreProcessing extends JuiceboxCLT {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
-                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, genomeWide, noFragNorm);
+                Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
+                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
             }
             else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");

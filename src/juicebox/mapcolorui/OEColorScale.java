@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiCGlobals;
 import juicebox.windowui.MatrixType;
 import org.broad.igv.renderer.ColorScale;
 
@@ -56,14 +57,12 @@ class OEColorScale implements ColorScale {
     }
 
     public Color getColor(float score) {
-/*
-        int R = (int) (255 * Math.min(score/max, 1));
-        int G = 0;
-        int B = (int) (255 * Math.min(min * (1.0/score), 1));
-  */
-        double newValue = Math.log(score);
-        if (type == MatrixType.DIFF) {
+
+        double newValue;
+        if (MatrixType.isSubtactType(type)) {
             newValue = score;
+        } else {
+            newValue = Math.log(score);
         }
 
         int R, G, B;
@@ -79,6 +78,22 @@ class OEColorScale implements ColorScale {
             R = (int) (255 * (threshold - newValue) / threshold);
             G = (int) (255 * (threshold - newValue) / threshold);
 
+        }
+
+
+        if (HiCGlobals.HACK_COLORSCALE) {
+            newValue = score;
+            if (newValue > (threshold / 2)) {
+                R = 255;
+                newValue = Math.min(newValue, threshold);
+                G = (int) (255 * (threshold - newValue) / (threshold / 2));
+                B = (int) (255 * (threshold - newValue) / (threshold / 2));
+            } else {
+                newValue = Math.max(newValue, 0);
+                B = 255;
+                R = (int) (255 * (0 + newValue) / (threshold / 2));
+                G = (int) (255 * (0 + newValue) / (threshold / 2));
+            }
         }
 
         return new Color(R, G, B);
@@ -102,7 +117,7 @@ class OEColorScale implements ColorScale {
     }
 
     public double getMax() {
-        if(type == MatrixType.DIFF) {
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
             return 2 * threshold;
         }
         else {
@@ -111,7 +126,7 @@ class OEColorScale implements ColorScale {
     }
 
     public float getThreshold() {
-        if(type == MatrixType.DIFF){
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
             return (float)threshold;
         }
         else {
@@ -120,7 +135,7 @@ class OEColorScale implements ColorScale {
     }
 
     public void setThreshold(double max) {
-        if(type == MatrixType.DIFF){
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
             threshold = max;
         }
         else {

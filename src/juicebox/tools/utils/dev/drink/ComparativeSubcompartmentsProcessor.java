@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.utils.common.ArrayTools;
+import juicebox.tools.utils.dev.drink.kmeansfloat.ClusterTools;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
@@ -48,7 +48,7 @@ public class ComparativeSubcompartmentsProcessor {
     private final ChromosomeHandler chromosomeHandler;
     private final int resolution;
 
-    public ComparativeSubcompartmentsProcessor(Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, double[]>> initialSubcompartmentsData, ChromosomeHandler chromosomeHandler, int resolution) {
+    public ComparativeSubcompartmentsProcessor(Pair<List<GenomeWideList<SubcompartmentInterval>>, Map<Integer, float[]>> initialSubcompartmentsData, ChromosomeHandler chromosomeHandler, int resolution) {
         this.comparativeSubcompartments = initialSubcompartmentsData.getFirst();
         for (GenomeWideList<SubcompartmentInterval> gwList : comparativeSubcompartments) {
             DrinkUtils.reSort(gwList);
@@ -71,7 +71,7 @@ public class ComparativeSubcompartmentsProcessor {
         return total / numNonZero;
     }
 
-    private static Map<String, Double> calculateVectorDifferencesMatrix(Map<Integer, double[]> idToCentroidMap) {
+    private static Map<String, Double> calculateVectorDifferencesMatrix(Map<Integer, float[]> idToCentroidMap) {
         Map<String, Double> differences = new HashMap<>();
         for (Integer indx1 : idToCentroidMap.keySet()) {
 
@@ -84,7 +84,7 @@ public class ComparativeSubcompartmentsProcessor {
                 String key1 = getClusterPairID(indx1, indx2);
                 String key2 = getClusterPairID(indx2, indx1);
                 if (n1 == n2 && !indx1.equals(indx2) && !differences.containsKey(key1)) {
-                    double distance = ArrayTools.euclideanDistance(idToCentroidMap.get(indx1), idToCentroidMap.get(indx2));
+                    double distance = ClusterTools.getDistance(idToCentroidMap.get(indx1), idToCentroidMap.get(indx2));
                     differences.put(key1, distance);
                     differences.put(key2, distance);
                 }

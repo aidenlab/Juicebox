@@ -31,9 +31,8 @@ import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 9/21/15.
@@ -41,7 +40,7 @@ import java.util.Set;
 public abstract class JuicerCLT extends JuiceboxCLT {
 
     protected NormalizationType norm = NormalizationHandler.KR;
-    protected Set<String> givenChromosomes = null; //TODO set to protected
+    protected List<String> givenChromosomes = null; //TODO set to protected
     protected static int numCPUThreads = 1;
 
     protected JuicerCLT(String usage) {
@@ -82,7 +81,7 @@ public abstract class JuicerCLT extends JuiceboxCLT {
     private void assessIfChromosomesHaveBeenSpecified(CommandLineParserForJuicer juicerParser) {
         List<String> possibleChromosomes = juicerParser.getChromosomeListOption();
         if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
-            givenChromosomes = new HashSet<>(possibleChromosomes);
+            givenChromosomes = new ArrayList<>(possibleChromosomes);
         }
     }
 }

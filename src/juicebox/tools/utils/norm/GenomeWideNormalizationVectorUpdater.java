@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,24 +113,27 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
     }
 
 
-    public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild, List<NormalizationVectorIndexEntry> normVectorIndices,
+    public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild,
+                                                            Map<NormalizationType, Integer> resolutionsToBuildTo, List<NormalizationVectorIndexEntry> normVectorIndices,
                                                             BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
         for (NormalizationType normType : normalizationsToBuild) {
             if (NormalizationHandler.isGenomeWideNorm(normType)) {
+                if (zoom.getBinSize() >= resolutionsToBuildTo.get(normType)) {
 
-                long currentTime = System.currentTimeMillis();
-                Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
-                if (HiCGlobals.printVerboseComments) {
-                    System.out.println("\n" + normType.getLabel() + " normalization genome wide at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
-                }
-
-                if (wgVectors != null) {
-                    Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
-                    for (Chromosome chromosome : nvMap.keySet()) {
-                        updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                    long currentTime = System.currentTimeMillis();
+                    Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("\n" + normType.getLabel() + " normalization genome wide at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
                     }
 
-                    expectedValueCalculations.add(wgVectors.getSecond());
+                    if (wgVectors != null) {
+                        Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
+                        for (Chromosome chromosome : nvMap.keySet()) {
+                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                        }
+
+                        expectedValueCalculations.add(wgVectors.getSecond());
+                    }
                 }
             }
         }

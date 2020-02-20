@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,8 +39,11 @@ public enum MatrixType {
     PEARSONCTRL("Control Pearson"),
     NORM2CTRL("Control Norm^2"),
     RATIO("Observed/Control"),
+    RATIO0("(O/E0)/(C/EC0)"),
     VS("Observed vs Control"),
     OEVS("Observed/Expected vs Control/Expected"),
+    OERATIO("(Observed/Expected) / (Control/Expected)"),
+    OERATIOMINUS("(Observed/Expected) - (Control/Expected)"),
     OCMEVS("Observed-Expected vs Control-Expected"),
     PEARSONVS("Observed Pearson vs Control Pearson"),
     DIFF("Observed-Control"),
@@ -114,7 +117,7 @@ public enum MatrixType {
      * @return true if the option requires control map bu not expected vector
      */
     public static boolean isSimpleControlType(MatrixType option) {
-        return option == CONTROL || option == VS || option == DIFF || option == RATIO;
+        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIO0;
     }
 
     /**
@@ -122,8 +125,13 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME;
+        return option == OE || option == RATIO || option == RATIO0 || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME || option == OERATIO || option == OERATIOMINUS;
     }
+
+    public static boolean isSubtactType(MatrixType option) {
+        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS;
+    }
+
 
     /**
      * @param option
@@ -174,7 +182,7 @@ public enum MatrixType {
     }
 
     private static boolean isControlExpectedUsedType(MatrixType option) {
-        return option == OECTRL || option == OEVS || option == OCMEVS || option == CME;
+        return option == OECTRL || option == OEVS || option == OCMEVS || option == CME || option == OERATIO || option == OERATIOMINUS;
     }
 
     public String toString() {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1518,6 +1518,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
           if (evCtrl > 0 && !Float.isNaN(controlValue)) {
             txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = ");
             txt.append(formatter.format(controlValue / evCtrl)).append("</span>");
+            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>(O/E)/(C/EC)            = ");
+            txt.append(formatter.format((value / ev) / (controlValue / evCtrl))).append("</span>");
           } else {
             txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = NaN</span>");
           }

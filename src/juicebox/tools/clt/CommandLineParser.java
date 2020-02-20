@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -161,6 +161,8 @@ public class CommandLineParser extends CmdLineParser {
             return Alignment.LL;
         } else if (alignmentInt == 4) {
             return Alignment.RR;
+        } else if (alignmentInt == 5) {
+            return Alignment.TANDEM;
         } else {
             throw new IllegalArgumentException(String.format("alignment option %d not supported", alignmentInt));
         }
@@ -191,9 +193,7 @@ public class CommandLineParser extends CmdLineParser {
         return optionToLong(randomSeedOption);
     }
 
-    public enum Alignment {
-        INNER, OUTER, LL, RR
-    }
+    public enum Alignment {INNER, OUTER, LL, RR, TANDEM}
 
     /**
      * double flags
@@ -224,7 +224,9 @@ public class CommandLineParser extends CmdLineParser {
         return optionToStringSet(multipleChromosomesOption);
     }
 
-    public Set<String> getResolutionOption() { return optionToStringSet(resolutionOption);}
+    public List<String> getResolutionOption() {
+        return optionToStringList(resolutionOption);
+    }
 
     public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
 
