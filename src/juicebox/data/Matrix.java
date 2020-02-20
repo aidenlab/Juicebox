@@ -267,6 +267,14 @@ public class Matrix {
 
     }
 
+    public MatrixZoomData getFirstZoomData() {
+        if (bpZoomData != null && bpZoomData.size() > 0) {
+            return getFirstZoomData(HiC.Unit.BP);
+       } else {
+            return getFirstZoomData(HiC.Unit.FRAG);
+        }
+    }
+
     public MatrixZoomData getFirstZoomData(HiC.Unit unit) {
         if (unit == HiC.Unit.BP) {
             return bpZoomData != null && bpZoomData.size() > 0 ? bpZoomData.get(0) : null;
