@@ -1187,6 +1187,8 @@ public class HiC {
                     return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
                 case OE:
                 case RATIO:
+                case OERATIO:
+                case OERATIOMINUS:
                 case OBSERVED:
                 case DIFF:
                 case VS:
