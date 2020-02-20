@@ -513,6 +513,13 @@ class HeatmapRenderer {
                                         double den = ctrlRecord.getCounts() / ctrlAverageCount;
                                         score = num / den;
                                     }
+                                } else if (displayOption == MatrixType.RATIO0 && hasControl) {
+                                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                    if (ctrlRecord != null && ctrlRecord.getCounts() > 0 && df != null && controlDF != null) {
+                                        double num = rec.getCounts() / df.getExpectedValue(chr1, 0);
+                                        double den = ctrlRecord.getCounts() / controlDF.getExpectedValue(chr1, 0);
+                                        score = num / den;
+                                    }
                                 } else if (displayOption == MatrixType.DIFF && hasControl) {
                                     ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                                     if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {

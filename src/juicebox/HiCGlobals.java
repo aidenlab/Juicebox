@@ -71,7 +71,7 @@ public class HiCGlobals {
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
             MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON,
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
-            MatrixType.VS, MatrixType.RATIO, MatrixType.OERATIO, MatrixType.OERATIOMINUS, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
+            MatrixType.VS, MatrixType.RATIO, MatrixType.RATIO0, MatrixType.OERATIO, MatrixType.OERATIOMINUS, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;

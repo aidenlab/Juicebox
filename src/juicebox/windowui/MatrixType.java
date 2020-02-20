@@ -39,6 +39,7 @@ public enum MatrixType {
     PEARSONCTRL("Control Pearson"),
     NORM2CTRL("Control Norm^2"),
     RATIO("Observed/Control"),
+    RATIO0("(O/E0)/(C/EC0)"),
     VS("Observed vs Control"),
     OEVS("Observed/Expected vs Control/Expected"),
     OERATIO("(Observed/Expected) / (Control/Expected)"),
@@ -116,7 +117,7 @@ public enum MatrixType {
      * @return true if the option requires control map bu not expected vector
      */
     public static boolean isSimpleControlType(MatrixType option) {
-        return option == CONTROL || option == VS || option == DIFF || option == RATIO;
+        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIO0;
     }
 
     /**
@@ -124,7 +125,7 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME || option == OERATIO || option == OERATIOMINUS;
+        return option == OE || option == RATIO || option == RATIO0 || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME || option == OERATIO || option == OERATIOMINUS;
     }
 
     public static boolean isSubtactType(MatrixType option) {
