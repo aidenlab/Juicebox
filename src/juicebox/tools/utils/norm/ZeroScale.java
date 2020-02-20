@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,8 @@ public class ZeroScale {
     private final static int maxOverallAttempts = 3;
     private final static int numTrialsWithinScalingRun = 5;
 
-    public static void utmvMul(List<ContactRecord> contactRecords, double[] binaryVector, int k, double[] tobeScaledVector) {
-        for (int p = 0; p < k; p++) {
-            tobeScaledVector[p] = 0;
-        }
+    public static void utmvMul(List<ContactRecord> contactRecords, double[] binaryVector, double[] tobeScaledVector) {
+        Arrays.fill(tobeScaledVector, 0);
 
         for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
@@ -130,13 +128,14 @@ public class ZeroScale {
         for (int p = 0; p < k; p++)
             if (targetVector[p] > 0 && (targetVector[p] < low || targetVector[p] > high)) targetVector[p] = Double.NaN;
 
-        for (int p = 0; p < k; p++) one[p] = 1.0;
+        Arrays.fill(one, 1);
+        Arrays.fill(bad, 1);
         for (int p = 0; p < k; p++) if (targetVector[p] == 0) one[p] = 0;
-        for (int p = 0; p < k; p++) bad[p] = 1;
+
+
         for (ContactRecord cr : contactRecords) {
             int x = cr.getBinX();
             int y = cr.getBinY();
-            final float counts = cr.getCounts();
             if (x == y) {
                 bad[x] = 0;
             }
@@ -144,7 +143,7 @@ public class ZeroScale {
 
 
         //	find rows sums
-        utmvMul(contactRecords, one, k, row);
+        utmvMul(contactRecords, one, row);
 
 
         //	find relevant percentiles
@@ -153,12 +152,21 @@ public class ZeroScale {
         Arrays.sort(r0);
 
         int n = 0;
-        for (int p = 0; p < k; p++) if (r0[p] == 0) n++;
+        for (int p = 0; p < k; p++) {
+            if (r0[p] == 0) {
+                n++;
+            }
+        }
+
         lind = n - 1 + (int) (((double) (k - n)) * percentLowRowSumExcluded + 0.5);
         hind = n - 1 + (int) (((double) (k - n)) * (1.0 - 0.1 * percentLowRowSumExcluded) + 0.5);
 
-        if (lind < 0) lind = 0;
-        if (hind >= k) hind = k - 1;
+        if (lind < 0) {
+            lind = 0;
+        }
+        if (hind >= k) {
+            hind = k - 1;
+        }
         low = r0[lind];
         high = r0[hind];
         r0 = null;
@@ -178,10 +186,10 @@ public class ZeroScale {
             dr[p] = 1.0 - bad[p];
         }
         for (int p = 0; p < k; p++) {
-            dc[p] = 1.0 - bad[p];
+            dc[p] = dr[p];
         }
         for (int p = 0; p < k; p++) {
-            one[p] = 1.0 - bad[p];
+            one[p] = dr[p];
         }
         for (int p = 0; p < k; p++) {
             if (targetVector[p] == 0) {
@@ -197,7 +205,11 @@ public class ZeroScale {
         ber = 10.0 * (1.0 + tolerance);
         int iter = 0;
         int stuck = 0;
-        for (int p = 0; p < k; p++) current[p] = Math.sqrt(dr[p] * dc[p]);
+
+        for (int p = 0; p < k; p++) {
+            current[p] = dr[p];
+        }
+
         double err = 0;
         while ((ber > tolerance || err > 5.0 * tolerance) && iter++ < maxIter) {
             for (int p = 0; p < k; p++) {
@@ -210,14 +222,14 @@ public class ZeroScale {
                 dr[p] *= s[p];
             }
 
-            utmvMul(contactRecords, dr, k, col);
+            utmvMul(contactRecords, dr, col);
 
             for (int p = 0; p < k; p++) col[p] *= dc[p];
             for (int p = 0; p < k; p++) if (bad1[p] == 1) col[p] = 1.0;
             for (int p = 0; p < k; p++) s[p] = targetVector[p] / col[p];
             for (int p = 0; p < k; p++) dc[p] *= s[p];
 
-            utmvMul(contactRecords, dc, k, row);
+            utmvMul(contactRecords, dc, row);
             for (int p = 0; p < k; p++) row[p] *= dr[p];
 
             for (int p = 0; p < k; p++) {
@@ -239,7 +251,7 @@ public class ZeroScale {
             if (stuck >= numTrials) break;
         }
 
-        utmvMul(contactRecords, calculatedVector, k, col);
+        utmvMul(contactRecords, calculatedVector, col);
         err = 0;
         for (int p = 0; p < k; p++) {
             if (bad1[p] == 1) continue;
