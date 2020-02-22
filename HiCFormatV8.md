@@ -18,7 +18,7 @@
 |------|------------|------|-------|
 |Magic|HiC magic string|String|HIC|
 |Version|Version number|int|8|
-|masterIndexPosition|File position of master index|long||
+|footerPosition|File position of the Footer section, containing the master index, expected values, and normalization vectors. |long||
 |genomeId|	Genome identifier (e.g. hg19, mm9, etc)|	String||	
 ||||
 |nAttributes	|Number of key-value pair attributes|	int||
@@ -125,7 +125,7 @@ A block represents a square sub-matrix of a contact map.
 
 | Field |	Description|	Type |	Value |
 |------|------------|------|-------|
-|nBytesV5|	Number of bytes for the “version 5” footer, that is everything up to the normalized expected vectors	|int||	
+|nBytesV5|	Number of bytes for the “version 5” footer, that is everything up to the normalized expected vectors.  This field (*nBytesV5*) is not included, so the total number of bytes between ```footerPosition``` and ```nNormVectors```  is ```nBytesV5 + 4```. |int||	
 
 #### Master index
 
