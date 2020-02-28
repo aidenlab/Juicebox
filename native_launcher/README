@@ -1,7 +1,0 @@
-Launcher script for Juicebox CLT with native libraries.
-
-Copy the JuiceboxCLT.jar to this folder, then call
-
-bash juicebox.sh hiccups -c 1 -r 5000 -m 5000 <hicFileURL> <output1> <output2>
-
-to run hiccups. Native libraries are currently only needed for hiccups.
