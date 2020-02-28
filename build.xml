@@ -2,7 +2,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+  ~ Copyright (c) 2011-2020 Broad Institute, Aiden Lab
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -150,6 +150,10 @@
         </fileset>
     </path>
 
+    <path id="library.math3.classpath">
+        <pathelement location="${basedir}/lib/general/commons-math3-3.6.1.jar"/>
+    </path>
+
     <path id="library.jsi1.1.classpath">
         <pathelement location="${basedir}/lib/general/jsi1.1.jar"/>
     </path>
@@ -182,18 +186,20 @@
         <path refid="${module.jdk.classpath.juicebox}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
-	<path refid="library.kotlin.classpath"/>
+        <path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
+        <path refid="library.math3.classpath"/>
     </path>
 
     <path id="juicebox.runtime.production.module.classpath">
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
-	<path refid="library.kotlin.classpath"/>
+        <path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
+        <path refid="library.math3.classpath"/>
     </path>
 
     <path id="juicebox.module.classpath">
@@ -201,9 +207,10 @@
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
-	<path refid="library.kotlin.classpath"/>
+        <path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
+        <path refid="library.math3.classpath"/>
     </path>
 
     <path id="juicebox.runtime.module.classpath">
@@ -211,9 +218,10 @@
         <pathelement location="${juicebox.output.dir}"/>
         <path refid="library.broadinstitute.classpath"/>
         <path refid="library.jcuda.classpath"/>
-	<path refid="library.kotlin.classpath"/>
+        <path refid="library.kotlin.classpath"/>
         <path refid="library.general.classpath"/>
         <path refid="library.jsi1.1.classpath"/>
+        <path refid="library.math3.classpath"/>
     </path>
 
 
