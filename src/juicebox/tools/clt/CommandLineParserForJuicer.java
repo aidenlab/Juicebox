@@ -66,7 +66,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
     private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
-    // previously for AFA
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
 

@@ -174,11 +174,11 @@ public class APA extends JuicerCLT {
             norm = preferredNorm;
 
         double potentialMinPeakDist = juicerParser.getAPAMinVal();
-        if (potentialMinPeakDist >= 0)
+        if (potentialMinPeakDist > -1)
             minPeakDist = potentialMinPeakDist;
 
         double potentialMaxPeakDist = juicerParser.getAPAMaxVal();
-        if (potentialMaxPeakDist > 0)
+        if (potentialMaxPeakDist > -1)
             maxPeakDist = potentialMaxPeakDist;
 
         int potentialWindow = juicerParser.getAPAWindowSizeOption();
