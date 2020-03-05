@@ -91,7 +91,7 @@ public class ArrayTools {
 
     private static long[] makeReverseCumulativeArray(long[] inputArray) {
         long[] outputArray = new long[inputArray.length];
-        int total = 0;
+        long total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {
             total += inputArray[i];
             outputArray[i] = total;
