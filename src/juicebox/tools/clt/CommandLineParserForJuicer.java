@@ -42,7 +42,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     // oes
 
     // General
-    private final Option matrixSizeOption = addIntegerOption('m', "matrix-window-width");
+    private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
@@ -51,11 +51,11 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
-    private final Option apaMinValOption = addDoubleOption('n', "min_dist");
-    private final Option apaMaxValOption = addDoubleOption('x', "max_dist");
+    private final Option apaMinValOption = addDoubleOption('n', "min-dist");
+    private final Option apaMaxValOption = addDoubleOption('x', "max-dist");
     private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner-width");
     private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
-    private final Option apaSaveAllData = addBooleanOption('u', "all_data");
+    private final Option apaSaveAllData = addBooleanOption('u', "save-all");
 
     // HICCUPS
     private final Option fdrOption = addStringOption('f', "fdr-thresholds");
