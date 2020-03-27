@@ -1188,24 +1188,10 @@ public class HiC {
 
     public String getColorScaleKey() {
         try {
-            switch (displayOption) {
-                case CONTROL:
-                case OECTRL:
-                case PEARSONCTRL:
-                    return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
-                case OE:
-                case RATIO:
-                case RATIO0:
-                case OERATIO:
-                case OERATIOMINUS:
-                case OBSERVED:
-                case DIFF:
-                case VS:
-                case OEVS:
-                case PEARSON:
-                case PEARSONVS:
-                default:
-                    return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
+            if (MatrixType.isOnlyControlType(displayOption)) {
+                return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
+            } else {
+                return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
             }
         } catch (Exception ignored) {
         }
