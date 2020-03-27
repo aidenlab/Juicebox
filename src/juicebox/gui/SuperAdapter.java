@@ -321,6 +321,8 @@ public class SuperAdapter {
             initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
         } else {
             mainViewPanel.getResolutionSlider().setEnabled(true);
+
+            // todo this is throwing null pointer exceptions
             initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
 
             // If this is the initial load hic.currentZoom will be null
