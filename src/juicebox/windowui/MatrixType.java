@@ -91,7 +91,8 @@ public enum MatrixType {
      * @return true is the option is generally available all maps or resolutions
      */
     public static boolean isSimpleType(MatrixType option) {
-        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
+        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2
+                || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
     /**
@@ -107,7 +108,8 @@ public enum MatrixType {
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
-        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
+        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2
+                || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
 
@@ -125,7 +127,8 @@ public enum MatrixType {
      * @return true if the option requires control map but not expected vector
      */
     public static boolean isSimpleControlType(MatrixType option) {
-        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIOP1 || option == RATIO0 || option == RATIO0P1 || option == RATIO0P2;
+        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIOP1
+                || option == RATIO0 || option == RATIO0P1 || option == RATIO0P2;
     }
 
 
@@ -134,12 +137,14 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == OP1EP1 || option == RATIO || option == RATIOP1 || option == RATIO0 || option == RATIO0P1
-                || option == RATIO0P2 || option == OECTRL || option == OP1EP1CTRL || option == OEVS || option == OEVSP1 || option == OERATIO || isSubtactType(option);
+        return option == OE || option == OP1EP1 || option == RATIO || option == RATIOP1 || option == RATIO0
+                || option == RATIO0P1 || option == RATIO0P2 || option == OECTRL || option == OP1EP1CTRL
+                || option == OEVS || option == OEVSP1 || option == OERATIO || option == OERATIOP1
+                || isSubtactType(option);
     }
 
     public static boolean isSubtactType(MatrixType option) {
-        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS;
+        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS || option == OERATIOMINUSP1;
     }
 
     /**
@@ -155,7 +160,8 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || option == OP1EP1 || isPearsonType(option) || isControlExpectedUsedType(option) || option == OCMEVS || option == OME || option == CME;
+        return option == OE || option == OP1EP1 || isPearsonType(option) || isControlExpectedUsedType(option)
+                || option == OCMEVS || option == OME || option == CME;
     }
 
     /**
@@ -183,7 +189,8 @@ public enum MatrixType {
     }
 
     public static boolean isVSTypeDisplay(MatrixType option) {
-        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS || option == MatrixType.OEVSP1 || option == OCMEVS;
+        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS
+                || option == MatrixType.OEVSP1 || option == OCMEVS;
     }
 
     public static boolean isControlPearsonType(MatrixType option) {
@@ -191,7 +198,8 @@ public enum MatrixType {
     }
 
     private static boolean isControlExpectedUsedType(MatrixType option) {
-        return option == OECTRL || option == OP1EP1CTRL || option == OEVS || option == OEVSP1 || option == OCMEVS || option == CME || option == OERATIO || option == OERATIOMINUS;
+        return option == OECTRL || option == OP1EP1CTRL || option == OEVS || option == OEVSP1 || option == OCMEVS
+                || option == CME || option == OERATIO || option == OERATIOP1 || option == OERATIOMINUS || option == OERATIOMINUSP1;
     }
 
     public static boolean isOnlyControlType(MatrixType option) {

@@ -965,6 +965,115 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OERATIOP1: {
+                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
+                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
+                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
+
+                Map<String, Block> controlBlocks = new HashMap<>();
+                for (Block b : ctrlBlocks) {
+                    controlBlocks.put(controlZD.getNormLessBlockKey(b), b);
+                }
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+
+                float averageCount = (float) zd.getAverageCount();
+                float ctrlAverageCount = controlZD == null ? 1 : (float) controlZD.getAverageCount();
+
+                if (sameChr) {
+                    if (df == null || controlDF == null) return false;
+
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+
+                            Map<String, ContactRecord> controlRecords = new HashMap<>();
+                            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
+                            if (cb != null) {
+                                for (ContactRecord ctrlRec : cb.getContactRecords()) {
+                                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
+                                }
+                            }
+
+                            for (ContactRecord rec : recs) {
+                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                if (ctrlRecord != null) {
+                                    float num = rec.getCounts();
+                                    float den = ctrlRecord.getCounts();
+
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int dist = Math.abs(binX - binY);
+
+                                    float obsExpected = (float) df.getExpectedValue(chr1, dist);
+                                    float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
+
+                                    float score = ((num / obsExpected) + 1) / ((den / ctrlExpected) + 1);
+                                    if (Float.isNaN(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+
+                                    if (binX != binY) {
+                                        px = binY - originX;
+                                        py = binX - originY;
+                                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+
+                            Map<String, ContactRecord> controlRecords = new HashMap<>();
+                            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
+                            if (cb != null) {
+                                for (ContactRecord ctrlRec : cb.getContactRecords()) {
+                                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
+                                }
+                            }
+
+                            for (ContactRecord rec : recs) {
+                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                if (ctrlRecord != null) {
+                                    float num = rec.getCounts();
+                                    float den = ctrlRecord.getCounts();
+
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+
+                                    float obsExpected = (averageCount > 0 ? averageCount : 1);
+                                    float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+
+                                    float score = ((num / obsExpected) + 1) / ((den / ctrlExpected) + 1);
+                                    if (Float.isNaN(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
             case OERATIOMINUS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1057,6 +1166,116 @@ class HeatmapRenderer {
                                     float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
 
                                     float score = (num / obsExpected) - (den / ctrlExpected);
+                                    if (Float.isNaN(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+
+            }
+            case OERATIOMINUSP1: {
+                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
+                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
+                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
+
+                Map<String, Block> controlBlocks = new HashMap<>();
+                for (Block b : ctrlBlocks) {
+                    controlBlocks.put(controlZD.getNormLessBlockKey(b), b);
+                }
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+
+                float averageCount = (float) zd.getAverageCount();
+                float ctrlAverageCount = controlZD == null ? 1 : (float) controlZD.getAverageCount();
+
+                if (sameChr) {
+                    if (df == null || controlDF == null) return false;
+
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+
+                            Map<String, ContactRecord> controlRecords = new HashMap<>();
+                            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
+                            if (cb != null) {
+                                for (ContactRecord ctrlRec : cb.getContactRecords()) {
+                                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
+                                }
+                            }
+
+                            for (ContactRecord rec : recs) {
+                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                if (ctrlRecord != null) {
+                                    float num = rec.getCounts();
+                                    float den = ctrlRecord.getCounts();
+
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int dist = Math.abs(binX - binY);
+
+                                    float obsExpected = (float) df.getExpectedValue(chr1, dist);
+                                    float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
+
+                                    float score = ((num + 1) / (obsExpected + 1)) - ((den + 1) / (ctrlExpected + 1));
+                                    if (Float.isNaN(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+
+                                    if (binX != binY) {
+                                        px = binY - originX;
+                                        py = binX - originY;
+                                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+
+                            Map<String, ContactRecord> controlRecords = new HashMap<>();
+                            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
+                            if (cb != null) {
+                                for (ContactRecord ctrlRec : cb.getContactRecords()) {
+                                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
+                                }
+                            }
+
+                            for (ContactRecord rec : recs) {
+                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                                if (ctrlRecord != null) {
+                                    float num = rec.getCounts();
+                                    float den = ctrlRecord.getCounts();
+
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+
+                                    float obsExpected = (averageCount > 0 ? averageCount : 1);
+                                    float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+
+                                    float score = ((num + 1) / (obsExpected + 1)) - ((den + 1) / (ctrlExpected + 1));
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
