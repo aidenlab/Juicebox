@@ -1383,9 +1383,9 @@ class HeatmapRenderer {
                         for (ContactRecord rec : recs) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                             if (ctrlRecord != null) {
-                                float num = rec.getCounts() / averageCount;
-                                float den = ctrlRecord.getCounts() / ctrlAverageCount;
-                                float score = (num + 1) / (den + 1);
+                                float num = (rec.getCounts() + 1) / (averageCount + 1);
+                                float den = (ctrlRecord.getCounts() + 1) / (ctrlAverageCount + 1);
+                                float score = num / den;
                                 if (Float.isNaN(score)) continue;
 
                                 Color color = cs.getColor(score);
@@ -1497,66 +1497,9 @@ class HeatmapRenderer {
                         for (ContactRecord rec : recs) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                             if (ctrlRecord != null) {
-                                float num = (float) ((rec.getCounts() + 1) / df.getExpectedValue(chr1, 0));
-                                float den = (float) ((ctrlRecord.getCounts() + 1) / controlDF.getExpectedValue(chr1, 0));
+                                float num = (float) ((rec.getCounts() + 1) / (df.getExpectedValue(chr1, 0) + 1));
+                                float den = (float) ((ctrlRecord.getCounts() + 1) / (controlDF.getExpectedValue(chr1, 0) + 1));
                                 float score = num / den;
-                                if (Float.isNaN(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-
-                                if (sameChr && binX != binY) {
-                                    px = binY - originX;
-                                    py = binX - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            }
-            case RATIO0P2: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null || df == null || controlDF == null)
-                    return false;
-
-                Map<String, Block> controlBlocks = new HashMap<>();
-                for (Block b : ctrlBlocks) {
-                    controlBlocks.put(controlZD.getNormLessBlockKey(b), b);
-                }
-
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                for (Block b : blocks) {
-                    Collection<ContactRecord> recs = b.getContactRecords();
-
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
-
-                    if (recs != null) {
-                        for (ContactRecord rec : recs) {
-                            ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
-                            if (ctrlRecord != null) {
-                                float num = (float) (rec.getCounts() / df.getExpectedValue(chr1, 0));
-                                float den = (float) (ctrlRecord.getCounts() / controlDF.getExpectedValue(chr1, 0));
-                                float score = (num + 1) / (den + 1);
                                 if (Float.isNaN(score)) continue;
 
                                 Color color = cs.getColor(score);
