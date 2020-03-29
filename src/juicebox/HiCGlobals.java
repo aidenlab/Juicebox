@@ -38,7 +38,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.19.08";
+    public static final String versionNum = "1.19.09";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -67,13 +67,14 @@ public class HiCGlobals {
     public static final int bufferSize = 2097152;
 
     public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OP1EP1, MatrixType.PEARSON};
+            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OP1EP1, MatrixType.OME, MatrixType.PEARSON};
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON,
-            MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.OP1EP1CTRL, MatrixType.PEARSONCTRL,
+            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OP1EP1, MatrixType.OME, MatrixType.PEARSON,
+            MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.OP1EP1CTRL, MatrixType.CME, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.RATIOP1, MatrixType.RATIO0, MatrixType.RATIO0P1,
             MatrixType.OERATIO, MatrixType.OERATIOP1, MatrixType.OERATIOMINUS, MatrixType.OERATIOMINUSP1,
-            MatrixType.OEVS, MatrixType.OEVSP1, MatrixType.PEARSONVS, MatrixType.DIFF};
+            MatrixType.OEVS, MatrixType.OEVSP1, MatrixType.OCMEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
+
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
