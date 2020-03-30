@@ -165,12 +165,16 @@ public class SuperAdapter {
         if (pearsonColorScale != null) new PearsonColorScaleEditor(this, pearsonColorScale);
     }
 
+    public void launchSetPseudoCountEditor() {
+        new PseudoCountEditor(this);
+    }
+
     public void restoreLocation(String loc) {
         hic.restoreLocation(loc);
     }
 
     public LoadEncodeAction getEncodeAction() {
-        if (layersPanel == null){
+        if (layersPanel == null) {
             layersPanel = new LayersPanel(this);
             setLayersPanelVisible(false);
         }

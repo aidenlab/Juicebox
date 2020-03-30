@@ -38,7 +38,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.19.09";
+    public static final String versionNum = "1.19.10";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -56,6 +56,7 @@ public class HiCGlobals {
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
+    public static float PSEUDOCOUNT = 1f;
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;

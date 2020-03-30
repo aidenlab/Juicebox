@@ -161,6 +161,8 @@ class HeatmapRenderer {
         String key = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
         String controlKey = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
 
+        final float pseudocount = HiCGlobals.PSEUDOCOUNT;
+
         switch (displayOption) {
             case NORM2: {
                 BasicMatrix bm = zd.getNormSquared(observedNormalizationType);
@@ -367,7 +369,7 @@ class HeatmapRenderer {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = (rec.getCounts() + 1) / (expected + 1);
+                                    float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -397,7 +399,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
                                 float expected = (averageCount > 0 ? averageCount : 1);
 
-                                float score = (rec.getCounts() + 1) / (expected + 1);
+                                float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                 if (Float.isNaN(score)) continue;
 
                                 Color color = cs.getColor(score);
@@ -578,7 +580,7 @@ class HeatmapRenderer {
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) df.getExpectedValue(chr1, dist);
-                                    float score = (rec.getCounts() + 1) / (expected + 1);
+                                    float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                     if (Float.isNaN(score)) continue;
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -599,7 +601,7 @@ class HeatmapRenderer {
                                 if (binX != binY) {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) controlDF.getExpectedValue(chr1, dist);
-                                    float score = (rec.getCounts() + 1) / (expected + 1);
+                                    float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -806,7 +808,7 @@ class HeatmapRenderer {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) df.getExpectedValue(chr1, dist);
 
-                                    float score = (rec.getCounts() + 1) / (expected + 1);
+                                    float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -836,7 +838,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
                                 float expected = (averageCount > 0 ? averageCount : 1);
 
-                                float score = (rec.getCounts() + 1) / (expected + 1);
+                                float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                                 if (Float.isNaN(score)) continue;
 
                                 Color color = cs.getColor(score);
@@ -1008,7 +1010,7 @@ class HeatmapRenderer {
                                     float obsExpected = (float) df.getExpectedValue(chr1, dist);
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = ((num / obsExpected) + 1) / ((den / ctrlExpected) + 1);
+                                    float score = ((num + pseudocount) / (obsExpected + pseudocount)) / ((den + pseudocount) / (ctrlExpected + pseudocount));
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -1056,7 +1058,7 @@ class HeatmapRenderer {
                                     float obsExpected = (averageCount > 0 ? averageCount : 1);
                                     float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
 
-                                    float score = ((num / obsExpected) + 1) / ((den / ctrlExpected) + 1);
+                                    float score = ((num + pseudocount) / (obsExpected + pseudocount)) / ((den + pseudocount) / (ctrlExpected + pseudocount));
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -1227,7 +1229,7 @@ class HeatmapRenderer {
                                     float obsExpected = (float) df.getExpectedValue(chr1, dist);
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = ((num + 1) / (obsExpected + 1)) - ((den + 1) / (ctrlExpected + 1));
+                                    float score = ((num + pseudocount) / (obsExpected + pseudocount)) - ((den + pseudocount) / (ctrlExpected + pseudocount));
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -1275,7 +1277,7 @@ class HeatmapRenderer {
                                     float obsExpected = (averageCount > 0 ? averageCount : 1);
                                     float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
 
-                                    float score = ((num + 1) / (obsExpected + 1)) - ((den + 1) / (ctrlExpected + 1));
+                                    float score = ((num + pseudocount) / (obsExpected + pseudocount)) - ((den + pseudocount) / (ctrlExpected + pseudocount));
                                     if (Float.isNaN(score)) continue;
 
                                     Color color = cs.getColor(score);
@@ -1383,8 +1385,8 @@ class HeatmapRenderer {
                         for (ContactRecord rec : recs) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                             if (ctrlRecord != null) {
-                                float num = (rec.getCounts() + 1) / (averageCount + 1);
-                                float den = (ctrlRecord.getCounts() + 1) / (ctrlAverageCount + 1);
+                                float num = (rec.getCounts() + pseudocount) / (averageCount + pseudocount);
+                                float den = (ctrlRecord.getCounts() + pseudocount) / (ctrlAverageCount + pseudocount);
                                 float score = num / den;
                                 if (Float.isNaN(score)) continue;
 
@@ -1497,8 +1499,8 @@ class HeatmapRenderer {
                         for (ContactRecord rec : recs) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                             if (ctrlRecord != null) {
-                                float num = (float) ((rec.getCounts() + 1) / (df.getExpectedValue(chr1, 0) + 1));
-                                float den = (float) ((ctrlRecord.getCounts() + 1) / (controlDF.getExpectedValue(chr1, 0) + 1));
+                                float num = (float) ((rec.getCounts() + pseudocount) / (df.getExpectedValue(chr1, 0) + pseudocount));
+                                float den = (float) ((ctrlRecord.getCounts() + pseudocount) / (controlDF.getExpectedValue(chr1, 0) + pseudocount));
                                 float score = num / den;
                                 if (Float.isNaN(score)) continue;
 
