@@ -32,6 +32,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser.Alignment;
 import juicebox.windowui.NormalizationHandler;
 import org.apache.commons.math.stat.StatUtils;
@@ -41,8 +42,14 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Deflater;
 
 
@@ -64,12 +71,25 @@ public class Preprocessor {
 
     private final ChromosomeHandler chromosomeHandler;
     private final Map<String, Integer> chromosomeIndexes;
+    private final Map<Integer, String> chromosomePairIndexes;
+    private final Map<String, Integer> chromosomePairIndexesReverse;
+    private final Map<Integer, Integer> chromosomePairIndex1;
+    private final Map<Integer, Integer> chromosomePairIndex2;
+    private int chromosomePairCounter = 0;
+    private final Map<Integer, Integer> nonemptyChromosomePairs;
+    private final Map<Integer, MatrixPP> wholeGenomeMatrixParts;
     private final File outputFile;
     private final Map<String, IndexEntry> matrixPositions;
+    private final Map<Integer, IndexEntry> localMatrixPositions;
+    private final Map<Integer, Integer> matrixSizes;
     private String genomeId;
     private final Deflater compressor;
     private LittleEndianOutputStream los;
+    private LittleEndianOutputStream losWholeGenome;
+    private Map<Integer, LittleEndianOutputStream> losContainer;
+    private LittleEndianOutputStream losFooter;
     private long masterIndexPosition;
+    private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     private int countThreshold = 0;
     private int mapqThreshold = 0;
     private boolean diagonalsOnly = false;
@@ -84,6 +104,7 @@ public class Preprocessor {
     private Alignment alignmentFilter;
     private static final Random random = new Random(5);
     private static boolean allowPositionsRandomization = false;
+    protected static int numCPUThreads = 1;
 
     // Base-pair resolutions
     private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
@@ -108,12 +129,41 @@ public class Preprocessor {
         this.genomeId = genomeId;
         this.outputFile = outputFile;
         this.matrixPositions = new LinkedHashMap<>();
+        this.localMatrixPositions = new ConcurrentHashMap<>();
+        this.matrixSizes = new ConcurrentHashMap<>();
+        this.wholeGenomeMatrixParts = new ConcurrentHashMap<>();
+        this.nonemptyChromosomePairs = new ConcurrentHashMap<>();
 
         this.chromosomeHandler = chromosomeHandler;
-        chromosomeIndexes = new Hashtable<>();
+        this.chromosomeIndexes = new ConcurrentHashMap<>(chromosomeHandler.size(), (float) 0.75, numCPUThreads);
         for (int i = 0; i < chromosomeHandler.size(); i++) {
             chromosomeIndexes.put(chromosomeHandler.getChromosomeFromIndex(i).getName(), i);
         }
+        this.chromosomePairIndexes = new ConcurrentHashMap<>();
+        this.chromosomePairIndexesReverse = new ConcurrentHashMap<>();
+        this.chromosomePairIndex1 = new ConcurrentHashMap<>();
+        this.chromosomePairIndex2 = new ConcurrentHashMap<>();
+        String genomeWideName = chromosomeHandler.getChromosomeFromIndex(0).getName();
+        String genomeWidePairName = genomeWideName + "_" + genomeWideName;
+        chromosomePairIndexes.put(chromosomePairCounter, genomeWidePairName);
+        chromosomePairIndexesReverse.put(genomeWidePairName, chromosomePairCounter);
+        chromosomePairIndex1.put(chromosomePairCounter, 0);
+        chromosomePairIndex2.put(chromosomePairCounter, 0);
+        chromosomePairCounter++;
+        for (int i = 1; i < chromosomeHandler.size(); i++) {
+            for (int j = i; j < chromosomeHandler.size(); j++){
+                String c1Name = chromosomeHandler.getChromosomeFromIndex(i).getName();
+                String c2Name = chromosomeHandler.getChromosomeFromIndex(j).getName();
+                String chromosomePairName = c1Name + "_" + c2Name;
+                chromosomePairIndexes.put(chromosomePairCounter, chromosomePairName);
+                chromosomePairIndexesReverse.put(chromosomePairName,chromosomePairCounter);
+                chromosomePairIndex1.put(chromosomePairCounter, i);
+                chromosomePairIndex2.put(chromosomePairCounter, j);
+                chromosomePairCounter++;
+            }
+        }
+
+        this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
 
         compressor = new Deflater();
         compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
@@ -163,6 +213,10 @@ public class Preprocessor {
         if (genome != null) {
             this.genomeId = genome;
         }
+    }
+
+    public void setNumCPUThreads(int numCPUThreads) {
+        Preprocessor.numCPUThreads = numCPUThreads;
     }
 
     public void setResolutions(List<String> resolutions) {
@@ -403,7 +457,12 @@ public class Preprocessor {
             }
 
             try {
-                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
+                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_header"), HiCGlobals.bufferSize));
+                //losContainer = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
+                //for (int i = 0; i < chromosomePairCounter; i++) {
+                //    losContainer.put(i, new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(i)), HiCGlobals.bufferSize)));
+                //}
+                losFooter = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_footer"), HiCGlobals.bufferSize));
             } catch (Exception e) {
                 System.err.println("Unable to write to " + outputFile);
                 System.exit(70);
@@ -429,6 +488,23 @@ public class Preprocessor {
         }
 
         updateMasterIndex();
+
+        try {
+            PrintWriter finalOutput = new PrintWriter("catOutputs.sh");
+            StringBuilder outputLine = new StringBuilder();
+            outputLine.append("cat ").append(outputFile + "_header");
+            for (int i = 0; i < chromosomePairCounter; i++) {
+                if (nonemptyChromosomePairs.containsKey(i) || i == 0) {
+                    outputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
+                }
+            }
+            outputLine.append(" ").append(outputFile + "_footer").append("\n");
+            finalOutput.println(outputLine.toString());
+            finalOutput.close();
+        } catch (Exception e) {
+            System.err.println("Unable to write to catOutputs.sh");
+            System.exit(70);
+        }
         System.out.println("\nFinished preprocess");
     }
 
@@ -630,6 +706,16 @@ public class Preprocessor {
         return false;
     }
 
+    private int getGenomicPosition(int chr, int pos, ChromosomeHandler localChromosomeHandler) {
+        long len = 0;
+        for (int i = 1; i < chr; i++) {
+            len += localChromosomeHandler.getChromosomeFromIndex(i).getLength();
+        }
+        len += pos;
+
+        return (int) (len / 1000);
+
+    }
 
     private int getGenomicPosition(int chr, int pos) {
         long len = 0;
@@ -665,31 +751,46 @@ public class Preprocessor {
         }
     }
 
-    private void writeBody(String inputFile) throws IOException {
-        MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
+    private void writeBodySingleChromosomePair(String inputFile, Set<String> syncWrittenMatrices, ChromosomeHandler localChromosomeHandler, Set<String> localIncludedChromosomes) throws IOException {
 
-        writeMatrix(wholeGenomeMatrix);
+        MatrixPP wholeGenomeMatrix;
+        // NOTE: always true that c1 <= c2
+        long timeA = 0 , timeB = 0, timeC = 0, timeD = 0;
+        Instant A = Instant.now();
+        int genomeLength = localChromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
+        int binSize = genomeLength / 500;
+        if (binSize == 0) binSize = 1;
+        int nBinsX = genomeLength / binSize + 1;
+        int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
+        wholeGenomeMatrix = new MatrixPP(0, 0, binSize, nBlockColumns);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
                 new AsciiPairIterator(inputFile, chromosomeIndexes);
 
-
         int currentChr1 = -1;
         int currentChr2 = -1;
         MatrixPP currentMatrix = null;
-        HashSet<String> writtenMatrices = new HashSet<>();
+
         String currentMatrixKey = null;
+        String currentMatrixName = null;
+        int currentPairIndex = -1;
 
         // randomization error/ambiguity stats
         int noMapFoundCount = 0;
         int mapDifferentCount = 0;
+        Instant B = Instant.now();
+        timeA = Duration.between(A,B).toMillis();
 
         while (iter.hasNext()) {
+            Instant C = Instant.now();
             AlignmentPair pair = iter.next();
             // skip pairs that mapped to contigs
+            Instant D = Instant.now();
+            timeB += Duration.between(C,D).toMillis();
             if (!pair.isContigPair()) {
                 // Flip pair if needed so chr1 < chr2
+                Instant E = Instant.now();
                 int chr1, chr2, bp1, bp2, frag1, frag2, mapq;
                 if (pair.getChr1() < pair.getChr2()) {
                     bp1 = pair.getPos1();
@@ -707,12 +808,13 @@ public class Preprocessor {
                     chr2 = pair.getChr1();
                 }
                 mapq = Math.min(pair.getMapq1(), pair.getMapq2());
+                int pos1, pos2;
                 // Filters
                 if (diagonalsOnly && chr1 != chr2) continue;
-                if (includedChromosomes != null && chr1 != 0) {
-                    String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
-                    String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                    if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
+                if (localIncludedChromosomes != null && chr1 != 0) {
+                    String c1Name = localChromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                    String c2Name = localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                    if (!(localIncludedChromosomes.contains(c1Name) || localIncludedChromosomes.contains(c2Name))) {
                         continue;
                     }
                 }
@@ -724,8 +826,8 @@ public class Preprocessor {
                 if (fragmentCalculation != null && allowPositionsRandomization) {
                     FragmentCalculation fragMapToUse;
                     if (fragmentCalculationsForRandomization != null) {
-                        FragmentCalculation fragMap1 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
-                        FragmentCalculation fragMap2 = findFragMap(fragmentCalculationsForRandomization, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
+                        FragmentCalculation fragMap1 = findFragMap(fragmentCalculationsForRandomization, localChromosomeHandler.getChromosomeFromIndex(chr1).getName(), bp1, frag1);
+                        FragmentCalculation fragMap2 = findFragMap(fragmentCalculationsForRandomization, localChromosomeHandler.getChromosomeFromIndex(chr2).getName(), bp2, frag2);
 
                         if (fragMap1 == null && fragMap2 == null) {
                             noMapFoundCount += 1;
@@ -746,8 +848,8 @@ public class Preprocessor {
                         fragMapToUse = fragmentCalculation;
                     }
 
-                    bp1 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
-                    bp2 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
+                    bp1 = randomizePos(fragMapToUse, localChromosomeHandler.getChromosomeFromIndex(chr1).getName(), frag1);
+                    bp2 = randomizePos(fragMapToUse, localChromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
                 if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
@@ -755,8 +857,8 @@ public class Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        writeMatrix(currentMatrix);
-                        writtenMatrices.add(currentMatrixKey);
+                        writeMatrixIndividualFile(currentMatrix, currentPairIndex);
+                        syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         System.gc();
                         //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
@@ -766,15 +868,24 @@ public class Preprocessor {
                     currentChr1 = chr1;
                     currentChr2 = chr2;
                     currentMatrixKey = currentChr1 + "_" + currentChr2;
+                    currentMatrixName = chromosomeHandler.getChromosomeFromIndex(chr1).getName() + "_" + chromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                    currentPairIndex = chromosomePairIndexesReverse.get(currentMatrixName);
 
-                    if (writtenMatrices.contains(currentMatrixKey)) {
+                    if (syncWrittenMatrices.contains(currentMatrixKey)) {
                         System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
                         if (outputFile != null) outputFile.deleteOnExit();
                         System.exit(58);
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2);
                 }
+                Instant F = Instant.now();
+                timeC += Duration.between(E,F).toMillis();
                 currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore());
+                pos1 = getGenomicPosition(chr1, bp1, localChromosomeHandler);
+                pos2 = getGenomicPosition(chr2, bp2, localChromosomeHandler);
+                wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore());
+                Instant G = Instant.now();
+                timeD += Duration.between(F,G).toMillis();
 
             }
         }
@@ -783,16 +894,162 @@ public class Preprocessor {
             System.out.println(String.format("Randomization errors encountered: %d no map found, " +
                     "%d two different maps found", noMapFoundCount, mapDifferentCount));
         }
-
+        long timeE = 0, timeF = 0;
         if (currentMatrix != null) {
+            Instant H = Instant.now();
             currentMatrix.parsingComplete();
-            writeMatrix(currentMatrix);
+            Instant I = Instant.now();
+            timeE = Duration.between(H,I).toMillis();
+            writeMatrixIndividualFile(currentMatrix, currentPairIndex);
+            Instant J = Instant.now();
+            timeF = Duration.between(I,J).toMillis();
         }
 
+
         if (iter != null) iter.close();
+        wholeGenomeMatrixParts.put(currentPairIndex, wholeGenomeMatrix);
+
+        System.out.println(currentMatrixName + ", " + timeA + ", " + timeB + ", " + timeC + ", " + timeD + ", " + timeE + ", " + timeF + "\n");
+    }
+    private void writeBody(String inputFile) throws IOException {
+
+        final int numPairsPerThread = (chromosomePairCounter - 1) / numCPUThreads;
+
+        HashSet<String> writtenMatrices = new HashSet<>();
+        Set<String> syncWrittenMatrices = Collections.synchronizedSet(writtenMatrices);
+        final AtomicInteger chromosomePair = new AtomicInteger(1);
+
+        ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
+        for (int l = 0; l < numCPUThreads; l++) {
+            final int threadNum = l;
+
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    runIndividualMatrixCode(chromosomePair, inputFile, syncWrittenMatrices, threadNum);
+                }
+                //}
+            };
+            executor.execute(worker);
+        }
+
+        executor.shutdown();
+
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
+        }
 
 
-        masterIndexPosition = los.getWrittenCount();
+        int genomeLength = chromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
+        int binSize = genomeLength / 500;
+        if (binSize == 0) binSize = 1;
+        int nBinsX = genomeLength / binSize + 1;
+        int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
+        MatrixPP wholeGenomeMatrix = new MatrixPP(0, 0, binSize, nBlockColumns);
+
+        for (int i = 1; i < chromosomePairCounter; i++) {
+            if (nonemptyChromosomePairs.containsKey(i)) {
+                wholeGenomeMatrix.mergeMatrices(wholeGenomeMatrixParts.get(i));
+            }
+        }
+
+        writeMatrixIndividualFile(wholeGenomeMatrix, 0);
+        nonemptyChromosomePairs.put(0,1);
+
+        long currentPosition = los.getWrittenCount();
+        long nextMatrixPosition = 0;
+        String currentMatrixKey = null;
+
+        for (int i = 0; i < chromosomePairCounter; i++) {
+            if (nonemptyChromosomePairs.containsKey(i)) {
+                for (Map.Entry<Long, List<IndexEntry>> entry : chromosomePairBlockIndexes.get(i).entrySet()) {
+                    updateIndexPositionsIndividualFile(entry.getKey(), entry.getValue(), i, currentPosition);
+                    nextMatrixPosition = localMatrixPositions.get(i).position + currentPosition;
+                    currentMatrixKey = chromosomePairIndex1.get(i) + "_" + chromosomePairIndex2.get(i);
+                    matrixPositions.put(currentMatrixKey, new IndexEntry(nextMatrixPosition, localMatrixPositions.get(i).size));
+                    currentPosition += matrixSizes.get(i);
+
+                }
+                System.out.println(chromosomePairIndexes.get(i)+" "+matrixSizes.get(i));
+            }
+        }
+
+        masterIndexPosition = currentPosition;
+    }
+    void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum) {
+        int i = chromosomePair.getAndIncrement();
+        HashMap<Integer, String> localChromosomePairIndexes = new HashMap<Integer, String>(chromosomePairIndexes);
+        HashMap<Integer, Integer> localChromosomePairIndex1 = new HashMap<Integer, Integer>(chromosomePairIndex1);
+        HashMap<Integer, Integer> localChromosomePairIndex2 = new HashMap<Integer, Integer>(chromosomePairIndex2);
+        HashSet<String> localIncludedChromosomes = null;
+        if (includedChromosomes != null) {
+            localIncludedChromosomes = new HashSet<String>(includedChromosomes);
+        }
+        ChromosomeHandler localChromosomeHandler = HiCFileTools.loadChromosomes(genomeId);
+        int localChromosomePairCounter = chromosomePairCounter;
+
+        while (i < localChromosomePairCounter) {
+            //final int chromosomePairBound1 = (threadNum * numPairsPerThread) + 1;
+            //final int chromosomePairBound2 = Math.min(chromosomePairCounter, ((threadNum + 1) * numPairsPerThread) + 1);
+            //for (int chromosomePair = chromosomePairBound1; chromosomePair < chromosomePairBound2; chromosomePair++) {
+            try {
+                Instant A = Instant.now();
+                writeBodySingleChromosomePair(inputFile + "_" + localChromosomePairIndexes.get(i), syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes);
+                int chr1 = localChromosomePairIndex1.get(i);
+                int chr2 = localChromosomePairIndex2.get(i);
+                if (localIncludedChromosomes != null) {
+                    String c1Name = localChromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                    String c2Name = localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                    if (localIncludedChromosomes.contains(c1Name) || localIncludedChromosomes.contains(c2Name)) {
+                        nonemptyChromosomePairs.put(i, 1);
+                    }
+                } else {
+                    nonemptyChromosomePairs.put(i, 1);
+                }
+                Instant B = Instant.now();
+                long timePerFile = Duration.between(A,B).toMillis();
+                System.out.println(threadNum + ", " + localChromosomePairIndexes.get(i) + ", " + timePerFile);
+            } catch (Exception e) {
+                System.err.println("Unable to open " + inputFile + "_" + localChromosomePairIndexes.get(i));
+                //System.exit(70);
+            }
+            i = chromosomePair.getAndIncrement();
+        }
+    }
+    void updateIndexPositionsIndividualFile(Long blockIndexPosition, List<IndexEntry> blockIndex, int chromosomePairIndex, long currentPosition) throws IOException {
+
+        // Temporarily close output stream.  Remember position
+        //long losPos = losContainer.get(chromosomePairIndex).getWrittenCount();
+        //losContainer.get(chromosomePairIndex).close();
+
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex), "rw");
+
+            // Block indices
+            long pos = blockIndexPosition;
+            raf.getChannel().position(pos);
+
+            // Write as little endian
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            for (IndexEntry aBlockIndex : blockIndex) {
+                buffer.putInt(aBlockIndex.id);
+                buffer.putLong((aBlockIndex.position + currentPosition));
+                buffer.putInt(aBlockIndex.size);
+            }
+            raf.write(buffer.getBytes());
+
+        } finally {
+
+            if (raf != null) raf.close();
+
+            // Restore
+            //FileOutputStream fos = new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex), true);
+            //fos.getChannel().position(losPos);
+            //losContainer.put(chromosomePairIndex, new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize)));
+            //losContainer.get(chromosomePairIndex).setWrittenCount(losPos);
+
+        }
     }
 
     private void updateMasterIndex() throws IOException {
@@ -924,7 +1181,60 @@ public class Preprocessor {
         los.writeInt(bytes.length);
         los.write(bytes);
     }
+    private void writeMatrixIndividualFile(MatrixPP matrix, int chromosomePairIndex) throws IOException {
+        Deflater localCompressor = new Deflater();
+        localCompressor.setLevel(Deflater.DEFAULT_COMPRESSION);
 
+        Instant A = Instant.now();
+        LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex)), HiCGlobals.bufferSize));
+        long position = localLos.getWrittenCount();
+
+        localLos.writeInt(matrix.getChr1Idx());
+        localLos.writeInt(matrix.getChr2Idx());
+        int numResolutions = 0;
+        Instant B = Instant.now();
+        long timeA = Duration.between(A,B).toMillis();
+        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
+            if (zd != null) {
+                numResolutions++;
+            }
+        }
+        localLos.writeInt(numResolutions);
+        Instant C = Instant.now();
+        long timeB = Duration.between(B,C).toMillis();
+
+        //fos.writeInt(matrix.getZoomData().length);
+        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
+            if (zd != null)
+                writeZoomHeaderIndividualFile(zd, localLos);
+        }
+        Instant D = Instant.now();
+        long timeC = Duration.between(C,D).toMillis();
+        int size = (int) (localLos.getWrittenCount() - position);
+        localMatrixPositions.put(chromosomePairIndex, new IndexEntry(position, size));
+        Instant E = Instant.now();
+        long timeD = Duration.between(D,E).toMillis();
+
+        final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
+
+        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
+            if (zd != null) {
+                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocksIndividualFile(localLos, localCompressor);
+                localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
+                //zd.updateIndexPositions(blockIndex);
+            }
+        }
+        Instant F = Instant.now();
+        long timeE = Duration.between(E,F).toMillis();
+
+        chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes);
+        size = (int) (localLos.getWrittenCount() - position);
+        matrixSizes.put(chromosomePairIndex, size);
+        localLos.close();
+        Instant G = Instant.now();
+        long timeF = Duration.between(F,G).toMillis();
+        System.out.print(chromosomePairIndex + ", " + timeA + ", " + timeB + ", " + timeC + ", " + timeD + ", " + timeE + ", " + timeF + "\n");
+    }
     private synchronized void writeMatrix(MatrixPP matrix) throws IOException {
 
         long position = los.getWrittenCount();
@@ -957,6 +1267,31 @@ public class Preprocessor {
         }
 
         System.out.print(".");
+    }
+
+    private void writeZoomHeaderIndividualFile(MatrixZoomDataPP zd, LittleEndianOutputStream localLos) throws IOException {
+
+        int numberOfBlocks = zd.blockNumbers.size();
+        localLos.writeString(zd.getUnit().toString());  // Unit
+        localLos.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
+        localLos.writeFloat((float) zd.getSum());      // sum
+        localLos.writeFloat((float) zd.getOccupiedCellCount());
+        localLos.writeFloat((float) zd.getPercent5());
+        localLos.writeFloat((float) zd.getPercent95());
+        localLos.writeInt(zd.getBinSize());
+        localLos.writeInt(zd.getBlockBinCount());
+        localLos.writeInt(zd.getBlockColumnCount());
+        localLos.writeInt(numberOfBlocks);
+
+        zd.blockIndexPosition = localLos.getWrittenCount();
+
+        // Placeholder for block index
+        for (int i = 0; i < numberOfBlocks; i++) {
+            localLos.writeInt(0);
+            localLos.writeLong(0L);
+            localLos.writeInt(0);
+        }
+
     }
 
     private void writeZoomHeader(MatrixZoomDataPP zd) throws IOException {
@@ -1152,6 +1487,174 @@ public class Preprocessor {
 
     }
 
+    /**
+     * Note -- compressed
+     *
+     * @param zd          Matrix zoom data
+     * @param block       Block to write
+     * @param sampledData Array to hold a sample of the data (to compute statistics)
+     * @throws IOException
+     */
+    private void writeBlockIndividualFile(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData, LittleEndianOutputStream localLos, Deflater localCompressor) throws IOException {
+
+        final Map<Point, ContactCount> records = block.getContactRecordMap();//   getContactRecords();
+
+        // System.out.println("Write contact records : records count = " + records.size());
+
+        // Count records first
+        int nRecords;
+        if (countThreshold > 0) {
+            nRecords = 0;
+            for (ContactCount rec : records.values()) {
+                if (rec.getCounts() >= countThreshold) {
+                    nRecords++;
+                }
+            }
+        } else {
+            nRecords = records.size();
+        }
+        BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 12);
+        buffer.putInt(nRecords);
+        zd.cellCount += nRecords;
+
+
+        // Find extents of occupied cells
+        int binXOffset = Integer.MAX_VALUE;
+        int binYOffset = Integer.MAX_VALUE;
+        int binXMax = 0;
+        int binYMax = 0;
+        for (Map.Entry<Point, ContactCount> entry : records.entrySet()) {
+            Point point = entry.getKey();
+            binXOffset = Math.min(binXOffset, point.x);
+            binYOffset = Math.min(binYOffset, point.y);
+            binXMax = Math.max(binXMax, point.x);
+            binYMax = Math.max(binYMax, point.y);
+        }
+
+
+        buffer.putInt(binXOffset);
+        buffer.putInt(binYOffset);
+
+
+        // Sort keys in row-major order
+        List<Point> keys = new ArrayList<>(records.keySet());
+        Collections.sort(keys, new Comparator<Point>() {
+            @Override
+            public int compare(Point o1, Point o2) {
+                if (o1.y != o2.y) {
+                    return o1.y - o2.y;
+                } else {
+                    return o1.x - o2.x;
+                }
+            }
+        });
+        Point lastPoint = keys.get(keys.size() - 1);
+        final short w = (short) (binXMax - binXOffset + 1);
+
+        boolean isInteger = true;
+        float maxCounts = 0;
+
+        LinkedHashMap<Integer, List<ContactRecord>> rows = new LinkedHashMap<>();
+        for (Point point : keys) {
+            final ContactCount contactCount = records.get(point);
+            float counts = contactCount.getCounts();
+            if (counts >= countThreshold) {
+
+                isInteger = isInteger && (Math.floor(counts) == counts);
+                maxCounts = Math.max(counts, maxCounts);
+
+                final int px = point.x - binXOffset;
+                final int py = point.y - binYOffset;
+                List<ContactRecord> row = rows.get(py);
+                if (row == null) {
+                    row = new ArrayList<>(10);
+                    rows.put(py, row);
+                }
+                row.add(new ContactRecord(px, py, counts));
+            }
+        }
+
+        // Compute size for each representation and choose smallest
+        boolean useShort = isInteger && (maxCounts < Short.MAX_VALUE);
+        int valueSize = useShort ? 2 : 4;
+
+        int lorSize = 0;
+        int nDensePts = (lastPoint.y - binYOffset) * w + (lastPoint.x - binXOffset) + 1;
+
+        int denseSize = nDensePts * valueSize;
+        for (List<ContactRecord> row : rows.values()) {
+            lorSize += 4 + row.size() * valueSize;
+        }
+
+        buffer.put((byte) (useShort ? 0 : 1));
+
+        if (lorSize < denseSize) {
+
+            buffer.put((byte) 1);  // List of rows representation
+
+            buffer.putShort((short) rows.size());  // # of rows
+
+            for (Map.Entry<Integer, List<ContactRecord>> entry : rows.entrySet()) {
+
+                int py = entry.getKey();
+                List<ContactRecord> row = entry.getValue();
+                buffer.putShort((short) py);  // Row number
+                buffer.putShort((short) row.size());  // size of row
+
+                for (ContactRecord contactRecord : row) {
+                    buffer.putShort((short) (contactRecord.getBinX()));
+                    final float counts = contactRecord.getCounts();
+
+                    if (useShort) {
+                        buffer.putShort((short) counts);
+                    } else {
+                        buffer.putFloat(counts);
+                    }
+
+                    sampledData.add(counts);
+                    zd.sum += counts;
+                }
+            }
+
+        } else {
+            buffer.put((byte) 2);  // Dense matrix
+
+
+            buffer.putInt(nDensePts);
+            buffer.putShort(w);
+
+            int lastIdx = 0;
+            for (Point p : keys) {
+
+                int idx = (p.y - binYOffset) * w + (p.x - binXOffset);
+                for (int i = lastIdx; i < idx; i++) {
+                    // Filler value
+                    if (useShort) {
+                        buffer.putShort(Short.MIN_VALUE);
+                    } else {
+                        buffer.putFloat(Float.NaN);
+                    }
+                }
+                float counts = records.get(p).getCounts();
+                if (useShort) {
+                    buffer.putShort((short) counts);
+                } else {
+                    buffer.putFloat(counts);
+                }
+                lastIdx = idx + 1;
+
+                sampledData.add(counts);
+                zd.sum += counts;
+            }
+        }
+
+
+        byte[] bytes = buffer.getBytes();
+        byte[] compressedBytes = compress(bytes, localCompressor);
+        localLos.write(compressedBytes);
+
+    }
+
     public void setTmpdir(String tmpDirName) {
 
         if (tmpDirName != null) {
@@ -1169,7 +1672,36 @@ public class Preprocessor {
         statsFileName = statsOption;
     }
 
-    private synchronized byte[] compress(byte[] data) {
+    private byte[] compress(byte[] data, Deflater localCompressor) {
+
+        // Give the compressor the data to compress
+        localCompressor.reset();
+        localCompressor.setInput(data);
+        localCompressor.finish();
+
+        // Create an expandable byte array to hold the compressed data.
+        // You cannot use an array that's the same size as the orginal because
+        // there is no guarantee that the compressed data will be smaller than
+        // the uncompressed data.
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
+
+        // Compress the data
+        byte[] buf = new byte[1024];
+        while (!localCompressor.finished()) {
+            int count = localCompressor.deflate(buf);
+            bos.write(buf, 0, count);
+        }
+        try {
+            bos.close();
+        } catch (IOException e) {
+            System.err.println("Error clossing ByteArrayOutputStream");
+            e.printStackTrace();
+        }
+
+        return bos.toByteArray();
+    }
+
+    private byte[] compress(byte[] data) {
 
         // Give the compressor the data to compress
         compressor.reset();
@@ -1501,7 +2033,19 @@ public class Preprocessor {
             return "" + chr1Idx + "_" + chr2Idx;
         }
 
-
+        void mergeMatrices(MatrixPP otherMatrix) {
+            for (MatrixZoomDataPP aZoomData : zoomData) {
+                for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
+                    if (aZoomData.zoom == bZoomData.zoom) {
+                        if (aZoomData.isFrag) {
+                            aZoomData.mergeMatrices(bZoomData);
+                        } else {
+                            aZoomData.mergeMatrices(bZoomData);
+                        }
+                    }
+                }
+            }
+        }
         void incrementCount(int pos1, int pos2, int frag1, int frag2, float score) throws IOException {
 
             for (MatrixZoomDataPP aZoomData : zoomData) {
@@ -1637,6 +2181,18 @@ public class Preprocessor {
 
         Map<Integer, BlockPP> getBlocks() {
             return blocks;
+        }
+
+        void mergeMatrices(MatrixZoomDataPP otherMatrixZoom) {
+            for (Map.Entry<Integer, BlockPP> otherBlock : otherMatrixZoom.blocks.entrySet()) {
+                int blockNumber = otherBlock.getKey();
+                BlockPP block = blocks.get(blockNumber);
+                if (block == null) {
+                    blocks.put(blockNumber, otherBlock.getValue());
+                } else {
+                    block.merge(otherBlock.getValue());
+                }
+            }
         }
 
         /**
@@ -1806,6 +2362,84 @@ public class Preprocessor {
                 long position = los.getWrittenCount();
                 writeBlock(this, currentBlock, sampledData);
                 int size = (int) (los.getWrittenCount() - position);
+
+                indexEntries.add(new IndexEntry(num, position, size));
+
+
+            } while (activeList.size() > 0);
+
+
+            for (File f : tmpFiles) {
+                boolean result = f.delete();
+                if (!result) {
+                    System.out.println("Error while deleting file");
+                }
+            }
+
+            computeStats(sampledData);
+
+            return indexEntries;
+        }
+
+        // Merge and write out blocks one at a time.
+        private List<IndexEntry> mergeAndWriteBlocksIndividualFile(LittleEndianOutputStream localLos, Deflater localCompressor) throws IOException {
+            DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
+
+            List<BlockQueue> activeList = new ArrayList<>();
+
+            // Initialize queues -- first whatever is left over in memory
+            if (blocks.size() > 0) {
+                BlockQueue bqInMem = new BlockQueueMem(blocks.values());
+                activeList.add(bqInMem);
+            }
+            // Now from files
+            for (File file : tmpFiles) {
+                BlockQueue bq = new BlockQueueFB(file);
+                if (bq.getBlock() != null) {
+                    activeList.add(bq);
+                }
+            }
+
+            List<IndexEntry> indexEntries = new ArrayList<>();
+
+            if (activeList.size() == 0) {
+                throw new RuntimeException("No reads in Hi-C contact matrices. This could be because the MAPQ filter is set too high (-q) or because all reads map to the same fragment.");
+            }
+
+            do {
+                Collections.sort(activeList, new Comparator<BlockQueue>() {
+                    @Override
+                    public int compare(BlockQueue o1, BlockQueue o2) {
+                        return o1.getBlock().getNumber() - o2.getBlock().getNumber();
+                    }
+                });
+
+                BlockQueue topQueue = activeList.get(0);
+                BlockPP currentBlock = topQueue.getBlock();
+                topQueue.advance();
+                int num = currentBlock.getNumber();
+
+
+                for (int i = 1; i < activeList.size(); i++) {
+                    BlockQueue blockQueue = activeList.get(i);
+                    BlockPP block = blockQueue.getBlock();
+                    if (block.getNumber() == num) {
+                        currentBlock.merge(block);
+                        blockQueue.advance();
+                    }
+                }
+
+                Iterator<BlockQueue> iterator = activeList.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next().getBlock() == null) {
+                        iterator.remove();
+                    }
+                }
+
+                // Output block
+                long position = localLos.getWrittenCount();
+                writeBlockIndividualFile(this, currentBlock, sampledData, localLos, localCompressor);
+                int size = (int) (localLos.getWrittenCount() - position);
 
                 indexEntries.add(new IndexEntry(num, position, size));
 
