@@ -1010,12 +1010,30 @@ public class Preprocessor {
                 //long timePerFile = Duration.between(A,B).toMillis();
                 //System.out.println(threadNum + ", " + localChromosomePairIndexes.get(i) + ", " + timePerFile);
             } catch (Exception e) {
-                System.err.println("Unable to open " + inputFile + "_" + localChromosomePairIndexes.get(i));
-                //System.exit(70);
+                try {
+                    writeBodySingleChromosomePair(inputFile + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                            localChromosomePairIndex2.get(i)).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                                    localChromosomePairIndex1.get(i)).getName(), syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes);
+                    int chr1 = localChromosomePairIndex1.get(i);
+                    int chr2 = localChromosomePairIndex2.get(i);
+                    if (localIncludedChromosomes != null) {
+                        String c1Name = localChromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                        String c2Name = localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                        if (localIncludedChromosomes.contains(c1Name) || localIncludedChromosomes.contains(c2Name)) {
+                            nonemptyChromosomePairs.put(i, 1);
+                        }
+                    } else {
+                        nonemptyChromosomePairs.put(i, 1);
+                    }
+                } catch (Exception e2) {
+                    System.err.println("Unable to open " + inputFile + "_" + localChromosomePairIndexes.get(i));
+                    //System.exit(70);
+                }
             }
             i = chromosomePair.getAndIncrement();
         }
     }
+
     void updateIndexPositionsIndividualFile(Long blockIndexPosition, List<IndexEntry> blockIndex, int chromosomePairIndex, long currentPosition) throws IOException {
 
         // Temporarily close output stream.  Remember position
@@ -1188,9 +1206,14 @@ public class Preprocessor {
         //Instant A = Instant.now();
         LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex)), HiCGlobals.bufferSize));
         long position = localLos.getWrittenCount();
-
+        if (chromosomePairIndex == 0) {
+            System.out.println("genomewide initial: " + localLos.getWrittenCount());
+        }
         localLos.writeInt(matrix.getChr1Idx());
         localLos.writeInt(matrix.getChr2Idx());
+        if (chromosomePairIndex == 0) {
+            System.out.println("genomewide chrindexes: " + localLos.getWrittenCount());
+        }
         int numResolutions = 0;
         //Instant B = Instant.now();
         //long timeA = Duration.between(A,B).toMillis();
@@ -1200,6 +1223,9 @@ public class Preprocessor {
             }
         }
         localLos.writeInt(numResolutions);
+        if (chromosomePairIndex == 0) {
+            System.out.println("genomewide resolutions: " + localLos.getWrittenCount());
+        }
         //Instant C = Instant.now();
         //long timeB = Duration.between(B,C).toMillis();
 
@@ -1207,6 +1233,9 @@ public class Preprocessor {
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null)
                 writeZoomHeaderIndividualFile(zd, localLos);
+        }
+        if (chromosomePairIndex == 0) {
+            System.out.println("genomewide zoom headers: " + localLos.getWrittenCount());
         }
         //Instant D = Instant.now();
         //long timeC = Duration.between(C,D).toMillis();
@@ -1223,6 +1252,9 @@ public class Preprocessor {
                 localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
                 //zd.updateIndexPositions(blockIndex);
             }
+        }
+        if (chromosomePairIndex == 0) {
+            System.out.println("genomewide blocks: " + localLos.getWrittenCount());
         }
         //Instant F = Instant.now();
         //long timeE = Duration.between(E,F).toMillis();
