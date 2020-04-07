@@ -964,13 +964,13 @@ public class Preprocessor {
             if (nonemptyChromosomePairs.containsKey(i)) {
                 for (Map.Entry<Long, List<IndexEntry>> entry : chromosomePairBlockIndexes.get(i).entrySet()) {
                     updateIndexPositionsIndividualFile(entry.getKey(), entry.getValue(), i, currentPosition);
-                    nextMatrixPosition = localMatrixPositions.get(i).position + currentPosition;
-                    currentMatrixKey = chromosomePairIndex1.get(i) + "_" + chromosomePairIndex2.get(i);
-                    matrixPositions.put(currentMatrixKey, new IndexEntry(nextMatrixPosition, localMatrixPositions.get(i).size));
-                    currentPosition += matrixSizes.get(i);
-
                 }
-                System.out.println(chromosomePairIndexes.get(i)+" "+matrixSizes.get(i));
+                nextMatrixPosition = localMatrixPositions.get(i).position + currentPosition;
+                currentMatrixKey = chromosomePairIndex1.get(i) + "_" + chromosomePairIndex2.get(i);
+                matrixPositions.put(currentMatrixKey, new IndexEntry(nextMatrixPosition, localMatrixPositions.get(i).size));
+                currentPosition += matrixSizes.get(i);
+
+                //System.out.println(chromosomePairIndexes.get(i)+" "+matrixSizes.get(i));
             }
         }
 
@@ -1055,7 +1055,7 @@ public class Preprocessor {
     private void updateMasterIndex() throws IOException {
         RandomAccessFile raf = null;
         try {
-            raf = new RandomAccessFile(outputFile, "rw");
+            raf = new RandomAccessFile(outputFile+"_header", "rw");
 
             // Master index
             raf.getChannel().position(masterIndexPositionPosition);
