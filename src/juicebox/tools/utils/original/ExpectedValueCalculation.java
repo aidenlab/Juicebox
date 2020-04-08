@@ -171,6 +171,22 @@ public class ExpectedValueCalculation {
         actualDistances[dist] += weight;
 
     }
+    public void merge(ExpectedValueCalculation otherEVCalc) {
+        for (Map.Entry<Integer, Chromosome> entry : otherEVCalc.chromosomesMap.entrySet()) {
+            Chromosome chr = chromosomesMap.get(entry.getKey());
+            if (chr != null) {
+                Double count = chromosomeCounts.get(entry.getKey());
+                if (count == null) {
+                    chromosomeCounts.put(entry.getKey(), otherEVCalc.chromosomeCounts.get(entry.getKey()));
+                } else {
+                    chromosomeCounts.put(entry.getKey(), count + otherEVCalc.chromosomeCounts.get(entry.getKey()));
+                }
+            }
+        }
+        for (int i = 0; i < actualDistances.length; i++) {
+            actualDistances[i] += otherEVCalc.actualDistances[i];
+        }
+    }
 
     public boolean hasData() {
         return !chromosomeCounts.isEmpty();

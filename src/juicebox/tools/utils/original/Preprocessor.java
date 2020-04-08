@@ -231,7 +231,7 @@ public class Preprocessor {
         this.randomizeFragMapFiles = fragMaps;
     }
 
-    private static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
+    protected static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
 
         int low = 1;
         int high = 1;
@@ -251,7 +251,7 @@ public class Preprocessor {
         Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
     }
 
-    private static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
+    protected static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
         //potential maps that this strand could come from
         ArrayList<FragmentCalculation> mapsFound = new ArrayList<>();
         for (FragmentCalculation fragmentCalculation : maps) {
@@ -432,7 +432,7 @@ public class Preprocessor {
         System.out.println("\nFinished preprocess");
     }
 
-    private void writeHeader(StringBuilder stats, StringBuilder graphs, StringBuilder hicFileScaling) throws IOException {
+    protected void writeHeader(StringBuilder stats, StringBuilder graphs, StringBuilder hicFileScaling) throws IOException {
         // Magic number
         byte[] magicBytes = "HIC".getBytes();
         los.write(magicBytes[0]);
@@ -619,7 +619,7 @@ public class Preprocessor {
         return matrix;
     }
 
-    private boolean alignmentsAreEqual(Alignment alignment, Alignment alignmentStandard) {
+    protected boolean alignmentsAreEqual(Alignment alignment, Alignment alignmentStandard) {
         if (alignment == alignmentStandard) {
             return true;
         }
@@ -631,7 +631,7 @@ public class Preprocessor {
     }
 
 
-    private int getGenomicPosition(int chr, int pos) {
+    protected int getGenomicPosition(int chr, int pos) {
         long len = 0;
         for (int i = 1; i < chr; i++) {
             len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
@@ -642,7 +642,7 @@ public class Preprocessor {
 
     }
 
-    private static Alignment calculateAlignment(AlignmentPair pair) {
+    protected static Alignment calculateAlignment(AlignmentPair pair) {
 
         if (pair.getStrand1() == pair.getStrand2()) {
             if (pair.getStrand1()) {
@@ -795,7 +795,7 @@ public class Preprocessor {
         masterIndexPosition = los.getWrittenCount();
     }
 
-    private void updateMasterIndex() throws IOException {
+    protected void updateMasterIndex() throws IOException {
         RandomAccessFile raf = null;
         try {
             raf = new RandomAccessFile(outputFile, "rw");
@@ -839,7 +839,7 @@ public class Preprocessor {
     */
 
 
-    private void writeFooter() throws IOException {
+    protected void writeFooter() throws IOException {
 
         // Index
         BufferedByteWriter buffer = new BufferedByteWriter();
