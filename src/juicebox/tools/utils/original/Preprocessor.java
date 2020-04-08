@@ -53,56 +53,56 @@ import java.util.zip.Deflater;
 public class Preprocessor {
 
 
-    private static final int VERSION = 8;
-    private static final int BLOCK_SIZE = 1000;
+    protected static final int VERSION = 8;
+    protected static final int BLOCK_SIZE = 1000;
     public static final String HIC_FILE_SCALING = "hicFileScalingFactor";
     public static final String STATISTICS = "statistics";
     public static final String GRAPHS = "graphs";
     public static final String SOFTWARE = "software";
-    private static final String NVI_INDEX = "nviIndex";
-    private static final String NVI_LENGTH = "nviLength";
+    protected static final String NVI_INDEX = "nviIndex";
+    protected static final String NVI_LENGTH = "nviLength";
 
-    private final ChromosomeHandler chromosomeHandler;
-    private final Map<String, Integer> chromosomeIndexes;
-    private final File outputFile;
-    private final Map<String, IndexEntry> matrixPositions;
-    private String genomeId;
-    private final Deflater compressor;
-    private LittleEndianOutputStream los;
-    private long masterIndexPosition;
-    private int countThreshold = 0;
-    private int mapqThreshold = 0;
-    private boolean diagonalsOnly = false;
-    private String fragmentFileName = null;
-    private String statsFileName = null;
-    private String graphFileName = null;
-    private String expectedVectorFile = null;
-    private Set<String> randomizeFragMapFiles = null;
-    private FragmentCalculation fragmentCalculation = null;
-    private Set<String> includedChromosomes;
-    private ArrayList<FragmentCalculation> fragmentCalculationsForRandomization = null;
-    private Alignment alignmentFilter;
-    private static final Random random = new Random(5);
-    private static boolean allowPositionsRandomization = false;
+    protected final ChromosomeHandler chromosomeHandler;
+    protected Map<String, Integer> chromosomeIndexes;
+    protected final File outputFile;
+    protected final Map<String, IndexEntry> matrixPositions;
+    protected String genomeId;
+    protected final Deflater compressor;
+    protected LittleEndianOutputStream los;
+    protected long masterIndexPosition;
+    protected int countThreshold = 0;
+    protected int mapqThreshold = 0;
+    protected boolean diagonalsOnly = false;
+    protected String fragmentFileName = null;
+    protected String statsFileName = null;
+    protected String graphFileName = null;
+    protected String expectedVectorFile = null;
+    protected Set<String> randomizeFragMapFiles = null;
+    protected FragmentCalculation fragmentCalculation = null;
+    protected Set<String> includedChromosomes;
+    protected ArrayList<FragmentCalculation> fragmentCalculationsForRandomization = null;
+    protected Alignment alignmentFilter;
+    protected static final Random random = new Random(5);
+    protected static boolean allowPositionsRandomization = false;
 
     // Base-pair resolutions
-    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
+    protected int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
 
     // Fragment resolutions
-    private int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+    protected int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
 
     // hic scaling factor value
-    private double hicFileScalingFactor = 1;
+    protected double hicFileScalingFactor = 1;
 
 
     /**
      * The position of the field containing the masterIndex position
      */
-    private long masterIndexPositionPosition;
-    private long normVectorIndexPosition;
-    private long normVectorLengthPosition;
-    private Map<String, ExpectedValueCalculation> expectedValueCalculations;
-    private File tmpDir;
+    protected long masterIndexPositionPosition;
+    protected long normVectorIndexPosition;
+    protected long normVectorLengthPosition;
+    protected Map<String, ExpectedValueCalculation> expectedValueCalculations;
+    protected File tmpDir;
 
     public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         this.genomeId = genomeId;

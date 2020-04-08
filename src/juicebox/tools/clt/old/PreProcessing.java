@@ -28,6 +28,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
+import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
@@ -48,6 +49,7 @@ public class PreProcessing extends JuiceboxCLT {
     private boolean noFragNorm = false;
     private int genomeWide;
     private List<NormalizationType> normalizationTypes = new ArrayList<>();
+    protected static int numCPUThreads = 1;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -67,6 +69,7 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : --random_seed <long> for seeding random number generator\n"
                 + "           : --frag_site_maps <fragment site files> for randomization\n"
                 + "           : -k normalizations to include\n"
+                + "           : -j number of CPU threads to use\n"
         );
     }
 
@@ -92,6 +95,8 @@ public class PreProcessing extends JuiceboxCLT {
         String tmpDir = parser.getTmpdirOption();
         double hicFileScalingFactor = parser.getScalingOption();
 
+        updateNumberOfCPUThreads(parser);
+
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser.getCountThresholdOption());
@@ -108,6 +113,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setRandomizePosition(parser.getRandomizePositionsOption());
         preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
         preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
+        preprocessor.setNumCPUThreads(numCPUThreads);
 
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();
@@ -135,5 +141,17 @@ public class PreProcessing extends JuiceboxCLT {
             e.printStackTrace();
             System.exit(56);
         }
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser juicerParser) {
+        int numThreads = juicerParser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }
