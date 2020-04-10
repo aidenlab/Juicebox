@@ -68,9 +68,11 @@ public class HiCGlobals {
     public static final int bufferSize = 2097152;
 
     public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OEP1, MatrixType.OME, MatrixType.PEARSON};
+            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OEP1, MatrixType.OME,
+            MatrixType.PEARSON, MatrixType.LOG, MatrixType.LOGEO};
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
             MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OEP1, MatrixType.OME, MatrixType.PEARSON,
+            MatrixType.LOG, MatrixType.LOGEO,
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.OECTRLP1, MatrixType.CME, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.RATIOP1, MatrixType.RATIO0, MatrixType.RATIO0P1,
             MatrixType.OERATIO, MatrixType.OERATIOP1, MatrixType.OERATIOMINUS, MatrixType.OERATIOMINUSP1,
@@ -105,6 +107,7 @@ public class HiCGlobals {
     public static final Color diffGrayColor = new Color(238, 238, 238);
     public static boolean HACK_COLORSCALE = false;
     public static boolean HACK_COLORSCALE_EQUAL = false;
+    public static boolean HACK_COLORSCALE_LINEAR = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

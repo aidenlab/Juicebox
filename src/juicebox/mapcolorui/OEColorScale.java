@@ -61,6 +61,12 @@ class OEColorScale implements ColorScale {
         double newValue;
         if (MatrixType.isSubtactType(type)) {
             newValue = score;
+        } else if (HiCGlobals.HACK_COLORSCALE_LINEAR) {
+            if (score < 1) {
+                newValue = 1 - (1 / score);
+            } else {
+                newValue = score - 1;
+            }
         } else {
             newValue = Math.log(score);
         }
@@ -117,28 +123,25 @@ class OEColorScale implements ColorScale {
     }
 
     public double getMax() {
-        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE || HiCGlobals.HACK_COLORSCALE_LINEAR) {
             return 2 * threshold;
-        }
-        else {
+        } else {
             return 2 * Math.exp(threshold);
         }
     }
 
     public float getThreshold() {
-        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
-            return (float)threshold;
-        }
-        else {
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE || HiCGlobals.HACK_COLORSCALE_LINEAR) {
+            return (float) threshold;
+        } else {
             return (float) Math.exp(threshold);
         }
     }
 
     public void setThreshold(double max) {
-        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE) {
+        if (MatrixType.isSubtactType(type) || HiCGlobals.HACK_COLORSCALE || HiCGlobals.HACK_COLORSCALE_LINEAR) {
             threshold = max;
-        }
-        else {
+        } else {
             threshold = Math.log(max);
         }
     }

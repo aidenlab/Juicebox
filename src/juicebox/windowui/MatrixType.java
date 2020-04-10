@@ -33,6 +33,8 @@ public enum MatrixType {
     OEP1("(Observed+1)/(Expected+1)"),
     OME("Observed-Expected"),
     PEARSON("Observed Pearson"),
+    LOG("Log(Observed)"),
+    LOGEO("Log_Expected(Observed)"),
     NORM2("Observed Norm^2"),
     CONTROL("Control"),
     OECTRL("Control/ExpectedC"),
@@ -99,7 +101,7 @@ public enum MatrixType {
      * @return true is the option is generally available for maps, but does not use expected vector
      */
     public static boolean isSimpleObservedOrControlType(MatrixType option) {
-        return option == OBSERVED || option == CONTROL || option == VS;
+        return option == OBSERVED || option == CONTROL || option == VS || option == LOG;
     }
 
     /**
@@ -136,14 +138,14 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == OEP1 || option == RATIO || option == RATIOP1 || option == RATIO0
+        return option == OE || option == OEP1 || option == RATIO || option == LOGEO || option == RATIOP1 || option == RATIO0
                 || option == RATIO0P1 || option == OECTRL || option == OECTRLP1
                 || option == OEVS || option == OEVSP1 || option == OERATIO || option == OERATIOP1
                 || isSubtactType(option);
     }
 
     public static boolean isSubtactType(MatrixType option) {
-        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS || option == OERATIOMINUSP1;
+        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS || option == OERATIOMINUSP1 || option == LOGEO;
     }
 
     /**
@@ -159,7 +161,7 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || option == OEP1 || isPearsonType(option) || isControlExpectedUsedType(option)
+        return option == OE || option == OEP1 || option == LOGEO || isPearsonType(option) || isControlExpectedUsedType(option)
                 || option == OCMEVS || option == OME || option == CME;
     }
 
