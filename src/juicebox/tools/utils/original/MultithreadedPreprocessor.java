@@ -63,6 +63,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
+    private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
@@ -101,6 +102,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
+
+        this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
     }
 
     public void setNumCPUThreads(int numCPUThreads) {
@@ -239,6 +242,14 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
             System.out.println("Writing body");
             writeBody(inputFile);
+
+            if (expectedVectorFile == null) {
+                for (int i = 0; i < numCPUThreads; i++) {
+                    for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
+                        expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
+                    }
+                }
+            }
 
             System.out.println();
             System.out.println("Writing footer");
@@ -532,8 +543,21 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
         }
         while (i < localChromosomePairCounter) {
+            String chrInputFile;
+            String chrInputFile2;
+            if (inputFile.endsWith(".gz")) {
+                chrInputFile = inputFile.replaceAll(".gz", "") + "_" + localChromosomePairIndexes.get(i) + ".gz";
+                chrInputFile2 = inputFile.replaceAll(".gz", "") + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                        localChromosomePairIndex2.get(i)).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                        localChromosomePairIndex1.get(i)).getName() + ".gz";
+            } else {
+                chrInputFile = inputFile + "_" + localChromosomePairIndexes.get(i);
+                chrInputFile2 = inputFile + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                        localChromosomePairIndex2.get(i)).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(
+                        localChromosomePairIndex1.get(i)).getName();
+            }
             try {
-                writeBodySingleChromosomePair(inputFile + "_" + localChromosomePairIndexes.get(i),
+                writeBodySingleChromosomePair(chrInputFile,
                         syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes, localExpectedValueCalculations);
                 int chr1 = localChromosomePairIndex1.get(i);
                 int chr2 = localChromosomePairIndex2.get(i);
@@ -548,9 +572,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 }
             } catch (Exception e) {
                 try {
-                    writeBodySingleChromosomePair(inputFile + "_" + localChromosomeHandler.getChromosomeFromIndex(
-                            localChromosomePairIndex2.get(i)).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(
-                            localChromosomePairIndex1.get(i)).getName(), syncWrittenMatrices, localChromosomeHandler,
+                    writeBodySingleChromosomePair(chrInputFile2, syncWrittenMatrices, localChromosomeHandler,
                             localIncludedChromosomes, localExpectedValueCalculations);
                     int chr1 = localChromosomePairIndex1.get(i);
                     int chr2 = localChromosomePairIndex2.get(i);
@@ -570,6 +592,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
             i = chromosomePair.getAndIncrement();
         }
+        allLocalExpectedValueCalculations.put(threadNum, localExpectedValueCalculations);
     }
 
     void updateIndexPositionsIndividualFile(Long blockIndexPosition, List<IndexEntry> blockIndex, int chromosomePairIndex, long currentPosition) throws IOException {
@@ -664,6 +687,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             buffer.putInt(entry.getValue().size);
         }
 
+
         // Vectors  (Expected values,  other).
         /***  NEVA ***/
         if (expectedVectorFile == null) {
@@ -737,6 +761,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         byte[] bytes = buffer.getBytes();
         losFooter.writeInt(bytes.length);
         losFooter.write(bytes);
+        losFooter.close();
     }
 
     private void writeMatrixIndividualFile(MatrixPP matrix, int chromosomePairIndex) throws IOException {
