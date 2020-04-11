@@ -133,6 +133,7 @@ public class PreProcessing extends JuiceboxCLT {
             multithreadedPreprocessor.setRandomizePosition(parser.getRandomizePositionsOption());
             multithreadedPreprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
             multithreadedPreprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
+            multithreadedPreprocessor.setMndIndex(parser.getMndIndexOption());
         }
 
 

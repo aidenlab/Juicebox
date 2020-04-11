@@ -40,6 +40,8 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Deflater;
+import juicebox.tools.utils.original.RandomAccessAsciiPairIterator;
 
 
 public class MultithreadedPreprocessor extends Preprocessor {
@@ -64,6 +67,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
     private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
+    protected static String mndIndexFile;
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
@@ -110,9 +114,16 @@ public class MultithreadedPreprocessor extends Preprocessor {
         MultithreadedPreprocessor.numCPUThreads = numCPUThreads;
     }
 
+    public void setMndIndex(String mndIndexFile) { MultithreadedPreprocessor.mndIndexFile = mndIndexFile;}
+
     @Override
     public void preprocess(final String inputFile) throws IOException {
         File file = new File(inputFile);
+        Map<Integer,Long> mndIndex = new ConcurrentHashMap<>();
+
+        if (mndIndexFile!=null) {
+            mndIndex = readMndIndex(mndIndexFile);
+        }
 
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
@@ -241,7 +252,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             writeHeader(stats, graphs, hicFileScaling);
 
             System.out.println("Writing body");
-            writeBody(inputFile);
+            writeBody(inputFile, mndIndex);
 
             if (expectedVectorFile == null) {
                 for (int i = 0; i < numCPUThreads; i++) {
@@ -282,6 +293,38 @@ public class MultithreadedPreprocessor extends Preprocessor {
         System.out.println("\nFinished preprocess");
     }
 
+    private Map<Integer,Long> readMndIndex(String mndIndexFile) throws IOException {
+        FileInputStream is = null;
+        Map<String,Long> tempIndex = new HashMap<>();
+        Map<Integer,Long> mndIndex = new ConcurrentHashMap<>();
+        try {
+            is = new FileInputStream(mndIndexFile);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
+            String nextLine;
+            while ((nextLine = reader.readLine()) != null) {
+                String[] nextEntry = nextLine.split(",");
+                if (nextEntry.length > 2 || nextEntry.length < 2) {
+                    System.err.println("Improperly formatted merged nodups index");
+                    System.exit(70);
+                } else {
+                    tempIndex.put(nextEntry[0], Long.parseLong(nextEntry[1]));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to read merged nodups index");
+            System.exit(70);
+        }
+        for (Map.Entry<Integer,String> entry : chromosomePairIndexes.entrySet()) {
+            String reverseName = entry.getValue().split("_")[1] + "_" + entry.getValue().split("_")[0];
+            if (tempIndex.containsKey(entry.getValue())) {
+                mndIndex.put(entry.getKey(), tempIndex.get(entry.getValue()));
+            } else if (tempIndex.containsKey(reverseName)) {
+                mndIndex.put(entry.getKey(), tempIndex.get(reverseName));
+            }
+        }
+        return mndIndex;
+    }
+
     private int getGenomicPosition(int chr, int pos, ChromosomeHandler localChromosomeHandler) {
         long len = 0;
         for (int i = 1; i < chr; i++) {
@@ -293,9 +336,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     }
 
-    private void writeBodySingleChromosomePair(String inputFile, Set<String> syncWrittenMatrices, ChromosomeHandler
+    private void writeBodySingleChromosomePair(String inputFile, String chrInputFile, Set<String> syncWrittenMatrices, ChromosomeHandler
             localChromosomeHandler, Set<String> localIncludedChromosomes, Map<String, ExpectedValueCalculation>
-            localExpectedValueCalculations) throws IOException {
+            localExpectedValueCalculations, Long mndIndexPosition) throws IOException {
 
         MatrixPP wholeGenomeMatrix;
         // NOTE: always true that c1 <= c2
@@ -308,9 +351,17 @@ public class MultithreadedPreprocessor extends Preprocessor {
         int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
         wholeGenomeMatrix = new MatrixPP(0, 0, binSize, nBlockColumns);
 
-        PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes);
+
+        PairIterator iter;
+        if (mndIndexFile==null) {
+            iter = (inputFile.endsWith(".bin")) ?
+                    new BinPairIterator(chrInputFile) :
+                    new AsciiPairIterator(chrInputFile, chromosomeIndexes);
+        } else {
+            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, mndIndexPosition);
+
+        }
+
 
         int currentChr1 = -1;
         int currentChr2 = -1;
@@ -326,7 +377,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
 
         while (iter.hasNext()) {
+            Instant A = Instant.now();
             AlignmentPair pair = iter.next();
+            Instant B = Instant.now();
+            //System.out.println(chrInputFile + ": " + Duration.between(A,B).toMillis());
             // skip pairs that mapped to contigs
             if (!pair.isContigPair()) {
                 // Flip pair if needed so chr1 < chr2
@@ -400,6 +454,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         System.gc();
+                        break;
                         //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
                     }
 
@@ -440,7 +495,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         wholeGenomeMatrixParts.put(currentPairIndex, wholeGenomeMatrix);
 
     }
-    private void writeBody(String inputFile) throws IOException {
+    private void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
 
         final int numPairsPerThread = (chromosomePairCounter - 1) / numCPUThreads;
 
@@ -455,7 +510,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
-                    runIndividualMatrixCode(chromosomePair, inputFile, syncWrittenMatrices, threadNum);
+                    runIndividualMatrixCode(chromosomePair, inputFile, syncWrittenMatrices, threadNum, mndIndex);
                 }
                 //}
             };
@@ -505,7 +560,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         masterIndexPosition = currentPosition;
     }
-    void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum) {
+    void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum,
+                                 Map<Integer,Long> mndIndex) {
         int i = chromosomePair.getAndIncrement();
         HashMap<Integer, String> localChromosomePairIndexes = new HashMap<Integer, String>(chromosomePairIndexes);
         HashMap<Integer, Integer> localChromosomePairIndex1 = new HashMap<Integer, Integer>(chromosomePairIndex1);
@@ -543,6 +599,15 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
         }
         while (i < localChromosomePairCounter) {
+            Long mndIndexPosition = (long) 0;
+            if (mndIndexFile!=null) {
+                if (!mndIndex.containsKey(i)) {
+                    System.out.println("No index position for " + localChromosomePairIndexes.get(i));
+                    continue;
+                } else {
+                    mndIndexPosition = mndIndex.get(i);
+                }
+            }
             String chrInputFile;
             String chrInputFile2;
             if (inputFile.endsWith(".gz")) {
@@ -557,8 +622,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         localChromosomePairIndex1.get(i)).getName();
             }
             try {
-                writeBodySingleChromosomePair(chrInputFile,
-                        syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes, localExpectedValueCalculations);
+                writeBodySingleChromosomePair(inputFile, chrInputFile,
+                        syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes,
+                        localExpectedValueCalculations, mndIndexPosition);
                 int chr1 = localChromosomePairIndex1.get(i);
                 int chr2 = localChromosomePairIndex2.get(i);
                 if (localIncludedChromosomes != null) {
@@ -572,8 +638,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 }
             } catch (Exception e) {
                 try {
-                    writeBodySingleChromosomePair(chrInputFile2, syncWrittenMatrices, localChromosomeHandler,
-                            localIncludedChromosomes, localExpectedValueCalculations);
+                    writeBodySingleChromosomePair(inputFile, chrInputFile2, syncWrittenMatrices, localChromosomeHandler,
+                            localIncludedChromosomes, localExpectedValueCalculations, mndIndexPosition);
                     int chr1 = localChromosomePairIndex1.get(i);
                     int chr2 = localChromosomePairIndex2.get(i);
                     if (localIncludedChromosomes != null) {

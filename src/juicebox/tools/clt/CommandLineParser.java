@@ -36,9 +36,9 @@ import java.util.*;
 public class CommandLineParser extends CmdLineParser {
 
     // available
-    // bilou
+    // blou
     // used
-    // d h x v n p k F V f t s g m q w c r z a y j
+    // d h x v n p k F V f t s g m q w c r z a y j i
 
     // universal
     protected final Option verboseOption = addBooleanOption('v', "verbose");
@@ -61,6 +61,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option genomeIDOption = addStringOption('y', "genomeid");
     private final Option expectedVectorOption = addStringOption('e', "expected-vector-file");
     protected final Option normalizationTypeOption = addStringOption('k', "normalization");
+    private final Option mndIndexOption = addStringOption('i', "mndindex");
 
     // ints
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
@@ -147,6 +148,8 @@ public class CommandLineParser extends CmdLineParser {
     public String getExpectedVectorOption() {
         return optionToString(expectedVectorOption);
     }
+
+    public String getMndIndexOption() { return optionToString(mndIndexOption);}
 
     public Alignment getAlignmentOption() {
         int alignmentInt = optionToInt(alignmentFilterOption);
