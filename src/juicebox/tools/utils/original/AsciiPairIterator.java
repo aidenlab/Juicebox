@@ -31,7 +31,10 @@ import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -81,6 +84,9 @@ public class AsciiPairIterator implements PairIterator {
             FileInputStream fis = new FileInputStream(path);
             fis.getChannel().position(mndIndex);
             this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
+            //FileChannel fc = FileChannel.open(new File(path).toPath(), StandardOpenOption.READ);
+            //fc.position(mndIndex);
+            //this.reader = new BufferedReader(Channels.newReader(fc, "US-ASCII"), HiCGlobals.bufferSize);
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();

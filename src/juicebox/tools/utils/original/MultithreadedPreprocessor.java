@@ -342,8 +342,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         MatrixPP wholeGenomeMatrix;
         // NOTE: always true that c1 <= c2
-        //long timeA = 0 , timeB = 0, timeC = 0, timeD = 0;
-        //Instant A = Instant.now();
         int genomeLength = localChromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
         int binSize = genomeLength / 500;
         if (binSize == 0) binSize = 1;
@@ -377,10 +375,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
 
         while (iter.hasNext()) {
-            Instant A = Instant.now();
             AlignmentPair pair = iter.next();
-            Instant B = Instant.now();
-            //System.out.println(chrInputFile + ": " + Duration.between(A,B).toMillis());
             // skip pairs that mapped to contigs
             if (!pair.isContigPair()) {
                 // Flip pair if needed so chr1 < chr2
@@ -453,7 +448,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         writeMatrixIndividualFile(currentMatrix, currentPairIndex);
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
-                        System.gc();
+                        //System.gc();
                         break;
                         //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
                     }
@@ -476,6 +471,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 pos1 = getGenomicPosition(chr1, bp1, localChromosomeHandler);
                 pos2 = getGenomicPosition(chr2, bp2, localChromosomeHandler);
                 wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), localExpectedValueCalculations);
+
 
             }
         }
