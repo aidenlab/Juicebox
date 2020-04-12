@@ -227,7 +227,7 @@ class ColorRangeDialog extends JDialog {
     private void okButtonActionPerformed(ActionEvent e, SuperAdapter superAdapter,
                                          JColorRangePanel colorRangePanel, boolean isOEColorScaleType) {
         double max = 0, min = 0;
-        int lower = 0, upper = 0;
+        double lower = 0, upper = 0;
 
         try {
             if (isOEColorScaleType) {
@@ -236,8 +236,8 @@ class ColorRangeDialog extends JDialog {
             }
             max = df2.parse(maximumField.getText()).doubleValue();
             min = df2.parse(minimumField.getText()).doubleValue();
-            upper = (int) Math.round(df2.parse(upperField.getText()).doubleValue());
-            lower = (int) Math.round(df2.parse(lowerField.getText()).doubleValue());
+            upper = df2.parse(upperField.getText()).doubleValue();
+            lower = df2.parse(lowerField.getText()).doubleValue();
 
         } catch (ParseException error) {
             JOptionPane.showMessageDialog(this, "Must enter a number", "Error", JOptionPane.ERROR_MESSAGE);
@@ -250,12 +250,19 @@ class ColorRangeDialog extends JDialog {
 
         int iMin = (int) (colorRangeFactor * min);
         int iMax = (int) (colorRangeFactor * max);
+        int iLower = (int) (colorRangeFactor * lower);
+        int iUpper = (int) (colorRangeFactor * upper);
+
+        if (isOEColorScaleType) {
+            iLower = -iUpper;
+            iMin = -iMax;
+        }
 
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
 
-        colorSlider.setUpperValue(upper);
-        colorSlider.setLowerValue(lower);
+        colorSlider.setUpperValue(iUpper);
+        colorSlider.setLowerValue(iLower);
 
         colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
         if (!superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {
