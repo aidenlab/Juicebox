@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ public class JColorRangePanel extends JPanel {
     private static JButton plusButton, minusButton;
     private double colorRangeScaleFactor = 1;
 
-    public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel, boolean activatePreDef) {
+    public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel) {
         super();
         setLayout(new BorderLayout());
         JPanel sliderPanel = new JPanel();
@@ -177,7 +177,7 @@ public class JColorRangePanel extends JPanel {
                 colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
                 HiC hic = superAdapter.getHiC();
 
-                if (MatrixType.isComparisonType(hic.getDisplayOption())) {
+                if (MatrixType.isOEColorScaleType(hic.getDisplayOption())) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                 }
@@ -195,7 +195,7 @@ public class JColorRangePanel extends JPanel {
                 int newMax = colorRangeSlider.getMaximum() / 2;
                 if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
-                    if (MatrixType.isComparisonType(hic.getDisplayOption())) {
+                    if (MatrixType.isOEColorScaleType(hic.getDisplayOption())) {
                         colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }
@@ -368,7 +368,7 @@ public class JColorRangePanel extends JPanel {
             Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
 
-            if (MatrixType.isComparisonType(hic.getDisplayOption())) {
+            if (MatrixType.isOEColorScaleType(hic.getDisplayOption())) {
                 colorRangeSlider.setToolTipText("Log Enrichment Values");
             } else {
                 colorRangeSlider.setToolTipText("Observed Counts");
@@ -401,11 +401,10 @@ public class JColorRangePanel extends JPanel {
         minusButton.setEnabled(val);
     }
 
-    public void handleNewFileLoading(MatrixType option, boolean activatePreDef) {
+    public void handleNewFileLoading(MatrixType option) {
         boolean isColorScaleType = MatrixType.isColorScaleType(option);
-        colorRangeSlider.setEnabled(isColorScaleType || activatePreDef);
-        colorRangeSlider.setDisplayToOE(MatrixType.isComparisonType(option));
-        colorRangeSlider.setDisplayToPreDef(activatePreDef);
+        colorRangeSlider.setEnabled(isColorScaleType);
+        colorRangeSlider.setDisplayToOE(MatrixType.isOEColorScaleType(option));
         plusButton.setEnabled(isColorScaleType);
         minusButton.setEnabled(isColorScaleType);
     }

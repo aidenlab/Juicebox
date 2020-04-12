@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -136,15 +136,6 @@ class RangeSlider extends JSlider implements Serializable {
     public void setDisplayToOE(boolean colorIsOE) {
         this.colorIsOE = colorIsOE;
         rangeSliderUI.setDisplayToOE(colorIsOE);
-    }
-
-    public void setDisplayToPreDef(boolean colorIsPreDef) {
-        this.colorIsPreDef = colorIsPreDef;
-        rangeSliderUI.setDisplayToPreDef(colorIsPreDef);
-    }
-
-    public String getDisplayColorsString() {
-        return rangeSliderUI.getColorsAsText();
     }
 
     public void setDisplayToBlank(boolean colorIsBlank) {
