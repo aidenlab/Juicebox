@@ -757,8 +757,8 @@ public class SuperAdapter {
         mainViewPanel.updateRatioColorSlider(hic, max, val);
     }
 
-    public void updateColorSlider(int min, double low, double high, double max) {
-        mainViewPanel.updateColorSlider(hic, min, low, high, max);
+    public void updateColorSlider(double low, double high) {
+        mainViewPanel.updateColorSlider(hic, low, high, high * 2);
     }
 
     public void unsafeSetSelectedChromosomes(Chromosome xC, Chromosome yC) {

@@ -43,24 +43,11 @@ class RangeSlider extends JSlider implements Serializable {
     private static final long serialVersionUID = -661825403401718563L;
     private RangeSliderUI rangeSliderUI;
 
-    private boolean colorIsOE = false;
-    private boolean colorIsPreDef = false;
-    private boolean colorIsBlank = false;
-
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
      * and 100.
      */
     public RangeSlider() {
-        initSlider();
-    }
-
-    /**
-     * Constructs a RangeSlider with the specified default minimum and maximum
-     * values.
-     */
-    public RangeSlider(int min, int max) {
-        super(min, max);
         initSlider();
     }
 
@@ -134,12 +121,10 @@ class RangeSlider extends JSlider implements Serializable {
     }
 
     public void setDisplayToOE(boolean colorIsOE) {
-        this.colorIsOE = colorIsOE;
         rangeSliderUI.setDisplayToOE(colorIsOE);
     }
 
     public void setDisplayToBlank(boolean colorIsBlank) {
-        this.colorIsBlank = colorIsBlank;
         rangeSliderUI.setDisplayToBlank(colorIsBlank);
     }
 }

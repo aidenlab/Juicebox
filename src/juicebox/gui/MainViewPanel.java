@@ -845,12 +845,8 @@ public class MainViewPanel {
         colorRangePanel.updateRatioColorSlider(hic, maxColor, upColor);
     }
 
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
-    }
-
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor, double scalefactor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
+    public void updateColorSlider(HiC hic, double lowColor, double upColor, double maxColor) {
+        colorRangePanel.updateColorSlider(hic, lowColor, upColor, maxColor);
     }
 
     public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean versionStatus) {

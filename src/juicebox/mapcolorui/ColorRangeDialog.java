@@ -43,10 +43,6 @@ import java.text.ParseException;
 class ColorRangeDialog extends JDialog {
 
     private static final long serialVersionUID = -2570891809264626823L;
-    private static MultiColorPickerDialog gradientPick;
-    private final RangeSlider colorSlider;
-    private final double colorRangeFactor;
-    //private final DecimalFormat df1;
     private final DecimalFormat df2;
     private JTextField minimumField = new JTextField();
     private JTextField maximumField = new JTextField();
@@ -63,27 +59,14 @@ class ColorRangeDialog extends JDialog {
 
         boolean isOEColorScaleType = MatrixType.isOEColorScaleType(option);
         initComponents(superAdapter, colorRangePanel, isOEColorScaleType);
-        this.colorSlider = colorSlider;
-        if (isOEColorScaleType) colorRangeFactor = 8;
-        this.colorRangeFactor = colorRangeFactor;
 
-        //df1 = new DecimalFormat("#,###,###,##0");
         df2 = new DecimalFormat("####.###");
 
         minimumField.setText(df2.format(colorSlider.getMinimum() / colorRangeFactor));
         maximumField.setText(df2.format(colorSlider.getMaximum() / colorRangeFactor));
+        lowerField.setText(df2.format(colorSlider.getLowerValue() / colorRangeFactor));
+        upperField.setText(df2.format(colorSlider.getUpperValue() / colorRangeFactor));
 
-        /*
-        if (isSimpleColorScaleType) {
-            minimumField.setText(df1.format(colorSlider.getMinimum() / colorRangeFactor));
-            maximumField.setText(df1.format(colorSlider.getMaximum() / colorRangeFactor));
-        } else {
-            minimumField.setText(df2.format(1 / (colorSlider.getMaximum() / colorRangeFactor)));
-            maximumField.setText(df2.format(colorSlider.getMaximum() / colorRangeFactor));
-        }
-
-         */
-        //tickSpacingField.setText(df.format(colorSlider.getMajorTickSpacing() / colorRangeFactor));
         maximumField.requestFocusInWindow();
     }
 
@@ -248,21 +231,15 @@ class ColorRangeDialog extends JDialog {
             return;
         }
 
-        int iMin = (int) (colorRangeFactor * min);
-        int iMax = (int) (colorRangeFactor * max);
-        int iLower = (int) (colorRangeFactor * lower);
-        int iUpper = (int) (colorRangeFactor * upper);
+        int iMax = (int) max;
+        int iLower = (int) lower;
+        int iUpper = (int) upper;
 
         if (isOEColorScaleType) {
-            iLower = -iUpper;
-            iMin = -iMax;
+            colorRangePanel.updateRatioColorSlider(superAdapter.getHiC(), iMax, iUpper);
+        } else {
+            colorRangePanel.updateColorSlider(superAdapter.getHiC(), iLower, iUpper, iMax);
         }
-
-        colorSlider.setMinimum(iMin);
-        colorSlider.setMaximum(iMax);
-
-        colorSlider.setUpperValue(iUpper);
-        colorSlider.setLowerValue(iLower);
 
         colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
         if (!superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {

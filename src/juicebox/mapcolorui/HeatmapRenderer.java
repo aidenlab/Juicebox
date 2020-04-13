@@ -2206,7 +2206,7 @@ class HeatmapRenderer {
 
             ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
             if ((observedColorScale != null)) {
-                superAdapter.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
+                superAdapter.updateColorSlider(observedColorScale.getMinimum(), observedColorScale.getMaximum());
             }
         }
     }
