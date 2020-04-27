@@ -338,6 +338,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OECTRLV2:
             case OECTRL: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
@@ -405,6 +406,7 @@ class HeatmapRenderer {
 
                 break;
             }
+            case OECTRLP1V2:
             case OECTRLP1: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
@@ -670,6 +672,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OEVSV2:
             case OEVS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -739,6 +742,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OEVSP1V2:
             case OEVSP1: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1036,6 +1040,7 @@ class HeatmapRenderer {
 
                 break;
             }
+            case OEP1V2:
             case OEP1: {
 
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
@@ -1378,6 +1383,7 @@ class HeatmapRenderer {
 
                 break;
             }
+            case OERATIOV2:
             case OERATIO: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1487,6 +1493,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OERATIOP1V2:
             case OERATIOP1: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1596,6 +1603,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case LOGEORATIOV2:
             case LOGEORATIO: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1925,6 +1933,7 @@ class HeatmapRenderer {
                 break;
 
             }
+            case RATIOV2:
             case RATIO: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1984,6 +1993,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case RATIOP1V2:
             case RATIOP1: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -2043,6 +2053,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case LOGRATIOV2:
             case LOGRATIO: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -2102,6 +2113,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case RATIO0V2:
             case RATIO0: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -2159,6 +2171,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case RATIO0P1V2:
             case RATIO0P1: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
