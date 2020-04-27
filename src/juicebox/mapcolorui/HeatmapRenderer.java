@@ -276,7 +276,7 @@ class HeatmapRenderer {
                     if (recs != null) {
                         for (ContactRecord rec : recs) {
                             float score = rec.getCounts();
-                            if (Float.isNaN(score)) continue;
+                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                             int binX = rec.getBinX();
                             int binY = rec.getBinY();
@@ -312,7 +312,7 @@ class HeatmapRenderer {
                     if (recs != null) {
                         for (ContactRecord rec : recs) {
                             float score = (float) Math.log(1 + rec.getCounts());
-                            if (Float.isNaN(score)) continue;
+                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                             int binX = rec.getBinX();
                             int binY = rec.getBinY();
@@ -356,7 +356,7 @@ class HeatmapRenderer {
                                     float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = rec.getCounts() / expected;
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -385,7 +385,7 @@ class HeatmapRenderer {
                             float expected = (averageCount > 0 ? averageCount : 1);
                             for (ContactRecord rec : recs) {
                                 float score = rec.getCounts() / expected;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -423,7 +423,7 @@ class HeatmapRenderer {
                                     float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -452,7 +452,7 @@ class HeatmapRenderer {
                             float expected = (averageCount > 0 ? averageCount : 1);
                             for (ContactRecord rec : recs) {
                                 float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -558,7 +558,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
                                 score = (score / averageCount) * averageAcrossMapAndControl;
 
                                 int binX = rec.getBinX();
@@ -583,7 +583,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
                                 score = (score / ctrlAverageCount) * averageAcrossMapAndControl;
 
                                 int binX = rec.getBinX();
@@ -689,7 +689,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 int binX = rec.getBinX();
                                 int binY = rec.getBinY();
@@ -715,7 +715,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 int binX = rec.getBinX();
                                 int binY = rec.getBinY();
@@ -765,7 +765,7 @@ class HeatmapRenderer {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) df.getExpectedValue(chr1, dist);
                                     float score = (rec.getCounts() + pseudocountObs) / (expected + pseudocountObs);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
                                     g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
@@ -786,7 +786,7 @@ class HeatmapRenderer {
                                     int dist = Math.abs(binX - binY);
                                     float expected = (float) controlDF.getExpectedValue(chr1, dist);
                                     float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -884,7 +884,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 int binX = rec.getBinX();
                                 int binY = rec.getBinY();
@@ -910,7 +910,7 @@ class HeatmapRenderer {
                             for (ContactRecord rec : recs) {
 
                                 float score = rec.getCounts();
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 int binX = rec.getBinX();
                                 int binY = rec.getBinY();
@@ -967,6 +967,7 @@ class HeatmapRenderer {
                 }
                 break;
             }
+            case OEV2:
             case OE: {
 
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
@@ -987,7 +988,7 @@ class HeatmapRenderer {
                                     float expected = (float) df.getExpectedValue(chr1, dist);
 
                                     float score = rec.getCounts() / expected;
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1016,7 +1017,7 @@ class HeatmapRenderer {
                             float expected = (averageCount > 0 ? averageCount : 1);
                             for (ContactRecord rec : recs) {
                                 float score = rec.getCounts() / expected;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -1055,7 +1056,7 @@ class HeatmapRenderer {
                                     float expected = (float) df.getExpectedValue(chr1, dist);
 
                                     float score = (rec.getCounts() + pseudocountObs) / (expected + pseudocountObs);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1084,7 +1085,7 @@ class HeatmapRenderer {
                             float expected = (averageCount > 0 ? averageCount : 1);
                             for (ContactRecord rec : recs) {
                                 float score = (rec.getCounts() + pseudocountObs) / (expected + pseudocountObs);
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -1171,6 +1172,212 @@ class HeatmapRenderer {
 
                 break;
             }
+            case METALOGEO: {
+
+                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
+                if (blocks == null || zd == null) return false;
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+                float averageCount = (float) zd.getAverageCount();
+
+                if (sameChr) {
+                    if (df != null) {
+                        for (Block b : blocks) {
+                            Collection<ContactRecord> recs = b.getContactRecords();
+                            if (recs != null) {
+                                for (ContactRecord rec : recs) {
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int dist = Math.abs(binX - binY);
+                                    float expected = (float) df.getExpectedValue(chr1, dist);
+
+                                    float score = (float) ((Math.log(rec.getCounts() + 1) + 1) / (Math.log(expected + 1) + 1));
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+
+                                    if (binX != binY) {
+                                        px = binY - originX;
+                                        py = binX - originY;
+                                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+                            float expected = (averageCount > 0 ? averageCount : 1);
+                            for (ContactRecord rec : recs) {
+                                float score = (float) ((Math.log(rec.getCounts() + 1) + 1) / (Math.log(expected + 1) + 1));
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                Color color = cs.getColor(score);
+                                g.setColor(color);
+
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
+                                int px = binX - originX;
+                                int py = binY - originY;
+                                if (px > -1 && py > -1 && px <= width && py <= height) {
+                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+            case EXPLOGEO: {
+
+                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
+                if (blocks == null || zd == null) return false;
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+                float averageCount = (float) zd.getAverageCount();
+                final double scalar = Math.log(10);
+
+                if (sameChr) {
+                    if (df != null) {
+                        for (Block b : blocks) {
+                            Collection<ContactRecord> recs = b.getContactRecords();
+                            if (recs != null) {
+                                for (ContactRecord rec : recs) {
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int dist = Math.abs(binX - binY);
+                                    float expected = (float) df.getExpectedValue(chr1, dist);
+
+                                    float score = (float) Math.exp((Math.log(rec.getCounts() + 1) / Math.log(expected + 1)));
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+
+                                    if (binX != binY) {
+                                        px = binY - originX;
+                                        py = binX - originY;
+                                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+                            float expected = (averageCount > 0 ? averageCount : 1);
+                            for (ContactRecord rec : recs) {
+                                float score = (float) Math.exp((Math.log(rec.getCounts() + 1) / Math.log(expected + 1)));
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                Color color = cs.getColor(score);
+                                g.setColor(color);
+
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
+                                int px = binX - originX;
+                                int py = binY - originY;
+                                if (px > -1 && py > -1 && px <= width && py <= height) {
+                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+            case EXPLOGEOINV: {
+
+                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
+                if (blocks == null || zd == null) return false;
+
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+                float averageCount = (float) zd.getAverageCount();
+                final double scalar = Math.log(10);
+
+                if (sameChr) {
+                    if (df != null) {
+                        for (Block b : blocks) {
+                            Collection<ContactRecord> recs = b.getContactRecords();
+                            if (recs != null) {
+                                for (ContactRecord rec : recs) {
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int dist = Math.abs(binX - binY);
+                                    float expected = (float) df.getExpectedValue(chr1, dist);
+
+                                    float score = (float) Math.exp(Math.log(expected + 1) / (Math.log(rec.getCounts() + 1)));
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                    Color color = cs.getColor(score);
+                                    g.setColor(color);
+
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+                                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    }
+
+                                    if (binX != binY) {
+                                        px = binY - originX;
+                                        py = binX - originY;
+                                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    for (Block b : blocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+                            float expected = (averageCount > 0 ? averageCount : 1);
+                            for (ContactRecord rec : recs) {
+                                float score = (float) Math.exp(Math.log(expected + 1) / (Math.log(rec.getCounts() + 1)));
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                                Color color = cs.getColor(score);
+                                g.setColor(color);
+
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
+                                int px = binX - originX;
+                                int py = binY - originY;
+                                if (px > -1 && py > -1 && px <= width && py <= height) {
+                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
             case OERATIO: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
@@ -1215,7 +1422,7 @@ class HeatmapRenderer {
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = (num / obsExpected) / (den / ctrlExpected);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1263,7 +1470,7 @@ class HeatmapRenderer {
                                     int binY = rec.getBinY();
 
                                     float score = (num / obsExpected) / (den / ctrlExpected);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1324,7 +1531,7 @@ class HeatmapRenderer {
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = ((num + pseudocountObs) / (obsExpected + pseudocountObs)) / ((den + pseudocountCtrl) / (ctrlExpected + pseudocountCtrl));
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1372,7 +1579,7 @@ class HeatmapRenderer {
                                     int binY = rec.getBinY();
 
                                     float score = ((num + pseudocountObs) / (obsExpected + pseudocountObs)) / ((den + pseudocountCtrl) / (ctrlExpected + pseudocountCtrl));
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1542,7 +1749,7 @@ class HeatmapRenderer {
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = (num / obsExpected) - (den / ctrlExpected);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1590,7 +1797,7 @@ class HeatmapRenderer {
                                     int binY = rec.getBinY();
 
                                     float score = (num / obsExpected) - (den / ctrlExpected);
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1652,7 +1859,7 @@ class HeatmapRenderer {
                                     float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
                                     float score = ((num + pseudocountObs) / (obsExpected + pseudocountObs)) - ((den + pseudocountCtrl) / (ctrlExpected + pseudocountCtrl));
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1700,7 +1907,7 @@ class HeatmapRenderer {
                                     int binY = rec.getBinY();
 
                                     float score = ((num + pseudocountObs) / (obsExpected + pseudocountObs)) - ((den + pseudocountCtrl) / (ctrlExpected + pseudocountCtrl));
-                                    if (Float.isNaN(score)) continue;
+                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
@@ -1751,7 +1958,7 @@ class HeatmapRenderer {
                                 float num = rec.getCounts() / averageCount;
                                 float den = ctrlRecord.getCounts() / ctrlAverageCount;
                                 float score = num / den;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -1810,7 +2017,7 @@ class HeatmapRenderer {
                                 float num = (rec.getCounts() + pseudocountObs) / (averageCount + pseudocountObs);
                                 float den = (ctrlRecord.getCounts() + pseudocountCtrl) / (ctrlAverageCount + pseudocountCtrl);
                                 float score = num / den;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -1926,7 +2133,7 @@ class HeatmapRenderer {
                                 float num = (float) (rec.getCounts() / df.getExpectedValue(chr1, 0));
                                 float den = (float) (ctrlRecord.getCounts() / controlDF.getExpectedValue(chr1, 0));
                                 float score = num / den;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -1983,7 +2190,7 @@ class HeatmapRenderer {
                                 float num = (float) ((rec.getCounts() + pseudocountObs) / (df.getExpectedValue(chr1, 0) + pseudocountObs));
                                 float den = (float) ((ctrlRecord.getCounts() + pseudocountCtrl) / (controlDF.getExpectedValue(chr1, 0) + pseudocountCtrl));
                                 float score = num / den;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -2043,7 +2250,7 @@ class HeatmapRenderer {
                                 float num = rec.getCounts() / averageCount;
                                 float den = ctrlRecord.getCounts() / ctrlAverageCount;
                                 float score = (num - den) * averageAcrossMapAndControl;
-                                if (Float.isNaN(score)) continue;
+                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
                                 g.setColor(color);
@@ -2117,7 +2324,7 @@ class HeatmapRenderer {
                     if (recs != null) {
                         for (ContactRecord rec : recs) {
                             float score = rec.getCounts();
-                            if (Float.isNaN(score)) continue;
+                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                             Color color = cs.getColor(score);
                             g.setColor(color);
@@ -2289,7 +2496,7 @@ class HeatmapRenderer {
 
     private Color getDenseMatrixColor(String key, float score, PearsonColorScale pearsonColorScale, ColorScale genericColorScale) {
         Color color;
-        if (Float.isNaN(score)) {
+        if (Float.isNaN(score) || Float.isInfinite(score)) {
             color = Color.gray;
         } else {
             if (pearsonColorScale != null) {

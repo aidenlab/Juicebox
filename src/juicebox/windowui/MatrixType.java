@@ -29,11 +29,16 @@ public enum MatrixType {
     OBSERVED("Observed"),
     EXPECTED("Expected"),
     OE("Observed/Expected"),
+    OEV2("Log(Observed/Expected)"),
     OEP1("(Observed+1)/(Expected+1)"),
+    OEP1V2("Log((Observed+1)/(Expected+1))"),
     OME("Observed-Expected"),
     PEARSON("Observed Pearson"),
     LOG("Log(Observed+1)"),
     LOGEO("Log(Observed+1)/Log(Expected+1)"),
+    METALOGEO("(Log(Observed+1)+1)/(Log(Expected+1)+1)"),
+    EXPLOGEO("e^(Log(Observed+1)/Log(Expected+1))"),
+    EXPLOGEOINV("e^(Log(Expected+1)/Log(Observed+1))"),
     NORM2("Observed Norm^2"),
     CONTROL("Control"),
     OECTRL("Control/ExpectedC"),
@@ -75,7 +80,8 @@ public enum MatrixType {
     };
 
     public static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, EXPECTED, OE, OEP1, OME, PEARSON, LOG, LOGEO};
+            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OME, PEARSON, LOG, LOGEO, METALOGEO, EXPLOGEO,
+                    EXPLOGEOINV};
 
     private final String value;
 
@@ -111,7 +117,10 @@ public enum MatrixType {
      */
     public static boolean isSimpleColorscaleType(MatrixType option) {
         return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2
-                || option == NORM2CTRL || option == NORM2OBSVSCTRL || option == LOGEO || option == LOGCEO || option == LOGEOVS;
+                || option == NORM2CTRL || option == NORM2OBSVSCTRL
+                || option == LOGEO || option == METALOGEO
+                || option == LOGCEO || option == LOGEOVS || option == EXPLOGEO
+                || option == EXPLOGEOINV || option == OE;
     }
 
     /**
@@ -157,7 +166,7 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isOEColorScaleType(MatrixType option) {
-        return option == OE || option == OEP1 || option == RATIO || option == RATIOP1 || option == RATIO0
+        return option == OEV2 || option == OEP1V2 || option == RATIO || option == RATIOP1 || option == RATIO0
                 || option == RATIO0P1 || option == OECTRL || option == OECTRLP1
                 || option == OEVS || option == OEVSP1 || option == OERATIO || option == OERATIOP1
                 || option == LOGRATIO || option == LOGEORATIO
@@ -181,8 +190,8 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || option == OEP1 || option == LOGEO || option == LOGCEO || isPearsonType(option) || isControlExpectedUsedType(option)
-                || option == OCMEVS || option == OME || option == CME;
+        return option == OE || option == OEV2 || option == OEP1 || option == LOGEO || option == LOGCEO || isPearsonType(option) || isControlExpectedUsedType(option)
+                || option == OCMEVS || option == OME || option == CME || option == METALOGEO;
     }
 
     /**
