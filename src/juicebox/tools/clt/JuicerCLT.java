@@ -27,6 +27,7 @@ package juicebox.tools.clt;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -47,11 +48,12 @@ public abstract class JuicerCLT extends JuiceboxCLT {
         super(usage);
     }
 
-    protected int determineHowManyChromosomesWillActuallyRun(Dataset ds, ChromosomeHandler chromosomeHandler) {
+    protected int determineHowManyChromosomesWillActuallyRun(Dataset ds, ChromosomeHandler chromosomeHandler, HiCZoom zoom) {
         int maxProgressStatus = 0;
         for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             Matrix matrix = ds.getMatrix(chr, chr);
             if (matrix == null) continue;
+            if (matrix.getZoomData(zoom) == null) continue;
             maxProgressStatus++;
         }
         return maxProgressStatus;

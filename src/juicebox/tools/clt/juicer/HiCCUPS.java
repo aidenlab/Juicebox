@@ -204,7 +204,7 @@ public class HiCCUPS extends JuicerCLT {
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
-                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore-sparsity]" +
                 "<hicFile> <outputDirectory> [specified_loop_list]");
         Feature2D.allowHiCCUPSOrdering = true;
     }
@@ -557,7 +557,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 }
                 int currProg = currentProgressStatus.incrementAndGet();
-                int resonableDivisor = regionHandler.getSize() / 20;
+                int resonableDivisor = Math.max(regionHandler.getSize() / 20, 1);
                 if (HiCGlobals.printVerboseComments || currProg % resonableDivisor == 0) {
                     DecimalFormat df = new DecimalFormat("#.####");
                     df.setRoundingMode(RoundingMode.FLOOR);
