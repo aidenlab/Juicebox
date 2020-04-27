@@ -27,7 +27,9 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
-import juicebox.tools.dev.*;
+import juicebox.tools.dev.APAvsDistance;
+import juicebox.tools.dev.CompareVectors;
+import juicebox.tools.dev.GeneFinder;
 import juicebox.tools.utils.Benchmark;
 
 
@@ -109,16 +111,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
-        } else if (cmd.equals("shuffle")) {
-            return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
-        } else if (cmd.equals("drinks")) {
-            return new Drink(false);
-        } else if (cmd.equals("drink")) {
-            return new Drink(true);
-        } else if (cmd.equals("grind")) {
-            return new Grind();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -141,8 +135,6 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
-        } else if (cmd.equals("afa")) { //added command for afa
-            return new AFA ();
         }
 
         return null;

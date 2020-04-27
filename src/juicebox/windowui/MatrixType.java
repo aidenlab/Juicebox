@@ -30,20 +30,27 @@ public enum MatrixType {
     OBSERVED("Observed"),
     EXPECTED("Expected"),
     OE("Observed/Expected"),
+    OEP1("(Observed+1)/(Expected+1)"),
     OME("Observed-Expected"),
     PEARSON("Observed Pearson"),
     NORM2("Observed Norm^2"),
     CONTROL("Control"),
-    OECTRL("Control/Expected"),
-    CME("Control-Expected"),
+    OECTRL("Control/ExpectedC"),
+    OECTRLP1("(Control+1)/(ExpectedC+1)"),
+    CME("Control-ExpectedC"),
     PEARSONCTRL("Control Pearson"),
     NORM2CTRL("Control Norm^2"),
-    RATIO("Observed/Control"),
-    RATIO0("(O/E0)/(C/EC0)"),
+    RATIO("Observed/Control * (AvgC/AvgO)"),
+    RATIOP1("(Observed+1)/(Control+1) * (AvgC+1)/(AvgO+1)"),
+    RATIO0("Observed/Control * (ExpC0/Exp0)"),
+    RATIO0P1("(Observed+1)/(Control+1) * (ExpC0+1)/(Exp0+1)"),
     VS("Observed vs Control"),
-    OEVS("Observed/Expected vs Control/Expected"),
-    OERATIO("(Observed/Expected) / (Control/Expected)"),
-    OERATIOMINUS("(Observed/Expected) - (Control/Expected)"),
+    OEVS("Observed/Expected vs Control/ExpectedC"),
+    OEVSP1("(Observed+1)/(Expected+1) vs (Control+1)/(ExpectedC+1)"),
+    OERATIO("(Observed/Expected) / (Control/ExpectedC)"),
+    OERATIOP1("((Observed+1)/(Expected+1)) / ((Control+1)/(ExpectedC+1))"),
+    OERATIOMINUS("(Observed/Expected) - (Control/ExpectedC)"),
+    OERATIOMINUSP1("(Observed+1)/(Expected+1) - (Control+1)/(ExpectedC+1)"),
     OCMEVS("Observed-Expected vs Control-Expected"),
     PEARSONVS("Observed Pearson vs Control Pearson"),
     DIFF("Observed-Control"),
@@ -83,7 +90,8 @@ public enum MatrixType {
      * @return true is the option is generally available all maps or resolutions
      */
     public static boolean isSimpleType(MatrixType option) {
-        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
+        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2
+                || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
     /**
@@ -99,7 +107,8 @@ public enum MatrixType {
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
-        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
+        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2
+                || option == NORM2CTRL || option == NORM2OBSVSCTRL;
     }
 
 
@@ -114,24 +123,28 @@ public enum MatrixType {
 
     /**
      * @param option
-     * @return true if the option requires control map bu not expected vector
+     * @return true if the option requires control map but not expected vector
      */
     public static boolean isSimpleControlType(MatrixType option) {
-        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIO0;
+        return option == CONTROL || option == VS || option == DIFF || option == RATIO || option == RATIOP1
+                || option == RATIO0 || option == RATIO0P1;
     }
+
 
     /**
      * @param option
      * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == RATIO0 || option == DIFF || option == OECTRL || option == OEVS || option == OCMEVS || option == OME || option == CME || option == OERATIO || option == OERATIOMINUS;
+        return option == OE || option == OEP1 || option == RATIO || option == RATIOP1 || option == RATIO0
+                || option == RATIO0P1 || option == OECTRL || option == OECTRLP1
+                || option == OEVS || option == OEVSP1 || option == OERATIO || option == OERATIOP1
+                || isSubtactType(option);
     }
 
     public static boolean isSubtactType(MatrixType option) {
-        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS;
+        return option == DIFF || option == OCMEVS || option == OME || option == CME || option == OERATIOMINUS || option == OERATIOMINUSP1;
     }
-
 
     /**
      * @param option
@@ -146,7 +159,8 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || isPearsonType(option) || isControlExpectedUsedType(option) || option == OCMEVS || option == OME || option == CME;
+        return option == OE || option == OEP1 || isPearsonType(option) || isControlExpectedUsedType(option)
+                || option == OCMEVS || option == OME || option == CME;
     }
 
     /**
@@ -174,7 +188,8 @@ public enum MatrixType {
     }
 
     public static boolean isVSTypeDisplay(MatrixType option) {
-        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS || option == OCMEVS;
+        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS
+                || option == MatrixType.OEVSP1 || option == OCMEVS;
     }
 
     public static boolean isControlPearsonType(MatrixType option) {
@@ -182,7 +197,12 @@ public enum MatrixType {
     }
 
     private static boolean isControlExpectedUsedType(MatrixType option) {
-        return option == OECTRL || option == OEVS || option == OCMEVS || option == CME || option == OERATIO || option == OERATIOMINUS;
+        return option == OECTRL || option == OECTRLP1 || option == OEVS || option == OEVSP1 || option == OCMEVS
+                || option == CME || option == OERATIO || option == OERATIOP1 || option == OERATIOMINUS || option == OERATIOMINUSP1;
+    }
+
+    public static boolean isOnlyControlType(MatrixType option) {
+        return option == CONTROL || option == OECTRL || option == OECTRLP1 || option == PEARSONCTRL;
     }
 
     public String toString() {

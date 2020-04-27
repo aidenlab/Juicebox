@@ -623,7 +623,7 @@ public class MainMenuBar extends JMenuBar {
         });
         renameGenome.setEnabled(false);
         fileMenu.add(renameGenome);
-        fileMenu.addSeparator();
+    fileMenu.addSeparator();
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
     editPearsonsColorItem.addActionListener(new ActionListener() {
@@ -633,6 +633,15 @@ public class MainMenuBar extends JMenuBar {
       }
     });
     devMenu.add(editPearsonsColorItem);
+
+    JMenuItem editPseudoCounts = new JMenuItem("Change Pseudocount");
+    editPseudoCounts.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.launchSetPseudoCountEditor();
+      }
+    });
+    devMenu.add(editPseudoCounts);
 
     JMenuItem mapSubset = new JMenuItem("Select Map Subset...");
     mapSubset.addActionListener(new ActionListener() {

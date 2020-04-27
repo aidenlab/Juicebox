@@ -165,12 +165,16 @@ public class SuperAdapter {
         if (pearsonColorScale != null) new PearsonColorScaleEditor(this, pearsonColorScale);
     }
 
+    public void launchSetPseudoCountEditor() {
+        new PseudoCountEditor(this);
+    }
+
     public void restoreLocation(String loc) {
         hic.restoreLocation(loc);
     }
 
     public LoadEncodeAction getEncodeAction() {
-        if (layersPanel == null){
+        if (layersPanel == null) {
             layersPanel = new LayersPanel(this);
             setLayersPanelVisible(false);
         }
@@ -321,6 +325,8 @@ public class SuperAdapter {
             initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
         } else {
             mainViewPanel.getResolutionSlider().setEnabled(true);
+
+            // todo this is throwing null pointer exceptions
             initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
 
             // If this is the initial load hic.currentZoom will be null

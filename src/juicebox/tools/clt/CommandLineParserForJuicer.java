@@ -24,8 +24,6 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.dev.Drink;
-import juicebox.tools.dev.Grind;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
@@ -44,22 +42,20 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     // oes
 
     // General
-    private final Option matrixSizeOption = addIntegerOption('m', "matrix-window-width");
+    private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
-    private final Option randomSeedsOption = addStringOption("random-seeds");
-    private final Option convolutionOption = addStringOption("conv1d");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
-    private final Option apaMinValOption = addDoubleOption('n', "min_dist");
-    private final Option apaMaxValOption = addDoubleOption('x', "max_dist");
+    private final Option apaMinValOption = addDoubleOption('n', "min-dist");
+    private final Option apaMaxValOption = addDoubleOption('x', "max-dist");
     private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner-width");
     private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
-    private final Option apaSaveAllData = addBooleanOption('u', "all_data");
+    private final Option apaSaveAllData = addBooleanOption('u', "save-all");
 
     // HICCUPS
     private final Option fdrOption = addStringOption('f', "fdr-thresholds");
@@ -70,34 +66,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
     private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
-    // previously for AFA
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
-
-    // for GRIND
-    private final Option useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
-    private final Option useDenseLabelsOption = addBooleanOption("dense-labels");
-    private final Option useWholeGenome = addBooleanOption("whole-genome");
-    private final Option useDiagonalOption = addBooleanOption("diagonal");
-    private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
-    private final Option stride = addIntegerOption("stride");
-    private final Option useDontIgnoreDirectionOrientationOption = addBooleanOption("use-feature-orientation");
-    private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
-    private final Option generateImageFormatPicturesOption = addStringOption("img");
-    private final Option useAmorphicLabelingOption = addBooleanOption("amorphic-labeling");
-    private final Option useTxtInsteadOfNPYOption = addBooleanOption("text-output");
-
-    //iterate-down-diagonal, iterate-on-list, iterate-distortions, iterate-domains
-    private final Option useListIterationOption = addBooleanOption("iterate-on-list");
-    private final Option useDomainOption = addBooleanOption("iterate-domains");
-    private final Option useIterationDownDiagonalOption = addBooleanOption("iterate-down-diagonal");
-    private final Option useDistortionOption = addBooleanOption("iterate-distortions");
-
-    // DRINKS
-    private final Option useDerivativeOption = addBooleanOption("derivative");
-    private final Option ignoreDerivativeOption = addBooleanOption("ignore-derivative");
-    private final Option usingRowNormalizationOption = addBooleanOption("normalize-rows");
-
 
     public CommandLineParserForJuicer() {
     }
@@ -110,61 +80,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
                 || cmd.equals("shuffle") || cmd.equals("grind");
     }
 
-    public int getGrindDataSliceOption() {
-        Object opt = getOptionValue(useListIterationOption);
-        if (opt != null) return Grind.LIST_ITERATION_OPTION;
-        opt = getOptionValue(useDomainOption);
-        if (opt != null) return Grind.DOMAIN_OPTION;
-        opt = getOptionValue(useIterationDownDiagonalOption);
-        if (opt != null) return Grind.DOWN_DIAGONAL_OPTION;
-        opt = getOptionValue(useDistortionOption);
-        if (opt != null) return Grind.DISTORTION_OPTION;
-        return 0;
-    }
-
-    public int getUsingDerivativeStatus() {
-        Object opt = getOptionValue(useDerivativeOption);
-        if (opt != null) return Drink.USE_ONLY_DERIVATIVE;
-        opt = getOptionValue(ignoreDerivativeOption);
-        if (opt != null) return Drink.IGNORE_DERIVATIVE;
-        return 0;
-    }
-
-    public boolean getUsingRowNomalizationStatus() {
-        return optionToBoolean(usingRowNormalizationOption);
-    }
-
     public boolean getBypassMinimumMapCountCheckOption() {
         return optionToBoolean(bypassMinimumMapCountCheckOption);
-    }
-
-    // for GRIND
-    public boolean getUseObservedOverExpectedOption() {
-        return optionToBoolean(useObservedOverExpectedOption);
-    }
-
-    public boolean getUseAmorphicLabelingOption() {
-        return optionToBoolean(useAmorphicLabelingOption);
-    }
-
-    public boolean getUseWholeGenome() {
-        return optionToBoolean(useWholeGenome);
-    }
-
-    public boolean getUseGenomeDiagonal() {
-        return optionToBoolean(useDiagonalOption);
-    }
-
-    public boolean getDenseLabelsOption() {
-        return optionToBoolean(useDenseLabelsOption);
-    }
-
-    public boolean getDontIgnoreDirectionOrientationOption() {
-        return optionToBoolean(useDontIgnoreDirectionOrientationOption);
-    }
-
-    public boolean getUseOnlyMakePositiveExamplesOption() {
-        return optionToBoolean(useOnlyMakePositiveExamplesOption);
     }
 
     public boolean getLegacyOutputOption() {
@@ -183,11 +100,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     /**
      * String flags
      */
-
-    public String getRelativeLocationOption() {
-        return optionToString(relativeLocationOption);
-    }
-
     public NormalizationType getNormalizationTypeOption(NormalizationHandler normalizationHandler) {
         return retrieveNormalization(optionToString(normalizationTypeOption), normalizationHandler);
     }
@@ -218,14 +130,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
      */
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
-    }
-
-    public int getCornerOffBy() {
-        return optionToInt(cornerOffBy);
-    }
-
-    public int getStride() {
-        return optionToInt(stride);
     }
 
     public int getMatrixSizeOption() {
@@ -265,10 +169,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return optionToStringList(multipleCornerRegionDimensionsOption);
     }
 
-    public List<String> getAttributeOption() {
-        return optionToStringList(multipleAttributesOption);
-    }
-
     public List<String> getFDROptions() {
         return optionToStringList(fdrOption);
     }
@@ -296,37 +196,5 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public boolean restrictSearchRegionsOptions() {
         return optionToBoolean(restrictSearchRegionsOption);
-    }
-
-    public String getGenerateImageFormatPicturesOption() {
-        return optionToString(generateImageFormatPicturesOption);
-    }
-
-    public boolean getUseTxtInsteadOfNPY() {
-        return optionToBoolean(useTxtInsteadOfNPYOption);
-    }
-
-    public long[] getMultipleSeedsOption() {
-        List<String> possibleSeeds = optionToStringList(randomSeedsOption);
-        if (possibleSeeds != null) {
-            long[] seeds = new long[possibleSeeds.size()];
-            for (int i = 0; i < seeds.length; i++) {
-                seeds[i] = Long.parseLong(possibleSeeds.get(i));
-            }
-            return seeds;
-        }
-        return null;
-    }
-
-    public double[] getConvolutionOption() {
-        List<String> conv1d = optionToStringList(convolutionOption);
-        if (conv1d != null) {
-            double[] values = new double[conv1d.size()];
-            for (int i = 0; i < values.length; i++) {
-                values[i] = Double.parseDouble(conv1d.get(i));
-            }
-            return values;
-        }
-        return null;
     }
 }

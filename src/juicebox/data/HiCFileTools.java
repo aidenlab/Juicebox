@@ -27,7 +27,6 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -433,31 +432,6 @@ public class HiCFileTools {
     public static String cleanUpDropboxURL(String url) {
         return url.replace("?dl=0", "")
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
-    }
-
-    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm,
-                                                          double logThreshold, ExtractingOEDataUtils.ThresholdType thresholdType, boolean fillUnderDiagonal) throws IOException {
-
-        final MatrixZoomData zd = getMatrixZoomData(ds, chromosome, chromosome, resolution);
-        if (zd == null) return null;
-
-        return getRealOEMatrixForChromosome(ds, zd, chromosome, resolution, norm, logThreshold, thresholdType, fillUnderDiagonal);
-
-    }
-
-    public static RealMatrix getRealOEMatrixForChromosome(Dataset ds, MatrixZoomData zd, Chromosome chromosome,
-                                                          int resolution, NormalizationType norm, double logThreshold,
-                                                          ExtractingOEDataUtils.ThresholdType thresholdType, boolean fillUnderDiagonal) throws IOException {
-
-        ExpectedValueFunction df = ds.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome, true);
-
-        int maxBin = chromosome.getLength() / resolution + 1;
-        int maxSize = maxBin;
-
-        return ExtractingOEDataUtils.extractObsOverExpBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, df, chromosome.getIndex(), logThreshold,
-                fillUnderDiagonal, thresholdType);
-
     }
 
     public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {

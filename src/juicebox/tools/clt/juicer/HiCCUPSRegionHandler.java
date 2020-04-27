@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,7 @@ public class HiCCUPSRegionHandler {
 
                     if (rowBounds[4] < chrMatrixWidth - regionMargin) {
                         for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
-                            if (restrictSearchRegions && (j - i) * regionWidth * conf.getResolution() > 400) {
+                            if (restrictSearchRegions && (j - i) * regionWidth * conf.getResolution() > 8000000) {
                                 continue;
                             }
 

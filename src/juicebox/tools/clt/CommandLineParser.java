@@ -200,11 +200,13 @@ public class CommandLineParser extends CmdLineParser {
      */
     protected double optionToDouble(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? 0 : ((Number) opt).doubleValue();
+        return opt == null ? -1 : ((Number) opt).doubleValue();
     }
 
     public double getScalingOption() {
-        return optionToDouble(hicFileScalingOption);
+        double opt = optionToDouble(hicFileScalingOption);
+        if (opt > -1) return opt;
+        return 1;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -320,7 +320,7 @@ public class HiCCUPS extends JuicerCLT {
             if (firstExpected < 100000) {
                 System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
                 if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
                     System.exit(0);
                 }
             }
