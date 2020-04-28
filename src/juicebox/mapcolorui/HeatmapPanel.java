@@ -322,7 +322,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
       if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
         //In case tender is called as a result of zoom change event, check if
         //We need to update slider with map range:
-          String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
+        String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
         renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
         //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
       }

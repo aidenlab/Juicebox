@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
     @Override
     public void run() {
 
-        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds1, chromosomeHandler);
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds1, chromosomeHandler, highZoom);
         int currentProgressStatus = 0;
 
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
