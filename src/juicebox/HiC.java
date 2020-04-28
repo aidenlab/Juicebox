@@ -1188,11 +1188,7 @@ public class HiC {
 
     public String getColorScaleKey() {
         try {
-            if (MatrixType.isOnlyControlType(displayOption)) {
-                return getControlZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
-            } else {
-                return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
-            }
+            return getZd().getColorScaleKey(displayOption, obsNormalizationType, ctrlNormalizationType);
         } catch (Exception ignored) {
         }
         return null;

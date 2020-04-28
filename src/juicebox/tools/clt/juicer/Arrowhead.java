@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -117,7 +117,7 @@ public class Arrowhead extends JuicerCLT {
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "[--ignore_sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
+                "[--ignore-sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -192,7 +192,7 @@ public class Arrowhead extends JuicerCLT {
             if (firstExpected < 100000) {
                 System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
                 if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
                     System.exit(0);
                 }
             }
@@ -245,7 +245,11 @@ public class Arrowhead extends JuicerCLT {
 
         final HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler);
+        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler, zoom);
+        if (maxProgressStatus < 1) {
+            System.err.println("No valid chromosome matrices at given resolution");
+            return;
+        }
         final AtomicInteger currentProgressStatus = new AtomicInteger(0);
         System.out.println("max " + maxProgressStatus);
 

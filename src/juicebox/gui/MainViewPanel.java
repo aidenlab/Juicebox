@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.MiniAnnotationsLayerPanel;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
@@ -59,7 +58,6 @@ public class MainViewPanel {
 
     public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static final List<Float> preDefMapColorFractions = new ArrayList<>();
-    public static boolean preDefMapColor = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();
@@ -370,7 +368,7 @@ public class MainViewPanel {
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
-        colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel, preDefMapColor);
+        colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel);
 
         toolbarConstraints.gridx = 4;
         toolbarConstraints.weightx = 0.5;
@@ -847,12 +845,8 @@ public class MainViewPanel {
         colorRangePanel.updateRatioColorSlider(hic, maxColor, upColor);
     }
 
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
-    }
-
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor, double scalefactor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
+    public void updateColorSlider(HiC hic, double lowColor, double upColor, double maxColor) {
+        colorRangePanel.updateColorSlider(hic, lowColor, upColor, maxColor);
     }
 
     public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean versionStatus) {
