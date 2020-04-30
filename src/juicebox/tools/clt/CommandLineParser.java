@@ -36,9 +36,9 @@ import java.util.*;
 public class CommandLineParser extends CmdLineParser {
 
     // available
-    // bijlou
+    // blou
     // used
-    // d h x v n p k F V f t s g m q w c r z a y
+    // d h x v n p k F V f t s g m q w c r z a y j i
 
     // universal
     protected final Option verboseOption = addBooleanOption('v', "verbose");
@@ -61,12 +61,14 @@ public class CommandLineParser extends CmdLineParser {
     private final Option genomeIDOption = addStringOption('y', "genomeid");
     private final Option expectedVectorOption = addStringOption('e', "expected-vector-file");
     protected final Option normalizationTypeOption = addStringOption('k', "normalization");
+    private final Option mndIndexOption = addStringOption('i', "mndindex");
 
     // ints
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
     private final Option mapqOption = addIntegerOption('q', "mapq");
     private final Option genomeWideOption = addIntegerOption('w', "genomewide");
     private final Option alignmentFilterOption = addIntegerOption('a', "alignment");
+    private final Option threadNumOption = addIntegerOption('j', "threads");
 
     // sets of strings
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
@@ -147,6 +149,8 @@ public class CommandLineParser extends CmdLineParser {
         return optionToString(expectedVectorOption);
     }
 
+    public String getMndIndexOption() { return optionToString(mndIndexOption);}
+
     public Alignment getAlignmentOption() {
         int alignmentInt = optionToInt(alignmentFilterOption);
 
@@ -194,6 +198,10 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public enum Alignment {INNER, OUTER, LL, RR, TANDEM}
+
+    public int getNumThreads() {
+        return optionToInt(threadNumOption);
+    }
 
     /**
      * double flags
@@ -259,4 +267,5 @@ public class CommandLineParser extends CmdLineParser {
         }
         return null;
     }
+
 }

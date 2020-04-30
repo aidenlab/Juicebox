@@ -31,10 +31,7 @@ import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -43,7 +40,7 @@ import java.util.zip.GZIPInputStream;
  * @author Jim Robinson
  * @since 9/24/11
  */
-public class AsciiPairIterator implements PairIterator {
+public class RandomAccessAsciiPairIterator implements PairIterator {
 
     /**
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
@@ -53,7 +50,7 @@ public class AsciiPairIterator implements PairIterator {
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
     private AlignmentPair nextPair = null;
-    private BufferedReader reader;
+    private RandomAccessFile reader;
     private Format format = null;
     private int dcicFragIndex1 = -1;
     private int dcicFragIndex2 = -1;
@@ -61,36 +58,18 @@ public class AsciiPairIterator implements PairIterator {
     private int dcicMapqIndex2 = -1;
     //CharMatcher.anyOf(";,.")
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
+    public RandomAccessAsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, Long mndIndexPosition) throws IOException {
         if (path.endsWith(".gz")) {
-            InputStream fileStream = new FileInputStream(path);
-            InputStream gzipStream = new GZIPInputStream(fileStream);
-            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
-            this.reader = new BufferedReader(decoder, 4194304);
+
         } else {
             //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
-            this.reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
+            this.reader = new RandomAccessFile(path, "r");
+            reader.getChannel().position(mndIndexPosition);
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();
     }
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex) throws IOException {
-        if (path.endsWith(".gz")) {
-            System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
-            System.exit(70);
-        } else {
-            //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
-            FileInputStream fis = new FileInputStream(path);
-            fis.getChannel().position(mndIndex);
-            this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
-            //FileChannel fc = FileChannel.open(new File(path).toPath(), StandardOpenOption.READ);
-            //fc.position(mndIndex);
-            //this.reader = new BufferedReader(Channels.newReader(fc, "US-ASCII"), HiCGlobals.bufferSize);
-        }
-        this.chromosomeOrdinals = chromosomeOrdinals;
-        advance();
-    }
     /**
      * Read the next record
      * <p/>
