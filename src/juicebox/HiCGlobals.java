@@ -24,8 +24,6 @@
 
 package juicebox;
 
-import juicebox.windowui.MatrixType;
-
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.19.10";
+    public static final String versionNum = "1.20.05";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -66,15 +64,6 @@ public class HiCGlobals {
     // min hic file version supported
     public static final int minVersion = 6;
     public static final int bufferSize = 2097152;
-
-    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OP1EP1, MatrixType.OME, MatrixType.PEARSON};
-    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.OP1EP1, MatrixType.OME, MatrixType.PEARSON,
-            MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.OP1EP1CTRL, MatrixType.CME, MatrixType.PEARSONCTRL,
-            MatrixType.VS, MatrixType.RATIO, MatrixType.RATIOP1, MatrixType.RATIO0, MatrixType.RATIO0P1,
-            MatrixType.OERATIO, MatrixType.OERATIOP1, MatrixType.OERATIOMINUS, MatrixType.OERATIOMINUSP1,
-            MatrixType.OEVS, MatrixType.OEVSP1, MatrixType.OCMEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
 
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static Color HIC_MAP_COLOR = Color.RED;
@@ -105,6 +94,7 @@ public class HiCGlobals {
     public static final Color diffGrayColor = new Color(238, 238, 238);
     public static boolean HACK_COLORSCALE = false;
     public static boolean HACK_COLORSCALE_EQUAL = false;
+    public static boolean HACK_COLORSCALE_LINEAR = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

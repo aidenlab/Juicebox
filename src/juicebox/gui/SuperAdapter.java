@@ -142,7 +142,7 @@ public class SuperAdapter {
 
     public void resetControlMap() {
         hic.setControlDataset(null);
-        MatrixType[] options = HiCGlobals.enabledMatrixTypesNoControl;
+        MatrixType[] options = MatrixType.enabledMatrixTypesNoControl;
         mainViewPanel.setSelectedDisplayOption(options, false);
         currentlyLoadedControlFiles = null;
         controlTitle = null;
@@ -436,7 +436,7 @@ public class SuperAdapter {
             MatrixType[] options;
             if (control) {
                 hic.setControlDataset(dataset);
-                options = HiCGlobals.enabledMatrixTypesWithControl;
+                options = MatrixType.enabledMatrixTypesWithControl;
                 mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
                         dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
@@ -449,9 +449,9 @@ public class SuperAdapter {
                         dataset.getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
-                    options = HiCGlobals.enabledMatrixTypesWithControl;
+                    options = MatrixType.enabledMatrixTypesWithControl;
                 } else {
-                    options = HiCGlobals.enabledMatrixTypesNoControl;
+                    options = MatrixType.enabledMatrixTypesNoControl;
                 }
 
                 hic.resetContexts();
@@ -569,7 +569,7 @@ public class SuperAdapter {
             return false;
         }
 
-        mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
+        mainViewPanel.getColorRangePanel().handleNewFileLoading(option);
 
         if (MatrixType.isVSTypeDisplay(option)) {
             if (hic.getMatrix().isNotIntra()) {
@@ -757,8 +757,8 @@ public class SuperAdapter {
         mainViewPanel.updateRatioColorSlider(hic, max, val);
     }
 
-    public void updateColorSlider(int min, double low, double high, double max) {
-        mainViewPanel.updateColorSlider(hic, min, low, high, max);
+    public void updateColorSlider(double low, double high) {
+        mainViewPanel.updateColorSlider(hic, low, high, high * 2);
     }
 
     public void unsafeSetSelectedChromosomes(Chromosome xC, Chromosome yC) {
