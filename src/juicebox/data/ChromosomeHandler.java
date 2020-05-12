@@ -70,7 +70,7 @@ public class ChromosomeHandler {
         // set the global chromosome list
         if (createAllChr) {
             long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
-            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, cleanUpName(Globals.CHR_ALL), (int) (genomeLength / 1000)));
         }
 
         initializeCleanedChromosomesList(chromosomes);

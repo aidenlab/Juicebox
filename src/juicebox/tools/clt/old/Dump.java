@@ -427,6 +427,10 @@ public class Dump extends JuiceboxCLT {
             }
         } else {
             Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
+            if (chromosome1 == null) {
+                System.err.println("Invalid chromosome " + chr1);
+                System.exit(77);
+            }
             regionIndices[0] = 0;
             regionIndices[1] = chromosome1.getLength();
         }
@@ -450,6 +454,10 @@ public class Dump extends JuiceboxCLT {
             }
         } else {
             Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
+            if (chromosome2 == null) {
+                System.err.println("Invalid chromosome " + chr2);
+                System.exit(78);
+            }
             regionIndices[2] = 0;
             regionIndices[3] = chromosome2.getLength();
         }
