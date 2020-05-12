@@ -24,13 +24,11 @@
 
 package juicebox.tools.utils.original;
 
-import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
-import juicebox.tools.utils.original.Preprocessor;
 import juicebox.data.HiCFileTools;
 import juicebox.windowui.NormalizationHandler;
 import org.apache.commons.math.stat.StatUtils;
@@ -40,16 +38,13 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.Deflater;
-import juicebox.tools.utils.original.RandomAccessAsciiPairIterator;
 
 
 public class MultithreadedPreprocessor extends Preprocessor {
@@ -136,7 +131,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
             if (fragmentFileName != null) {
                 try {
-                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
                 } catch (Exception e) {
                     System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
                     fragmentCalculation = null;
@@ -150,7 +145,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     fragmentCalculationsForRandomization = new ArrayList<>();
                     for (String fragmentFileName : randomizeFragMapFiles) {
                         try {
-                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
                             fragmentCalculationsForRandomization.add(fragmentCalculation);
                             System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
@@ -354,7 +349,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         if (mndIndexFile==null) {
             iter = (inputFile.endsWith(".bin")) ?
                     new BinPairIterator(chrInputFile) :
-                    new AsciiPairIterator(chrInputFile, chromosomeIndexes);
+                    new AsciiPairIterator(chrInputFile, chromosomeIndexes, chromosomeHandler);
         } else {
             iter = new AsciiPairIterator(inputFile, chromosomeIndexes, mndIndexPosition);
 

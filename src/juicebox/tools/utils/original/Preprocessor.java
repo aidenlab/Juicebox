@@ -142,7 +142,7 @@ public class Preprocessor {
         if (includedChromosomes != null && includedChromosomes.size() > 0) {
             this.includedChromosomes = new HashSet<>();
             for (String name : includedChromosomes) {
-                this.includedChromosomes.add(ChromosomeHandler.cleanUpName(name));
+                this.includedChromosomes.add(chromosomeHandler.cleanUpName(name));
             }
         }
     }
@@ -305,7 +305,7 @@ public class Preprocessor {
             StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
             if (fragmentFileName != null) {
                 try {
-                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
                 } catch (Exception e) {
                     System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
                     fragmentCalculation = null;
@@ -319,7 +319,7 @@ public class Preprocessor {
                     fragmentCalculationsForRandomization = new ArrayList<>();
                     for (String fragmentFileName : randomizeFragMapFiles) {
                         try {
-                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
                             fragmentCalculationsForRandomization.add(fragmentCalculation);
                             System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
@@ -554,7 +554,7 @@ public class Preprocessor {
         try {
             iter = (file.endsWith(".bin")) ?
                     new BinPairIterator(file) :
-                    new AsciiPairIterator(file, chromosomeIndexes);
+                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler);
 
             while (iter.hasNext()) {
                 totalRead++;
@@ -672,7 +672,7 @@ public class Preprocessor {
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes);
+                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler);
 
 
         int currentChr1 = -1;

@@ -166,7 +166,7 @@ public class HiCFileTools {
             }
 
             // "pseudo-chromosome" All taken care of by by chromosome handler
-            return new ChromosomeHandler(chromosomes);
+            return new ChromosomeHandler(chromosomes, idOrFile);
         } finally {
             if (is != null) {
                 try {
@@ -262,7 +262,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new ChromosomeHandler(chromosomes);
+        return new ChromosomeHandler(chromosomes, handler.getGenomeID());
     }
 
     /**

@@ -46,16 +46,26 @@ public class ChromosomeHandler {
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
     private int[] chromosomeBoundaries;
+    private final String genomeID;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
     private Chromosome[] chromosomeArrayAutosomesOnly;
     public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
 
-    public ChromosomeHandler(List<Chromosome> chromosomes) {
-        this(chromosomes, true);
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID) {
+        this(chromosomes, genomeID, true);
     }
 
-    public ChromosomeHandler(List<Chromosome> chromosomes, boolean createAllChr) {
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean createAllChr) {
+
+        String inferGenomeId = inferGenomeId();
+        // if cannot find matching genomeID, set based on file
+        if (inferGenomeId != null) {
+            this.genomeID = inferGenomeId;
+        } else {
+            this.genomeID = genomeID;
+        }
+
 
         // set the global chromosome list
         if (createAllChr) {
@@ -67,14 +77,8 @@ public class ChromosomeHandler {
         initializeInternalVariables();
     }
 
-    public static String cleanUpName(String name) {
-        if (name.equalsIgnoreCase("assembly")) {
-            return "assembly";
-        }
-        if (name.equalsIgnoreCase("pseudoassembly")) {
-            return "pseudoassembly";
-        }
-        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+    public static boolean isAllByAll(String name) {
+        return name.contains("All") || name.contains("ALL") || name.contains("all");
     }
 
     public static void sort(List<Chromosome> indices) {
@@ -104,8 +108,17 @@ public class ChromosomeHandler {
         return isAllByAll(chromosome.getName());
     }
 
-    public static boolean isAllByAll(String name) {
-        return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    public String cleanUpName(String name) {
+        if (name.equalsIgnoreCase("assembly")) {
+            return "assembly";
+        }
+        if (name.equalsIgnoreCase("pseudoassembly")) {
+            return "pseudoassembly";
+        }
+        if (genomeID.equalsIgnoreCase("hg19") || genomeID.equalsIgnoreCase("hg38")) {
+            return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+        }
+        return name;
     }
 
     private GenomeWideList<MotifAnchor> generateChromDotSizesBedFile() {
@@ -248,6 +261,10 @@ public class ChromosomeHandler {
         return genomeLength;
     }
 
+    public String getGenomeID() {
+        return genomeID;
+    }
+
     static class ChromosomeComparator implements Comparator<Chromosome> {
         @Override
         public int compare(Chromosome a, Chromosome b) {
@@ -304,7 +321,7 @@ public class ChromosomeHandler {
             }
         }
 
-        return new ChromosomeHandler(newSetOfChrs);
+        return new ChromosomeHandler(newSetOfChrs, genomeID);
     }
 
     public Chromosome[] getAutosomalChromosomesArray() {
@@ -319,9 +336,11 @@ public class ChromosomeHandler {
         return customChromosomeRegions.get(index);
     }
 
-    public String getGenomeId() {
-        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38", "aedAeg1", "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2", "felCat8", "galGal4", "hg18", "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4", "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
-
+    public String inferGenomeId() {
+        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38", "aedAeg1",
+                "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2",
+                "felCat8", "galGal4", "hg18", "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4",
+                "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
 
         for (String id : chrom_sizes) {
             ChromosomeHandler handler = HiCFileTools.loadChromosomes(id);
