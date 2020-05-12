@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
@@ -61,6 +62,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
     private boolean dense = false;
     private String feature = null;
+    private String ofile = null;
 
     public Dump() {
         super(getUsage());
@@ -194,20 +196,18 @@ public class Dump extends JuiceboxCLT {
         } else if (matrixType == MatrixType.EXPECTED) {
             final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
 
-            int length = df.getLength();
+            double[] values = df.getExpectedValuesNoNormalization();
+            if (!ChromosomeHandler.isAllByAll(chromosome)) {
+                values = df.getExpectedValuesWithNormalization(chromosome.getIndex());
+            }
 
-            if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
-                // print out vector
-                for (double element : df.getExpectedValues()) {
-                    pw.println(element);
-                }
-                pw.close();
+            if (ofile != null && ofile.endsWith(".npy")) {
+                MatrixTools.saveMatrixTextNumpy(ofile, values);
             } else {
-                for (int i = 0; i < length; i++) {
-                    pw.println((float) df.getExpectedValue(chromosome.getIndex(), i));
+                for (double element : values) {
+                    pw.println(element);
+                    pw.close();
                 }
-
-                pw.close();
             }
         }
     }
@@ -372,8 +372,11 @@ public class Dump extends JuiceboxCLT {
                 if (ofile.endsWith(".bin")) {
                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[6]));
                     les = new LittleEndianOutputStream(bos);
+                } else if (ofile.endsWith(".npy")) {
+                    this.ofile = ofile;
+                } else {
+                    pw = new PrintWriter(new FileOutputStream(ofile));
                 }
-                else pw = new PrintWriter(new FileOutputStream(ofile));
             } else {
                 pw = new PrintWriter(System.out);
             }

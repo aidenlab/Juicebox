@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +91,7 @@ class HiCFileUtils {
                 }
 
                 System.out.println("Expected values: " + label);
-                double[] values = ev.getExpectedValues();
+                double[] values = ev.getExpectedValuesNoNormalization();
                 /*
                 for (int i = 0; i < values.length; i++) {
                     System.out.println(values[i]);

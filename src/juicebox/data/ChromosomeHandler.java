@@ -52,16 +52,20 @@ public class ChromosomeHandler {
     private Chromosome[] chromosomeArrayAutosomesOnly;
     public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
 
-    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID) {
-        this(chromosomes, genomeID, true);
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID) {
+        this(chromosomes, genomeID, inferID, true);
     }
 
-    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean createAllChr) {
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID, boolean createAllChr) {
 
-        String inferGenomeId = inferGenomeId();
-        // if cannot find matching genomeID, set based on file
-        if (inferGenomeId != null) {
-            this.genomeID = inferGenomeId;
+        if (inferID) {
+            String inferGenomeId = inferGenomeId();
+            // if cannot find matching genomeID, set based on file
+            if (inferGenomeId != null) {
+                this.genomeID = inferGenomeId;
+            } else {
+                this.genomeID = genomeID;
+            }
         } else {
             this.genomeID = genomeID;
         }
@@ -321,7 +325,7 @@ public class ChromosomeHandler {
             }
         }
 
-        return new ChromosomeHandler(newSetOfChrs, genomeID);
+        return new ChromosomeHandler(newSetOfChrs, genomeID, false);
     }
 
     public Chromosome[] getAutosomalChromosomesArray() {
