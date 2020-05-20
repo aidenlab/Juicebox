@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,6 @@ public class ContactRecord implements Comparable<ContactRecord> {
      * Total number of counts, or cumulative score
      */
     private float counts;
-    private String key;
 
     public ContactRecord(int binX, int binY, float counts) {
         this.binX = binX;
@@ -85,9 +84,6 @@ public class ContactRecord implements Comparable<ContactRecord> {
     }
 
     public String getKey(NormalizationType normalizationType) {
-        if (key == null) {
-            key = binX + "_" + binY + "_" + normalizationType;
-        }
-        return key;
+        return binX + "_" + binY + "_" + normalizationType;
     }
 }

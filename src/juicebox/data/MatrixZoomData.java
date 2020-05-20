@@ -181,7 +181,7 @@ public class MatrixZoomData {
     }
 
     public String getNormLessBlockKey(Block block) {
-        return getKey() + "_" + block.getNumber() + "_";
+        return getKey() + "_" + block.getNumber() + "_" + block.getUniqueRegionID();
     }
 
     private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
