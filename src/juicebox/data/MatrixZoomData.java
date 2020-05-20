@@ -209,7 +209,7 @@ public class MatrixZoomData {
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no,
                                                       boolean isImportant, boolean fillUnderDiagonal) {
-        final List<Block> blockList = new ArrayList<>();
+        final List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
         Block b = new Block(1, getBlockKey(1, no));
         if (HiCGlobals.isAssemblyMatCheck) {
             return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no, 1, 1);

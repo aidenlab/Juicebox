@@ -355,7 +355,7 @@ public class HiCFileTools {
                                                  int binYStart, int binYEnd,
                                                  NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
 
-        List<Block> blocks = new ArrayList<>();
+        List<Block> blocks = Collections.synchronizedList(new ArrayList<Block>());
 
         int numDataReadingErrors = 0;
 
