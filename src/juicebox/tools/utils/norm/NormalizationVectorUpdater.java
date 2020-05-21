@@ -35,7 +35,6 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -223,7 +222,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
 
-        ev.addDistancesFromIterator(chrIdx, zd.getNewContactRecordIterator(), vec);
+        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
     }
 
     protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE) throws IOException {

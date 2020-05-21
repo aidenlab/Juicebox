@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -49,36 +49,38 @@ import java.util.Iterator;
  */
 public class NormalizationCalculations {
 
-    private ArrayList<ContactRecord> contactRecords;
+    private List<List<ContactRecord>> contactRecords;
     private int totSize;
     private boolean isEnoughMemory = false;
 
+    /**
+     * Initializing from a single MatrixZoomData object
+     *
+     * @param zd
+     */
     public NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
 
-        Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
-        int count = 0;
-        while (iter1.hasNext()) {
-            iter1.next();
-            count++;
-        }
+        int count = zd.getContactRecordList().size();
         if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
             this.contactRecords = new ArrayList<>();
-            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
-                contactRecords.add(cr);
-            }
+            contactRecords.add(zd.getContactRecordList());
             this.totSize = zd.getXGridAxis().getBinCount();
         }
     }
 
-    public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
+    /**
+     * Initialize from genomewide data or direct dump/calcK CLT
+     *
+     * @param list
+     * @param totSize
+     */
+    public NormalizationCalculations(List<List<ContactRecord>> list, int totSize) {
         this.contactRecords = list;
         this.totSize = totSize;
     }
@@ -90,7 +92,7 @@ public class NormalizationCalculations {
         String nextLine;
         int lineCount = 0;
         int maxBin = 0;
-        ArrayList<ContactRecord> readList = new ArrayList<>();
+        List<ContactRecord> readList = new ArrayList<>();
         while ((nextLine = reader.readLine()) != null) {
             lineCount++;
             String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
@@ -107,7 +109,9 @@ public class NormalizationCalculations {
             if (binX > maxBin) maxBin = binX;
             if (binY > maxBin) maxBin = binY;
         }
-        NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin + 1);
+        List<List<ContactRecord>> listOfLists = new ArrayList<>();
+        listOfLists.add(readList);
+        NormalizationCalculations nc = new NormalizationCalculations(listOfLists, maxBin + 1);
         double[] norm = nc.getNorm(NormalizationHandler.KR);
         for (double d : norm) {
             System.out.println(d);
@@ -135,7 +139,7 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static double[] computeKRNormVector(int[] offset, ArrayList<ContactRecord> list, double tol, double[] x0, double delta) {
+    private static double[] computeKRNormVector(int[] offset, List<List<ContactRecord>> listOfLists, double tol, double[] x0, double delta) {
 
         int n = x0.length;
         double[] e = new double[n];
@@ -147,7 +151,7 @@ public class NormalizationCalculations {
 
         double rt = Math.pow(tol, 2);
 
-        double[] v = sparseMultiplyFromContactRecords(offset, list, x0);
+        double[] v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
         double[] rk = new double[v.length];
         for (int i = 0; i < v.length; i++) {
             v[i] = v[i] * x0[i];
@@ -196,7 +200,7 @@ public class NormalizationCalculations {
                 for (int i = 0; i < tmp.length; i++) {
                     tmp[i] = x0[i] * p[i];
                 }
-                tmp = sparseMultiplyFromContactRecords(offset, list, tmp);
+                tmp = sparseMultiplyFromContactRecords(offset, listOfLists, tmp);
                 alpha = 0;
                 // Update search direction efficiently.
                 for (int i = 0; i < tmp.length; i++) {
@@ -237,7 +241,7 @@ public class NormalizationCalculations {
             for (int i = 0; i < x0.length; i++) {
                 x0[i] = x0[i] * y[i];
             }
-            v = sparseMultiplyFromContactRecords(offset, list, x0);
+            v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
             rho_km1 = 0;
             for (int i = 0; i < v.length; i++) {
                 v[i] = v[i] * x0[i];
@@ -266,21 +270,23 @@ public class NormalizationCalculations {
         return x0;
     }
 
-    private static double[] sparseMultiplyFromContactRecords(int[] offset, ArrayList<ContactRecord> list, double[] vector) {
+    private static double[] sparseMultiplyFromContactRecords(int[] offset, List<List<ContactRecord>> listOfLists, double[] vector) {
         double[] result = new double[vector.length];
 
-        for (ContactRecord cr : list) {
-            int row = cr.getBinX();
-            int col = cr.getBinY();
-            float value = cr.getCounts();
+        for (List<ContactRecord> localList : listOfLists) {
+            for (ContactRecord cr : localList) {
+                int row = cr.getBinX();
+                int col = cr.getBinY();
+                float value = cr.getCounts();
 
-            row = offset[row];
-            col = offset[col];
+                row = offset[row];
+                col = offset[col];
 
-            if (row != -1 && col != -1) {
-                result[row] += vector[col] * value;
-                if (row != col) {
-                    result[col] += vector[row] * value;
+                if (row != -1 && col != -1) {
+                    result[row] += vector[col] * value;
+                    if (row != col) {
+                        result[col] += vector[row] * value;
+                    }
                 }
             }
         }
@@ -340,13 +346,15 @@ public class NormalizationCalculations {
 
         Arrays.fill(rowsums, 0);
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            rowsums[x] += value;
-            if (x != y) {
-                rowsums[y] += value;
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                rowsums[x] += value;
+                if (x != y) {
+                    rowsums[y] += value;
+                }
             }
         }
 
@@ -368,20 +376,21 @@ public class NormalizationCalculations {
     public Double[] getNormMatrixSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
-                // want total sum of matrix, not just upper triangle
-                if (x == y) {
-                    norm_sum += value / (norm[x] * norm[y]);
-                    matrix_sum += value;
-                } else {
-                    norm_sum += 2 * value / (norm[x] * norm[y]);
-                    matrix_sum += 2 * value;
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
+                    // want total sum of matrix, not just upper triangle
+                    if (x == y) {
+                        norm_sum += value / (norm[x] * norm[y]);
+                        matrix_sum += value;
+                    } else {
+                        norm_sum += 2 * value / (norm[x] * norm[y]);
+                        matrix_sum += 2 * value;
+                    }
                 }
-
             }
         }
         return new Double[]{norm_sum, matrix_sum};
@@ -482,13 +491,15 @@ public class NormalizationCalculations {
 
         Arrays.fill(rowSums, 0);
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            rowSums[x] += value;
-            if (x != y) {
-                rowSums[y] += value;
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                rowSums[x] += value;
+                if (x != y) {
+                    rowSums[y] += value;
+                }
             }
         }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,12 +84,11 @@ class UnusedFunctions {
                     MatrixZoomData zd2 = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
                     if (zd2 == null) continue;
 
-                    Iterator<ContactRecord> iter2 = zd2.getNewContactRecordIterator();
-
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.SCALE, chr1, chr2, zoom);
+                    List<ContactRecord> contactRecords = zd2.getContactRecordList();
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.SCALE, chr1, chr2, zoom);
                 }
             }
         }
@@ -107,7 +105,7 @@ class UnusedFunctions {
 
     }
 
-    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, Iterator<ContactRecord> iter2, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
+    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, List<ContactRecord> recordList, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
 
         String key1 = NormalizationVector.getKey(NormalizationHandler.VC, chr1.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector1 = normVectors.get(key1);
@@ -121,8 +119,7 @@ class UnusedFunctions {
 
         if (vec1 == null || vec2 == null) return;
 
-        while (iter2.hasNext()) {
-            ContactRecord cr = iter2.next();
+        for (ContactRecord cr : recordList) {
             int x = cr.getBinX();
             int y = cr.getBinY();
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -208,7 +208,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             normVectorIndex.add(new NormalizationVectorIndexEntry(
                     customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
-            evLoaded.addDistancesFromIterator(chrIndx, zd.getNewContactRecordIterator(), vector.getData());
+            evLoaded.addDistancesFromIterator(chrIndx, zd.getContactRecordList(), vector.getData());
         }
     }
 

@@ -42,9 +42,8 @@ import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
 
 public class Dump extends JuiceboxCLT {
 
@@ -87,13 +86,13 @@ public class Dump extends JuiceboxCLT {
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
-            if (zd == null){
+            if (zd == null) {
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
             }
-            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
+
+            List<ContactRecord> contactRecords = zd.getContactRecordList();
+            for (ContactRecord cr : contactRecords) {
                 pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
             }
             pw.close();
@@ -101,7 +100,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         // Build a "whole-genome" matrix
-        ArrayList<ContactRecord> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        List<List<ContactRecord>> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         if (recordArrayList.isEmpty()) {
             System.err.println("No reads found at " +  zoom +". Include intra is " + includeIntra);
@@ -126,9 +125,7 @@ public class Dump extends JuiceboxCLT {
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
                 if (zd == null) continue;
-                Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-                while (iter.hasNext()) {
-                    ContactRecord cr = iter.next();
+                for (ContactRecord cr : zd.getContactRecordList()) {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
                     final float counts = cr.getCounts();
@@ -152,18 +149,20 @@ public class Dump extends JuiceboxCLT {
             }
         } else {   // type == "observed"
 
-            for (ContactRecord cr : recordArrayList) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                float value = cr.getCounts();
+            for (List<ContactRecord> localList : recordArrayList) {
+                for (ContactRecord cr : localList) {
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    float value = cr.getCounts();
 
-                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                    value = (float) (value / (vector[x] * vector[y]));
-                } else {
-                    value = Float.NaN;
+                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                        value = (float) (value / (vector[x] * vector[y]));
+                    } else {
+                        value = Float.NaN;
+                    }
+
+                    pw.println(x + "\t" + y + "\t" + value);
                 }
-
-                pw.println(x + "\t" + y + "\t" + value);
             }
         }
 

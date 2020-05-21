@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -333,9 +333,8 @@ public class ExpectedValueCalculation {
     }
 
     // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-    public void addDistancesFromIterator(int chrIndx, Iterator<ContactRecord> iter, double[] vector) {
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
+    public void addDistancesFromIterator(int chrIndx, List<ContactRecord> recordList, double[] vector) {
+        for (ContactRecord cr : recordList) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             final float counts = cr.getCounts();
