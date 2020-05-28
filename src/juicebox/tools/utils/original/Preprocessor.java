@@ -84,6 +84,7 @@ public class Preprocessor {
     protected Alignment alignmentFilter;
     protected static final Random random = new Random(5);
     protected static boolean allowPositionsRandomization = false;
+    protected static boolean throwOutIntraFrag = true;
 
     // Base-pair resolutions
     protected int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
@@ -249,6 +250,10 @@ public class Preprocessor {
 
     public void setRandomizePosition(boolean allowPositionsRandomization) {
         Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
+    }
+
+    public void setKeepIntraFragOption(boolean keepIntraFrag) {
+        Preprocessor.throwOutIntraFrag = !keepIntraFrag;
     }
 
     protected static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
@@ -585,7 +590,7 @@ public class Preprocessor {
                         continue;
                     }
 
-                    if (chr1 == chr2 && frag1 == frag2) {
+                    if (throwOutIntraFrag && chr1 == chr2 && frag1 == frag2) {
                         intraFrag++;
                     } else if (mapq1 < mapqThreshold || mapq2 < mapqThreshold) {
                         belowMapq++;
@@ -750,7 +755,7 @@ public class Preprocessor {
                     bp2 = randomizePos(fragMapToUse, chromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
-                if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
+                if (mapq < mapqThreshold || (throwOutIntraFrag && chr1 == chr2 && frag1 == frag2)) continue;
                 if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
                     // Starting a new matrix
                     if (currentMatrix != null) {

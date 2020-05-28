@@ -435,7 +435,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     bp2 = randomizePos(fragMapToUse, localChromosomeHandler.getChromosomeFromIndex(chr2).getName(), frag2);
                 }
                 // only increment if not intraFragment and passes the mapq threshold
-                if (mapq < mapqThreshold || (chr1 == chr2 && frag1 == frag2)) continue;
+                if (mapq < mapqThreshold || (throwOutIntraFrag && chr1 == chr2 && frag1 == frag2)) continue;
                 if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
                     // Starting a new matrix
                     if (currentMatrix != null) {
