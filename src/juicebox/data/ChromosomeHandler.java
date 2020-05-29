@@ -42,15 +42,15 @@ import java.util.*;
  */
 public class ChromosomeHandler {
     private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
-    private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
+    public final static int CUSTOM_CHROMOSOME_BUFFER = 5000;
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
-    private int[] chromosomeBoundaries;
+    private final List<Chromosome> cleanedChromosomes;
     private final String genomeID;
-    private Chromosome[] chromosomesArray;
-    private Chromosome[] chromosomeArrayWithoutAllByAll;
-    private Chromosome[] chromosomeArrayAutosomesOnly;
-    public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
+    private final int[] chromosomeBoundaries;
+    private final Chromosome[] chromosomesArray;
+    private final Chromosome[] chromosomeArrayWithoutAllByAll;
+    private final Chromosome[] chromosomeArrayAutosomesOnly;
 
     public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID) {
         this(chromosomes, genomeID, inferID, true);
@@ -77,8 +77,12 @@ public class ChromosomeHandler {
             chromosomes.set(0, new Chromosome(0, cleanUpName(Globals.CHR_ALL), (int) (genomeLength / 1000)));
         }
 
-        initializeCleanedChromosomesList(chromosomes);
-        initializeInternalVariables();
+        cleanedChromosomes = initializeCleanedChromosomesList(chromosomes);
+        Pair<int[], List<Chromosome[]>> outputs = initializeInternalVariables();
+        chromosomeBoundaries = outputs.getFirst();
+        chromosomesArray = outputs.getSecond().get(0);
+        chromosomeArrayWithoutAllByAll = outputs.getSecond().get(1);
+        chromosomeArrayAutosomesOnly = outputs.getSecond().get(2);
     }
 
     public static boolean isAllByAll(String name) {
@@ -209,16 +213,17 @@ public class ChromosomeHandler {
         return newChr;
     }
 
-    private void initializeCleanedChromosomesList(List<Chromosome> chromosomes) {
-        cleanedChromosomes.clear();
+    private List<Chromosome> initializeCleanedChromosomesList(List<Chromosome> chromosomes) {
+        List<Chromosome> cleanedChromosomes = new ArrayList<>();
         for (Chromosome c : chromosomes) {
             String cleanName = cleanUpName(c.getName());
             Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
             cleanedChromosomes.add(cleanChromosome);
         }
+        return cleanedChromosomes;
     }
 
-    private void initializeInternalVariables() {
+    private Pair<int[], List<Chromosome[]>> initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
@@ -228,7 +233,7 @@ public class ChromosomeHandler {
         }
 
         // for all-by-all view
-        chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
+        int[] chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
         long bound = 0;
         for (int i = 1; i < cleanedChromosomes.size(); i++) {
             Chromosome c = cleanedChromosomes.get(i);
@@ -236,10 +241,10 @@ public class ChromosomeHandler {
             chromosomeBoundaries[i - 1] = (int) bound;
         }
 
-        chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
+        Chromosome[] chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
 
         // array without all by all
-        chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
+        Chromosome[] chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
         System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
 
 
@@ -251,10 +256,18 @@ public class ChromosomeHandler {
             autosomes.add(chr);
         }
 
-        chromosomeArrayAutosomesOnly = new Chromosome[autosomes.size()];
+        Chromosome[] chromosomeArrayAutosomesOnly = new Chromosome[autosomes.size()];
         for (int i = 0; i < autosomes.size(); i++) {
             chromosomeArrayAutosomesOnly[i] = autosomes.get(i);
         }
+
+        List<Chromosome[]> outputs = new ArrayList<>();
+        outputs.add(chromosomesArray);
+        outputs.add(chromosomeArrayWithoutAllByAll);
+        outputs.add(chromosomeArrayAutosomesOnly);
+
+
+        return new Pair<>(chromosomeBoundaries, outputs);
     }
 
     private long getTotalLengthOfAllChromosomes(List<Chromosome> chromosomes) {

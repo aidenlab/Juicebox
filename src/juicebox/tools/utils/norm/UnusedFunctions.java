@@ -25,7 +25,7 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.*;
-import juicebox.tools.utils.original.Preprocessor;
+import juicebox.tools.utils.original.IndexEntry;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -151,11 +151,11 @@ class UnusedFunctions {
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
 
-            Map<String, Preprocessor.IndexEntry> normVectorMap = reader.getNormVectorIndex();
+            Map<String, IndexEntry> normVectorMap = reader.getNormVectorIndex();
 
             List<NormalizationVectorIndexEntry> normList = new ArrayList<>();
 
-            for (Map.Entry<String, Preprocessor.IndexEntry> entry : normVectorMap.entrySet()) {
+            for (Map.Entry<String, IndexEntry> entry : normVectorMap.entrySet()) {
                 String[] parts = entry.getKey().split("_");
                 String strType;
                 int chrIdx;
