@@ -131,15 +131,19 @@ public class PreProcessing extends JuiceboxCLT {
     public void run() {
         try {
             long currentTime = System.currentTimeMillis();
-            preprocessor.preprocess(inputFile);
+            if (numCPUThreads == 1) {
+                preprocessor.preprocess(inputFile, outputFile, outputFile, null);
+            } else {
+                preprocessor.preprocess(inputFile, null, null, null);
+            }
+
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
                 Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
                 (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
-            }
-            else {
+            } else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");
                 System.out.println("To run normalization, run: juicebox addNorm <hicfile>");
             }

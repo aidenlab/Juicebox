@@ -25,12 +25,11 @@
 package juicebox.tools.utils.original;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.windowui.NormalizationHandler;
-import org.broad.igv.tdf.BufferedByteWriter;
+import org.broad.igv.util.Pair;
 
 import java.io.*;
 import java.util.*;
@@ -49,7 +48,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private int chromosomePairCounter = 0;
     private final Map<Integer, Integer> nonemptyChromosomePairs = new ConcurrentHashMap<>();
     private final Map<Integer, MatrixPP> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
-    private final Map<Integer, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
+    private final Map<String, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> matrixSizes = new ConcurrentHashMap<>();
     private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
@@ -98,162 +97,12 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     @Override
-    public void preprocess(final String inputFile) throws IOException {
-        File file = new File(inputFile);
-
-        if (!file.exists() || file.length() == 0) {
-            System.err.println(inputFile + " does not exist or does not contain any reads.");
-            System.exit(57);
-        }
-
+    public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer, Long> ignore3) throws IOException {
         Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
         if (mndIndexFile != null) {
             mndIndex = readMndIndex(mndIndexFile);
         }
-
-        try {
-            StringBuilder stats = null;
-            StringBuilder graphs = null;
-            StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
-            if (fragmentFileName != null) {
-                try {
-                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
-                } catch (Exception e) {
-                    System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
-                    fragmentCalculation = null;
-                }
-            } else {
-                System.out.println("Not including fragment map");
-            }
-
-            if (allowPositionsRandomization) {
-                if (randomizeFragMapFiles != null) {
-                    fragmentCalculationsForRandomization = new ArrayList<>();
-                    for (String fragmentFileName : randomizeFragMapFiles) {
-                        try {
-                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
-                            fragmentCalculationsForRandomization.add(fragmentCalculation);
-                            System.out.println(String.format("added %s", fragmentFileName));
-                        } catch (Exception e) {
-                            System.err.println(String.format("Warning: Unable to process fragment file %s. Randomization will continue without fragment file %s.", fragmentFileName, fragmentFileName));
-                        }
-                    }
-                } else {
-                    System.out.println("Using default fragment map for randomization");
-                }
-
-            } else if (randomizeFragMapFiles != null) {
-                System.err.println("Position randomizer seed not set, disregarding map options");
-            }
-
-            if (statsFileName != null) {
-                FileInputStream is = null;
-                try {
-                    is = new FileInputStream(statsFileName);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-                    stats = new StringBuilder();
-                    String nextLine;
-                    while ((nextLine = reader.readLine()) != null) {
-                        stats.append(nextLine).append("\n");
-                    }
-                } catch (IOException e) {
-                    System.err.println("Error while reading stats file: " + e);
-                    stats = null;
-                } finally {
-                    if (is != null) {
-                        is.close();
-                    }
-                }
-
-            }
-            if (graphFileName != null) {
-                FileInputStream is = null;
-                try {
-                    is = new FileInputStream(graphFileName);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-                    graphs = new StringBuilder();
-                    String nextLine;
-                    while ((nextLine = reader.readLine()) != null) {
-                        graphs.append(nextLine).append("\n");
-                    }
-                } catch (IOException e) {
-                    System.err.println("Error while reading graphs file: " + e);
-                    graphs = null;
-                } finally {
-                    if (is != null) {
-                        is.close();
-                    }
-                }
-            }
-
-            if (expectedVectorFile == null) {
-                expectedValueCalculations = new LinkedHashMap<>();
-                for (int bBinSize : bpBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
-                    String key = "BP_" + bBinSize;
-                    expectedValueCalculations.put(key, calc);
-                }
-            }
-            if (fragmentCalculation != null) {
-
-                // Create map of chr name -> # of fragments
-                Map<String, int[]> sitesMap = fragmentCalculation.getSitesMap();
-                Map<String, Integer> fragmentCountMap = new HashMap<>();
-                for (Map.Entry<String, int[]> entry : sitesMap.entrySet()) {
-                    int fragCount = entry.getValue().length + 1;
-                    String chr = entry.getKey();
-                    fragmentCountMap.put(chr, fragCount);
-                }
-
-                if (expectedVectorFile == null) {
-                    for (int fBinSize : fragBinSizes) {
-                        ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
-                        String key = "FRAG_" + fBinSize;
-                        expectedValueCalculations.put(key, calc);
-                    }
-                }
-            }
-
-            try {
-                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_header"), HiCGlobals.bufferSize));
-                //losContainer = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
-                //for (int i = 0; i < chromosomePairCounter; i++) {
-                //    losContainer.put(i, new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(i)), HiCGlobals.bufferSize)));
-                //}
-                losFooter = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_footer"), HiCGlobals.bufferSize));
-            } catch (Exception e) {
-                System.err.println("Unable to write to " + outputFile);
-                System.exit(70);
-            }
-
-            System.out.println("Start preprocess");
-
-            System.out.println("Writing header");
-
-            writeHeader(stats, graphs, hicFileScaling);
-
-            System.out.println("Writing body");
-            writeBody(inputFile, mndIndex);
-
-            if (expectedVectorFile == null) {
-                for (int i = 0; i < numCPUThreads; i++) {
-                    for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
-                        expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
-                    }
-                }
-            }
-
-            System.out.println();
-            System.out.println("Writing footer");
-            writeFooter();
-
-
-        } finally {
-            if (los != null)
-                los.close();
-        }
-
-        updateMasterIndex();
+        super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 
         try {
             PrintWriter finalOutput = new PrintWriter("catOutputs.sh");
@@ -271,7 +120,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
             System.err.println("Unable to write to catOutputs.sh");
             System.exit(70);
         }
-        System.out.println("\nFinished preprocess");
     }
 
     private Map<Integer,Long> readMndIndex(String mndIndexFile) throws IOException {
@@ -426,7 +274,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        writeMatrixIndividualFile(currentMatrix, currentPairIndex);
+                        writeMatrix(currentMatrix, currentPairIndex);
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         //System.gc();
@@ -453,7 +301,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 pos2 = getGenomicPosition(chr2, bp2, localChromosomeHandler);
                 wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), localExpectedValueCalculations);
 
-
             }
         }
 
@@ -464,7 +311,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            writeMatrixIndividualFile(currentMatrix, currentPairIndex);
+            writeMatrix(currentMatrix, currentPairIndex);
         }
 
 
@@ -472,7 +319,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
         wholeGenomeMatrixParts.put(currentPairIndex, wholeGenomeMatrix);
 
     }
-    private void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
+
+    @Override
+    protected void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
 
         final int numPairsPerThread = (chromosomePairCounter - 1) / numCPUThreads;
 
@@ -514,8 +363,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
         }
 
-        writeMatrixIndividualFile(wholeGenomeMatrix, 0);
-        nonemptyChromosomePairs.put(0,1);
+        writeMatrix(wholeGenomeMatrix, 0);
+        nonemptyChromosomePairs.put(0, 1);
 
         long currentPosition = los.getWrittenCount();
         long nextMatrixPosition = 0;
@@ -524,11 +373,13 @@ public class MultithreadedPreprocessor extends Preprocessor {
         for (int i = 0; i < chromosomePairCounter; i++) {
             if (nonemptyChromosomePairs.containsKey(i)) {
                 for (Map.Entry<Long, List<IndexEntry>> entry : chromosomePairBlockIndexes.get(i).entrySet()) {
-                    updateIndexPositionsIndividualFile(entry.getKey(), entry.getValue(), i, currentPosition);
+                    updateIndexPositions(entry.getValue(), null, false,
+                            new File(outputFile + "_" + chromosomePairIndexes.get(i)),
+                            currentPosition, entry.getKey());
                 }
-                nextMatrixPosition = localMatrixPositions.get(i).position + currentPosition;
+                nextMatrixPosition = localMatrixPositions.get("" + i).position + currentPosition;
                 currentMatrixKey = chromosomePairIndex1.get(i) + "_" + chromosomePairIndex2.get(i);
-                matrixPositions.put(currentMatrixKey, new IndexEntry(nextMatrixPosition, localMatrixPositions.get(i).size));
+                matrixPositions.put(currentMatrixKey, new IndexEntry(nextMatrixPosition, localMatrixPositions.get("" + i).size));
                 currentPosition += matrixSizes.get(i);
 
                 //System.out.println(chromosomePairIndexes.get(i)+" "+matrixSizes.get(i));
@@ -537,6 +388,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         masterIndexPosition = currentPosition;
     }
+
     void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum,
                                  Map<Integer,Long> mndIndex) {
         int i = chromosomePair.getAndIncrement();
@@ -638,242 +490,35 @@ public class MultithreadedPreprocessor extends Preprocessor {
         allLocalExpectedValueCalculations.put(threadNum, localExpectedValueCalculations);
     }
 
-    void updateIndexPositionsIndividualFile(Long blockIndexPosition, List<IndexEntry> blockIndex, int chromosomePairIndex, long currentPosition) throws IOException {
-
-        // Temporarily close output stream.  Remember position
-        //long losPos = losContainer.get(chromosomePairIndex).getWrittenCount();
-        //losContainer.get(chromosomePairIndex).close();
-
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex), "rw");
-
-            // Block indices
-            long pos = blockIndexPosition;
-            raf.getChannel().position(pos);
-
-            // Write as little endian
-            BufferedByteWriter buffer = new BufferedByteWriter();
-            for (IndexEntry aBlockIndex : blockIndex) {
-                buffer.putInt(aBlockIndex.id);
-                buffer.putLong((aBlockIndex.position + currentPosition));
-                buffer.putInt(aBlockIndex.size);
-            }
-            raf.write(buffer.getBytes());
-
-        } finally {
-
-            if (raf != null) raf.close();
-
-            // Restore
-            //FileOutputStream fos = new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex), true);
-            //fos.getChannel().position(losPos);
-            //losContainer.put(chromosomePairIndex, new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize)));
-            //losContainer.get(chromosomePairIndex).setWrittenCount(losPos);
-
-        }
-    }
-
     @Override
-    protected void updateMasterIndex() throws IOException {
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(outputFile+"_header", "rw");
+    protected void writeFooter(LittleEndianOutputStream los) throws IOException {
 
-            // Master index
-            raf.getChannel().position(masterIndexPositionPosition);
-            BufferedByteWriter buffer = new BufferedByteWriter();
-            buffer.putLong(masterIndexPosition);
-            raf.write(buffer.getBytes());
-
-        } finally {
-            if (raf != null) raf.close();
-        }
-    }
-
-
-    /* todo
-    private void updateNormVectorIndexInfo() throws IOException {
-        RandomAccessFile raf = null;
-        try {
-            raf = new RandomAccessFile(outputFile, "rw");
-
-            // NVI index
-            raf.getChannel().position(normVectorIndexPosition);
-            BufferedByteWriter buffer = new BufferedByteWriter();
-            generateZeroPaddedString
-            buffer.putNullTerminatedString(normVectorIndex);
-            raf.write(buffer.getBytes());
-
-
-            // NVI length
-            raf.getChannel().position(normVectorLengthPosition);
-            buffer = new BufferedByteWriter();
-            buffer.putNullTerminatedString(normVectorLength);
-            raf.write(buffer.getBytes());
-
-        } finally {
-            if (raf != null) raf.close();
-        }
-    }
-    */
-
-    @Override
-    protected void writeFooter() throws IOException {
-
-        // Index
-        BufferedByteWriter buffer = new BufferedByteWriter();
-        buffer.putInt(matrixPositions.size());
-        for (Map.Entry<String, IndexEntry> entry : matrixPositions.entrySet()) {
-            buffer.putNullTerminatedString(entry.getKey());
-            buffer.putLong(entry.getValue().position);
-            buffer.putInt(entry.getValue().size);
-        }
-
-
-        // Vectors  (Expected values,  other).
-        /***  NEVA ***/
         if (expectedVectorFile == null) {
-            buffer.putInt(expectedValueCalculations.size());
-            for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
-                ExpectedValueCalculation ev = entry.getValue();
-
-                ev.computeDensity();
-
-                int binSize = ev.getGridSize();
-                HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
-
-                buffer.putNullTerminatedString(unit.toString());
-                buffer.putInt(binSize);
-
-                // The density values
-                double[] expectedValues = ev.getDensityAvg();
-                buffer.putInt(expectedValues.length);
-                for (double expectedValue : expectedValues) {
-                    buffer.putDouble(expectedValue);
-                }
-
-                // Map of chromosome index -> normalization factor
-                Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-                buffer.putInt(normalizationFactors.size());
-                for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                    buffer.putInt(normFactor.getKey());
-                    buffer.putDouble(normFactor.getValue());
-                    //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
-                }
-            }
-        }
-        else {
-            // read in expected vector file. to get # of resolutions, might have to read twice.
-
-            int count=0;
-            try (Reader reader = new FileReader(expectedVectorFile);
-                 BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if (line.startsWith("fixedStep"))
-                        count++;
-                    if (line.startsWith("variableStep")) {
-                        System.err.println("Expected vector file must be in wiggle fixedStep format");
-                        System.exit(19);
-                    }
-                }
-            }
-            buffer.putInt(count);
-            try (Reader reader = new FileReader(expectedVectorFile);
-                 BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if (line.startsWith("fixedStep")) {
-                        String[] words = line.split("\\s+");
-                        for (String str:words){
-                            if (str.contains("chrom")){
-                                String[] chrs = str.split("=");
-
-                            }
-                        }
-                    }
-                    // parse linef ixedStep  chrom=chrN
-                    //start=position  step=stepInterval
+            for (int i = 0; i < numCPUThreads; i++) {
+                for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
+                    expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
                 }
             }
         }
 
-        byte[] bytes = buffer.getBytes();
-        losFooter.writeInt(bytes.length);
-        losFooter.write(bytes);
-        losFooter.close();
+        super.writeFooter(los);
     }
 
-    private void writeMatrixIndividualFile(MatrixPP matrix, int chromosomePairIndex) throws IOException {
+    //@Override
+    // MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor
+    private void writeMatrix(MatrixPP matrix, int chromosomePairIndex) throws IOException {
         Deflater localCompressor = new Deflater();
         localCompressor.setLevel(Deflater.DEFAULT_COMPRESSION);
+        LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePairIndex)), HiCGlobals.bufferSize));
 
-        LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile+"_"+chromosomePairIndexes.get(chromosomePairIndex)), HiCGlobals.bufferSize));
-        long position = localLos.getWrittenCount();
+        Pair<Map<Long, List<IndexEntry>>, Long> localBlockIndexes = super.writeMatrix(matrix, localLos, localCompressor, localMatrixPositions, chromosomePairIndex, true);
 
-        localLos.writeInt(matrix.getChr1Idx());
-        localLos.writeInt(matrix.getChr2Idx());
-
-        int numResolutions = 0;
-
-        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
-            if (zd != null) {
-                numResolutions++;
-            }
-        }
-        localLos.writeInt(numResolutions);
-
-        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
-            if (zd != null)
-                writeZoomHeaderIndividualFile(zd, localLos);
-        }
-
-        int size = (int) (localLos.getWrittenCount() - position);
-        localMatrixPositions.put(chromosomePairIndex, new IndexEntry(position, size));
-
-        final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
-
-        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
-            if (zd != null) {
-                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(localLos, localCompressor);
-                localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
-            }
-        }
-
-        chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes);
-        size = (int) (localLos.getWrittenCount() - position);
+        chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes.getFirst());
+        int size = (int) (localLos.getWrittenCount() - localBlockIndexes.getSecond());
         matrixSizes.put(chromosomePairIndex, size);
         localLos.close();
 
         System.out.print(".");
-
-    }
-
-    private void writeZoomHeaderIndividualFile(MatrixZoomDataPP zd, LittleEndianOutputStream localLos) throws IOException {
-
-        int numberOfBlocks = zd.blockNumbers.size();
-        localLos.writeString(zd.getUnit().toString());  // Unit
-        localLos.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
-        localLos.writeFloat((float) zd.getSum());      // sum
-        localLos.writeFloat((float) zd.getOccupiedCellCount());
-        localLos.writeFloat((float) zd.getPercent5());
-        localLos.writeFloat((float) zd.getPercent95());
-        localLos.writeInt(zd.getBinSize());
-        localLos.writeInt(zd.getBlockBinCount());
-        localLos.writeInt(zd.getBlockColumnCount());
-        localLos.writeInt(numberOfBlocks);
-
-        zd.blockIndexPosition = localLos.getWrittenCount();
-
-        // Placeholder for block index
-        for (int i = 0; i < numberOfBlocks; i++) {
-            localLos.writeInt(0);
-            localLos.writeLong(0L);
-            localLos.writeInt(0);
-        }
 
     }
 }

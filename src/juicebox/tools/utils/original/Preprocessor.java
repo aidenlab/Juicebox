@@ -37,12 +37,14 @@ import juicebox.windowui.NormalizationHandler;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.Deflater;
 
 
@@ -296,7 +298,7 @@ public class Preprocessor {
     }
 
 
-    public void preprocess(final String inputFile) throws IOException {
+    public void preprocess(final String inputFile, final String headerFile, final String footerFile, Map<Integer, Long> mndIndex) throws IOException {
         File file = new File(inputFile);
 
         if (!file.exists() || file.length() == 0) {
@@ -407,8 +409,14 @@ public class Preprocessor {
                 }
             }
 
+            LittleEndianOutputStream losFooter = null;
             try {
-                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
+                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(headerFile), HiCGlobals.bufferSize));
+                if (footerFile.equalsIgnoreCase(headerFile)) {
+                    losFooter = los;
+                } else {
+                    losFooter = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(footerFile), HiCGlobals.bufferSize));
+                }
             } catch (Exception e) {
                 System.err.println("Unable to write to " + outputFile);
                 System.exit(70);
@@ -421,19 +429,23 @@ public class Preprocessor {
             writeHeader(stats, graphs, hicFileScaling);
 
             System.out.println("Writing body");
-            writeBody(inputFile);
+            writeBody(inputFile, mndIndex);
 
             System.out.println();
             System.out.println("Writing footer");
-            writeFooter();
+            writeFooter(losFooter);
 
+            if (losFooter != null) {
+                losFooter.close();
+            }
 
         } finally {
-            if (los != null)
+            if (los != null) {
                 los.close();
+            }
         }
 
-        updateMasterIndex();
+        updateMasterIndex(headerFile);
         System.out.println("\nFinished preprocess");
     }
 
@@ -670,10 +682,10 @@ public class Preprocessor {
         }
     }
 
-    private void writeBody(String inputFile) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
 
-        writeMatrix(wholeGenomeMatrix);
+        writeMatrix(wholeGenomeMatrix, los, compressor, matrixPositions, -1, false);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
@@ -760,7 +772,7 @@ public class Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        writeMatrix(currentMatrix);
+                        writeMatrix(currentMatrix, los, compressor, matrixPositions, -1, false);
                         writtenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         System.gc();
@@ -791,7 +803,7 @@ public class Preprocessor {
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            writeMatrix(currentMatrix);
+            writeMatrix(currentMatrix, los, compressor, matrixPositions, -1, false);
         }
 
         if (iter != null) iter.close();
@@ -800,10 +812,10 @@ public class Preprocessor {
         masterIndexPosition = los.getWrittenCount();
     }
 
-    protected void updateMasterIndex() throws IOException {
+    protected void updateMasterIndex(String headerFile) throws IOException {
         RandomAccessFile raf = null;
         try {
-            raf = new RandomAccessFile(outputFile, "rw");
+            raf = new RandomAccessFile(headerFile, "rw");
 
             // Master index
             raf.getChannel().position(masterIndexPositionPosition);
@@ -844,7 +856,7 @@ public class Preprocessor {
     */
 
 
-    protected void writeFooter() throws IOException {
+    protected void writeFooter(LittleEndianOutputStream los) throws IOException {
 
         // Index
         BufferedByteWriter buffer = new BufferedByteWriter();
@@ -930,7 +942,7 @@ public class Preprocessor {
         los.write(bytes);
     }
 
-    private synchronized void writeMatrix(MatrixPP matrix) throws IOException {
+    protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
         long position = los.getWrittenCount();
 
@@ -948,23 +960,74 @@ public class Preprocessor {
         //fos.writeInt(matrix.getZoomData().length);
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null)
-                writeZoomHeader(zd);
+                writeZoomHeader(zd, los);
         }
 
         int size = (int) (los.getWrittenCount() - position);
-        matrixPositions.put(matrix.getKey(), new IndexEntry(position, size));
+        if (chromosomePairIndex > -1) {
+            matrixPositions.put("" + chromosomePairIndex, new IndexEntry(position, size));
+        } else {
+            matrixPositions.put(matrix.getKey(), new IndexEntry(position, size));
+        }
+
+        final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
 
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null) {
                 List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(los, compressor);
-                zd.updateIndexPositions(blockIndex, los);
+                if (doMultiThreadedBehavior) {
+                    localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
+                } else {
+                    updateIndexPositions(blockIndex, los, true, outputFile, 0, zd.blockIndexPosition);
+                }
             }
         }
 
         System.out.print(".");
+        return new Pair<>(localBlockIndexes, position);
     }
 
-    private void writeZoomHeader(MatrixZoomDataPP zd) throws IOException {
+    protected void updateIndexPositions(List<IndexEntry> blockIndex, LittleEndianOutputStream los, boolean doRestore,
+                                        File outputFile, long currentPosition, long blockIndexPosition) throws IOException {
+
+        // Temporarily close output stream.  Remember position
+        long losPos = 0;
+        if (doRestore) {
+            losPos = los.getWrittenCount();
+            los.close();
+        }
+
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(outputFile, "rw");
+
+            // Block indices
+            long pos = blockIndexPosition;
+            raf.getChannel().position(pos);
+
+            // Write as little endian
+            BufferedByteWriter buffer = new BufferedByteWriter();
+            for (IndexEntry aBlockIndex : blockIndex) {
+                buffer.putInt(aBlockIndex.id);
+                buffer.putLong(aBlockIndex.position + currentPosition);
+                buffer.putInt(aBlockIndex.size);
+            }
+            raf.write(buffer.getBytes());
+
+        } finally {
+
+            if (raf != null) raf.close();
+
+            if (doRestore) {
+                FileOutputStream fos = new FileOutputStream(outputFile, true);
+                fos.getChannel().position(losPos);
+                los = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
+                los.setWrittenCount(losPos);
+            }
+        }
+    }
+
+    private void writeZoomHeader(MatrixZoomDataPP zd, LittleEndianOutputStream los) throws IOException {
 
         int numberOfBlocks = zd.blockNumbers.size();
         los.writeString(zd.getUnit().toString());  // Unit
@@ -1865,42 +1928,6 @@ public class Preprocessor {
             // Add the block numbers still in memory
             for (BlockPP block : blocks.values()) {
                 blockNumbers.add(block.getNumber());
-            }
-        }
-
-        void updateIndexPositions(List<IndexEntry> blockIndex, LittleEndianOutputStream los) throws IOException {
-
-            // Temporarily close output stream.  Remember position
-            long losPos = los.getWrittenCount();
-            los.close();
-
-            RandomAccessFile raf = null;
-            try {
-                raf = new RandomAccessFile(outputFile, "rw");
-
-                // Block indices
-                long pos = blockIndexPosition;
-                raf.getChannel().position(pos);
-
-                // Write as little endian
-                BufferedByteWriter buffer = new BufferedByteWriter();
-                for (IndexEntry aBlockIndex : blockIndex) {
-                    buffer.putInt(aBlockIndex.id);
-                    buffer.putLong(aBlockIndex.position);
-                    buffer.putInt(aBlockIndex.size);
-                }
-                raf.write(buffer.getBytes());
-
-            } finally {
-
-                if (raf != null) raf.close();
-
-                // Restore
-                FileOutputStream fos = new FileOutputStream(outputFile, true);
-                fos.getChannel().position(losPos);
-                los = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
-                los.setWrittenCount(losPos);
-
             }
         }
 
