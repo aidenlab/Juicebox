@@ -597,7 +597,7 @@ public class Preprocessor {
                     } else {
                         pos1 = getGenomicPosition(chr1, bp1);
                         pos2 = getGenomicPosition(chr2, bp2);
-                        matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore());
+                        matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), expectedValueCalculations);
                         hicContact++;
                     }
                 }
@@ -779,7 +779,7 @@ public class Preprocessor {
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2);
                 }
-                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore());
+                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), expectedValueCalculations);
 
             }
         }
@@ -956,8 +956,8 @@ public class Preprocessor {
 
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null) {
-                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks();
-                zd.updateIndexPositions(blockIndex);
+                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(los, compressor);
+                zd.updateIndexPositions(blockIndex, los);
             }
         }
 
@@ -997,7 +997,7 @@ public class Preprocessor {
      * @param sampledData Array to hold a sample of the data (to compute statistics)
      * @throws IOException
      */
-    private void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData) throws IOException {
+    protected void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData, LittleEndianOutputStream los, Deflater compressor) throws IOException {
 
         final Map<Point, ContactCount> records = block.getContactRecordMap();//   getContactRecords();
 
@@ -1152,7 +1152,7 @@ public class Preprocessor {
 
 
         byte[] bytes = buffer.getBytes();
-        byte[] compressedBytes = compress(bytes);
+        byte[] compressedBytes = compress(bytes, compressor);
         los.write(compressedBytes);
 
     }
@@ -1174,7 +1174,14 @@ public class Preprocessor {
         statsFileName = statsOption;
     }
 
-    private synchronized byte[] compress(byte[] data) {
+    /**
+     * todo should this be synchronized?
+     *
+     * @param data
+     * @param compressor
+     * @return
+     */
+    protected byte[] compress(byte[] data, Deflater compressor) {
 
         // Give the compressor the data to compress
         compressor.reset();
@@ -1507,13 +1514,13 @@ public class Preprocessor {
         }
 
 
-        void incrementCount(int pos1, int pos2, int frag1, int frag2, float score) throws IOException {
+        void incrementCount(int pos1, int pos2, int frag1, int frag2, float score, Map<String, ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
             for (MatrixZoomDataPP aZoomData : zoomData) {
                 if (aZoomData.isFrag) {
-                    aZoomData.incrementCount(frag1, frag2, score);
+                    aZoomData.incrementCount(frag1, frag2, score, expectedValueCalculations);
                 } else {
-                    aZoomData.incrementCount(pos1, pos2, score);
+                    aZoomData.incrementCount(pos1, pos2, score, expectedValueCalculations);
                 }
             }
         }
@@ -1537,6 +1544,22 @@ public class Preprocessor {
             return zoomData;
         }
 
+        /**
+         * used by multithreaded code
+         */
+        void mergeMatrices(MatrixPP otherMatrix) {
+            for (MatrixZoomDataPP aZoomData : zoomData) {
+                for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
+                    if (aZoomData.zoom == bZoomData.zoom) {
+                        if (aZoomData.isFrag) {
+                            aZoomData.mergeMatrices(bZoomData);
+                        } else {
+                            aZoomData.mergeMatrices(bZoomData);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1647,7 +1670,7 @@ public class Preprocessor {
         /**
          * Increment the count for the bin represented by the GENOMIC position (pos1, pos2)
          */
-        void incrementCount(int pos1, int pos2, float score) throws IOException {
+        void incrementCount(int pos1, int pos2, float score, Map<String, ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
             sum += score;
             // Convert to proper units,  fragments or base-pairs
@@ -1753,7 +1776,7 @@ public class Preprocessor {
 
 
         // Merge and write out blocks one at a time.
-        private List<IndexEntry> mergeAndWriteBlocks() throws IOException {
+        protected List<IndexEntry> mergeAndWriteBlocks(LittleEndianOutputStream los, Deflater compressor) throws IOException {
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
             List<BlockQueue> activeList = new ArrayList<>();
@@ -1809,7 +1832,7 @@ public class Preprocessor {
 
                 // Output block
                 long position = los.getWrittenCount();
-                writeBlock(this, currentBlock, sampledData);
+                writeBlock(this, currentBlock, sampledData, los, compressor);
                 int size = (int) (los.getWrittenCount() - position);
 
                 indexEntries.add(new IndexEntry(num, position, size));
@@ -1845,7 +1868,7 @@ public class Preprocessor {
             }
         }
 
-        void updateIndexPositions(List<IndexEntry> blockIndex) throws IOException {
+        void updateIndexPositions(List<IndexEntry> blockIndex, LittleEndianOutputStream los) throws IOException {
 
             // Temporarily close output stream.  Remember position
             long losPos = los.getWrittenCount();
@@ -1878,6 +1901,24 @@ public class Preprocessor {
                 los = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
                 los.setWrittenCount(losPos);
 
+            }
+        }
+
+        /**
+         * used by multithreaded code
+         *
+         * @param otherMatrixZoom
+         */
+        void mergeMatrices(MatrixZoomDataPP otherMatrixZoom) {
+            for (Map.Entry<Integer, BlockPP> otherBlock : otherMatrixZoom.blocks.entrySet()) {
+                int blockNumber = otherBlock.getKey();
+                BlockPP block = blocks.get(blockNumber);
+                if (block == null) {
+                    blocks.put(blockNumber, otherBlock.getValue());
+                    blockNumbers.add(blockNumber);
+                } else {
+                    block.merge(otherBlock.getValue());
+                }
             }
         }
     }
