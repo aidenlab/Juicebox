@@ -70,6 +70,8 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : --frag_site_maps <fragment site files> for randomization\n"
                 + "           : -k normalizations to include\n"
                 + "           : -j number of CPU threads to use\n"
+                + "           : --threads <int> number of threads \n"
+                + "           : --mndindex <filepath> to mnd chr block indices"
         );
     }
 
@@ -153,8 +155,8 @@ public class PreProcessing extends JuiceboxCLT {
         }
     }
 
-    protected void updateNumberOfCPUThreads(CommandLineParser juicerParser) {
-        int numThreads = juicerParser.getNumThreads();
+    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
+        int numThreads = parser.getNumThreads();
         if (numThreads > 0) {
             numCPUThreads = numThreads;
         } else if (numThreads < 0) {
