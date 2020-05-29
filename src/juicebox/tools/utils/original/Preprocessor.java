@@ -64,7 +64,7 @@ public class Preprocessor {
     protected final Map<String, IndexEntry> matrixPositions;
     protected String genomeId;
     protected final Deflater compressor;
-    protected LittleEndianOutputStream los;
+    protected LittleEndianOutputStream[] losArray = new LittleEndianOutputStream[1];
     protected long masterIndexPosition;
     protected int countThreshold = 0;
     protected int mapqThreshold = 0;
@@ -402,13 +402,13 @@ public class Preprocessor {
                 }
             }
 
-            LittleEndianOutputStream losFooter = null;
+            LittleEndianOutputStream[] losFooter = new LittleEndianOutputStream[1];
             try {
-                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(headerFile), HiCGlobals.bufferSize));
+                losArray[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(headerFile), HiCGlobals.bufferSize));
                 if (footerFile.equalsIgnoreCase(headerFile)) {
-                    losFooter = los;
+                    losFooter = losArray;
                 } else {
-                    losFooter = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(footerFile), HiCGlobals.bufferSize));
+                    losFooter[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(footerFile), HiCGlobals.bufferSize));
                 }
             } catch (Exception e) {
                 System.err.println("Unable to write to " + outputFile);
@@ -428,13 +428,13 @@ public class Preprocessor {
             System.out.println("Writing footer");
             writeFooter(losFooter);
 
-            if (losFooter != null) {
-                losFooter.close();
+            if (losFooter != null && losFooter[0] != null) {
+                losFooter[0].close();
             }
 
         } finally {
-            if (los != null) {
-                los.close();
+            if (losArray != null && losArray[0] != null) {
+                losArray[0].close();
             }
         }
 
@@ -445,6 +445,7 @@ public class Preprocessor {
     protected void writeHeader(StringBuilder stats, StringBuilder graphs, StringBuilder hicFileScaling) throws IOException {
         // Magic number
         byte[] magicBytes = "HIC".getBytes();
+        LittleEndianOutputStream los = losArray[0];
         los.write(magicBytes[0]);
         los.write(magicBytes[1]);
         los.write(magicBytes[2]);
@@ -677,7 +678,7 @@ public class Preprocessor {
     protected void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
 
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
-        writeMatrix(wholeGenomeMatrix, los, compressor, matrixPositions, -1, false);
+        writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
@@ -724,7 +725,7 @@ public class Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        writeMatrix(currentMatrix, los, compressor, matrixPositions, -1, false);
+                        writeMatrix(currentMatrix, losArray, compressor, matrixPositions, -1, false);
                         writtenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         System.gc();
@@ -757,13 +758,13 @@ public class Preprocessor {
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            writeMatrix(currentMatrix, los, compressor, matrixPositions, -1, false);
+            writeMatrix(currentMatrix, losArray, compressor, matrixPositions, -1, false);
         }
 
         if (iter != null) iter.close();
 
 
-        masterIndexPosition = los.getWrittenCount();
+        masterIndexPosition = losArray[0].getWrittenCount();
     }
 
     protected Pair<Integer, Integer> getRandomizedPositions(int chr1, int chr2, int frag1, int frag2, int bp1, int bp2) {
@@ -864,7 +865,7 @@ public class Preprocessor {
     */
 
 
-    protected void writeFooter(LittleEndianOutputStream los) throws IOException {
+    protected void writeFooter(LittleEndianOutputStream[] los) throws IOException {
 
         // Index
         BufferedByteWriter buffer = new BufferedByteWriter();
@@ -935,7 +936,7 @@ public class Preprocessor {
                         for (String str:words){
                             if (str.contains("chrom")){
                                 String[] chrs = str.split("=");
-                                
+
                             }
                         }
                     }
@@ -944,8 +945,8 @@ public class Preprocessor {
         }
 
         byte[] bytes = buffer.getBytes();
-        los.writeInt(bytes.length);
-        los.write(bytes);
+        los[0].writeInt(bytes.length);
+        los[0].write(bytes);
     }
 
     protected Deflater getDefaultCompressor() {
@@ -954,9 +955,10 @@ public class Preprocessor {
         return compressor;
     }
 
-    protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream los,
+    protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] losArray,
                                                                   Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
+        LittleEndianOutputStream los = losArray[0];
         long position = los.getWrittenCount();
 
         los.writeInt(matrix.getChr1Idx());
@@ -987,11 +989,11 @@ public class Preprocessor {
 
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null) {
-                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(los, compressor);
+                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(losArray[0], compressor);
                 if (doMultiThreadedBehavior) {
                     localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
                 } else {
-                    updateIndexPositions(blockIndex, los, true, outputFile, 0, zd.blockIndexPosition);
+                    updateIndexPositions(blockIndex, losArray, true, outputFile, 0, zd.blockIndexPosition);
                 }
             }
         }
@@ -1000,14 +1002,14 @@ public class Preprocessor {
         return new Pair<>(localBlockIndexes, position);
     }
 
-    protected void updateIndexPositions(List<IndexEntry> blockIndex, LittleEndianOutputStream los, boolean doRestore,
+    protected void updateIndexPositions(List<IndexEntry> blockIndex, LittleEndianOutputStream[] losArray, boolean doRestore,
                                         File outputFile, long currentPosition, long blockIndexPosition) throws IOException {
 
         // Temporarily close output stream.  Remember position
         long losPos = 0;
         if (doRestore) {
-            losPos = los.getWrittenCount();
-            los.close();
+            losPos = losArray[0].getWrittenCount();
+            losArray[0].close();
         }
 
         RandomAccessFile raf = null;
@@ -1028,15 +1030,13 @@ public class Preprocessor {
             raf.write(buffer.getBytes());
 
         } finally {
-
             if (raf != null) raf.close();
-
-            if (doRestore) {
-                FileOutputStream fos = new FileOutputStream(outputFile, true);
-                fos.getChannel().position(losPos);
-                los = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
-                los.setWrittenCount(losPos);
-            }
+        }
+        if (doRestore) {
+            FileOutputStream fos = new FileOutputStream(outputFile, true);
+            fos.getChannel().position(losPos);
+            losArray[0] = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
+            losArray[0].setWrittenCount(losPos);
         }
     }
 

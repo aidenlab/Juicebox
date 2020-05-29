@@ -220,7 +220,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize));
+                        LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
                         writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
@@ -255,7 +255,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize));
+            LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
             writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
         }
 
@@ -296,11 +296,11 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
         }
 
-        LittleEndianOutputStream localLos = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(0)), HiCGlobals.bufferSize));
+        LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(0)), HiCGlobals.bufferSize))};
         writeMatrix(wholeGenomeMatrix, localLos, getDefaultCompressor(), localMatrixPositions, 0, true);
         nonemptyChromosomePairs.put(0, 1);
 
-        long currentPosition = los.getWrittenCount();
+        long currentPosition = losArray[0].getWrittenCount();
         long nextMatrixPosition = 0;
         String currentMatrixKey = null;
 
@@ -377,15 +377,15 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     @Override
     // MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor
-    protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream localLos,
+    protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] localLos,
                                                                   Deflater localCompressor, Map<String, IndexEntry> localMatrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
         Pair<Map<Long, List<IndexEntry>>, Long> localBlockIndexes = super.writeMatrix(matrix, localLos, localCompressor, localMatrixPositions, chromosomePairIndex, true);
 
         chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes.getFirst());
-        int size = (int) (localLos.getWrittenCount() - localBlockIndexes.getSecond());
+        int size = (int) (localLos[0].getWrittenCount() - localBlockIndexes.getSecond());
         matrixSizes.put(chromosomePairIndex, size);
-        localLos.close();
+        localLos[0].close();
 
         System.out.print(".");
         return localBlockIndexes;

@@ -312,7 +312,6 @@ public class MatrixZoomDataPP {
 
             indexEntries.add(new IndexEntry(num, position, size));
 
-
         } while (activeList.size() > 0);
 
 
