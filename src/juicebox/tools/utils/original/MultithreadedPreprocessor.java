@@ -48,15 +48,15 @@ import java.util.zip.Deflater;
 
 
 public class MultithreadedPreprocessor extends Preprocessor {
-    private final Map<Integer, String> chromosomePairIndexes;
-    private final Map<String, Integer> chromosomePairIndexesReverse;
-    private final Map<Integer, Integer> chromosomePairIndex1;
-    private final Map<Integer, Integer> chromosomePairIndex2;
+    private final Map<Integer, String> chromosomePairIndexes = new ConcurrentHashMap<>();
+    private final Map<String, Integer> chromosomePairIndexesReverse = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> chromosomePairIndex1 = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> chromosomePairIndex2 = new ConcurrentHashMap<>();
     private int chromosomePairCounter = 0;
-    private final Map<Integer, Integer> nonemptyChromosomePairs;
-    private final Map<Integer, MatrixPP> wholeGenomeMatrixParts;
-    private final Map<Integer, IndexEntry> localMatrixPositions;
-    private final Map<Integer, Integer> matrixSizes;
+    private final Map<Integer, Integer> nonemptyChromosomePairs = new ConcurrentHashMap<>();
+    private final Map<Integer, MatrixPP> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
+    private final Map<Integer, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
+    private final Map<Integer, Integer> matrixSizes = new ConcurrentHashMap<>();
     private LittleEndianOutputStream losWholeGenome;
     private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
@@ -66,20 +66,12 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
-        this.localMatrixPositions = new ConcurrentHashMap<>();
-        this.matrixSizes = new ConcurrentHashMap<>();
-        this.wholeGenomeMatrixParts = new ConcurrentHashMap<>();
-        this.nonemptyChromosomePairs = new ConcurrentHashMap<>();
 
         chromosomeIndexes = new ConcurrentHashMap<>(chromosomeHandler.size(), (float) 0.75, numCPUThreads);
         for (int i = 0; i < chromosomeHandler.size(); i++) {
             chromosomeIndexes.put(chromosomeHandler.getChromosomeFromIndex(i).getName(), i);
         }
 
-        this.chromosomePairIndexes = new ConcurrentHashMap<>();
-        this.chromosomePairIndexesReverse = new ConcurrentHashMap<>();
-        this.chromosomePairIndex1 = new ConcurrentHashMap<>();
-        this.chromosomePairIndex2 = new ConcurrentHashMap<>();
         String genomeWideName = chromosomeHandler.getChromosomeFromIndex(0).getName();
         String genomeWidePairName = genomeWideName + "_" + genomeWideName;
         chromosomePairIndexes.put(chromosomePairCounter, genomeWidePairName);
@@ -101,7 +93,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
-
         this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
     }
 
@@ -109,14 +100,16 @@ public class MultithreadedPreprocessor extends Preprocessor {
         MultithreadedPreprocessor.numCPUThreads = numCPUThreads;
     }
 
-    public void setMndIndex(String mndIndexFile) { MultithreadedPreprocessor.mndIndexFile = mndIndexFile;}
+    public void setMndIndex(String mndIndexFile) {
+        MultithreadedPreprocessor.mndIndexFile = mndIndexFile;
+    }
 
     @Override
     public void preprocess(final String inputFile) throws IOException {
         File file = new File(inputFile);
-        Map<Integer,Long> mndIndex = new ConcurrentHashMap<>();
+        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
 
-        if (mndIndexFile!=null) {
+        if (mndIndexFile != null) {
             mndIndex = readMndIndex(mndIndexFile);
         }
 
