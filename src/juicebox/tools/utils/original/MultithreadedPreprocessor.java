@@ -51,7 +51,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, MatrixPP> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
     private final Map<Integer, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> matrixSizes = new ConcurrentHashMap<>();
-    private LittleEndianOutputStream losWholeGenome;
     private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
@@ -101,15 +100,15 @@ public class MultithreadedPreprocessor extends Preprocessor {
     @Override
     public void preprocess(final String inputFile) throws IOException {
         File file = new File(inputFile);
-        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
-
-        if (mndIndexFile != null) {
-            mndIndex = readMndIndex(mndIndexFile);
-        }
 
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
             System.exit(57);
+        }
+
+        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
+        if (mndIndexFile != null) {
+            mndIndex = readMndIndex(mndIndexFile);
         }
 
         try {
