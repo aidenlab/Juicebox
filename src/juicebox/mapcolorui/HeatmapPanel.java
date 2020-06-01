@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -357,6 +357,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
 
         int maxDimension = chromosomeBoundaries[chromosomeBoundaries.length - 1];
+
+        g.drawLine(0, 0, 0, getGridLineHeightLimit(zd, maxDimension));
+        g.drawLine(0, 0, getGridLineWidthLimit(zd, maxDimension), 0);
+        g.drawLine(getGridLineWidthLimit(zd, maxDimension), 0, getGridLineWidthLimit(zd, maxDimension), getGridLineHeightLimit(zd, maxDimension));
+        g.drawLine(0, getGridLineHeightLimit(zd, maxDimension), getGridLineWidthLimit(zd, maxDimension), getGridLineHeightLimit(zd, maxDimension));
 
         // Draw grid lines only if option is selected
         if (showGridLines) {
@@ -1132,6 +1137,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
 //        menu.add(miRepeatSelection);
 
+
+    final JMenuItem miMoveToTop = new JMenuItem("Move to top");
+    miMoveToTop.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+    miMoveToTop.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        AssemblyOperationExecutor.moveSelection(superAdapter,
+                selectedFeatures,
+                null);
+        removeSelection();
+      }
+    });
+    menu.add(miMoveToTop);
+
     final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
     miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
     miMoveToDebris.addActionListener(new ActionListener() {
@@ -1141,6 +1160,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
       }
     });
     menu.add(miMoveToDebris);
+
+    final JMenuItem miMoveToDebrisAndDisperse = new JMenuItem("Move to debris and add boundaries");
+    miMoveToDebrisAndDisperse.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+    miMoveToDebrisAndDisperse.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        moveSelectionToEndAndDisperse();
+      }
+    });
+    menu.add(miMoveToDebrisAndDisperse);
 
     final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
     groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
@@ -1334,6 +1363,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
     final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
     int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
     AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
+    removeSelection();
+  }
+
+  void moveSelectionToEndAndDisperse() {
+    AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+    final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
+    int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
+    AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
+    AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
     removeSelection();
   }
 
@@ -1567,11 +1605,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
           Collections.sort(selectedFeatures);
-          for (Feature2D feature2D : selectedFeatures) {
-            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-            txt.append(feature2D.tooltipText());
-            txt.append("</span>");
-          }
+
+          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+          txt.append(selectedFeatures.get(0).tooltipText());
+          txt.append("</span>");
+          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+          txt.append("...");
+          txt.append("</span>");
+          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+          txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+          txt.append("</span>");
+
+//          for (Feature2D feature2D : selectedFeatures) {
+//            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+//            txt.append(feature2D.tooltipText());
+//            txt.append("</span>");
+//          }
         } else {
           for (Feature2DGuiContainer loop : allFeaturePairs) {
             if (loop.getRectangle().contains(x, y)) {
@@ -1709,30 +1758,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     return this.currentDownstreamFeature;
   }
 
-  private enum AdjustAnnotation {LEFT, RIGHT, NONE}
-
-//    @Override
-//    public String getToolTipText(MouseEvent e) {
-//        return toolTipText(e.getX(), e.getY());
-//
-//    }
-
-  private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
-
-  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
-
-  static class ImageTile {
-    final int bLeft;
-    final int bTop;
-    final Image image;
-
-    ImageTile(Image image, int bLeft, int py0) {
-      this.bLeft = bLeft;
-      this.bTop = py0;
-      this.image = image;
-    }
-  }
-
   private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
     final Point mousePoint = calculateSelectionPoint(x, y);
 
@@ -1751,6 +1776,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
     return null;
   }
 
+//    @Override
+//    public String getToolTipText(MouseEvent e) {
+//        return toolTipText(e.getX(), e.getY());
+//
+//    }
+
   private Point calculateSelectionPoint(int unscaledX, int unscaledY) {
     final MatrixZoomData zd;
     try {
@@ -1768,6 +1799,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
     float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
     float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
     return new Point((int) x, (int) y);
+  }
+
+  private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+
+  private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
+
+  public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
+
+  static class ImageTile {
+    final int bLeft;
+    final int bTop;
+    final Image image;
+
+    ImageTile(Image image, int bLeft, int py0) {
+      this.bLeft = bLeft;
+      this.bTop = py0;
+      this.image = image;
+    }
   }
 
   class HeatmapMouseHandler extends MouseAdapter {
