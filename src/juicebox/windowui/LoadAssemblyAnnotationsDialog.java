@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,8 +67,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final JTree tree;
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
-    private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private final ArrayList<String> mostRecentPaths = new ArrayList<>();
+    private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
     public LoadAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
@@ -334,7 +334,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superscaffoldLayerHandler.setProperties(superscaffoldLayer, "Chr", Color.blue);
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
-                editLayerHandler.setColorOfAllAnnotations(Color.yellow);
+                editLayerHandler.setColorOfAllAnnotations(Color.black);
                 editLayerHandler.setLayerNameAndField("Edit");
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
                 editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
