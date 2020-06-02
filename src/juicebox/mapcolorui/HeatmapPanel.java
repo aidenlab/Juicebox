@@ -1605,22 +1605,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
           Collections.sort(selectedFeatures);
-
           txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
           txt.append(selectedFeatures.get(0).tooltipText());
           txt.append("</span>");
-          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append("...");
-          txt.append("</span>");
-          txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-          txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
-          txt.append("</span>");
-
-//          for (Feature2D feature2D : selectedFeatures) {
-//            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-//            txt.append(feature2D.tooltipText());
-//            txt.append("</span>");
-//          }
+          switch (selectedFeatures.size()) {
+            case 1:
+              break;
+            case 2:
+              txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+              txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+              txt.append("</span>");
+              break;
+            case 3:
+              txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+              txt.append(selectedFeatures.get(1).tooltipText());
+              txt.append("</span>");
+              txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+              txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+              txt.append("</span>");
+              break;
+            default:
+              txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+              txt.append("...");
+              txt.append("</span>");
+              txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+              txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+              txt.append("</span>");
+          }
         } else {
           for (Feature2DGuiContainer loop : allFeaturePairs) {
             if (loop.getRectangle().contains(x, y)) {
