@@ -56,6 +56,7 @@ public class MatrixZoomDataPP {
     private double cellCount = 0;
     private double percent5;
     private double percent95;
+    public static int BLOCK_CAPACITY = 1000000;
 
     /**
      * Representation of MatrixZoomData used for preprocessing
@@ -69,7 +70,7 @@ public class MatrixZoomDataPP {
     MatrixZoomDataPP(Chromosome chr1, Chromosome chr2, int binSize, int blockColumnCount, int zoom, boolean isFrag,
                      FragmentCalculation fragmentCalculation, int countThreshold) {
         this.tmpFiles = new ArrayList<>();
-        this.blockNumbers = new HashSet<>(1000);
+        this.blockNumbers = new HashSet<>(BLOCK_CAPACITY);
         this.countThreshold = countThreshold;
 
         this.sum = 0;
@@ -189,7 +190,7 @@ public class MatrixZoomDataPP {
         block.incrementCount(xBin, yBin, score);
 
         // If too many blocks write to tmp directory
-        if (blocks.size() > 1000) {
+        if (blocks.size() > BLOCK_CAPACITY) {
             File tmpfile = tmpDir == null ? File.createTempFile("blocks", "bin") : File.createTempFile("blocks", "bin", tmpDir);
             //System.out.println(chr1.getName() + "-" + chr2.getName() + " Dumping blocks to " + tmpfile.getAbsolutePath());
             dumpBlocks(tmpfile);
@@ -308,9 +309,9 @@ public class MatrixZoomDataPP {
             // Output block
             long position = los.getWrittenCount();
             writeBlock(this, currentBlock, sampledData, los, compressor);
-            int size = (int) (los.getWrittenCount() - position);
+            long size = los.getWrittenCount() - position;
 
-            indexEntries.add(new IndexEntry(num, position, size));
+            indexEntries.add(new IndexEntry(num, position, (int) size));
 
         } while (activeList.size() > 0);
 

@@ -91,9 +91,11 @@ public class Dump extends JuiceboxCLT {
                 System.exit(1);
             }
 
-            List<ContactRecord> contactRecords = zd.getContactRecordList();
-            for (ContactRecord cr : contactRecords) {
-                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+            List<List<ContactRecord>> allContactRecords = zd.getContactRecordList();
+            for (List<ContactRecord> contactRecords : allContactRecords) {
+                for (ContactRecord cr : contactRecords) {
+                    pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+                }
             }
             pw.close();
             return;
@@ -125,13 +127,15 @@ public class Dump extends JuiceboxCLT {
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
                 if (zd == null) continue;
-                for (ContactRecord cr : zd.getContactRecordList()) {
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    final float counts = cr.getCounts();
-                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                        double value = counts / (vector[x + addY] * vector[y + addY]);
-                        evKR.addDistance(chrIdx, x, y, value);
+                for (List<ContactRecord> crList : zd.getContactRecordList()) {
+                    for (ContactRecord cr : crList) {
+                        int x = cr.getBinX();
+                        int y = cr.getBinY();
+                        final float counts = cr.getCounts();
+                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                            double value = counts / (vector[x + addY] * vector[y + addY]);
+                            evKR.addDistance(chrIdx, x, y, value);
+                        }
                     }
                 }
 

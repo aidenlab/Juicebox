@@ -123,7 +123,7 @@ class UnitTests {
         HiCGlobals.printVerboseComments = true;
 
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
-        listOfLists.add(zd.getContactRecordList());
+        listOfLists.addAll(zd.getContactRecordList());
         double[] result = ZeroScale.launchScalingWithDiffTolerances(listOfLists, targetVectorInitial,
                 .04, .01, zd.getKey());
 

@@ -956,11 +956,11 @@ public class Preprocessor {
                 writeZoomHeader(zd, los);
         }
 
-        int size = (int) (los.getWrittenCount() - position);
+        long size = los.getWrittenCount() - position;
         if (chromosomePairIndex > -1) {
-            matrixPositions.put("" + chromosomePairIndex, new IndexEntry(position, size));
+            matrixPositions.put("" + chromosomePairIndex, new IndexEntry(position, (int) size));
         } else {
-            matrixPositions.put(matrix.getKey(), new IndexEntry(position, size));
+            matrixPositions.put(matrix.getKey(), new IndexEntry(position, (int) size));
         }
 
         final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();

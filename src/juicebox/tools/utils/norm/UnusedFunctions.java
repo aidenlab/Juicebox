@@ -84,7 +84,7 @@ class UnusedFunctions {
                     MatrixZoomData zd2 = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
                     if (zd2 == null) continue;
 
-                    List<ContactRecord> contactRecords = zd2.getContactRecordList();
+                    List<List<ContactRecord>> contactRecords = zd2.getContactRecordList();
                     getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
                     getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
                     getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
@@ -105,7 +105,7 @@ class UnusedFunctions {
 
     }
 
-    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, List<ContactRecord> recordList, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
+    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, List<List<ContactRecord>> recordLists, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
 
         String key1 = NormalizationVector.getKey(NormalizationHandler.VC, chr1.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector1 = normVectors.get(key1);
@@ -119,16 +119,18 @@ class UnusedFunctions {
 
         if (vec1 == null || vec2 == null) return;
 
-        for (ContactRecord cr : recordList) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
+        for (List<ContactRecord> recordList : recordLists) {
+            for (ContactRecord cr : recordList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
 
-            if (!Double.isNaN(vec1[x]) && !Double.isNaN(vec2[y]) && vec1[x] > 0 && vec2[y] > 0) {
-                // want total sum of matrix, not just upper triangle
-                if (x == y) {
-                    vecSum += cr.getCounts() / (vec1[x] * vec2[y]);
-                } else {
-                    vecSum += 2 * cr.getCounts() / (vec1[x] * vec2[y]);
+                if (!Double.isNaN(vec1[x]) && !Double.isNaN(vec2[y]) && vec1[x] > 0 && vec2[y] > 0) {
+                    // want total sum of matrix, not just upper triangle
+                    if (x == y) {
+                        vecSum += cr.getCounts() / (vec1[x] * vec2[y]);
+                    } else {
+                        vecSum += 2 * cr.getCounts() / (vec1[x] * vec2[y]);
+                    }
                 }
             }
         }

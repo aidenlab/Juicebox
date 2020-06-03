@@ -95,7 +95,7 @@ public class NormalizationVector {
     public NormalizationVector mmbaScaleToVector(MatrixZoomData zd) {
 
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
-        listOfLists.add(zd.getContactRecordList());
+        listOfLists.addAll(zd.getContactRecordList());
         double[] newNormVector = ZeroScale.scale(listOfLists, data, getKey());
         if (newNormVector != null) {
             newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, listOfLists);

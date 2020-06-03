@@ -71,7 +71,7 @@ public class MatrixPP {
             // Size block (submatrices) to be ~500 bins wide.
             int len = Math.max(chrom1.getLength(), chrom2.getLength());
             int nBins = len / binSize + 1;   // Size of chrom in bins
-            int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
+            int nColumns = getNumColumnsFromNumBins(nBins);
             zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold);
             zoom++;
 
@@ -87,11 +87,19 @@ public class MatrixPP {
             for (int idx = bpBinSizes.length; idx < nResolutions; idx++) {
                 int binSize = fragBinSizes[zoom];
                 int nBins = nFragBins1 / binSize + 1;
-                int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
+                int nColumns = getNumColumnsFromNumBins(nBins);
                 zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, true, fragmentCalculation, countThreshold);
                 zoom++;
             }
         }
+    }
+
+    private int getNumColumnsFromNumBins(int nBins) {
+        int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
+        if (nColumns > Math.sqrt(Integer.MAX_VALUE)) {
+            nColumns = (int) Math.sqrt(Integer.MAX_VALUE) - 1;
+        }
+        return nColumns;
     }
 
     /**
@@ -150,13 +158,15 @@ public class MatrixPP {
      * used by multithreaded code
      */
     void mergeMatrices(MatrixPP otherMatrix) {
-        for (MatrixZoomDataPP aZoomData : zoomData) {
-            for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
-                if (aZoomData.getZoom() == bZoomData.getZoom()) {
-                    if (aZoomData.isFrag) {
-                        aZoomData.mergeMatrices(bZoomData);
-                    } else {
-                        aZoomData.mergeMatrices(bZoomData);
+        if (otherMatrix != null) {
+            for (MatrixZoomDataPP aZoomData : zoomData) {
+                for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
+                    if (aZoomData.getZoom() == bZoomData.getZoom()) {
+                        if (aZoomData.isFrag) {
+                            aZoomData.mergeMatrices(bZoomData);
+                        } else {
+                            aZoomData.mergeMatrices(bZoomData);
+                        }
                     }
                 }
             }

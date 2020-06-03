@@ -64,22 +64,11 @@ public class NormalizationCalculations {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
 
-
-        Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
-        long count = 0;
-        while (iter1.hasNext()) {
-            iter1.next();
-            count++;
-        }
+        long count = zd.getNumberOfContactRecords();
         if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
-            this.contactRecords = new ArrayList<>();
-            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
-                contactRecords.add(cr);
-            }
+            this.contactRecords = zd.getContactRecordList();
             this.totSize = zd.getXGridAxis().getBinCount();
         }
     }

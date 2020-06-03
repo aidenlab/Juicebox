@@ -314,14 +314,16 @@ public class ExpectedValueCalculation {
     }
 
     // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-    public void addDistancesFromIterator(int chrIndx, List<ContactRecord> recordList, double[] vector) {
-        for (ContactRecord cr : recordList) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
-            if (NormVectorUpdater.isValidNormValue(vector[x]) & NormVectorUpdater.isValidNormValue(vector[y])) {
-                double value = counts / (vector[x] * vector[y]);
-                addDistance(chrIndx, x, y, value);
+    public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, double[] vector) {
+        for (List<ContactRecord> recordList : recordLists) {
+            for (ContactRecord cr : recordList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float counts = cr.getCounts();
+                if (NormVectorUpdater.isValidNormValue(vector[x]) & NormVectorUpdater.isValidNormValue(vector[y])) {
+                    double value = counts / (vector[x] * vector[y]);
+                    addDistance(chrIndx, x, y, value);
+                }
             }
         }
     }
