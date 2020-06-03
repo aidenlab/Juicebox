@@ -144,7 +144,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = new ArrayList<>();
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb = r.readNormalizedBlock(blockNumber, zd, no);

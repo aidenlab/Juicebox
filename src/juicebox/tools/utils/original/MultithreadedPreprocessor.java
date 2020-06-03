@@ -61,7 +61,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Integer> nonemptyChromosomePairs;
     private final Map<Integer, MatrixPP> wholeGenomeMatrixParts;
     private final Map<Integer, IndexEntry> localMatrixPositions;
-    private final Map<Integer, Integer> matrixSizes;
+    private final Map<Integer, Long> matrixSizes;
     private LittleEndianOutputStream losWholeGenome;
     private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
@@ -279,7 +279,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             StringBuilder outputLine = new StringBuilder();
             outputLine.append("cat ").append(outputFile + "_header");
             for (int i = 0; i < chromosomePairCounter; i++) {
-                if (nonemptyChromosomePairs.containsKey(i) || i == 0) {
+                if ((nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i))|| i == 0) {
                     outputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
                 }
             }
@@ -336,7 +336,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     }
 
-    private void writeBodySingleChromosomePair(String inputFile, String chrInputFile, Set<String> syncWrittenMatrices, ChromosomeHandler
+    private void writeBodySingleChromosomePair(String inputFile, String chrInputFile, Integer chromosomePairIndex, Set<String> syncWrittenMatrices, ChromosomeHandler
             localChromosomeHandler, Set<String> localIncludedChromosomes, Map<String, ExpectedValueCalculation>
             localExpectedValueCalculations, Long mndIndexPosition) throws IOException {
 
@@ -448,7 +448,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         writeMatrixIndividualFile(currentMatrix, currentPairIndex);
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
-                        //System.gc();
+                        System.gc();
                         break;
                         //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
                     }
@@ -459,6 +459,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     currentMatrixKey = currentChr1 + "_" + currentChr2;
                     currentMatrixName = localChromosomeHandler.getChromosomeFromIndex(chr1).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
                     currentPairIndex = chromosomePairIndexesReverse.get(currentMatrixName);
+
+                    if (currentPairIndex != chromosomePairIndex) {
+                        break;
+                    }
 
                     if (syncWrittenMatrices.contains(currentMatrixKey)) {
                         System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
@@ -529,7 +533,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         for (int i = 1; i < chromosomePairCounter; i++) {
             if (nonemptyChromosomePairs.containsKey(i)) {
-                wholeGenomeMatrix.mergeMatrices(wholeGenomeMatrixParts.get(i));
+                    if (wholeGenomeMatrixParts.containsKey(i)) {
+                        wholeGenomeMatrix.mergeMatrices(wholeGenomeMatrixParts.get(i));
+                    }
             }
         }
 
@@ -541,7 +547,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         String currentMatrixKey = null;
 
         for (int i = 0; i < chromosomePairCounter; i++) {
-            if (nonemptyChromosomePairs.containsKey(i)) {
+            if (nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i)) {
                 for (Map.Entry<Long, List<IndexEntry>> entry : chromosomePairBlockIndexes.get(i).entrySet()) {
                     updateIndexPositionsIndividualFile(entry.getKey(), entry.getValue(), i, currentPosition);
                 }
@@ -599,6 +605,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             if (mndIndexFile!=null) {
                 if (!mndIndex.containsKey(i)) {
                     System.out.println("No index position for " + localChromosomePairIndexes.get(i));
+                    i = chromosomePair.getAndIncrement();
                     continue;
                 } else {
                     mndIndexPosition = mndIndex.get(i);
@@ -618,7 +625,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         localChromosomePairIndex1.get(i)).getName();
             }
             try {
-                writeBodySingleChromosomePair(inputFile, chrInputFile,
+                writeBodySingleChromosomePair(inputFile, chrInputFile, i,
                         syncWrittenMatrices, localChromosomeHandler, localIncludedChromosomes,
                         localExpectedValueCalculations, mndIndexPosition);
                 int chr1 = localChromosomePairIndex1.get(i);
@@ -634,7 +641,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 }
             } catch (Exception e) {
                 try {
-                    writeBodySingleChromosomePair(inputFile, chrInputFile2, syncWrittenMatrices, localChromosomeHandler,
+                    //System.err.println(e);
+                    e.printStackTrace();
+                    writeBodySingleChromosomePair(inputFile, chrInputFile2, i, syncWrittenMatrices, localChromosomeHandler,
                             localIncludedChromosomes, localExpectedValueCalculations, mndIndexPosition);
                     int chr1 = localChromosomePairIndex1.get(i);
                     int chr2 = localChromosomePairIndex2.get(i);
@@ -850,8 +859,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 writeZoomHeaderIndividualFile(zd, localLos);
         }
 
-        int size = (int) (localLos.getWrittenCount() - position);
-        localMatrixPositions.put(chromosomePairIndex, new IndexEntry(position, size));
+        long size = localLos.getWrittenCount() - position;
+        localMatrixPositions.put(chromosomePairIndex, new IndexEntry(position, (int) size));
 
         final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
 
@@ -863,7 +872,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes);
-        size = (int) (localLos.getWrittenCount() - position);
+        size = localLos.getWrittenCount() - position;
         matrixSizes.put(chromosomePairIndex, size);
         localLos.close();
 
@@ -922,6 +931,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
         } else {
             nRecords = records.size();
         }
+        //if (nRecords == 0) {
+        //    System.out.println(block.getNumber());
+        //}
         BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 12);
         buffer.putInt(nRecords);
         zd.cellCount += nRecords;
@@ -1134,6 +1146,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 int len = Math.max(chrom1.getLength(), chrom2.getLength());
                 int nBins = len / binSize + 1;   // Size of chrom in bins
                 int nColumns = nBins / BLOCK_SIZE + 1;
+                if (nColumns > Math.sqrt((double) Integer.MAX_VALUE)) {
+                    nColumns = (int) Math.sqrt((double) Integer.MAX_VALUE)-1;
+                }
+                //System.out.println(binSize + " " + nColumns);
                 zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false);
                 zoom++;
 
@@ -1179,13 +1195,15 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         void mergeMatrices(MatrixPP otherMatrix) {
-            for (MatrixZoomDataPP aZoomData : zoomData) {
-                for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
-                    if (aZoomData.zoom == bZoomData.zoom) {
-                        if (aZoomData.isFrag) {
-                            aZoomData.mergeMatrices(bZoomData);
-                        } else {
-                            aZoomData.mergeMatrices(bZoomData);
+            if (otherMatrix != null) {
+                for (MatrixZoomDataPP aZoomData : zoomData) {
+                    for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {
+                        if (aZoomData.zoom == bZoomData.zoom) {
+                            if (aZoomData.isFrag) {
+                                aZoomData.mergeMatrices(bZoomData);
+                            } else {
+                                aZoomData.mergeMatrices(bZoomData);
+                            }
                         }
                     }
                 }
@@ -1257,7 +1275,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         MatrixZoomDataPP(Chromosome chr1, Chromosome chr2, int binSize, int blockColumnCount, int zoom, boolean isFrag) {
 
             this.tmpFiles = new ArrayList<>();
-            this.blockNumbers = new HashSet<>(1000);
+            this.blockNumbers = new HashSet<>(1000000);
 
             this.sum = 0;
             this.chr1 = chr1;
@@ -1274,7 +1292,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
             int nBinsX = len / binSize + 1;
 
             blockBinCount = nBinsX / blockColumnCount + 1;
+
             blocks = new LinkedHashMap<>(blockColumnCount * blockColumnCount);
+
         }
 
         HiC.Unit getUnit() {
@@ -1388,7 +1408,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
             block.incrementCount(xBin, yBin, score);
 
             // If too many blocks write to tmp directory
-            if (blocks.size() > 1000) {
+            if (blocks.size() > 1000000) {
+                //System.out.println("Dumping blocks for: " + chr1 + "_" + chr2);
                 File tmpfile = tmpDir == null ? File.createTempFile("blocks", "bin") : File.createTempFile("blocks", "bin", tmpDir);
                 //System.out.println(chr1.getName() + "-" + chr2.getName() + " Dumping blocks to " + tmpfile.getAbsolutePath());
                 dumpBlocks(tmpfile);
@@ -1438,6 +1459,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         los.writeInt(point.y);
                         los.writeFloat(count.getCounts());
                     }
+                    b = null;
                 }
 
                 blocks.clear();
@@ -1449,7 +1471,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         // Merge and write out blocks one at a time.
-        private List<IndexEntry> mergeAndWriteBlocksIndividualFile(LittleEndianOutputStream localLos, Deflater localCompressor) throws IOException {
+        private List<IndexEntry>  mergeAndWriteBlocksIndividualFile(LittleEndianOutputStream localLos, Deflater localCompressor) throws IOException {
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
             List<BlockQueue> activeList = new ArrayList<>();
