@@ -22,29 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
+package juicebox.tools.utils.original;
 
-import juicebox.HiC;
-import juicebox.windowui.NormalizationType;
+import java.io.IOException;
 
-/**
- * @author jrobinso
- *         Date: 12/26/12
- *         Time: 9:30 PM
- */
-public interface ExpectedValueFunction {
+interface BlockQueue {
 
-    double getExpectedValue(int chrIdx, int distance);
+    void advance() throws IOException;
 
-    int getLength();
+    BlockPP getBlock();
 
-    NormalizationType getNormalizationType();
-
-    HiC.Unit getUnit();
-
-    int getBinSize();
-
-    double[] getExpectedValuesNoNormalization();
-
-    double[] getExpectedValuesWithNormalization(int chrIdx);
 }

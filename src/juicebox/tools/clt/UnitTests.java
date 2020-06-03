@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,7 @@ package juicebox.tools.clt;
 
 
 import juicebox.HiCGlobals;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
-import juicebox.data.MatrixZoomData;
+import juicebox.data.*;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.tools.utils.norm.ZeroScale;
@@ -125,7 +122,9 @@ class UnitTests {
 
         HiCGlobals.printVerboseComments = true;
 
-        double[] result = ZeroScale.launchScalingWithDiffTolerances(zd.getContactRecordList(), targetVectorInitial,
+        List<List<ContactRecord>> listOfLists = new ArrayList<>();
+        listOfLists.add(zd.getContactRecordList());
+        double[] result = ZeroScale.launchScalingWithDiffTolerances(listOfLists, targetVectorInitial,
                 .04, .01, zd.getKey());
 
         System.out.println(Arrays.toString(result));

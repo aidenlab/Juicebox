@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,10 @@ import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -57,19 +60,19 @@ public class ExpectedValueCalculation {
     /**
      * Map of chromosome index -> total count for that chromosome
      */
-    private final Map<Integer, Double> chromosomeCounts;
+    private final Map<Integer, Double> chromosomeCounts = new ConcurrentHashMap<>();
     /**
      * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
      * the "expected total"  == observed total
      */
-    private final LinkedHashMap<Integer, Double> chrScaleFactors;
+    private final Map<Integer, Double> chrScaleFactors = new ConcurrentHashMap<>();
     private final NormalizationType type;
     // A little redundant, for clarity
     public boolean isFrag = false;
     /**
      * Genome wide count of binned reads at a given distance
      */
-    private double[] actualDistances = null;
+    private final double[] actualDistances;
     /**
      * Expected count at a given binned distance from diagonal
      */
@@ -77,11 +80,11 @@ public class ExpectedValueCalculation {
     /**
      * Chromosome in this genome, needed for normalizations
      */
-    private Map<Integer, Chromosome> chromosomesMap = null;
+    private final Map<Integer, Chromosome> chromosomesMap = new ConcurrentHashMap<>();
     /**
      * Stores restriction site fragment information for fragment maps
      */
-    private Map<String, Integer> fragmentCountMap;
+    private final Map<String, Integer> fragmentCountMap;
 
     /**
      * Instantiate a DensityCalculation.  This constructor is used to compute the "expected" density from pair data.
@@ -99,10 +102,11 @@ public class ExpectedValueCalculation {
         if (fragmentCountMap != null) {
             this.isFrag = true;
             this.fragmentCountMap = fragmentCountMap;
+        } else {
+            this.fragmentCountMap = null;
         }
 
         long maxLen = 0;
-        this.chromosomesMap = new LinkedHashMap<>();
 
         for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             if (chr != null) {
@@ -133,9 +137,6 @@ public class ExpectedValueCalculation {
 
         actualDistances = new double[numberOfBins];
         Arrays.fill(actualDistances, 0);
-        chromosomeCounts = new HashMap<>();
-        chrScaleFactors = new LinkedHashMap<>();
-
     }
 
     public int getGridSize() {
@@ -150,7 +151,7 @@ public class ExpectedValueCalculation {
      * @param bin1   Position1 observed in units of "bins"
      * @param bin2   Position2 observed in units of "bins"
      */
-    public void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
+    public synchronized void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
 
         // Ignore NaN values    TODO -- is this the right thing to do?
         if (Double.isNaN(weight)) return;
@@ -167,27 +168,7 @@ public class ExpectedValueCalculation {
         }
         dist = Math.abs(bin1 - bin2);
 
-
         actualDistances[dist] += weight;
-
-    }
-    public void merge(ExpectedValueCalculation otherEVCalc) {
-        for (Map.Entry<Integer, Chromosome> entry : otherEVCalc.chromosomesMap.entrySet()) {
-            Chromosome chr = chromosomesMap.get(entry.getKey());
-            if (chr != null) {
-                if (otherEVCalc.chromosomeCounts.get(entry.getKey()) != null) {
-                    Double count = chromosomeCounts.get(entry.getKey());
-                    if (count == null) {
-                        chromosomeCounts.put(entry.getKey(), otherEVCalc.chromosomeCounts.get(entry.getKey()));
-                    } else {
-                        chromosomeCounts.put(entry.getKey(), count + otherEVCalc.chromosomeCounts.get(entry.getKey()));
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < actualDistances.length; i++) {
-            actualDistances[i] += otherEVCalc.actualDistances[i];
-        }
     }
 
     public boolean hasData() {
@@ -203,7 +184,7 @@ public class ExpectedValueCalculation {
      * slots available in the diagonal.  The sum along the diagonal will then be the count at that distance,
      * an "expected" or average uniform density.
      */
-    public void computeDensity() {
+    public synchronized void computeDensity() {
 
         int maxNumBins = 0;
 
@@ -305,7 +286,7 @@ public class ExpectedValueCalculation {
      *
      * @return The normalization factors
      */
-    public LinkedHashMap<Integer, Double> getChrScaleFactors() {
+    public Map<Integer, Double> getChrScaleFactors() {
         return chrScaleFactors;
     }
 
@@ -333,9 +314,8 @@ public class ExpectedValueCalculation {
     }
 
     // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-    public void addDistancesFromIterator(int chrIndx, Iterator<ContactRecord> iter, double[] vector) {
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
+    public void addDistancesFromIterator(int chrIndx, List<ContactRecord> recordList, double[] vector) {
+        for (ContactRecord cr : recordList) {
             int x = cr.getBinX();
             int y = cr.getBinY();
             final float counts = cr.getCounts();

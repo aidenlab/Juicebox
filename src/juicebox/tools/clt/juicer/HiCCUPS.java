@@ -309,7 +309,7 @@ public class HiCCUPS extends JuicerCLT {
 
         try {
             final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
-            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+            double firstExpected = df.getExpectedValuesNoNormalization()[0]; // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
             // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs

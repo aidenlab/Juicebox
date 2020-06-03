@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -93,10 +94,11 @@ public class NormalizationVector {
 
     public NormalizationVector mmbaScaleToVector(MatrixZoomData zd) {
 
-        List<ContactRecord> contactRecordList = zd.getContactRecordList();
-        double[] newNormVector = ZeroScale.scale(contactRecordList, data, getKey());
+        List<List<ContactRecord>> listOfLists = new ArrayList<>();
+        listOfLists.add(zd.getContactRecordList());
+        double[] newNormVector = ZeroScale.scale(listOfLists, data, getKey());
         if (newNormVector != null) {
-            newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, contactRecordList);
+            newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, listOfLists);
         }
 
         return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);

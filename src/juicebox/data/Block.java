@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ package juicebox.data;
 //import java.util.List;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -62,7 +61,7 @@ public class Block {
         return uniqueRegionID;
     }
 
-    public Collection<ContactRecord> getContactRecords() {
+    public List<ContactRecord> getContactRecords() {
         return records;
     }
 }

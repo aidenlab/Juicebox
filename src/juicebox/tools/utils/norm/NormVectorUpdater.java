@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -284,7 +284,7 @@ public class NormVectorUpdater {
             buffer.putNullTerminatedString(function.getUnit().toString());
 
             buffer.putInt(function.getBinSize());
-            putArrayValuesIntoBuffer(buffer, function.getExpectedValues());
+            putArrayValuesIntoBuffer(buffer, function.getExpectedValuesNoNormalization());
             putMapValuesIntoBuffer(buffer, ((ExpectedValueFunctionImpl) function).getNormFactors());
         }
     }
