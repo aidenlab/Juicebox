@@ -60,7 +60,7 @@ public class NormalizationCalculations {
         }
 
         Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
-        int count = 0;
+        long count = 0;
         while (iter1.hasNext()) {
             iter1.next();
             count++;
@@ -74,6 +74,7 @@ public class NormalizationCalculations {
                 ContactRecord cr = iter.next();
                 contactRecords.add(cr);
             }
+            //System.out.println(zd.getChr1Idx() + " " + zd.getXGridAxis().getBinCount() + " " + zd.getYGridAxis().getBinCount());
             this.totSize = zd.getXGridAxis().getBinCount();
         }
     }

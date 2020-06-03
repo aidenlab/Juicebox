@@ -35,10 +35,7 @@ import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +123,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
     private List<Block> addNormalizedBlocksToListByGenomeCoordinates(int gx1, int gy1, int gx2, int gy2,
                                                                      final NormalizationType no) {
-        List<Block> blockList = new ArrayList<>();
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
         Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new HashMap<>();
         // remember these are pseudo genome coordinates
 
