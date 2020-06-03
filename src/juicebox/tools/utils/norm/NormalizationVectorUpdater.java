@@ -47,8 +47,12 @@ import java.util.*;
 public class NormalizationVectorUpdater extends NormVectorUpdater {
 
     protected BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
+    protected Map<Integer, BufferedByteWriter> normVectorBuffers = new HashMap<>();
+    protected static int currentBuffer = 0;
     protected List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
     protected List<ExpectedValueCalculation> expectedValueCalculations = new ArrayList<>();
+
+    protected static long masterPosition;
 
     // Keep track of chromosomes that fail to converge, so we don't try them at higher resolutions.
     protected Set<Chromosome> krBPFailedChromosomes = new HashSet<>();

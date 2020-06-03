@@ -25,20 +25,22 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.HiC;
-import juicebox.data.DatasetReaderV2;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.*;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class NormVectorUpdater {
+
+    private static int currentExpectedBuffer=0;
 
     static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
                                                 int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
@@ -47,6 +49,15 @@ public class NormVectorUpdater {
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
         normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
 
+    }
+
+    public static int updateNormVectorIndexWithVector(long masterPosition, List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
+                                                int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
+        int position = normVectorBuffer.bytesWritten();
+        putArrayValuesIntoBuffer(normVectorBuffer, vec);
+        int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+        normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), masterPosition, sizeInBytes));
+        return sizeInBytes;
     }
 
     public static boolean isValidNormValue(double v) {
@@ -72,6 +83,14 @@ public class NormVectorUpdater {
         byte[] evBytes = buffer.getBytes();
         raf.getChannel().position(filePosition);
         raf.write(evBytes);
+    }
+
+    private static void writeExpectedToBuffer(RandomAccessFile raf, Map<Integer,BufferedByteWriter> expectedBuffers, long filePosition) throws IOException {
+        raf.getChannel().position(filePosition);
+        for (int i=0;i<=currentExpectedBuffer;i+=1) {
+            byte[] evBytes = expectedBuffers.get(i).getBytes();
+            raf.write(evBytes);
+        }
     }
 
     private static void handleVersionSix(RandomAccessFile raf, int version) throws IOException {
@@ -124,6 +143,26 @@ public class NormVectorUpdater {
         System.out.println(message);
     }
 
+    static void writeNormsToUpdateFile(DatasetReaderV2 reader, String path, boolean useCalcNotFunc,
+                                       List<ExpectedValueCalculation> expectedValueCalculations,
+                                       Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                                       List<NormalizationVectorIndexEntry> normVectorIndices,
+                                       BufferedByteWriter normVectorBuffer, Map<Integer,BufferedByteWriter> normVectorBuffers, int currentBuffer, String message) throws IOException {
+        int version = reader.getVersion();
+        long filePosition = reader.getNormFilePosition();
+        reader.close();
+        System.out.println();
+        if (useCalcNotFunc) {
+            update(path, version, filePosition, expectedValueCalculations, normVectorIndices,
+                    normVectorBuffer, normVectorBuffers, currentBuffer);
+        } else {
+            update(path, version, filePosition, expectedValueFunctionMap, normVectorIndices,
+                    normVectorBuffer.getBytes());
+        }
+
+        System.out.println(message);
+    }
+
     private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
                                List<NormalizationVectorIndexEntry> normVectorIndex, byte[] normVectorBuffer) throws IOException {
 
@@ -133,6 +172,19 @@ public class NormVectorUpdater {
             writeExpectedValues(buffer, expectedValueCalculations);
             writeExpectedToBuffer(raf, buffer, filePosition);
             writeNormsToBuffer(raf, normVectorIndex, normVectorBuffer);
+        }
+    }
+
+    private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
+                               List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, Map<Integer,BufferedByteWriter> normVectorBuffers, int currentBuffer) throws IOException {
+
+        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
+            handleVersionSix(raf, version);
+            Map<Integer,BufferedByteWriter> expectedBuffers = new HashMap<>();
+            expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+            writeExpectedValues(expectedBuffers, expectedValueCalculations);
+            writeExpectedToBuffer(raf, expectedBuffers, filePosition);
+            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffer, normVectorBuffers, currentBuffer);
         }
     }
 
@@ -148,7 +200,6 @@ public class NormVectorUpdater {
         }
     }
 
-
     private static void writeExpectedValues(BufferedByteWriter buffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
 
         buffer.putInt(expectedValueCalculations.size());
@@ -161,6 +212,67 @@ public class NormVectorUpdater {
 
             buffer.putInt(ev.getGridSize());
             putArrayValuesIntoBuffer(buffer, ev.getDensityAvg());
+            putMapValuesIntoBuffer(buffer, ev.getChrScaleFactors());
+        }
+    }
+
+    private static void writeExpectedValues(Map<Integer,BufferedByteWriter> expectedBuffers, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
+
+        BufferedByteWriter buffer = expectedBuffers.get(currentExpectedBuffer);
+        int freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+        int bytesNeeded = 4;
+        if (bytesNeeded >= freeBytes) {
+            currentExpectedBuffer += 1;
+            expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+            buffer = expectedBuffers.get(currentExpectedBuffer);
+        }
+        expectedBuffers.get(currentExpectedBuffer).putInt(expectedValueCalculations.size());
+        for (ExpectedValueCalculation ev : expectedValueCalculations) {
+            ev.computeDensity();
+            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+            bytesNeeded = ev.getType().toString().length()+1;
+            if (bytesNeeded >= freeBytes) {
+                currentExpectedBuffer += 1;
+                expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+                buffer = expectedBuffers.get(currentExpectedBuffer);
+            }
+            buffer.putNullTerminatedString(ev.getType().toString());
+
+            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
+            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+            bytesNeeded = unit.toString().length()+1;
+            if (bytesNeeded >= freeBytes) {
+                currentExpectedBuffer += 1;
+                expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+                buffer = expectedBuffers.get(currentExpectedBuffer);
+            }
+            buffer.putNullTerminatedString(unit.toString());
+
+            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+            bytesNeeded = 4;
+            if (bytesNeeded >= freeBytes) {
+                currentExpectedBuffer += 1;
+                expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+                buffer = expectedBuffers.get(currentExpectedBuffer);
+            }
+            buffer.putInt(ev.getGridSize());
+
+            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+            bytesNeeded = 4+(8*ev.getDensityAvg().length);
+            if (bytesNeeded >= freeBytes) {
+                currentExpectedBuffer += 1;
+                expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+                buffer = expectedBuffers.get(currentExpectedBuffer);
+            }
+            putArrayValuesIntoBuffer(buffer, ev.getDensityAvg());
+
+            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
+            bytesNeeded = 4+(12*ev.getChrScaleFactors().size());
+            if (bytesNeeded >= freeBytes) {
+                currentExpectedBuffer += 1;
+                expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
+                buffer = expectedBuffers.get(currentExpectedBuffer);
+            }
             putMapValuesIntoBuffer(buffer, ev.getChrScaleFactors());
         }
     }
@@ -195,5 +307,28 @@ public class NormVectorUpdater {
 
         // Finally the norm vectors
         raf.write(normVectorBuffer);
+    }
+
+    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, Map<Integer,BufferedByteWriter> normVectorBuffers, int currentBuffer) throws IOException {
+        // Get the size of the index in bytes, to compute an offset for the actual entries.
+        BufferedByteWriter buffer = new BufferedByteWriter();
+        writeNormIndex(buffer, normVectorIndex);
+        long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
+
+        // Update index entries
+        for (NormalizationVectorIndexEntry entry : normVectorIndex) {
+            entry.position += normVectorStartPosition;
+        }
+
+        // Now write for real
+        buffer = new BufferedByteWriter();
+        writeNormIndex(buffer, normVectorIndex);
+        raf.write(buffer.getBytes());
+
+        // Finally the norm vectors
+        raf.write(normVectorBuffer.getBytes());
+        for (int i=0; i<=currentBuffer; i+=1) {
+            raf.write(normVectorBuffers.get(i).getBytes());
+        }
     }
 }

@@ -94,6 +94,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 System.out.println("HiC file version: " + version);
             }
             masterIndexPos = dis.readLong();
+
             position += 8;
 
             // will set genomeId below

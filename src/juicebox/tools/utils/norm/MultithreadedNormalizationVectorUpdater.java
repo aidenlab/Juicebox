@@ -92,6 +92,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
                         normVectorIndices, normVectorBuffer, expectedValueCalculations);
             }
+            masterPosition = normVectorBuffer.bytesWritten();
 
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
@@ -129,7 +130,15 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
                     @Override
                     public void run() {
                         try {
-                            runIndividualChromosomeCode(chromosomeIndex, chromosomeHandler, ds, zoom, resolutionsToBuildTo,
+                            DatasetReaderV2 localReader;
+                            Dataset localds;
+                            ChromosomeHandler localChromosomeHandler;
+                            synchronized(this){
+                                localReader = new DatasetReaderV2(path);
+                                localds = localReader.read();
+                                localChromosomeHandler = localds.getChromosomeHandler();
+                            }
+                            runIndividualChromosomeCode(chromosomeIndex, localds, localChromosomeHandler, zoom, resolutionsToBuildTo,
                                     withinZoomVCSumFactors, withinZoomVCSQRTSumFactors, withinZoomKRSumFactors, withinZoomSCALESumFactors,
                                     withinZoomVCVectors, withinZoomVCSQRTVectors, withinZoomKRVectors, withinZoomSCALEVectors,
                                     withinZoomSynckrBPFailedChromosomes, withinZoomSynckrFragFailedChromosomes, withinZoomSyncmmbaBPFailedChromosomes,
@@ -149,39 +158,45 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
             while (!executor.isTerminated()) {
             }
 
+            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
                 if (allChrZoomData.get(chr.getIndex()) == null) continue;
 
+
                 if (weShouldBuildVC && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC)) {
-                    updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomVCSumFactors.get(chr.getIndex()),
-                            withinZoomVCVectors.get(chr.getIndex()), NormalizationHandler.VC,
-                            zoom, allChrZoomData.get(chr.getIndex()), evVC, normVectorBuffer, normVectorIndices);
+                    if (withinZoomVCSumFactors.get(chr.getIndex())!=null&&withinZoomVCVectors.get(chr.getIndex())!=null) {
+                        updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomVCSumFactors.get(chr.getIndex()),
+                                withinZoomVCVectors.get(chr.getIndex()), NormalizationHandler.VC,
+                                zoom, allChrZoomData.get(chr.getIndex()), evVC, normVectorBuffers, normVectorIndices);
+                    }
                 }
                 if (weShouldBuildVCSqrt && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC_SQRT)) {
-                    updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomVCSQRTSumFactors.get(chr.getIndex()),
-                            withinZoomVCSQRTVectors.get(chr.getIndex()), NormalizationHandler.VC_SQRT,
-                            zoom, allChrZoomData.get(chr.getIndex()), evVCSqrt, normVectorBuffer, normVectorIndices);
+                    if (withinZoomVCSQRTSumFactors.get(chr.getIndex())!=null&&withinZoomVCSQRTVectors.get(chr.getIndex())!=null) {
+                        updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomVCSQRTSumFactors.get(chr.getIndex()),
+                                withinZoomVCSQRTVectors.get(chr.getIndex()), NormalizationHandler.VC_SQRT,
+                                zoom, allChrZoomData.get(chr.getIndex()), evVCSqrt, normVectorBuffers, normVectorIndices);
+                    }
                 }
 
                 // KR normalization
                 if (weShouldBuildKR && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
                     Set<Chromosome> withinZoomFailureSetKR = zoom.getUnit() == HiC.Unit.FRAG ? withinZoomSynckrFragFailedChromosomes : withinZoomSynckrBPFailedChromosomes;
-                    if (!withinZoomFailureSetKR.contains(chr)) {
+                    if (!withinZoomFailureSetKR.contains(chr)&&withinZoomKRSumFactors.get(chr.getIndex())!=null&&withinZoomKRVectors.get(chr.getIndex())!=null) {
                         updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomKRSumFactors.get(chr.getIndex()),
                                 withinZoomKRVectors.get(chr.getIndex()), NormalizationHandler.KR,
-                                zoom, allChrZoomData.get(chr.getIndex()), evKR, normVectorBuffer, normVectorIndices);
+                                zoom, allChrZoomData.get(chr.getIndex()), evKR, normVectorBuffers, normVectorIndices);
                     }
                 }
 
                 // Fast scaling normalization
                 if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
                     Set<Chromosome> withinZoomFailureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? withinZoomSyncmmbaFragFailedChromosomes : withinZoomSyncmmbaBPFailedChromosomes;
-                    if (!withinZoomFailureSetMMBA.contains(chr)) {
+                    if (!withinZoomFailureSetMMBA.contains(chr)&&withinZoomSCALESumFactors.get(chr.getIndex())!=null&&withinZoomSCALEVectors.get(chr.getIndex())!=null) {
                         updateExpectedValueCalculationForChr(chr.getIndex(), withinZoomSCALESumFactors.get(chr.getIndex()),
                                 withinZoomSCALEVectors.get(chr.getIndex()), NormalizationHandler.SCALE,
-                                zoom, allChrZoomData.get(chr.getIndex()), evSCALE, normVectorBuffer, normVectorIndices);
+                                zoom, allChrZoomData.get(chr.getIndex()), evSCALE, normVectorBuffers, normVectorIndices);
                     }
                 }
             }
@@ -202,11 +217,11 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
-                normVectorBuffer, "Finished writing norms");
+                normVectorBuffer, normVectorBuffers, currentBuffer, "Finished writing norms");
     }
 
-    protected void runIndividualChromosomeCode(AtomicInteger chromosomeIndex, ChromosomeHandler chromosomeHandler,
-                                               Dataset ds, HiCZoom zoom, Map<NormalizationType, Integer> resolutionsToBuildTo,
+    protected void runIndividualChromosomeCode(AtomicInteger chromosomeIndex,
+                                               Dataset ds, ChromosomeHandler chromosomeHandler, HiCZoom zoom, Map<NormalizationType, Integer> resolutionsToBuildTo,
                                                Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, Double> withinZoomVCSQRTSumFactors,
                                                Map<Integer, Double> withinZoomKRSumFactors, Map<Integer, Double> withinZoomSCALESumFactors,
                                                Map<Integer, double[]> withinZoomVCVectors, Map<Integer, double[]> withinZoomVCSQRTVectors,
@@ -214,11 +229,12 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
                                                Set<Chromosome> withinZoomSynckrBPFailedChromosomes, Set<Chromosome> withinZoomSynckrFragFailedChromosomes,
                                                Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes, Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes,
                                                Map<Integer, MatrixZoomData> allChrZoomData, int threadnum) throws IOException {
+
         int i = chromosomeIndex.getAndIncrement();
         while (i < chromosomeHandler.getChromosomeArrayWithoutAllByAll().length) {
             Chromosome chr = chromosomeHandler.getChromosomeArrayWithoutAllByAll()[i];
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
-            allChrZoomData.put(chr.getIndex(), zd);
+
             if (zd == null) {
                 i = chromosomeIndex.getAndIncrement();
                 continue;
@@ -229,6 +245,8 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
                 i = chromosomeIndex.getAndIncrement();
                 continue;
             }
+            allChrZoomData.put(chr.getIndex(), zd);
+
             if (weShouldBuildVC || weShouldBuildVCSqrt) {
 
                 buildVCOrVCSQRT(weShouldBuildVC && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC),
@@ -323,13 +341,24 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
     }
 
     protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                               ExpectedValueCalculation ev, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+                                                               ExpectedValueCalculation ev, Map<Integer, BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
         for (int i = 0; i < vec.length; i++) {
             vec[i] = vec[i] * factor;
         }
 
-        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
+        BufferedByteWriter normVectorBuffer = normVectorBuffers.get(currentBuffer);
+        int updateSize = 0;
+        int freeBytes = Integer.MAX_VALUE - normVectorBuffer.bytesWritten();
+        int bytesNeeded = 4 + (8*vec.length);
+        if (bytesNeeded >= freeBytes) {
+            currentBuffer += 1;
+            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
+            normVectorBuffer = normVectorBuffers.get(currentBuffer);
+        }
+        updateSize = updateNormVectorIndexWithVector(masterPosition, normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
+        masterPosition += updateSize;
 
         ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
+
     }
 }

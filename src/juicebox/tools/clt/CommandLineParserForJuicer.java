@@ -36,10 +36,10 @@ import java.util.List;
 public class CommandLineParserForJuicer extends CommandLineParser {
 
     // used flags
-    // wmnxcrplafdptkqbvuhgjyz
+    // wmnxcrplafdptkqbvuhgjyzo
 
     // available flags
-    // oes
+    // es
 
     // General
     private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
@@ -56,6 +56,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner-width");
     private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
     private final Option apaSaveAllData = addBooleanOption('u', "save-all");
+    private final Option apaDontIncludePlots = addBooleanOption('o', "no-plots");
 
     // HICCUPS
     private final Option fdrOption = addStringOption('f', "fdr-thresholds");
@@ -95,6 +96,10 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public boolean getAPASaveAllData() {
         return optionToBoolean(apaSaveAllData);
+    }
+
+    public boolean getAPADontIncludePlots() {
+        return optionToBoolean(apaDontIncludePlots);
     }
 
     /**
