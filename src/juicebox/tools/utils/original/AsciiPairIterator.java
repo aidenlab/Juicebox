@@ -56,7 +56,7 @@ public class AsciiPairIterator implements PairIterator {
     private int dcicFragIndex2 = -1;
     private int dcicMapqIndex1 = -1;
     private int dcicMapqIndex2 = -1;
-    private ChromosomeHandler handler;
+    private final ChromosomeHandler handler;
     //CharMatcher.anyOf(";,.")
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, ChromosomeHandler handler) throws IOException {
@@ -74,7 +74,8 @@ public class AsciiPairIterator implements PairIterator {
         advance();
     }
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex) throws IOException {
+    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex, ChromosomeHandler handler) throws IOException {
+        this.handler = handler;
         if (path.endsWith(".gz")) {
             System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
             System.exit(70);

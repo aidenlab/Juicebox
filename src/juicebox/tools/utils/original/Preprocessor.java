@@ -80,7 +80,7 @@ public class Preprocessor {
     protected Alignment alignmentFilter;
     protected static final Random random = new Random(5);
     protected static boolean allowPositionsRandomization = false;
-    protected static boolean throwOutIntraFrag = true;
+    protected static boolean throwOutIntraFrag = false;
 
     // Base-pair resolutions
     protected int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
@@ -247,8 +247,8 @@ public class Preprocessor {
         Preprocessor.allowPositionsRandomization = allowPositionsRandomization;
     }
 
-    public void setKeepIntraFragOption(boolean keepIntraFrag) {
-        Preprocessor.throwOutIntraFrag = !keepIntraFrag;
+    public void setThrowOutIntraFragOption(boolean throwOutIntraFrag) {
+        Preprocessor.throwOutIntraFrag = throwOutIntraFrag;
     }
 
     protected static FragmentCalculation findFragMap(List<FragmentCalculation> maps, String chr, int bp, int frag) {
@@ -554,8 +554,8 @@ public class Preprocessor {
 
         PairIterator iter = null;
 
-        int belowMapq = 0;
-        int intraFrag = 0;
+        //int belowMapq = 0;
+        //int intraFrag = 0;
         int totalRead = 0;
         int contig = 0;
         int hicContact = 0;
@@ -576,35 +576,13 @@ public class Preprocessor {
                     int bp2 = pair.getPos2();
                     int chr1 = pair.getChr1();
                     int chr2 = pair.getChr2();
-                    int frag1 = pair.getFrag1();
-                    int frag2 = pair.getFrag2();
-                    int mapq1 = pair.getMapq1();
-                    int mapq2 = pair.getMapq2();
 
                     int pos1, pos2;
-                    if (diagonalsOnly && chr1 != chr2) continue;
-                    if (includedChromosomes != null && chr1 != 0) {
-                        String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
-                        String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                        if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
-                            continue;
-                        }
-                    }
-
-                    if (alignmentFilter != null && !alignmentsAreEqual(calculateAlignment(pair), alignmentFilter)) {
-                        continue;
-                    }
-
-                    if (throwOutIntraFrag && chr1 == chr2 && frag1 == frag2) {
-                        intraFrag++;
-                    } else if (mapq1 < mapqThreshold || mapq2 < mapqThreshold) {
-                        belowMapq++;
-                    } else {
-                        pos1 = getGenomicPosition(chr1, bp1);
-                        pos2 = getGenomicPosition(chr2, bp2);
-                        matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), expectedValueCalculations, tmpDir);
-                        hicContact++;
-                    }
+                    if (shouldSkipContact(pair)) continue;
+                    pos1 = getGenomicPosition(chr1, bp1);
+                    pos2 = getGenomicPosition(chr2, bp2);
+                    matrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), expectedValueCalculations, tmpDir);
+                    hicContact++;
                 }
             }
         } finally {

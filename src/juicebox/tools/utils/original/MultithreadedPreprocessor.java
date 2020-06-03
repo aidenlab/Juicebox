@@ -48,10 +48,9 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, MatrixPP> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
     private final Map<String, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> matrixSizes = new ConcurrentHashMap<>();
-    private LittleEndianOutputStream losFooter;
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
-    protected static String mndIndexFile;
+    protected static Map<Integer, Long> mndIndex = null;
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
@@ -89,28 +88,31 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     public void setMndIndex(String mndIndexFile) {
-        MultithreadedPreprocessor.mndIndexFile = mndIndexFile;
+        if (mndIndexFile != null && mndIndexFile.length() > 1) {
+            mndIndex = readMndIndex(mndIndexFile);
+        }
     }
 
     @Override
     public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer, Long> ignore3) throws IOException {
-        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
-        if (mndIndexFile != null) {
-            mndIndex = readMndIndex(mndIndexFile);
-        }
         super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 
         try {
-            PrintWriter finalOutput = new PrintWriter("catOutputs.sh");
-            StringBuilder outputLine = new StringBuilder();
-            outputLine.append("cat ").append(outputFile + "_header");
+            PrintWriter finalOutput = new PrintWriter(outputFile + "catOutputs.sh");
+            StringBuilder catOutputLine = new StringBuilder();
+            StringBuilder removeLine = new StringBuilder();
+            catOutputLine.append("cat ").append(outputFile + "_header");
+            removeLine.append("rm ").append(outputFile + "_header");
             for (int i = 0; i < chromosomePairCounter; i++) {
                 if (nonemptyChromosomePairs.containsKey(i) || i == 0) {
-                    outputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
+                    catOutputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
+                    removeLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
                 }
             }
-            outputLine.append(" ").append(outputFile + "_footer").append("\n");
-            finalOutput.println(outputLine.toString());
+            catOutputLine.append(" ").append(outputFile + "_footer").append(" > ").append(outputFile).append("\n");
+            removeLine.append(" ").append(outputFile + "_footer\n");
+            finalOutput.println(catOutputLine.toString());
+            finalOutput.println(removeLine.toString());
             finalOutput.close();
         } catch (Exception e) {
             System.err.println("Unable to write to catOutputs.sh");
@@ -118,10 +120,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
     }
 
-    private Map<Integer,Long> readMndIndex(String mndIndexFile) throws IOException {
+    private Map<Integer, Long> readMndIndex(String mndIndexFile) {
         FileInputStream is = null;
-        Map<String,Long> tempIndex = new HashMap<>();
-        Map<Integer,Long> mndIndex = new ConcurrentHashMap<>();
+        Map<String, Long> tempIndex = new HashMap<>();
+        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
         try {
             is = new FileInputStream(mndIndexFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
@@ -161,19 +163,18 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     }
 
-    private void writeBodySingleChromosomePair(String inputFile, String chrInputFile, Set<String> syncWrittenMatrices, ChromosomeHandler
+    private void writeBodySingleChromosomePair(String inputFile, String splitInputFile, Set<String> syncWrittenMatrices, ChromosomeHandler
             localChromosomeHandler, Long mndIndexPosition) throws IOException {
 
         MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(localChromosomeHandler);
 
         PairIterator iter;
-        if (mndIndexFile == null) {
+        if (mndIndex == null) {
             iter = (inputFile.endsWith(".bin")) ?
-                    new BinPairIterator(chrInputFile) :
-                    new AsciiPairIterator(chrInputFile, chromosomeIndexes, chromosomeHandler);
+                    new BinPairIterator(splitInputFile) :
+                    new AsciiPairIterator(splitInputFile, chromosomeIndexes, chromosomeHandler);
         } else {
-            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, mndIndexPosition);
-
+            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, mndIndexPosition, chromosomeHandler);
         }
 
 
@@ -329,34 +330,38 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         while (i < localChromosomePairCounter) {
             Long mndIndexPosition = (long) 0;
-            if (mndIndexFile != null) {
+            if (mndIndex != null) {
                 if (!mndIndex.containsKey(i)) {
                     System.out.println("No index position for " + chromosomePairIndexes.get(i));
                     continue;
                 } else {
                     mndIndexPosition = mndIndex.get(i);
+                    try {
+                        writeBodySingleChromosomePair(inputFile, null, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
                 }
-            }
-            boolean isGZ = inputFile.endsWith(".gz");
-            String chrInputFile = inputFile.replaceAll(".gz", "") + "_" + chromosomePairIndexes.get(i);
-            String chrInputFile2 = inputFile + "_" + chromosomeHandler.getChromosomeFromIndex(
-                    chromosomePairIndex2.get(i)).getName() + "_" + chromosomeHandler.getChromosomeFromIndex(
-                    chromosomePairIndex1.get(i)).getName();
-            if (isGZ) {
-                chrInputFile = chrInputFile + ".gz";
-                chrInputFile2 = chrInputFile2 + ".gz";
-            }
+            } else {
+                // split method; deprecate?
+                boolean isGZ = inputFile.endsWith(".gz");
+                String chrInputFile = inputFile.replaceAll(".gz", "") + "_" + chromosomePairIndexes.get(i);
+                String chrInputFile2 = inputFile + "_" + chromosomeHandler.getChromosomeFromIndex(
+                        chromosomePairIndex2.get(i)).getName() + "_" + chromosomeHandler.getChromosomeFromIndex(
+                        chromosomePairIndex1.get(i)).getName();
+                if (isGZ) {
+                    chrInputFile = chrInputFile + ".gz";
+                    chrInputFile2 = chrInputFile2 + ".gz";
+                }
 
-            try {
-                writeBodySingleChromosomePair(inputFile, chrInputFile,
-                        syncWrittenMatrices, chromosomeHandler,
-                        mndIndexPosition);
-            } catch (Exception e) {
                 try {
-                    writeBodySingleChromosomePair(inputFile, chrInputFile2, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
-
-                } catch (Exception e2) {
-                    System.err.println("Unable to open " + inputFile + "_" + chromosomePairIndexes.get(i));
+                    writeBodySingleChromosomePair(inputFile, chrInputFile, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                } catch (Exception e) {
+                    try {
+                        writeBodySingleChromosomePair(inputFile, chrInputFile2, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                    } catch (Exception e2) {
+                        System.err.println("Unable to open " + inputFile + "_" + chromosomePairIndexes.get(i));
+                    }
                 }
             }
             int chr1 = chromosomePairIndex1.get(i);
