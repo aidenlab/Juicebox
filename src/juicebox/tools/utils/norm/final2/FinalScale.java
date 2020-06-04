@@ -34,7 +34,7 @@ public class FinalScale {
     private final static float tol = .0005f;
     private final static boolean zerodiag = false;
     private final static boolean removeZerosOnDiag = false;
-    private final static float percentLowRowSumExcluded = 0.001f;
+    private final static float percentLowRowSumExcluded = 0.0001f;
     private final static float dp = percentLowRowSumExcluded / 2;
     private final static float percentZValsToIgnore = 0.0025f;
     private final static float dp1 = percentZValsToIgnore / 2;
