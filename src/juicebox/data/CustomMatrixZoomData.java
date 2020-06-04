@@ -36,6 +36,7 @@ import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +125,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     private List<Block> addNormalizedBlocksToListByGenomeCoordinates(int gx1, int gy1, int gx2, int gy2,
                                                                      final NormalizationType no) {
         List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
-        Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new HashMap<>();
+        Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new ConcurrentHashMap<>();
         // remember these are pseudo genome coordinates
 
         // x window
@@ -348,6 +349,11 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
         return 0;
         */
+    }
+
+    @Override
+    public double getAverageCount() {
+        return 10; //todo
     }
 
 

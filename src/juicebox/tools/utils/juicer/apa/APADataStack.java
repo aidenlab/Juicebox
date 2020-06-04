@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -178,17 +178,9 @@ public class APADataStack {
     public synchronized void updateGenomeWideData() {
         synchronized(gwAPAMatrix) {
             gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
-        }
-        synchronized(gwNormedAPAMatrix) {
             gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
-        }
-        synchronized(gwCenterNormedAPAMatrix) {
             gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);
-        }
-        synchronized(gwRankAPAMatrix) {
             gwRankAPAMatrix = gwRankAPAMatrix.add(rankAPAMatrix);
-        }
-        synchronized(gwEnhancement) {
             gwEnhancement.addAll(enhancement);
         }
     }

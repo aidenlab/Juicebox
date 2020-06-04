@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -361,7 +361,7 @@ public class CombinedDatasetReader implements DatasetReader {
             double[] expectedValues = new double[len];
 
             for (ExpectedValueFunction df : densityFunctions) {
-                double[] current = df.getExpectedValues();
+                double[] current = df.getExpectedValuesNoNormalization();
                 for (int i = 0; i < len; i++) {
                     expectedValues[i] += current[i];
                 }

@@ -22,29 +22,35 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
+package juicebox.tools.utils.original;
 
-import juicebox.HiC;
-import juicebox.windowui.NormalizationType;
+import java.util.*;
 
-/**
- * @author jrobinso
- *         Date: 12/26/12
- *         Time: 9:30 PM
- */
-public interface ExpectedValueFunction {
+class BlockQueueMem implements BlockQueue {
 
-    double getExpectedValue(int chrIdx, int distance);
+    final List<BlockPP> blocks;
+    int idx = 0;
 
-    int getLength();
+    BlockQueueMem(Collection<BlockPP> blockCollection) {
 
-    NormalizationType getNormalizationType();
+        this.blocks = new ArrayList<>(blockCollection);
+        Collections.sort(blocks, new Comparator<BlockPP>() {
+            @Override
+            public int compare(BlockPP o1, BlockPP o2) {
+                return o1.getNumber() - o2.getNumber();
+            }
+        });
+    }
 
-    HiC.Unit getUnit();
+    public void advance() {
+        idx++;
+    }
 
-    int getBinSize();
-
-    double[] getExpectedValuesNoNormalization();
-
-    double[] getExpectedValuesWithNormalization(int chrIdx);
+    public BlockPP getBlock() {
+        if (idx >= blocks.size()) {
+            return null;
+        } else {
+            return blocks.get(idx);
+        }
+    }
 }

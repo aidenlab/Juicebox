@@ -22,29 +22,21 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
+package juicebox.tools.utils.original;
 
-import juicebox.HiC;
-import juicebox.windowui.NormalizationType;
+public class IndexEntry {
+    public final long position;
+    public final int size;
+    int id;
 
-/**
- * @author jrobinso
- *         Date: 12/26/12
- *         Time: 9:30 PM
- */
-public interface ExpectedValueFunction {
+    IndexEntry(int id, long position, int size) {
+        this.id = id;
+        this.position = position;
+        this.size = size;
+    }
 
-    double getExpectedValue(int chrIdx, int distance);
-
-    int getLength();
-
-    NormalizationType getNormalizationType();
-
-    HiC.Unit getUnit();
-
-    int getBinSize();
-
-    double[] getExpectedValuesNoNormalization();
-
-    double[] getExpectedValuesWithNormalization(int chrIdx);
+    public IndexEntry(long position, int size) {
+        this.position = position;
+        this.size = size;
+    }
 }

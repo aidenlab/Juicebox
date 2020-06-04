@@ -52,6 +52,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option allPearsonsOption = addBooleanOption('p', "pearsons-all-resolutions");
     private final Option noFragNormOption = addBooleanOption('F', "no_fragment-normalization");
     private final Option randomizePositionOption = addBooleanOption("randomize_position");
+    private final Option throwIntraFragOption = addBooleanOption("skip-intra-frag");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -109,14 +110,24 @@ public class CommandLineParser extends CmdLineParser {
 
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
 
-    public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
+    public boolean getAllPearsonsOption() {
+        return optionToBoolean(allPearsonsOption);
+    }
 
-    public boolean getNoFragNormOption() { return optionToBoolean(noFragNormOption); }
+    public boolean getNoFragNormOption() {
+        return optionToBoolean(noFragNormOption);
+    }
 
-    public boolean getVersionOption() { return optionToBoolean(versionOption); }
+    public boolean getVersionOption() {
+        return optionToBoolean(versionOption);
+    }
 
     public boolean getRandomizePositionsOption() {
         return optionToBoolean(randomizePositionOption);
+    }
+
+    public boolean getThrowIntraFragOption() {
+        return optionToBoolean(throwIntraFragOption);
     }
 
     /**

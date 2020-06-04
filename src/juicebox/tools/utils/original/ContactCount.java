@@ -22,29 +22,20 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
+package juicebox.tools.utils.original;
 
-import juicebox.HiC;
-import juicebox.windowui.NormalizationType;
+class ContactCount {
+    float value;
 
-/**
- * @author jrobinso
- *         Date: 12/26/12
- *         Time: 9:30 PM
- */
-public interface ExpectedValueFunction {
+    ContactCount(float value) {
+        this.value = value;
+    }
 
-    double getExpectedValue(int chrIdx, int distance);
+    void incrementCount(float increment) {
+        value += increment;
+    }
 
-    int getLength();
-
-    NormalizationType getNormalizationType();
-
-    HiC.Unit getUnit();
-
-    int getBinSize();
-
-    double[] getExpectedValuesNoNormalization();
-
-    double[] getExpectedValuesWithNormalization(int chrIdx);
+    float getCounts() {
+        return value;
+    }
 }

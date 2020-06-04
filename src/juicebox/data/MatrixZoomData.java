@@ -40,7 +40,6 @@ import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
-import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
@@ -80,6 +79,8 @@ public class MatrixZoomData {
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
+    private List<List<ContactRecord>> localCacheOfRecords = null;
+    private long numberOfContactRecords = 0;
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -181,7 +182,7 @@ public class MatrixZoomData {
     }
 
     public String getNormLessBlockKey(Block block) {
-        return getKey() + "_" + block.getNumber() + "_";
+        return getKey() + "_" + block.getNumber() + "_" + block.getUniqueRegionID();
     }
 
     private String getBlockKey(int blockNumber, NormalizationType no, int chr1, int chr2) {
@@ -734,35 +735,33 @@ public class MatrixZoomData {
         // Compute O/E column vectors
         double[][] vectors = new double[dim][];
 
-        // Loop through all contact records
-        Iterator<ContactRecord> iter = getNewContactRecordIterator();
-        while (iter.hasNext()) {
+        for (List<ContactRecord> recordList : getContactRecordList()) {
+            for (ContactRecord record : recordList) {
+                int i = record.getBinX();
+                int j = record.getBinY();
+                float counts = record.getCounts();
+                if (Float.isNaN(counts)) continue;
 
-            ContactRecord record = iter.next();
-            int i = record.getBinX();
-            int j = record.getBinY();
-            float counts = record.getCounts();
-            if (Float.isNaN(counts)) continue;
+                int dist = Math.abs(i - j);
+                double expected = df.getExpectedValue(chr1.getIndex(), dist);
+                double oeValue = counts / expected;
 
-            int dist = Math.abs(i - j);
-            double expected = df.getExpectedValue(chr1.getIndex(), dist);
-            double oeValue = counts / expected;
+                double[] vi = vectors[i];
+                if (vi == null) {
+                    vi = new double[dim]; //zeroValue) ;
+                    vectors[i] = vi;
+                }
+                vi[j] = oeValue;
 
-            double[] vi = vectors[i];
-            if (vi == null) {
-                vi = new double[dim]; //zeroValue) ;
-                vectors[i] = vi;
+
+                double[] vj = vectors[j];
+                if (vj == null) {
+                    vj = new double[dim]; // zeroValue) ;
+                    vectors[j] = vj;
+                }
+                vj[i] = oeValue;
+
             }
-            vi[j] = oeValue;
-
-
-            double[] vj = vectors[j];
-            if (vj == null) {
-                vj = new double[dim]; // zeroValue) ;
-                vectors[j] = vj;
-            }
-            vj[i] = oeValue;
-
         }
 
         // Subtract row means
@@ -1129,102 +1128,41 @@ public class MatrixZoomData {
         this.averageCount = averageCount;
     }
 
-    /**
-     * Returns iterator for contact records
-     *
-     * @return iterator for contact records
-     */
-    public Iterator<ContactRecord> getNewContactRecordIterator() {
-        return new ContactRecordIterator();
-    }
-
-    public List<ContactRecord> getContactRecordList() {
-        List<ContactRecord> records = new ArrayList<>();
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            ContactRecord cr = iterator.next();
-            records.add(cr);
+    public List<List<ContactRecord>> getContactRecordList() {
+        if (localCacheOfRecords == null || localCacheOfRecords.size() < 1) {
+            numberOfContactRecords = 0;
+            localCacheOfRecords = new ArrayList<>(3);
+            List<ContactRecord> currentList = new ArrayList<>(1000000);
+            int localCounter = 0;
+            int maxAllowed = 9 * (Integer.MAX_VALUE / 10);
+            Iterator<ContactRecord> iterator = new ContactRecordIterator(reader, this, blockCache);
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                currentList.add(cr);
+                numberOfContactRecords++;
+                localCounter++;
+                if (localCounter > maxAllowed) {
+                    // make new ArrayList
+                    localCacheOfRecords.add(currentList);
+                    localCounter = 0;
+                    currentList = new ArrayList<>();
+                }
+            }
+            if (localCounter > 0) { // add last list
+                localCacheOfRecords.add(currentList);
+            }
         }
-        return records;
+        return localCacheOfRecords;
     }
 
     public void clearCache() {
         blockCache.clear();
     }
 
-
-    /**
-     * Class for iterating over the contact records
-     */
-    class ContactRecordIterator implements Iterator<ContactRecord> {
-
-        final List<Integer> blockNumbers;
-        int blockIdx;
-        Iterator<ContactRecord> currentBlockIterator;
-
-        /**
-         * Initializes the iterator
-         */
-        ContactRecordIterator() {
-            this.blockIdx = -1;
-            this.blockNumbers = reader.getBlockNumbers(MatrixZoomData.this);
+    public long getNumberOfContactRecords() {
+        if (numberOfContactRecords == 0) {
+            getContactRecordList();
         }
-
-        /**
-         * Indicates whether or not there is another block waiting; checks current block
-         * iterator and creates a new one if need be
-         *
-         * @return true if there is another block to be read
-         */
-        @Override
-        public boolean hasNext() {
-
-            if (currentBlockIterator != null && currentBlockIterator.hasNext()) {
-                return true;
-            } else {
-                blockIdx++;
-                if (blockIdx < blockNumbers.size()) {
-                    try {
-                        int blockNumber = blockNumbers.get(blockIdx);
-
-                        // Optionally check the cache
-                        // TODO why is this always NONE, should trace to ensure hard coding doesn't cause bug?
-                        String key = getBlockKey(blockNumber, NormalizationHandler.NONE);
-                        Block nextBlock;
-                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
-                            nextBlock = blockCache.get(key);
-                        } else {
-                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationHandler.NONE);
-                        }
-                        currentBlockIterator = nextBlock.getContactRecords().iterator();
-                        return true;
-                    } catch (IOException e) {
-                        System.err.println("Error fetching block " + e.getMessage());
-                        return false;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        /**
-         * Returns the next contact record
-         *
-         * @return The next contact record
-         */
-        @Override
-        public ContactRecord next() {
-            return currentBlockIterator == null ? null : currentBlockIterator.next();
-        }
-
-        /**
-         * Not supported
-         */
-        @Override
-        public void remove() {
-            //Not supported
-            throw new RuntimeException("remove() is not supported");
-        }
+        return numberOfContactRecords;
     }
 }
