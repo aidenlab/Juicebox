@@ -124,8 +124,7 @@ class UnitTests {
 
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
         listOfLists.addAll(zd.getContactRecordList());
-        double[] result = ZeroScale.launchScalingWithDiffTolerances(listOfLists, targetVectorInitial,
-                .04, .01, zd.getKey());
+        double[] result = ZeroScale.scale(listOfLists, targetVectorInitial, zd.getKey());
 
         System.out.println(Arrays.toString(result));
     }

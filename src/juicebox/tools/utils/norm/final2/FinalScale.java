@@ -32,20 +32,18 @@ import java.util.List;
 public class FinalScale {
 
     private final static float tol = .0005f;
-    private final static float del = .02f;
-    //private final static float perc = .01f;
-    private final static float dp = .005f;
-    //private final static float perc1 = 0.0025f;
-    private final static float dp1 = .001f;
-    private final static int maxiter = 100;
     private final static boolean zerodiag = false;
-    private final static int totalIterations = 200;
-    private final static int threads = 1;
     private final static boolean removeZerosOnDiag = false;
+    private final static float percentLowRowSumExcluded = 0.001f;
+    private final static float dp = percentLowRowSumExcluded / 2;
+    private final static float percentZValsToIgnore = 0.0025f;
+    private final static float dp1 = percentZValsToIgnore / 2;
+    private final static float tolerance = .0005f;
+    private final static int maxIter = 100;
+    private final static int totalIterations = 3 * maxIter;
+    private final static double minErrorThreshold = .02f;
 
-    private static double[] scaleToTargetVector(List<ContactRecord> contactRecords, double[] targetVectorInitial, double tolerance,
-                                                double percentLowRowSumExcluded, double percentZValsToIgnore,
-                                                int maxIter, double del, int numTrials) {
+    public static double[] scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial) {
 
         double low, zHigh, zLow, ber;
         int lind, hind;
@@ -56,15 +54,14 @@ public class FinalScale {
         int k = targetVectorInitial.length;
 
         double[] current = new double[k];
-        double[] row = new double[k];
+        double[] row, col;
         double[] rowBackup = new double[k];
-        double[] col = new double[k];
-        int[] dr = new int[k];
-        int[] dc = new int[k];
+        double[] dr = new double[k];
+        double[] dc = new double[k];
         double[] r0 = new double[k];
         int[] bad = new int[k];
         int[] bad1 = new int[k];
-        int[] one = new int[k];
+        double[] one = new double[k];
         double[] s = new double[k];
         double[] zz = new double[k];
         double[] zTargetVector = targetVectorInitial.clone();
@@ -76,7 +73,7 @@ public class FinalScale {
                 zz[l++] = zTargetVector[p];
             }
         }
-        Arrays.sort(zz);
+        zz = dealWithSorting(zz, l);
 
         lind = (int) (l * localPercentZValsToIgnore + 0.5);
         hind = (int) (l * (1.0 - localPercentZValsToIgnore) + 0.5);
@@ -84,7 +81,6 @@ public class FinalScale {
         if (hind >= l) hind = l - 1;
         zLow = zz[lind];
         zHigh = zz[hind];
-        zz = null;
 
         for (int p = 0; p < k; p++) {
             if (zTargetVector[p] > 0 && (zTargetVector[p] < zLow || zTargetVector[p] > zHigh)) {
@@ -102,11 +98,13 @@ public class FinalScale {
 
         if (removeZerosOnDiag) {
             Arrays.fill(bad, 1);
-            for (ContactRecord cr : contactRecords) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                if (x == y) {
-                    bad[x] = 0;
+            for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+                for (ContactRecord cr : contactRecords) {
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    if (x == y) {
+                        bad[x] = 0;
+                    }
                 }
             }
         } else {
@@ -116,12 +114,14 @@ public class FinalScale {
         //	find rows sums
         int[] numNonZero = new int[k];
         Arrays.fill(numNonZero, 0);
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            numNonZero[x]++;
-            if (x != y) {
-                numNonZero[y]++;
+        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+            for (ContactRecord cr : contactRecords) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                numNonZero[x]++;
+                if (x != y) {
+                    numNonZero[y]++;
+                }
             }
         }
 
@@ -135,10 +135,7 @@ public class FinalScale {
         }
 
         // need to do because sort uses whole array and the zeros at the end will cause a problem
-        double[] r02 = new double[n0];
-        System.arraycopy(r0, 0, r02, 0, n0);
-        Arrays.sort(r02);
-        r0 = r02;
+        r0 = dealWithSorting(r0, n0);
 
         lind = (int) (n0 * localPercentLowRowSumExcluded + .5);
         if (lind < 0) lind = 0;
@@ -153,7 +150,7 @@ public class FinalScale {
             }
         }
 
-        utmvMul(contactRecords, one, row);
+        row = sparseMultiplyGetRowSums(contactRecordsListOfLists, one, k);
         System.arraycopy(row, 0, rowBackup, 0, k);
 
         for (int p = 0; p < k; p++) {
@@ -164,8 +161,8 @@ public class FinalScale {
 
 
         double[] calculatedVectorB = new double[k];
-        double[] reportErrorForIteration = new double[maxIter];
-        int[] numItersForAllIterations = new int[maxIter];
+        double[] reportErrorForIteration = new double[totalIterations + 3];
+        int[] numItersForAllIterations = new int[totalIterations + 3];
 
         // treat separately rows for which z[p] = 0
         for (int p = 0; p < k; p++) {
@@ -174,7 +171,7 @@ public class FinalScale {
             }
         }
         for (int p = 0; p < k; p++) {
-            bad1[p] = 1 - one[p];
+            bad1[p] = (int) (1 - one[p]);
         }
 
         //	start iterations
@@ -184,7 +181,7 @@ public class FinalScale {
         int iter = 0;
 
         //int stuck = 0;
-        System.arraycopy(dr, 0, current, 0, k);
+        arrayCopyIntToDouble(dr, current);
 
         int fail;
         int nerr = 0;
@@ -192,7 +189,10 @@ public class FinalScale {
 
         int allItersI = 0;
 
-        while ((ber > tolerance || err > 5.0 * tolerance) && iter < maxIter) {
+        // if perc or perc1 reached upper bound or the total number of iterationbs is too high, exit
+        while ((ber > tolerance || err > 5.0 * tolerance) && iter < maxIter && allItersI < totalIterations
+                && localPercentLowRowSumExcluded <= 0.2 && localPercentZValsToIgnore <= 0.1) {
+
             iter++;
             allItersI++;
             fail = 1;
@@ -208,14 +208,14 @@ public class FinalScale {
             }
 
             // find column sums and update rows scaling vector
-            utmvMul(contactRecords, dr, col);
+            col = sparseMultiplyGetRowSums(contactRecordsListOfLists, dr, k);
             for (int p = 0; p < k; p++) col[p] *= dc[p];
             for (int p = 0; p < k; p++) if (bad1[p] == 1) col[p] = 1.0;
             for (int p = 0; p < k; p++) s[p] = zTargetVector[p] / col[p];
             for (int p = 0; p < k; p++) dc[p] *= s[p];
 
             // find row sums and update columns scaling vector
-            utmvMul(contactRecords, dc, row);
+            row = sparseMultiplyGetRowSums(contactRecordsListOfLists, dc, k);
             for (int p = 0; p < k; p++) row[p] *= dr[p];
 
             // calculate current scaling vector
@@ -239,7 +239,7 @@ public class FinalScale {
             //	since calculating the error in row sums requires matrix-vector multiplication we are are doing this every 10
             //	iterations
             if (iter % 10 == 0) {
-                utmvMul(contactRecords, calculatedVectorB, col);
+                col = sparseMultiplyGetRowSums(contactRecordsListOfLists, calculatedVectorB, k);
                 err = 0;
                 for (int p = 0; p < k; p++) {
                     if (bad1[p] == 1) continue;
@@ -260,7 +260,7 @@ public class FinalScale {
 
             if (iter > 5) {
                 for (int p = 1; p <= 5; p++) {
-                    if (reportErrorForIteration[allItersI - p] * (1.0 + del) < reportErrorForIteration[allItersI - p - 1]) {
+                    if (reportErrorForIteration[allItersI - p] * (1.0 + minErrorThreshold) < reportErrorForIteration[allItersI - p - 1]) {
                         fail = 0;
                     }
                 }
@@ -291,7 +291,7 @@ public class FinalScale {
                         }
                     }
                     for (int p = 0; p < k; p++) {
-                        if ((numNonZero[p] <= low && zTargetVector[p] > 0) || Double.isNaN(zTargetVector[p])) {
+                        if ((numNonZero[p] < low && zTargetVector[p] > 0) || Double.isNaN(zTargetVector[p])) {
                             bad[p] = 1;
                             bad1[p] = 1;
                             one[p] = 0;
@@ -311,7 +311,7 @@ public class FinalScale {
                         }
                         System.arraycopy(dr, 0, dc, 0, k);
                         System.arraycopy(dr, 0, one, 0, k);
-                        System.arraycopy(dr, 0, current, 0, k);
+                        arrayCopyIntToDouble(dr, current);
                         System.arraycopy(rowBackup, 0, row, 0, k);
                     } else {
                         for (int p = 0; p < k; p++) {
@@ -325,15 +325,11 @@ public class FinalScale {
                 }
 
             }
-
-            // if perc or perc1 reached upper bound or the total number of iterationbs is too high, exit
-            if (localPercentLowRowSumExcluded > 0.2 || localPercentZValsToIgnore > 0.1) break;
-            if (allItersI > totalIterations) break;
         }
 
         //	find the final error in row sums
         if (iter % 10 == 0) {
-            utmvMul(contactRecords, calculatedVectorB, col);
+            col = sparseMultiplyGetRowSums(contactRecordsListOfLists, calculatedVectorB, k);
             err = 0;
             for (int p = 0; p < k; p++) {
                 if (bad1[p] == 1) continue;
@@ -355,30 +351,33 @@ public class FinalScale {
         return calculatedVectorB;
     }
 
+    private static double[] dealWithSorting(double[] vector, int length) {
+        double[] realVector = new double[length];
+        System.arraycopy(vector, 0, realVector, 0, length);
+        Arrays.sort(realVector);
+        return realVector;
+    }
 
-    private static void utmvMul(List<ContactRecord> contactRecords, int[] binaryVector, double[] tobeScaledVector) {
-        Arrays.fill(tobeScaledVector, 0);
-
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float counts = cr.getCounts();
-
-            tobeScaledVector[x] += counts * binaryVector[y];
-            tobeScaledVector[y] += counts * binaryVector[x];
+    private static void arrayCopyIntToDouble(double[] src, double[] dest) {
+        for (int i = 0; i < src.length; i++) {
+            dest[i] = src[i];
         }
     }
 
-    private static void utmvMul(List<ContactRecord> contactRecords, double[] vector, double[] tobeScaledVector) {
-        Arrays.fill(tobeScaledVector, 0);
+    private static double[] sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists, double[] vector, int vectorLength) {
+        double[] sumVector = new double[vectorLength];
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float counts = cr.getCounts();
+        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+            for (ContactRecord cr : contactRecords) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float counts = cr.getCounts();
 
-            tobeScaledVector[x] += counts * vector[y];
-            tobeScaledVector[y] += counts * vector[x];
+                sumVector[x] += counts * vector[y];
+                sumVector[y] += counts * vector[x];
+            }
         }
+
+        return sumVector;
     }
 }
