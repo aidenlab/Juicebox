@@ -37,22 +37,24 @@ public class ZeroScale {
     private final static int maxOverallAttempts = 3;
     private final static int numTrialsWithinScalingRun = 5;
 
-    public static void utmvMul(List<ContactRecord> contactRecords, double[] binaryVector, double[] tobeScaledVector) {
+    public static void utmvMul(List<List<ContactRecord>> allContactRecords, double[] binaryVector, double[] tobeScaledVector) {
         Arrays.fill(tobeScaledVector, 0);
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
+        for (List<ContactRecord> contactRecords : allContactRecords) {
+            for (ContactRecord cr : contactRecords) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float counts = cr.getCounts();
 
-            tobeScaledVector[x] += counts * binaryVector[y];
-            tobeScaledVector[y] += counts * binaryVector[x];
+                tobeScaledVector[x] += counts * binaryVector[y];
+                tobeScaledVector[y] += counts * binaryVector[x];
+            }
         }
     }
 
-    public static double[] scale(List<ContactRecord> contactRecords, double[] targetVectorInitial, String key) {
+    public static double[] scale(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial, String key) {
         // if the regular call fails, loosen parameters
-        double[] newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .01, 0.0025, key);
+        double[] newVector = launchScalingWithDiffTolerances(contactRecordsListOfLists, targetVectorInitial, .01, 0.0025, key);
 
         if (newVector == null) {
             newVector = launchScalingWithDiffTolerances(contactRecordsListOfLists, targetVectorInitial, .04, .01, key);
@@ -78,7 +80,7 @@ public class ZeroScale {
                 System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
             }
 
-            newVector = scaleToTargetVector(contactRecords, targetVectorInitial, -1, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
+            newVector = scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial, -1, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
 
         }
@@ -135,17 +137,19 @@ public class ZeroScale {
         for (int p = 0; p < k; p++) if (targetVector[p] == 0) one[p] = 0;
 
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            if (x == y) {
-                bad[x] = 0;
+        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+            for (ContactRecord cr : contactRecords) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                if (x == y) {
+                    bad[x] = 0;
+                }
             }
         }
 
 
         //	find rows sums
-        utmvMul(contactRecords, one, row);
+        utmvMul(contactRecordsListOfLists, one, row);
 
 
         //	find relevant percentiles
@@ -224,14 +228,14 @@ public class ZeroScale {
                 dr[p] *= s[p];
             }
 
-            utmvMul(contactRecords, dr, col);
+            utmvMul(contactRecordsListOfLists, dr, col);
 
             for (int p = 0; p < k; p++) col[p] *= dc[p];
             for (int p = 0; p < k; p++) if (bad1[p] == 1) col[p] = 1.0;
             for (int p = 0; p < k; p++) s[p] = targetVector[p] / col[p];
             for (int p = 0; p < k; p++) dc[p] *= s[p];
 
-            utmvMul(contactRecords, dc, row);
+            utmvMul(contactRecordsListOfLists, dc, row);
             for (int p = 0; p < k; p++) row[p] *= dr[p];
 
             for (int p = 0; p < k; p++) {
@@ -253,7 +257,7 @@ public class ZeroScale {
             if (stuck >= numTrials) break;
         }
 
-        utmvMul(contactRecords, calculatedVector, col);
+        utmvMul(contactRecordsListOfLists, calculatedVector, col);
         err = 0;
         for (int p = 0; p < k; p++) {
             if (bad1[p] == 1) continue;
