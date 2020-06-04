@@ -112,7 +112,7 @@ class UnitTests {
 
     public static void testCustomFastScaling() {
         ArrayList<String> files = new ArrayList<>();
-        files.add("/Users/muhammad/Desktop/testtemp/imr90_intra_nofrag_30.hic");
+        files.add("/Users/muhammad/Desktop/local_hic_files/gm12878_intra_nofrag_30.hic");
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false);
         Chromosome chr1 = ds.getChromosomeHandler().getAutosomalChromosomesArray()[0];
         MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr1, 50000);

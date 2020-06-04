@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.norm.final2;
 
+import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 
 import java.util.Arrays;
@@ -36,19 +37,20 @@ public class FinalScale {
     private final static boolean removeZerosOnDiag = false;
     private final static float percentLowRowSumExcluded = 0.0001f;
     private final static float dp = percentLowRowSumExcluded / 2;
-    private final static float percentZValsToIgnore = 0.0025f;
-    private final static float dp1 = percentZValsToIgnore / 2;
+    private final static float percentZValsToIgnore = 0;//0.0025f;
+    private final static float dp1 = 0;//percentZValsToIgnore / 2;
     private final static float tolerance = .0005f;
     private final static int maxIter = 100;
     private final static int totalIterations = 3 * maxIter;
-    private final static double minErrorThreshold = .02f;
+    private final static float minErrorThreshold = .02f;
+    private static final float OFFSET = .5f;
 
     public static double[] scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial) {
 
-        double low, zHigh, zLow, ber;
-        int lind, hind;
-        double localPercentLowRowSumExcluded = percentLowRowSumExcluded;
-        double localPercentZValsToIgnore = percentZValsToIgnore;
+        double low, zHigh, zLow;
+        int rlind, zlind, zhind;
+        float localPercentLowRowSumExcluded = percentLowRowSumExcluded;
+        float localPercentZValsToIgnore = percentZValsToIgnore;
 
         //	find the matrix dimensions
         int k = targetVectorInitial.length;
@@ -65,6 +67,9 @@ public class FinalScale {
         double[] s = new double[k];
         double[] zz = new double[k];
         double[] zTargetVector = targetVectorInitial.clone();
+        double[] calculatedVectorB = new double[k];
+        double[] reportErrorForIteration = new double[totalIterations + 3];
+        int[] numItersForAllIterations = new int[totalIterations + 3];
 
         int l = 0;
         for (int p = 0; p < k; p++) {
@@ -75,12 +80,10 @@ public class FinalScale {
         }
         zz = dealWithSorting(zz, l);
 
-        lind = (int) (l * localPercentZValsToIgnore + 0.5);
-        hind = (int) (l * (1.0 - localPercentZValsToIgnore) + 0.5);
-        if (lind < 0) lind = 0;
-        if (hind >= l) hind = l - 1;
-        zLow = zz[lind];
-        zHigh = zz[hind];
+        zlind = (int) Math.max(0, l * localPercentZValsToIgnore + OFFSET);
+        zhind = (int) Math.min(l - 1, l * (1.0 - localPercentZValsToIgnore) + OFFSET);
+        zLow = zz[zlind];
+        zHigh = zz[zhind];
 
         for (int p = 0; p < k; p++) {
             if (zTargetVector[p] > 0 && (zTargetVector[p] < zLow || zTargetVector[p] > zHigh)) {
@@ -133,13 +136,10 @@ public class FinalScale {
                 r0[n0++] = numNonZero[p];
             }
         }
-
-        // need to do because sort uses whole array and the zeros at the end will cause a problem
         r0 = dealWithSorting(r0, n0);
 
-        lind = (int) (n0 * localPercentLowRowSumExcluded + .5);
-        if (lind < 0) lind = 0;
-        low = r0[lind];
+        rlind = (int) Math.max(0, n0 * localPercentLowRowSumExcluded + OFFSET);
+        low = r0[rlind];
 
 
         //	find the "bad" rows and exclude them
@@ -159,11 +159,6 @@ public class FinalScale {
         System.arraycopy(dr, 0, dc, 0, k);
         System.arraycopy(dr, 0, one, 0, k);
 
-
-        double[] calculatedVectorB = new double[k];
-        double[] reportErrorForIteration = new double[totalIterations + 3];
-        int[] numItersForAllIterations = new int[totalIterations + 3];
-
         // treat separately rows for which z[p] = 0
         for (int p = 0; p < k; p++) {
             if (zTargetVector[p] == 0) {
@@ -174,19 +169,15 @@ public class FinalScale {
             bad1[p] = (int) (1 - one[p]);
         }
 
+        System.arraycopy(dr, 0, current, 0, k);
         //	start iterations
         //	row is the current rows sum; dr and dc are the current rows and columns scaling vectors
-        ber = 10.0 * (1.0 + tolerance);
+        double ber = 10.0 * (1.0 + tolerance);
         double err = ber;
         int iter = 0;
-
-        //int stuck = 0;
-        arrayCopyIntToDouble(dr, current);
-
         int fail;
         int nerr = 0;
         double[] errors = new double[10000];
-
         int allItersI = 0;
 
         // if perc or perc1 reached upper bound or the total number of iterationbs is too high, exit
@@ -277,14 +268,12 @@ public class FinalScale {
                     localPercentLowRowSumExcluded += dp;
                     localPercentZValsToIgnore += dp1;
                     nerr = 0;
-                    lind = (int) (n0 * localPercentLowRowSumExcluded + 0.5);
-                    low = r0[lind];
-                    lind = (int) (l * localPercentZValsToIgnore + 0.5);
-                    hind = (int) (l * (1.0 - localPercentZValsToIgnore) + 0.5);
-                    if (lind < 0) lind = 0;
-                    if (hind >= l) hind = l - 1;
-                    zLow = zz[lind];
-                    zHigh = zz[hind];
+                    rlind = (int) Math.max(0, n0 * localPercentLowRowSumExcluded + OFFSET);
+                    low = r0[rlind];
+                    zlind = (int) Math.max(0, l * localPercentZValsToIgnore + OFFSET);
+                    zhind = (int) Math.min(l - 1, l * (1.0 - localPercentZValsToIgnore) + OFFSET);
+                    zLow = zz[zlind];
+                    zHigh = zz[zhind];
                     for (int p = 0; p < k; p++) {
                         if (zTargetVector[p] > 0 && (zTargetVector[p] < zLow || zTargetVector[p] > zHigh)) {
                             zTargetVector[p] = Double.NaN;
@@ -311,7 +300,7 @@ public class FinalScale {
                         }
                         System.arraycopy(dr, 0, dc, 0, k);
                         System.arraycopy(dr, 0, one, 0, k);
-                        arrayCopyIntToDouble(dr, current);
+                        System.arraycopy(dr, 0, current, 0, k);
                         System.arraycopy(rowBackup, 0, row, 0, k);
                     } else {
                         for (int p = 0; p < k; p++) {
@@ -348,6 +337,13 @@ public class FinalScale {
             }
         }
 
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println(allItersI);
+            System.out.println(localPercentLowRowSumExcluded);
+            System.out.println(localPercentZValsToIgnore);
+            System.out.println(Arrays.toString(reportErrorForIteration));
+        }
+
         return calculatedVectorB;
     }
 
@@ -358,12 +354,6 @@ public class FinalScale {
         return realVector;
     }
 
-    private static void arrayCopyIntToDouble(double[] src, double[] dest) {
-        for (int i = 0; i < src.length; i++) {
-            dest[i] = src[i];
-        }
-    }
-
     private static double[] sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists, double[] vector, int vectorLength) {
         double[] sumVector = new double[vectorLength];
 
@@ -372,6 +362,9 @@ public class FinalScale {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float counts = cr.getCounts();
+                if (x == y) {
+                    counts *= .5;
+                }
 
                 sumVector[x] += counts * vector[y];
                 sumVector[y] += counts * vector[x];
