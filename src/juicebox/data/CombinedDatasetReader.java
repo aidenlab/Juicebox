@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = new ArrayList<>();
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb = r.readNormalizedBlock(blockNumber, zd, no);
@@ -361,7 +361,7 @@ public class CombinedDatasetReader implements DatasetReader {
             double[] expectedValues = new double[len];
 
             for (ExpectedValueFunction df : densityFunctions) {
-                double[] current = df.getExpectedValues();
+                double[] current = df.getExpectedValuesNoNormalization();
                 for (int i = 0; i < len; i++) {
                     expectedValues[i] += current[i];
                 }

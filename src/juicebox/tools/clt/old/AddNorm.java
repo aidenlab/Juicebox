@@ -27,7 +27,9 @@ package juicebox.tools.clt.old;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
+import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ public class AddNorm extends JuiceboxCLT {
     private String file;
     private final List<NormalizationType> normalizationTypes = new ArrayList<>();
     private Map<NormalizationType, Integer> resolutionsToBuildTo;
+    protected static int numCPUThreads = 1;
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -53,6 +56,7 @@ public class AddNorm extends JuiceboxCLT {
                 + " Above options ignored if input_vector_file present\n"
                 + "           : -k normalizations to include\n"
                 + "           : -r resolutions for respective normalizations to build to\n"
+                + "           : -j number of CPU threads to use\n"
         );
     }
 
@@ -85,16 +89,31 @@ public class AddNorm extends JuiceboxCLT {
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
         List<String> resolutions = parser.getResolutionOption();
-        if (resolutions != null && resolutions.size() > 0) {
-            for (int k = 0; k < resolutions.size(); k++) {
-                try {
-                    int resVal = Integer.parseInt(resolutions.get(k));
-                    resolutionsToBuildTo.put(normalizationTypes.get(k), resVal);
-                } catch (Exception e) {
-                    resolutionsToBuildTo.put(normalizationTypes.get(k), 0);
-                }
+      
+        if (resolutions == null) {
+            resolutions = new ArrayList<String>();
+            for (int i = 0; i < normalizationTypes.size(); i++) {
+                resolutions.add("0");
             }
         }
+        if (resolutions.size() > normalizationTypes.size()) {
+            System.err.println("Error: too many resolutions specified for given normalization types");
+            System.exit(0);
+        }
+        if (resolutions.size() < normalizationTypes.size()) {
+            System.err.println("Error: too few resolutions specified for given normalization types");
+            System.exit(0);
+        }
+        for (int k = 0; k < resolutions.size(); k++) {
+            try {
+                int resVal = Integer.parseInt(resolutions.get(k));
+                resolutionsToBuildTo.put(normalizationTypes.get(k), resVal);
+            } catch (Exception e) {
+                resolutionsToBuildTo.put(normalizationTypes.get(k), 0);
+            }
+        }
+
+        updateNumberOfCPUThreads(parser);
 
         file = args[1];
     }
@@ -105,11 +124,28 @@ public class AddNorm extends JuiceboxCLT {
             if (inputVectorFile != null) {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
             }
-            else {
+            else if (numCPUThreads==1){
                 (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, resolutionsToBuildTo, genomeWideResolution, noFragNorm);
+            }
+            else {
+                MultithreadedNormalizationVectorUpdater updater = new MultithreadedNormalizationVectorUpdater();
+                updater.setNumCPUThreads(numCPUThreads);
+                updater.updateHicFile(file,normalizationTypes,resolutionsToBuildTo, genomeWideResolution, noFragNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser juicerParser) {
+        int numThreads = juicerParser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

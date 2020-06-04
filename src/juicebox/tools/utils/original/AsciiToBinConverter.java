@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +60,7 @@ public class AsciiToBinConverter {
         try {
             bos = new BufferedOutputStream(new FileOutputStream(outputFile));
             LittleEndianOutputStream les = new LittleEndianOutputStream(bos);
-            iter = new AsciiPairIterator(inputPath, chromosomeOrdinals
-            );
+            iter = new AsciiPairIterator(inputPath, chromosomeOrdinals, chromosomeHandler);
 
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();

@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
@@ -41,9 +42,8 @@ import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
 
 public class Dump extends JuiceboxCLT {
 
@@ -61,6 +61,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
     private boolean dense = false;
     private String feature = null;
+    private String ofile = null;
 
     public Dump() {
         super(getUsage());
@@ -85,21 +86,23 @@ public class Dump extends JuiceboxCLT {
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
             Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
-            if (zd == null){
+            if (zd == null) {
                 System.err.println("No All vs. All matrix; be sure zoom is correct");
                 System.exit(1);
             }
-            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
-                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+
+            List<List<ContactRecord>> allContactRecords = zd.getContactRecordList();
+            for (List<ContactRecord> contactRecords : allContactRecords) {
+                for (ContactRecord cr : contactRecords) {
+                    pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+                }
             }
             pw.close();
             return;
         }
 
         // Build a "whole-genome" matrix
-        ArrayList<ContactRecord> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        List<List<ContactRecord>> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         if (recordArrayList.isEmpty()) {
             System.err.println("No reads found at " +  zoom +". Include intra is " + includeIntra);
@@ -124,15 +127,15 @@ public class Dump extends JuiceboxCLT {
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
                 if (zd == null) continue;
-                Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-                while (iter.hasNext()) {
-                    ContactRecord cr = iter.next();
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    final float counts = cr.getCounts();
-                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                        double value = counts / (vector[x + addY] * vector[y + addY]);
-                        evKR.addDistance(chrIdx, x, y, value);
+                for (List<ContactRecord> crList : zd.getContactRecordList()) {
+                    for (ContactRecord cr : crList) {
+                        int x = cr.getBinX();
+                        int y = cr.getBinY();
+                        final float counts = cr.getCounts();
+                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                            double value = counts / (vector[x + addY] * vector[y + addY]);
+                            evKR.addDistance(chrIdx, x, y, value);
+                        }
                     }
                 }
 
@@ -150,18 +153,20 @@ public class Dump extends JuiceboxCLT {
             }
         } else {   // type == "observed"
 
-            for (ContactRecord cr : recordArrayList) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                float value = cr.getCounts();
+            for (List<ContactRecord> localList : recordArrayList) {
+                for (ContactRecord cr : localList) {
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    float value = cr.getCounts();
 
-                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                    value = (float) (value / (vector[x] * vector[y]));
-                } else {
-                    value = Float.NaN;
+                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                        value = (float) (value / (vector[x] * vector[y]));
+                    } else {
+                        value = Float.NaN;
+                    }
+
+                    pw.println(x + "\t" + y + "\t" + value);
                 }
-
-                pw.println(x + "\t" + y + "\t" + value);
             }
         }
 
@@ -194,20 +199,18 @@ public class Dump extends JuiceboxCLT {
         } else if (matrixType == MatrixType.EXPECTED) {
             final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
 
-            int length = df.getLength();
+            double[] values = df.getExpectedValuesNoNormalization();
+            if (!ChromosomeHandler.isAllByAll(chromosome)) {
+                values = df.getExpectedValuesWithNormalization(chromosome.getIndex());
+            }
 
-            if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
-                // print out vector
-                for (double element : df.getExpectedValues()) {
-                    pw.println(element);
-                }
-                pw.close();
+            if (ofile != null && ofile.endsWith(".npy")) {
+                MatrixTools.saveMatrixTextNumpy(ofile, values);
             } else {
-                for (int i = 0; i < length; i++) {
-                    pw.println((float) df.getExpectedValue(chromosome.getIndex(), i));
+                for (double element : values) {
+                    pw.println(element);
+                    pw.close();
                 }
-
-                pw.close();
             }
         }
     }
@@ -372,8 +375,11 @@ public class Dump extends JuiceboxCLT {
                 if (ofile.endsWith(".bin")) {
                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[6]));
                     les = new LittleEndianOutputStream(bos);
+                } else if (ofile.endsWith(".npy")) {
+                    this.ofile = ofile;
+                } else {
+                    pw = new PrintWriter(new FileOutputStream(ofile));
                 }
-                else pw = new PrintWriter(new FileOutputStream(ofile));
             } else {
                 pw = new PrintWriter(System.out);
             }
@@ -427,6 +433,10 @@ public class Dump extends JuiceboxCLT {
             }
         } else {
             Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
+            if (chromosome1 == null) {
+                System.err.println("Invalid chromosome " + chr1);
+                System.exit(77);
+            }
             regionIndices[0] = 0;
             regionIndices[1] = chromosome1.getLength();
         }
@@ -450,6 +460,10 @@ public class Dump extends JuiceboxCLT {
             }
         } else {
             Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
+            if (chromosome2 == null) {
+                System.err.println("Invalid chromosome " + chr2);
+                System.exit(78);
+            }
             regionIndices[2] = 0;
             regionIndices[3] = chromosome2.getLength();
         }

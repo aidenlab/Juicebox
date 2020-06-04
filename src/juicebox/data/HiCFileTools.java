@@ -166,7 +166,7 @@ public class HiCFileTools {
             }
 
             // "pseudo-chromosome" All taken care of by by chromosome handler
-            return new ChromosomeHandler(chromosomes);
+            return new ChromosomeHandler(chromosomes, idOrFile, false);
         } finally {
             if (is != null) {
                 try {
@@ -262,7 +262,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new ChromosomeHandler(chromosomes);
+        return new ChromosomeHandler(chromosomes, handler.getGenomeID(), false);
     }
 
     /**
@@ -355,7 +355,7 @@ public class HiCFileTools {
                                                  int binYStart, int binYEnd,
                                                  NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
 
-        List<Block> blocks = new ArrayList<>();
+        List<Block> blocks = Collections.synchronizedList(new ArrayList<Block>());
 
         int numDataReadingErrors = 0;
 

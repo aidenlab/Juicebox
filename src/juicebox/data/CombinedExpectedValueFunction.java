@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ import java.util.List;
 public class CombinedExpectedValueFunction implements ExpectedValueFunction {
 
     private final List<ExpectedValueFunction> densityFunctions;
-    private double[] expectedValues = null;
+    private double[] expectedValuesNoNormalization = null;
 
     public CombinedExpectedValueFunction(ExpectedValueFunction densityFunction) {
         this.densityFunctions = new ArrayList<>();
@@ -61,21 +61,40 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
     }
 
     @Override
-    public double[] getExpectedValues() {
-        if (expectedValues != null) return expectedValues;
+    public double[] getExpectedValuesWithNormalization(int chrIdx) {
+
+        if (expectedValuesNoNormalization.length > 0) {
+            double[] normedExpectedValues = new double[expectedValuesNoNormalization.length];
+
+            for (int i = 0; i < normedExpectedValues.length; i++) {
+                for (ExpectedValueFunction df : densityFunctions) {
+                    normedExpectedValues[i] += df.getExpectedValue(chrIdx, i);
+                }
+            }
+
+            return normedExpectedValues;
+        } else {
+            System.err.println("Expected values array is empty");
+            return null;
+        }
+    }
+
+    @Override
+    public double[] getExpectedValuesNoNormalization() {
+        if (expectedValuesNoNormalization != null) return expectedValuesNoNormalization;
         int length = 0;
         for (ExpectedValueFunction df : densityFunctions) { // Removed cast to ExpectedValueFunctionImpl; change back if errors
-            length = Math.max(length, df.getExpectedValues().length);
+            length = Math.max(length, df.getExpectedValuesNoNormalization().length);
         }
-        expectedValues = new double[length];
+        expectedValuesNoNormalization = new double[length];
         for (ExpectedValueFunction df : densityFunctions) {
 
-            double[] current = df.getExpectedValues();
+            double[] current = df.getExpectedValuesNoNormalization();
             for (int i = 0; i < current.length; i++) {
-                expectedValues[i] += current[i];
+                expectedValuesNoNormalization[i] += current[i];
             }
         }
-        return expectedValues;
+        return expectedValuesNoNormalization;
     }
 
     @Override

@@ -27,7 +27,6 @@ package juicebox.tools.utils.norm;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,18 +53,19 @@ public class ZeroScale {
     public static double[] scale(List<ContactRecord> contactRecords, double[] targetVectorInitial, String key) {
         // if the regular call fails, loosen parameters
         double[] newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .01, 0.0025, key);
+
         if (newVector == null) {
-            newVector = launchScalingWithDiffTolerances(contactRecords, targetVectorInitial, .04, .01, key);
+            newVector = launchScalingWithDiffTolerances(contactRecordsListOfLists, targetVectorInitial, .04, .01, key);
         }
         return newVector;
     }
 
-    public static double[] launchScalingWithDiffTolerances(List<ContactRecord> contactRecords, double[] targetVectorInitial, double percentLowRowSumExcludedInitial,
+    public static double[] launchScalingWithDiffTolerances(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial, double percentLowRowSumExcludedInitial,
                                                            double percentZValsToIgnoreInitial, String key) {
 
         double percentLowRowSumExcluded = percentLowRowSumExcludedInitial;
         double percentZValsToIgnore = percentZValsToIgnoreInitial;
-        double[] newVector = scaleToTargetVector(contactRecords, targetVectorInitial, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
+        double[] newVector = scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial, tolerance, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
 
         int count = 0;
         while (newVector == null && count++ < maxOverallAttempts) {
@@ -77,7 +77,9 @@ public class ZeroScale {
                 System.err.println("Did not converge for " + key);
                 System.err.println("new percentLowRowSumExcluded = " + percentLowRowSumExcluded + " and new percentZValsToIgnore = " + percentZValsToIgnore);
             }
+
             newVector = scaleToTargetVector(contactRecords, targetVectorInitial, -1, percentLowRowSumExcluded, percentZValsToIgnore, maxIter, del, numTrialsWithinScalingRun);
+
 
         }
 
@@ -87,7 +89,7 @@ public class ZeroScale {
         return newVector;
     }
 
-    private static double[] scaleToTargetVector(List<ContactRecord> contactRecords, double[] targetVectorInitial, double tolerance,
+    private static double[] scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial, double tolerance,
                                                 double percentLowRowSumExcluded, double percentZValsToIgnore,
                                                 int maxIter, double del, int numTrials) {
 
@@ -263,14 +265,29 @@ public class ZeroScale {
                 calculatedVector[p] = Double.NaN;
             }
         }
-
+      
         if (ber > tolerance) {
             return null;
         }
         return calculatedVector;
     }
 
-    public static double[] normalizeVectorByScaleFactor(double[] newNormVector, List<ContactRecord> contactRecords) {
+    private static void sparseMultiply(List<List<ContactRecord>> listOfLists, double[] r, double[] filter) {
+        for (List<ContactRecord> localList : listOfLists) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float counts = cr.getCounts();
+
+                r[x] += counts * filter[y];
+                if (x < y) {
+                    r[y] += counts * filter[x];
+                }
+            }
+        }
+    }
+
+    public static double[] normalizeVectorByScaleFactor(double[] newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
 
         for (int k = 0; k < newNormVector.length; k++) {
             if (newNormVector[k] <= 0 || Double.isNaN(newNormVector[k])) {
@@ -282,18 +299,20 @@ public class ZeroScale {
 
         double normalizedSumTotal = 0, sumTotal = 0;
 
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            final float counts = cr.getCounts();
+        for (List<ContactRecord> records : contactRecordsListOfLists) {
+            for (ContactRecord cr : records) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float counts = cr.getCounts();
 
-            if (!Double.isNaN(newNormVector[x]) && !Double.isNaN(newNormVector[y])) {
-                double normalizedValue = counts / (newNormVector[x] * newNormVector[y]);
-                normalizedSumTotal += normalizedValue;
-                sumTotal += counts;
-                if (x != y) {
+                if (!Double.isNaN(newNormVector[x]) && !Double.isNaN(newNormVector[y])) {
+                    double normalizedValue = counts / (newNormVector[x] * newNormVector[y]);
                     normalizedSumTotal += normalizedValue;
                     sumTotal += counts;
+                    if (x != y) {
+                        normalizedSumTotal += normalizedValue;
+                        sumTotal += counts;
+                    }
                 }
             }
         }
@@ -308,7 +327,7 @@ public class ZeroScale {
         return newNormVector;
     }
 
-    public static double[] mmbaScaleToVector(ArrayList<ContactRecord> contactRecords, double[] tempTargetVector) {
+    public static double[] mmbaScaleToVector(List<List<ContactRecord>> contactRecords, double[] tempTargetVector) {
 
         double[] newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
         if (newNormVector != null) {

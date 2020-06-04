@@ -30,6 +30,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.tools.utils.original.MultithreadedPreprocessor;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
 
@@ -48,6 +49,7 @@ public class PreProcessing extends JuiceboxCLT {
     private boolean noFragNorm = false;
     private int genomeWide;
     private List<NormalizationType> normalizationTypes = new ArrayList<>();
+    protected static int numCPUThreads = 1;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -67,6 +69,9 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : --random_seed <long> for seeding random number generator\n"
                 + "           : --frag_site_maps <fragment site files> for randomization\n"
                 + "           : -k normalizations to include\n"
+                + "           : -j number of CPU threads to use\n"
+                + "           : --threads <int> number of threads \n"
+                + "           : --mndindex <filepath> to mnd chr block indices"
         );
     }
 
@@ -92,7 +97,15 @@ public class PreProcessing extends JuiceboxCLT {
         String tmpDir = parser.getTmpdirOption();
         double hicFileScalingFactor = parser.getScalingOption();
 
-        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+        updateNumberOfCPUThreads(parser);
+        if (numCPUThreads == 1) {
+            preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+        } else {
+            preprocessor = new MultithreadedPreprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+            ((MultithreadedPreprocessor) preprocessor).setNumCPUThreads(numCPUThreads);
+            ((MultithreadedPreprocessor) preprocessor).setMndIndex(parser.getMndIndexOption());
+        }
+
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser.getCountThresholdOption());
         preprocessor.setMapqThreshold(parser.getMapqThresholdOption());
@@ -108,6 +121,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setRandomizePosition(parser.getRandomizePositionsOption());
         preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
         preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
+        preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
 
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();
@@ -119,15 +133,19 @@ public class PreProcessing extends JuiceboxCLT {
     public void run() {
         try {
             long currentTime = System.currentTimeMillis();
-            preprocessor.preprocess(inputFile);
+            if (numCPUThreads == 1) {
+                preprocessor.preprocess(inputFile, outputFile, outputFile, null);
+            } else {
+                preprocessor.preprocess(inputFile, null, null, null);
+            }
+
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
                 Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
                 (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
-            }
-            else {
+            } else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");
                 System.out.println("To run normalization, run: juicebox addNorm <hicfile>");
             }
@@ -135,5 +153,17 @@ public class PreProcessing extends JuiceboxCLT {
             e.printStackTrace();
             System.exit(56);
         }
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
+        int numThreads = parser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

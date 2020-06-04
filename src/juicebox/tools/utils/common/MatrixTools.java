@@ -915,6 +915,10 @@ public class MatrixTools {
         NpyFile.write(Paths.get(filename), matrix, new int[]{1, matrix.length});
     }
 
+    public static void saveMatrixTextNumpy(String filename, double[] matrix) {
+        NpyFile.write(Paths.get(filename), matrix, new int[]{1, matrix.length});
+    }
+
     public static float[][] generateCompositeMatrixWithNansCleaned(RealMatrix matrixDiag1, RealMatrix matrixDiag2, RealMatrix matrix1vs2) {
         return generateCompositeMatrixWithNansCleaned(
                 convertToFloatMatrix(matrixDiag1.getData()),
