@@ -349,6 +349,7 @@ public class MatrixZoomDataPP {
      * @param otherMatrixZoom
      */
     void mergeMatrices(MatrixZoomDataPP otherMatrixZoom) {
+        sum += otherMatrixZoom.sum;
         for (Map.Entry<Integer, BlockPP> otherBlock : otherMatrixZoom.blocks.entrySet()) {
             int blockNumber = otherBlock.getKey();
             BlockPP block = blocks.get(blockNumber);
