@@ -89,7 +89,9 @@ public class AddNorm extends JuiceboxCLT {
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
         List<String> resolutions = parser.getResolutionOption();
+      
         if (resolutions == null) {
+            resolutions = new ArrayList<String>();
             for (int i = 0; i < normalizationTypes.size(); i++) {
                 resolutions.add("0");
             }
