@@ -27,6 +27,8 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.HiCFileTools;
+import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.util.Pair;
 
 import java.io.*;
@@ -50,6 +52,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Long> matrixSizes = new ConcurrentHashMap<>();
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
+    private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
     protected static Map<Integer, Long> mndIndex = null;
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
@@ -81,6 +84,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
+        this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
     }
 
     public void setNumCPUThreads(int numCPUThreads) {
@@ -164,7 +168,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     private void writeBodySingleChromosomePair(String inputFile, String splitInputFile, int givenChromosomePairIndex, Set<String> syncWrittenMatrices, ChromosomeHandler
-            localChromosomeHandler, Long mndIndexPosition) throws IOException {
+            localChromosomeHandler, Map<String, ExpectedValueCalculation>
+            localExpectedValueCalculations, Long mndIndexPosition) throws IOException {
 
         MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(localChromosomeHandler);
 
@@ -222,7 +227,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
                         LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
+                        //long A = System.currentTimeMillis();
                         writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
+                        //long B = System.currentTimeMillis();
+                        //System.out.println("Time to write matrix "+currentPairIndex+": " + (B-A));
                         syncWrittenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
                         System.gc();
@@ -249,11 +257,11 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes, fragmentCalculation, fragBinSizes, countThreshold);
                 }
-                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), expectedValueCalculations, tmpDir);
+                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), localExpectedValueCalculations, tmpDir);
 
                 int pos1 = getGenomicPosition(chr1, bp1, localChromosomeHandler);
                 int pos2 = getGenomicPosition(chr2, bp2, localChromosomeHandler);
-                wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), expectedValueCalculations, tmpDir);
+                wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), localExpectedValueCalculations, tmpDir);
 
             }
         }
@@ -326,6 +334,14 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         masterIndexPosition = currentPosition;
+
+        if (expectedVectorFile == null) {
+            for (int i = 0; i < numCPUThreads; i++) {
+                for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
+                    expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
+                }
+            }
+        }
     }
 
     void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum,
@@ -333,8 +349,34 @@ public class MultithreadedPreprocessor extends Preprocessor {
         int i = chromosomePair.getAndIncrement();
 
         int localChromosomePairCounter = chromosomePairCounter;
+        Map<String, ExpectedValueCalculation> localExpectedValueCalculations = null;
+        if (expectedVectorFile == null) {
+            localExpectedValueCalculations = new LinkedHashMap<>();
+            for (int bBinSize : bpBinSizes) {
+                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
+                String key = "BP_" + bBinSize;
+                localExpectedValueCalculations.put(key, calc);
+            }
+            if (fragmentCalculation != null) {
+                // Create map of chr name -> # of fragments
+                Map<String, int[]> sitesMap = fragmentCalculation.getSitesMap();
+                Map<String, Integer> fragmentCountMap = new HashMap<>();
+                for (Map.Entry<String, int[]> entry : sitesMap.entrySet()) {
+                    int fragCount = entry.getValue().length + 1;
+                    String chr = entry.getKey();
+                    fragmentCountMap.put(chr, fragCount);
+                }
 
+                for (int fBinSize : fragBinSizes) {
+                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
+                    String key = "FRAG_" + fBinSize;
+                    localExpectedValueCalculations.put(key, calc);
+                }
+
+            }
+        }
         while (i < localChromosomePairCounter) {
+            //long A = System.currentTimeMillis();
             Long mndIndexPosition = (long) 0;
             if (mndIndex != null) {
                 if (!mndIndex.containsKey(i)) {
@@ -344,7 +386,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 } else {
                     mndIndexPosition = mndIndex.get(i);
                     try {
-                        writeBodySingleChromosomePair(inputFile, null, i, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                        writeBodySingleChromosomePair(inputFile, null, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
                     } catch (Exception e2) {
                         e2.printStackTrace();
                     }
@@ -362,10 +404,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 }
 
                 try {
-                    writeBodySingleChromosomePair(inputFile, chrInputFile, i, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                    writeBodySingleChromosomePair(inputFile, chrInputFile, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
                 } catch (Exception e) {
                     try {
-                        writeBodySingleChromosomePair(inputFile, chrInputFile2, i, syncWrittenMatrices, chromosomeHandler, mndIndexPosition);
+                        writeBodySingleChromosomePair(inputFile, chrInputFile2, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
                     } catch (Exception e2) {
                         System.err.println("Unable to open " + inputFile + "_" + chromosomePairIndexes.get(i));
                     }
@@ -382,9 +424,11 @@ public class MultithreadedPreprocessor extends Preprocessor {
             } else {
                 nonemptyChromosomePairs.put(i, 1);
             }
-
+            //long B = System.currentTimeMillis();
+            //System.out.println("Time to process matrix "+i+": " + (B-A));
             i = chromosomePair.getAndIncrement();
         }
+        allLocalExpectedValueCalculations.put(threadNum, localExpectedValueCalculations);
     }
     @Override
     // MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor
@@ -398,7 +442,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         matrixSizes.put(chromosomePairIndex, size);
         localLos[0].close();
 
-        System.out.print(".");
+        //System.out.print(".");
 
         return localBlockIndexes;
     }
