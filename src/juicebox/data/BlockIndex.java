@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 public class BlockIndex {
-    protected Map<Integer, IndexEntry> blockIndex;
-    protected int numBlocks;
+    protected final Map<Integer, IndexEntry> blockIndex;
+    protected final int numBlocks;
 
     public BlockIndex(int nBlocks) {
         numBlocks = nBlocks;

@@ -275,7 +275,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     private Pair<MatrixZoomData, Long> readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
-                                                          LittleEndianInputStream dis, long filePointer) throws IOException {
+                                                          long filePointer) throws IOException {
+        stream.seek(filePointer);
+        LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+
         String hicUnitStr = dis.readString();
         HiC.Unit unit = HiC.valueOfUnit(hicUnitStr);
         dis.readInt();                // Old "zoom" index -- not used
@@ -298,9 +301,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int nBlocks = dis.readInt();
 
-        long currentFilePointer = filePointer + 9 * 4 + hicUnitStr.getBytes().length;
+        long currentFilePointer = filePointer + (9 * 4) + hicUnitStr.getBytes().length + 1; // i think 1 byte for 0 terminated string?
 
-        if (binSize < 500 && HiCGlobals.guiIsCurrentlyActive) {
+        if (binSize < 200) {
             int maxPossibleBlockNumber = blockColumnCount * blockColumnCount - 1;
             DynamicBlockIndex blockIndex = new DynamicBlockIndex(highResStream, nBlocks, maxPossibleBlockNumber, currentFilePointer);
             blockIndexMap.put(zd.getKey(), blockIndex);
@@ -538,7 +541,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
-        long currentFilePosition = idx.position + 8;
 
         // TODO weird bug
         // interesting bug with local files; difficult to reliably repeat, but just occurs on loading a region
@@ -557,12 +559,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         // # of resolution levels (bp and frags)
         int nResolutions = dis.readInt();
+        long currentFilePosition = idx.position + 12;
         List<MatrixZoomData> zdList = new ArrayList<>();
         int[] chr1Sites = retrieveFragmentSitesFromCache(chr1);
         int[] chr2Sites = retrieveFragmentSitesFromCache(chr2);
 
         for (int i = 0; i < nResolutions; i++) {
-            Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, dis, currentFilePosition);
+            Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, currentFilePosition);
             zdList.add(result.getFirst());
             currentFilePosition = result.getSecond();
         }

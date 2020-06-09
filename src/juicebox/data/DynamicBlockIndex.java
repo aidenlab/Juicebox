@@ -36,13 +36,13 @@ import java.util.List;
 
 public class DynamicBlockIndex extends BlockIndex {
 
-    private int maxBlocks;
-    private long minPosition, maxPosition;
+    private final int maxBlocks;
+    private final long minPosition, maxPosition;
     private Integer blockNumberRangeMin = null, blockNumberRangeMax = null;
     private Long mapFileBoundsMin = null, mapFileBoundsMax = null;
     private SeekableStream stream;
 
-    public DynamicBlockIndex(SeekableStream stream, int numBlocks, int maxBlocks, long minPosition) throws IOException {
+    public DynamicBlockIndex(SeekableStream stream, int numBlocks, int maxBlocks, long minPosition) {
         super(numBlocks);
         this.stream = stream;
         this.maxBlocks = maxBlocks;
@@ -63,6 +63,12 @@ public class DynamicBlockIndex extends BlockIndex {
             return null;
         } else if (blockIndex.containsKey(blockNumber)) {
             return blockIndex.get(blockNumber);
+        } else if (blockNumber == 0) {
+            try {
+                return searchForBlockIndexEntry(blockNumber, this.minPosition, this.minPosition + 16);
+            } catch (Exception e) {
+                return null;
+            }
         } else {
             long minPosition = this.minPosition;
             long maxPosition = this.maxPosition;
@@ -79,7 +85,6 @@ public class DynamicBlockIndex extends BlockIndex {
                 try {
                     return searchForBlockIndexEntry(blockNumber, minPosition, maxPosition);
                 } catch (Exception e) {
-                    // TODO
                     return null;
                 }
             }
@@ -91,32 +96,33 @@ public class DynamicBlockIndex extends BlockIndex {
     // boundsMin is guaranteed to start at the beginning of an entry, boundsMax at the end
     private IndexEntry searchForBlockIndexEntry(int blockNumber, long boundsMin, long boundsMax) throws IOException {
 
-        System.out.println(blockNumber + " . " + boundsMin + " . " + boundsMax);
         int chunkSize = 1600000;
         if (boundsMax - boundsMin < chunkSize) {
 
-            stream.seek(boundsMin);
-            LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+            synchronized (stream) {
+                stream.seek(boundsMin);
+                LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
 
-            Integer firstBlockNumber = null;
-            Integer lastBlockNumber = null;
-            long pointer = boundsMin;
+                Integer firstBlockNumber = null;
+                Integer lastBlockNumber = null;
+                long pointer = boundsMin;
 
-            while (pointer < boundsMax) {
-                int blockNumberFound = dis.readInt();
-                long filePosition = dis.readLong();
-                int blockSizeInBytes = dis.readInt();
-                blockIndex.put(blockNumberFound, new IndexEntry(filePosition, blockSizeInBytes));
-                if (firstBlockNumber == null) firstBlockNumber = blockNumberFound;
-                lastBlockNumber = blockNumberFound;
-                pointer += 16;
+                while (pointer < boundsMax) {
+                    int blockNumberFound = dis.readInt();
+                    long filePosition = dis.readLong();
+                    int blockSizeInBytes = dis.readInt();
+                    blockIndex.put(blockNumberFound, new IndexEntry(filePosition, blockSizeInBytes));
+                    if (firstBlockNumber == null) firstBlockNumber = blockNumberFound;
+                    lastBlockNumber = blockNumberFound;
+                    pointer += 16;
+                }
+
+                // recent memory
+                mapFileBoundsMin = boundsMin;
+                mapFileBoundsMax = boundsMax;
+                blockNumberRangeMin = firstBlockNumber;
+                blockNumberRangeMax = lastBlockNumber;
             }
-
-            // recent memory
-            mapFileBoundsMin = boundsMin;
-            mapFileBoundsMax = boundsMax;
-            blockNumberRangeMin = firstBlockNumber;
-            blockNumberRangeMax = lastBlockNumber;
 
             return blockIndex.get(blockNumber);
         }
@@ -124,16 +130,19 @@ public class DynamicBlockIndex extends BlockIndex {
         int nEntries = (int) ((boundsMax - boundsMin) / 16);
         long positionToSeek = boundsMin + (long) Math.floor(nEntries / 2) * 16;
 
+        int blockNumberFound, blockSizeInBytes;
+        long filePosition;
+        synchronized (stream) {
+            stream.seek(positionToSeek);
+            byte[] buffer = new byte[16];
+            stream.readFully(buffer);
+            LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
 
-        stream.seek(positionToSeek);
-        byte[] buffer = new byte[16];
-        stream.readFully(buffer);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-
-        int blockNumberFound = dis.readInt();
+            blockNumberFound = dis.readInt();
+            filePosition = dis.readLong();
+            blockSizeInBytes = dis.readInt();
+        }
         if (blockNumberFound == blockNumber) {
-            long filePosition = dis.readLong();
-            int blockSizeInBytes = dis.readInt();
             blockIndex.put(blockNumberFound, new IndexEntry(filePosition, blockSizeInBytes));
             return blockIndex.get(blockNumber);
         } else if (blockNumber > blockNumberFound) {
