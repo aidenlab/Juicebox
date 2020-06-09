@@ -37,6 +37,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.CompressionUtils;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 
@@ -59,13 +60,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      * Cache of chromosome name -> array of restriction sites
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
-    private final SeekableStream stream, backUpStream;
+    private final SeekableStream stream, backUpStream, highResStream;
     private Map<String, IndexEntry> masterIndex;
     private Map<String, IndexEntry> normVectorIndex;
     private Dataset dataset = null;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
-    private Map<String, Map<Integer, IndexEntry>> blockIndexMap;
+    private Map<String, BlockIndex> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
     private boolean activeStatus = true;
@@ -211,45 +212,18 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     }
 
-    private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
-                                              LittleEndianInputStream dis) throws IOException {
+    public DatasetReaderV2(String path) throws IOException {
 
-        HiC.Unit unit = HiC.valueOfUnit(dis.readString());
-        dis.readInt();                // Old "zoom" index -- not used
+        super(path);
+        this.stream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
+        this.backUpStream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
+        this.highResStream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
 
-        // Stats.  Not used yet, but we need to read them anyway
-        double sumCounts = dis.readFloat();
-        float occupiedCellCount = dis.readFloat();
-        float stdDev = dis.readFloat();
-        float percent95 = dis.readFloat();
-
-        int binSize = dis.readInt();
-        HiCZoom zoom = new HiCZoom(unit, binSize);
-        // TODO: Default binSize value for "ALL" is 6197...(actually (genomeLength/1000)/500; depending on bug fix, could be 6191 for hg19); We need to make sure our maps hold a valid binSize value as default.
-
-        int blockBinCount = dis.readInt();
-        int blockColumnCount = dis.readInt();
-
-        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites,
-                this);
-
-        int nBlocks = dis.readInt();
-        HashMap<Integer, IndexEntry> blockIndex = new HashMap<>(nBlocks);
-
-        for (int b = 0; b < nBlocks; b++) {
-            int blockNumber = dis.readInt();
-            long filePosition = dis.readLong();
-            int blockSizeInBytes = dis.readInt();
-            blockIndex.put(blockNumber, new IndexEntry(filePosition, blockSizeInBytes));
+        if (this.stream != null && backUpStream != null) {
+            masterIndex = Collections.synchronizedMap(new HashMap<>());
+            dataset = new Dataset(this);
         }
-        blockIndexMap.put(zd.getKey(), blockIndex);
-
-        int nBins1 = chr1.getLength() / binSize;
-        int nBins2 = chr2.getLength() / binSize;
-        double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
-        zd.setAverageCount(avgCount);
-
-        return zd;
+        blockIndexMap = Collections.synchronizedMap(new HashMap<>());
     }
 
 
@@ -300,17 +274,49 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return dataset.getNormalizationVector(chr1Idx, zoom, normalizationType);
     }
 
-    public DatasetReaderV2(String path) throws IOException {
+    private Pair<MatrixZoomData, Long> readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
+                                                          LittleEndianInputStream dis, long filePointer) throws IOException {
+        String hicUnitStr = dis.readString();
+        HiC.Unit unit = HiC.valueOfUnit(hicUnitStr);
+        dis.readInt();                // Old "zoom" index -- not used
 
-        super(path);
-        this.stream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
-        this.backUpStream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
+        // Stats.  Not used yet, but we need to read them anyway
+        double sumCounts = dis.readFloat();
+        float occupiedCellCount = dis.readFloat();
+        float stdDev = dis.readFloat();
+        float percent95 = dis.readFloat();
 
-        if (this.stream != null && backUpStream != null) {
-            masterIndex = new HashMap<>();
-            dataset = new Dataset(this);
+        int binSize = dis.readInt();
+        HiCZoom zoom = new HiCZoom(unit, binSize);
+        // TODO: Default binSize value for "ALL" is 6197...(actually (genomeLength/1000)/500; depending on bug fix, could be 6191 for hg19); We need to make sure our maps hold a valid binSize value as default.
+
+        int blockBinCount = dis.readInt();
+        int blockColumnCount = dis.readInt();
+
+        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites,
+                this);
+
+        int nBlocks = dis.readInt();
+
+        long currentFilePointer = filePointer + 9 * 4 + hicUnitStr.getBytes().length;
+
+        if (binSize < 500 && HiCGlobals.guiIsCurrentlyActive) {
+            int maxPossibleBlockNumber = blockColumnCount * blockColumnCount - 1;
+            DynamicBlockIndex blockIndex = new DynamicBlockIndex(highResStream, nBlocks, maxPossibleBlockNumber, currentFilePointer);
+            blockIndexMap.put(zd.getKey(), blockIndex);
+        } else {
+            BlockIndex blockIndex = new BlockIndex(nBlocks);
+            blockIndex.populateBlocks(dis);
+            blockIndexMap.put(zd.getKey(), blockIndex);
         }
-        blockIndexMap = new HashMap<>();
+        currentFilePointer += nBlocks * 16;
+
+        int nBins1 = chr1.getLength() / binSize;
+        int nBins2 = chr2.getLength() / binSize;
+        double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
+        zd.setAverageCount(avgCount);
+
+        return new Pair<>(zd, currentFilePointer);
     }
 
     private String checkGraphs(String graphs) {
@@ -532,6 +538,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
+        long currentFilePosition = idx.position + 8;
 
         // TODO weird bug
         // interesting bug with local files; difficult to reliably repeat, but just occurs on loading a region
@@ -555,8 +562,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int[] chr2Sites = retrieveFragmentSitesFromCache(chr2);
 
         for (int i = 0; i < nResolutions; i++) {
-            MatrixZoomData zd = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, dis);
-            zdList.add(zd);
+            Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, dis, currentFilePosition);
+            zdList.add(result.getFirst());
+            currentFilePosition = result.getSecond();
         }
 
         return new Matrix(c1, c2, zdList);
@@ -588,8 +596,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     @Override
     public List<Integer> getBlockNumbers(MatrixZoomData zd) {
-        Map<Integer, IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
-        return blockIndex == null ? null : new ArrayList<>(blockIndex.keySet());
+        BlockIndex blockIndex = blockIndexMap.get(zd.getKey());
+        return blockIndex == null ? null : blockIndex.getBlockNumbers();
     }
 
     private final CompressionUtils mainCompressionUtils = new CompressionUtils();
@@ -730,10 +738,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         timeDiffThings[0] = System.currentTimeMillis();
 
         Block b = null;
-        Map<Integer, IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
+        BlockIndex blockIndex = blockIndexMap.get(zd.getKey());
         if (blockIndex != null) {
 
-            IndexEntry idx = blockIndex.get(blockNumber);
+            IndexEntry idx = blockIndex.getBlock(blockNumber);
             if (idx != null) {
 
                 //System.out.println(" blockIndexPosition:" + idx.position);
