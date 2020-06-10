@@ -303,7 +303,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         long currentFilePointer = filePointer + (9 * 4) + hicUnitStr.getBytes().length + 1; // i think 1 byte for 0 terminated string?
 
-        if (binSize < 200) {
+        if (binSize < 50 && HiCGlobals.allowDynamicBlockIndex) {
             int maxPossibleBlockNumber = blockColumnCount * blockColumnCount - 1;
             DynamicBlockIndex blockIndex = new DynamicBlockIndex(highResStream, nBlocks, maxPossibleBlockNumber, currentFilePointer);
             blockIndexMap.put(zd.getKey(), blockIndex);

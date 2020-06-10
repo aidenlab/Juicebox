@@ -24,12 +24,12 @@
 
 package juicebox.tools.clt.old;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -120,6 +120,7 @@ public class AddNorm extends JuiceboxCLT {
 
     @Override
     public void run() {
+        HiCGlobals.allowDynamicBlockIndex = false;
         try {
             if (inputVectorFile != null) {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);

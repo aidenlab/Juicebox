@@ -36,7 +36,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.22.04";
+    public static final String versionNum = "1.22.05";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -77,6 +77,7 @@ public class HiCGlobals {
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
+    public static boolean allowDynamicBlockIndex = true;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
     public static boolean splitModeEnabled = false;

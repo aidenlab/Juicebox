@@ -31,7 +31,6 @@ import juicebox.tools.utils.original.IndexEntry;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DynamicBlockIndex extends BlockIndex {
@@ -53,8 +52,8 @@ public class DynamicBlockIndex extends BlockIndex {
 
     @Override
     public List<Integer> getBlockNumbers() {
-        // TODO
-        return new ArrayList<>();
+        // cause break - should not be called for this type of indexing
+        return null;
     }
 
     @Override
