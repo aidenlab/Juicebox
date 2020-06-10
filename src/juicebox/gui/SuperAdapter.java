@@ -1082,4 +1082,8 @@ public class SuperAdapter {
         Chromosome custom = hic.getChromosomeHandler().addGenomeWideChromosome();
         updateChrHandlerAndMVP(custom);
     }
+
+    public void safeLaunchCreateNewResolution(boolean isControl) {
+
+    }
 }

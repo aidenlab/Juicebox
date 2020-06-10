@@ -518,25 +518,41 @@ public class MainMenuBar extends JMenuBar {
     devMenu = new JMenu("Dev");
     devMenu.setEnabled(false);
 
-      final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
-      addCustomNormsObs.addActionListener(new ActionListener() {
+    final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
+    addCustomNormsObs.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-          superAdapter.safeLaunchImportNormalizations(false);
+        superAdapter.safeLaunchImportNormalizations(false);
       }
     });
 
-      final JMenuItem addCustomNormsCtrl = new JMenuItem("Add Custom Norms to Control...");
-      addCustomNormsCtrl.addActionListener(new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-              superAdapter.safeLaunchImportNormalizations(true);
-          }
-      });
+    final JMenuItem addCustomNormsCtrl = new JMenuItem("Add Custom Norms to Control...");
+    addCustomNormsCtrl.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchImportNormalizations(true);
+      }
+    });
+
+    final JMenuItem addResolutionToObs = new JMenuItem("Add Custom Resolution to Observed...");
+    addResolutionToObs.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchCreateNewResolution(false);
+      }
+    });
+
+    final JMenuItem addResolutionToCtrl = new JMenuItem("Add Custom Resolution to Control...");
+    addResolutionToCtrl.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchCreateNewResolution(true);
+      }
+    });
 
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-        devMenu.add(addCustomNormsObs);
-        devMenu.add(addCustomNormsCtrl);
+      devMenu.add(addCustomNormsObs);
+      devMenu.add(addCustomNormsCtrl);
     }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
@@ -778,21 +794,19 @@ public class MainMenuBar extends JMenuBar {
                     // Rescale resolution slider labels
                     superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-                    // Rescale axis tick labels
-                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
-                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+                  // Rescale axis tick labels
+                  superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                  superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale and redraw assembly annotations
-                    if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().resetState();
-                    }
-
-      
+                  // Rescale and redraw assembly annotations
+                  if (superAdapter.getAssemblyStateTracker() != null) {
+                    superAdapter.getAssemblyStateTracker().resetState();
+                  }
 
 
-        } catch (NumberFormatException t) {
-          JOptionPane.showMessageDialog(null, "Value must be an integer!");
-        }
+                } catch (NumberFormatException t) {
+                  JOptionPane.showMessageDialog(null, "Value must be an integer!");
+                }
 
       }
     });
