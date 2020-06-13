@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,8 +64,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private final JTree tree;
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
-    private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private final ArrayList<String> mostRecentPaths = new ArrayList<>();
+    private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
 
     public LoadModifiedAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
@@ -287,12 +287,11 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 
         if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
 //            try {
-            AssemblyFileImporter assemblyFileImporter;
+            AssemblyFileImporter assemblyFileImporter = null;
             if (assemblyPath != null) {
                 assemblyFileImporter = new AssemblyFileImporter(assemblyPath, true);
-            } else {
-                assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
             }
+
             assemblyFileImporter.importAssembly();
             AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
             superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);

@@ -300,11 +300,9 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     superAdapter.refresh();
                 }
 
-                AssemblyFileImporter assemblyFileImporter;
+                AssemblyFileImporter assemblyFileImporter = null;
                 if (assemblyPath != null) {
                     assemblyFileImporter = new AssemblyFileImporter(assemblyPath, false);
-                } else {
-                    assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
                 }
 
                 //temp layer to allow deleting of other layers
