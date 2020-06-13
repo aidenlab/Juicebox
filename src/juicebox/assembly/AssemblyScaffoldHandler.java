@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,7 @@ public class AssemblyScaffoldHandler {
   private List<List<Integer>> listOfSuperscaffolds = new ArrayList<>();
   // aggregates
   private List<Scaffold> listOfAggregateScaffolds = new ArrayList<>();
+  private List<String> listOfBundledScaffolds = new ArrayList<>();
   private Feature2DHandler scaffoldFeature2DHandler;
   private Feature2DHandler superscaffoldFeature2DHandler;
 
@@ -61,10 +62,17 @@ public class AssemblyScaffoldHandler {
     updateAssembly(true);
   }
 
-  // do we still need this constructor?
+  public AssemblyScaffoldHandler(List<Scaffold> listOfScaffolds, List<List<Integer>> listOfSuperscaffolds, List<String> bundled) {
+    this.listOfScaffolds = listOfScaffolds;
+    this.listOfSuperscaffolds = listOfSuperscaffolds;
+    this.listOfBundledScaffolds = bundled;
+    updateAssembly(true);
+  }
+  
   public AssemblyScaffoldHandler(AssemblyScaffoldHandler assemblyScaffoldHandler) {
     this.listOfScaffolds = assemblyScaffoldHandler.cloneScaffolds();
     this.listOfSuperscaffolds = assemblyScaffoldHandler.cloneSuperscaffolds();
+    this.listOfBundledScaffolds = assemblyScaffoldHandler.getListOfBundledScaffolds();
     this.scaffoldFeature2DHandler = assemblyScaffoldHandler.getScaffoldFeature2DHandler();
     this.superscaffoldFeature2DHandler = assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler();
     this.listOfAggregateScaffolds = assemblyScaffoldHandler.getListOfAggregateScaffolds();
@@ -705,5 +713,9 @@ public class AssemblyScaffoldHandler {
       idx2 = -idx2 - 2;
     }
     return listOfAggregateScaffolds.subList(idx1, idx2 + 1);
+  }
+
+  public List<String> getListOfBundledScaffolds() {
+    return listOfBundledScaffolds;
   }
 }

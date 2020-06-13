@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,11 +37,14 @@ public class AssemblyFileExporter {
     private final String outputFilePath;
     private final List<Scaffold> listOfScaffolds;
     private final List<List<Integer>> listOfSuperscaffolds;
+    private final List<String> listOfBundledScaffolds;
+
 
     public AssemblyFileExporter(AssemblyScaffoldHandler assemblyScaffoldHandler, String outputFilePath) {
         this.outputFilePath = outputFilePath;
         this.listOfScaffolds = assemblyScaffoldHandler.getListOfScaffolds();
         this.listOfSuperscaffolds = assemblyScaffoldHandler.getListOfSuperscaffolds();
+        this.listOfBundledScaffolds = assemblyScaffoldHandler.getListOfBundledScaffolds();
     }
 
     public void exportAssemblyFile() {
@@ -52,31 +55,33 @@ public class AssemblyFileExporter {
         }
     }
 
-    @Deprecated
-    private void exportCprops() throws IOException {
-        PrintWriter cpropsWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
-        for (Scaffold scaffold : listOfScaffolds) {
-            cpropsWriter.println(scaffold.toString());
-        }
-        cpropsWriter.close();
-    }
-
-    @Deprecated
-    private void exportAsm() throws IOException {
-        PrintWriter asmWriter = new PrintWriter(buildAsmOutputPath(), "UTF-8");
-        for (List<Integer> row : listOfSuperscaffolds) {
-            asmWriter.println(superscaffoldToString(row));
-        }
-        asmWriter.close();
-    }
-
     private void exportAssembly() throws IOException {
         PrintWriter assemblyWriter = new PrintWriter(buildAssemblyOutputPath(), "UTF-8");
+        int last = 0;
         for (Scaffold scaffold : listOfScaffolds) {
+            if (scaffold.getName() == "unattempted:::debris") {
+                continue;
+            }
             assemblyWriter.print(">" + scaffold.toString() + "\n"); // Use print to account for OS difference in control characters
+            last = scaffold.getIndexId();
+        }
+
+        if (listOfBundledScaffolds.size() > 0) {
+            for (String row : listOfBundledScaffolds) {
+                String[] splitRow = row.split(" ");
+                last += 1;
+                assemblyWriter.print(splitRow[0] + " " + last + " " + splitRow[2] + "\n");
+            }
         }
         for (List<Integer> row : listOfSuperscaffolds) {
+            if (listOfBundledScaffolds.size() > 0 && row.get(0) == listOfScaffolds.size()) {
+                continue;
+            }
             assemblyWriter.print(superscaffoldToString(row) + "\n");
+        }
+        if (listOfBundledScaffolds.size() > 0) {
+            for (int i = listOfScaffolds.size(); i <= last; i++)
+                assemblyWriter.print(i + "\n");
         }
         assemblyWriter.close();
     }
@@ -94,36 +99,7 @@ public class AssemblyFileExporter {
     }
 
     private String buildAssemblyOutputPath() {
-        return this.outputFilePath + "." + FILE_EXTENSIONS.ASSEMBLY.toString();
+        return this.outputFilePath + ".assembly";
     }
 
-    @Deprecated
-    private String buildCpropsOutputPath() {
-        return this.outputFilePath + "." + FILE_EXTENSIONS.CPROPS.toString();
-    }
-
-    @Deprecated
-    private String buildAsmOutputPath() {
-        return this.outputFilePath + "." + FILE_EXTENSIONS.ASM.toString();
-    }
-
-    private enum FILE_EXTENSIONS {
-        ASSEMBLY("assembly"),
-        CPROPS("cprops"),
-        ASM("asm");
-
-        private final String extension;
-
-        FILE_EXTENSIONS(String extension) {
-            this.extension = extension;
-        }
-
-        public boolean equals(String otherExtension) {
-            return this.extension.equals(otherExtension);
-        }
-
-        public String toString() {
-            return this.extension;
-        }
-    }
 }

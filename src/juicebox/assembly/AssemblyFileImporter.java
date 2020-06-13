@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,10 @@ package juicebox.assembly;
 
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -40,47 +38,35 @@ import java.util.Scanner;
  */
 public class AssemblyFileImporter {
 
-  private SuperAdapter superAdapter = null;
-  // legacy format
-    private String cpropsFilePath;
-    private String asmFilePath;
-
+    public List<String> listOfUnattempted;
+    private SuperAdapter superAdapter = null;
     // single file format
     private String assemblyFilePath;
-
     private boolean modified = false;
 
+    //private int bundleSize=15000; //user-defined presumably
+    private boolean needsBundling = false;
+    private int bundleSize = 0; //temporary? bundle everything you can
     private List<Scaffold> listOfScaffolds;
     private List<List<Integer>> listOfSuperscaffolds;
     private AssemblyScaffoldHandler assemblyScaffoldHandler;
-
-    public AssemblyFileImporter(String cpropsFilePath, String asmFilePath, boolean modified) {
-        this.cpropsFilePath = cpropsFilePath;
-        this.asmFilePath = asmFilePath;
-        this.modified = modified;
-    }
 
     public AssemblyFileImporter(String assemblyFilePath, boolean modified) {
         this.assemblyFilePath = assemblyFilePath;
         this.modified = modified;
     }
 
-  public AssemblyFileImporter(SuperAdapter superAdapter) {
-    this.superAdapter = superAdapter;
-  }
+    public AssemblyFileImporter(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
+    }
 
-  public void importAssembly() {
+    public void importAssembly() {
         listOfScaffolds = new ArrayList<>();
         listOfSuperscaffolds = new ArrayList<>();
-        // does it update assembly? //
+        listOfUnattempted = new ArrayList<>();
         try {
             if (assemblyFilePath != null) {
                 parseAssemblyFile();
-            } else if (cpropsFilePath != null && asmFilePath != null) {
-              parseCpropsFile();
-              parseAsmFile();
-            } else {
-              parseChromSizes();
             }
             if (!modified)
                 setInitialState();
@@ -91,19 +77,19 @@ public class AssemblyFileImporter {
         }
         updateAssemblyScale();
 
-        // TODO: validateImport or user dialog
-        assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
+        assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds, listOfUnattempted);
     }
 
-  private void parseChromSizes() {
-    for (Chromosome chr : superAdapter.getHiC().getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
-      Scaffold scaffold = new Scaffold(chr.getName(), chr.getIndex(), chr.getLength());
-      listOfScaffolds.add(scaffold);
-      listOfSuperscaffolds.add(Arrays.asList(chr.getIndex()));
-    }
-  }
+    //at some point TODO: sandboxed to assembly
+//  private void parseChromSizes() {
+//    for (Chromosome chr : superAdapter.getHiC().getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
+//      Scaffold scaffold = new Scaffold(chr.getName(), chr.getIndex(), chr.getLength());
+//      listOfScaffolds.add(scaffold);
+//      listOfSuperscaffolds.add(Arrays.asList(chr.getIndex()));
+//    }
+//  }
 
-  private int updateAssemblyScale() {
+    private int updateAssemblyScale() {
         long totalLength = 0;
         for (Scaffold fragmentProperty : listOfScaffolds) {
             totalLength += fragmentProperty.getLength();
@@ -112,7 +98,7 @@ public class AssemblyFileImporter {
         return (int) (totalLength / HiCGlobals.hicMapScale); // in case decide to use for validation so that not to count again
     }
 
-    private void parseAssemblyFile() throws IOException {
+    private void parseAssemblyFileNoBundling() throws IOException {
         List<String> rawFileData = readFile(assemblyFilePath);
         try {
             for (String row : rawFileData) {
@@ -135,44 +121,122 @@ public class AssemblyFileImporter {
         }
     }
 
-    private void parseCpropsFile() throws IOException {
-        if (validateCpropsFile()) {
-            List<String> rawFileData = readFile(cpropsFilePath);
+    private void parseAssemblyFile() throws IOException {
+
+        List<String> rawFileData = readFile(assemblyFilePath);
+
+        if (!needsBundling) {
+            parseAssemblyFileNoBundling();
+            return;
+        }
+        try {
+            long len = 0;
+            int start = 0;
+            int prev = 0;
+            int i = 0;
+            int input_start = 0;
+            List<String> name = new ArrayList<>();
+            List<Integer> size = new ArrayList<>();
+            List<String[]> asm = new ArrayList<>();
 
             for (String row : rawFileData) {
+
                 String[] splitRow = row.split(" ");
-                // Name<\s>ID<\s>length
-                Scaffold scaffold = new Scaffold(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
-                listOfScaffolds.add(scaffold);
+
+                if (splitRow[0].startsWith(">")) {
+                    int clen = Integer.parseInt(splitRow[2]);
+                    int id = Integer.parseInt(splitRow[1]);
+                    if (clen >= bundleSize && input_start != 0) {
+                        input_start = 0;
+                    }
+                    if (clen < bundleSize && input_start == 0) {
+                        input_start = id;
+                    }
+                    len += clen;
+                    name.add(splitRow[0]);
+                    size.add(clen);
+                } else {
+                    asm.add(splitRow);
+                    if (splitRow.length != 1) {
+                        start = 0;
+                        continue;
+                    }
+                    i = Integer.parseInt(splitRow[0]);
+                    if (i <= 0) {
+                        start = 0;
+                        continue;
+                    }
+                    if (name.get(i - 1).contains(":::fragment_")) {
+                        start = 0;
+                        continue;
+                    }
+                    if (start > 0 && i == prev + 1) {
+                        prev = i;
+                    } else {
+                        start = i;
+                        prev = i;
+                    }
+                }
             }
-        } else System.out.println("Invalid cprops file");
-    }
 
-    private boolean validateCpropsFile() {
-        //TODO: more restrictions for user-proofness
-        return getCpropsFilePath().endsWith(FILE_EXTENSIONS.CPROPS.toString());
-    }
+            if ((bundleSize != 0 && input_start == 0) || (start == i)) {
+                System.err.println("Nothing to bundle!");
+            }
+            if (bundleSize != 0 && input_start > start) {
+                start = input_start;
+                System.err.println("Warning: cannot bundle everything under " + bundleSize + "bp");
+            }
 
-    private void parseAsmFile() throws IOException {
-        if (validateAsmFile()) {
-            List<String> rawFileData = readFile(asmFilePath);
+            //safeguard against accidentally bundling more than one has originally bundled
+            if (modified && start > 1) {
+                List<Scaffold> originalScaffolds = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds();
+                while (true) {
+                    long tentativeUnbundled = 0;
+                    for (int j = 0; j < start - 1; j++) {
+                        tentativeUnbundled += size.get(j);
+                    }
+                    if (tentativeUnbundled < len - originalScaffolds.get(originalScaffolds.size() - 1).getLength()) {
+                        start++;
+                        continue;
+                    }
+                    if (tentativeUnbundled > len - originalScaffolds.get(originalScaffolds.size() - 1).getLength()) {
+                        System.err.println("Something's wrong!");
+                    }
+                    break;
+                }
+            }
 
-            for (String row : rawFileData) {
-                //   System.out.println("Scaffold: "+row);
+            long bundlelen = 0;
+
+            for (i = 1; i < start; i++) {
+                Scaffold scaffold = new Scaffold(name.get(i - 1).substring(1), i, size.get(i - 1));
+                listOfScaffolds.add(scaffold);
+                bundlelen += size.get(i - 1);
+            }
+            for (i = start; i < name.size(); i++) {
+                listOfUnattempted.add(name.get(i - 1) + " " + i + " " + size.get(i - 1));
+            }
+
+            for (String[] asmLine : asm) {
+                if (Integer.parseInt(asmLine[0]) == start) {
+                    break;
+                }
                 List<Integer> superscaffold = new ArrayList<>();
-                for (String index : row.split(" ")) {
+                for (String index : asmLine) {
                     superscaffold.add(Integer.parseInt(index));
                 }
-
                 listOfSuperscaffolds.add(superscaffold);
             }
-        } else
-            System.out.println("Invalid asm file");
-    }
 
-    private boolean validateAsmFile() {
-        //TODO: more restrictions for user-proofness
-        return getAsmFilePath().endsWith(FILE_EXTENSIONS.ASM.toString());
+            listOfScaffolds.add(new Scaffold("unattempted:::debris", start, len - bundlelen));
+            List<Integer> superscaffold = new ArrayList<>();
+            superscaffold.add(start);
+            listOfSuperscaffolds.add(superscaffold);
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            System.err.println("Errors in format");
+        }
     }
 
     private void setInitialState() {
@@ -234,43 +298,21 @@ public class AssemblyFileImporter {
         List<String> fileData = new ArrayList<>();
 
         File file = new File(filePath);
+        if (file.length() > 1000000) {
+            //TODO: launch dialog to confirm with the user
+            needsBundling = true;
+        }
+
         Scanner scanner = new Scanner(file);
 
         while (scanner.hasNext()) {
             fileData.add(scanner.nextLine());
         }
-
         return fileData;
-    }
-
-    private String getCpropsFilePath() {
-        return this.cpropsFilePath;
-    }
-
-    private String getAsmFilePath() {
-        return this.asmFilePath;
     }
 
     public AssemblyScaffoldHandler getAssemblyScaffoldHandler() {
         return assemblyScaffoldHandler;
     }
 
-    private enum FILE_EXTENSIONS {
-        CPROPS("cprops"),
-        ASM("asm");
-
-        private final String extension;
-
-        FILE_EXTENSIONS(String extension) {
-            this.extension = extension;
-        }
-
-        public boolean equals(String otherExtension) {
-            return this.extension.equals(otherExtension);
-        }
-
-        public String toString() {
-            return this.extension;
-        }
-    }
 }

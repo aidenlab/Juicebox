@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,9 +58,9 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     private final String scaffoldNameAttributeKey = "Scaffold name";
     // formality
     private final Integer chrIndex = 1;
+    private final Color defaultColor = new Color(0, 255, 0);
     //invariant properties
     public String name;
-    private final Color defaultColor = new Color(0, 255, 0);
     private int indexId;
     //initial state
     private long originalStart;
@@ -96,7 +96,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     }
 
     // Invariant properties getters and setters
-    private String getName() {
+    public String getName() {
         return name;
     }
 
