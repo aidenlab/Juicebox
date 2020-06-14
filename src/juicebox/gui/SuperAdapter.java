@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,11 +65,12 @@ import java.util.Properties;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class SuperAdapter {
+    private static final List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
+    public static boolean assemblyModeCurrentlyActive = false;
     private static String datasetTitle = "";
     private static String controlTitle;
-    private static final List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
@@ -80,7 +81,6 @@ public class SuperAdapter {
     private PearsonColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
-    public static boolean assemblyModeCurrentlyActive = false;
 
     public static String getDatasetTitle() {
         return datasetTitle;
@@ -88,6 +88,17 @@ public class SuperAdapter {
 
     public static void setDatasetTitle(String newDatasetTitle) {
         datasetTitle = newDatasetTitle;
+    }
+
+    public static void showMessageDialog(String message) {
+        JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
+    }
+
+    public static int showConfirmDialog(String message) {
+        return JOptionPane.showConfirmDialog(
+                MainWindow.getInstance(),
+                message, "Confirm bundling",
+                JOptionPane.YES_NO_OPTION);
     }
 
     public void setAdapters(MainWindow mainWindow, HiC hic, MainViewPanel mainViewPanel) {
@@ -104,6 +115,7 @@ public class SuperAdapter {
         mainViewPanel.addRecentMapMenuEntry(title, status);
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void showDataSetMetrics(boolean isControl) {
         if (hic.getDataset() == null) {
@@ -130,8 +142,6 @@ public class SuperAdapter {
             new DumpDialog(mainWindow, hic);
         }
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
@@ -183,10 +193,6 @@ public class SuperAdapter {
 
     public void updatePrevStateNameFromImport(String path) {
         mainViewPanel.updatePrevStateNameFromImport(path);
-    }
-
-    public static void showMessageDialog(String message) {
-        JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
     }
 
     public void loadFromListActionPerformed(boolean control) {

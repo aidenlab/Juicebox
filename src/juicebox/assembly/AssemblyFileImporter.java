@@ -51,6 +51,8 @@ public class AssemblyFileImporter {
     private List<List<Integer>> listOfSuperscaffolds;
     private AssemblyScaffoldHandler assemblyScaffoldHandler;
 
+    private List<String> rawFileData;
+
     public AssemblyFileImporter(String assemblyFilePath, boolean modified) {
         this.assemblyFilePath = assemblyFilePath;
         this.modified = modified;
@@ -66,6 +68,7 @@ public class AssemblyFileImporter {
         listOfUnattempted = new ArrayList<>();
         try {
             if (assemblyFilePath != null) {
+                rawFileData = readFile(assemblyFilePath);
                 parseAssemblyFile();
             }
             if (!modified)
@@ -99,7 +102,6 @@ public class AssemblyFileImporter {
     }
 
     private void parseAssemblyFileNoBundling() throws IOException {
-        List<String> rawFileData = readFile(assemblyFilePath);
         try {
             for (String row : rawFileData) {
                 if (row.startsWith(">")) {
@@ -122,8 +124,6 @@ public class AssemblyFileImporter {
     }
 
     private void parseAssemblyFile() throws IOException {
-
-        List<String> rawFileData = readFile(assemblyFilePath);
 
         if (!needsBundling) {
             parseAssemblyFileNoBundling();
@@ -298,9 +298,18 @@ public class AssemblyFileImporter {
         List<String> fileData = new ArrayList<>();
 
         File file = new File(filePath);
-        if (file.length() > 1000000) {
-            //TODO: launch dialog to confirm with the user
-            needsBundling = true;
+        if (file.length() > 1000000 && !modified) {
+            //launch dialog to confirm with the user
+            if (SuperAdapter.showConfirmDialog("The assembly file is large. Do you want to try and bundle small sequences?") == 0) {
+                needsBundling = true;
+            }
+        }
+        //for modified use replicate what's in the current map
+        if (modified) {
+            List<Scaffold> listOfScaffolds = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds();
+            if (listOfScaffolds.get(listOfScaffolds.size() - 1).getName().contentEquals("unattempted:::debris")) {
+                needsBundling = true;
+            }
         }
 
         Scanner scanner = new Scanner(file);
