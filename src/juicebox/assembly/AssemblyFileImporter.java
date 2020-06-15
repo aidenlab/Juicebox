@@ -213,7 +213,7 @@ public class AssemblyFileImporter {
                 listOfScaffolds.add(scaffold);
                 bundlelen += size.get(i - 1);
             }
-            for (i = start; i < name.size(); i++) {
+            for (i = start; i <= name.size(); i++) {
                 listOfUnattempted.add(name.get(i - 1) + " " + i + " " + size.get(i - 1));
             }
 
