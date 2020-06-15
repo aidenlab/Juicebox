@@ -46,6 +46,7 @@ import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -1083,7 +1084,28 @@ public class SuperAdapter {
         updateChrHandlerAndMVP(custom);
     }
 
-    public void safeLaunchCreateNewResolution(boolean isControl) {
+    public static int getNewResolutionGUI() {
+        int newResolution = -1;
+        String newSize = MessageUtils.showInputDialog("Specify a new resolution", "");
+        try {
+            newResolution = Integer.parseInt(newSize);
+        } catch (Exception e) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                SuperAdapter.showMessageDialog("Invalid resolution given (not integer): " + newSize);
+            } else {
+                MessageUtils.showMessage("Invalid resolution given (not integer): " + newSize);
+            }
+        }
+        return newResolution;
+    }
 
+    public void safeLaunchCreateNewResolution() {
+        int newResolution = getNewResolutionGUI();
+        if (newResolution > 0) {
+            hic.createNewDynamicResolutions(newResolution);
+            refresh();
+            getMainViewPanel().getResolutionSlider().reset();
+
+        }
     }
 }

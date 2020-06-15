@@ -534,25 +534,18 @@ public class MainMenuBar extends JMenuBar {
       }
     });
 
-    final JMenuItem addResolutionToObs = new JMenuItem("Add Custom Resolution to Observed...");
-    addResolutionToObs.addActionListener(new ActionListener() {
+    final JMenuItem addResolutionToDatasets = new JMenuItem("Add Custom Resolution...");
+    addResolutionToDatasets.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        superAdapter.safeLaunchCreateNewResolution(false);
-      }
-    });
-
-    final JMenuItem addResolutionToCtrl = new JMenuItem("Add Custom Resolution to Control...");
-    addResolutionToCtrl.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        superAdapter.safeLaunchCreateNewResolution(true);
+        superAdapter.safeLaunchCreateNewResolution();
       }
     });
 
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(addCustomNormsObs);
       devMenu.add(addCustomNormsCtrl);
+      devMenu.add(addResolutionToDatasets);
     }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
