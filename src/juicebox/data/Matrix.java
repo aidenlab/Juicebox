@@ -155,7 +155,11 @@ public class Matrix {
         }
 
         for (Pair<Integer, Integer> resPair : dynamicZoomResolutions) {
-            createDynamicResolutionMZD(resPair, false);
+            try {
+                createDynamicResolutionMZD(resPair, false);
+            } catch (Exception e) {
+                System.err.println("Dynamic resolution could not be made");
+            }
         }
         Collections.sort(dynamicBPZoomData, comparator);
 
@@ -236,12 +240,12 @@ public class Matrix {
     public void createDynamicResolutionMZD(Pair<Integer, Integer> resPair, boolean addToSet) {
         int newRes = resPair.getFirst();
         int highRes = resPair.getSecond();
-        if (addToSet) {
-            dynamicZoomResolutions.add(resPair);
-        }
 
         MatrixZoomData highMZD = getZoomData(new HiCZoom(HiC.Unit.BP, highRes));
         MatrixZoomData newMZD = new DynamicMatrixZoomData(new HiCZoom(HiC.Unit.BP, newRes), highMZD);
+        if (addToSet) {
+            dynamicZoomResolutions.add(resPair);
+        }
         dynamicBPZoomData.add(newMZD);
     }
 
