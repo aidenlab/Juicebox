@@ -44,6 +44,7 @@ public class FinalScale {
     private final static int totalIterations = 3 * maxIter;
     private final static float minErrorThreshold = .02f;
     private static final float OFFSET = .5f;
+    public static int diagNumberLimit = 0;
 
     public static double[] scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial) {
 
@@ -357,17 +358,36 @@ public class FinalScale {
     private static double[] sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists, double[] vector, int vectorLength) {
         double[] sumVector = new double[vectorLength];
 
-        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
-            for (ContactRecord cr : contactRecords) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                float counts = cr.getCounts();
-                if (x == y) {
-                    counts *= .5;
-                }
+        if (diagNumberLimit > 0) {
+            for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+                for (ContactRecord cr : contactRecords) {
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    float counts = cr.getCounts();
 
-                sumVector[x] += counts * vector[y];
-                sumVector[y] += counts * vector[x];
+                    if (Math.abs(x - y) < diagNumberLimit + 1) {
+                        if (x == y) {
+                            counts *= .5;
+                        }
+
+                        sumVector[x] += counts * vector[y];
+                        sumVector[y] += counts * vector[x];
+                    }
+                }
+            }
+        } else {
+            for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
+                for (ContactRecord cr : contactRecords) {
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    float counts = cr.getCounts();
+                    if (x == y) {
+                        counts *= .5;
+                    }
+
+                    sumVector[x] += counts * vector[y];
+                    sumVector[y] += counts * vector[x];
+                }
             }
         }
 

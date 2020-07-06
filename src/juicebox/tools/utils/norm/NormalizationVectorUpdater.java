@@ -27,6 +27,7 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.tools.utils.norm.final2.FinalScale;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -35,7 +36,6 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -100,27 +100,30 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             }
             if (noFrag && zoom.getUnit() == HiC.Unit.FRAG) continue;
 
-            Instant A = Instant.now();
-
+            //Instant A = Instant.now();
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
                         normVectorIndices, normVectorBuffer, expectedValueCalculations);
             }
-            Instant B = Instant.now();
+            //Instant B = Instant.now();
             //System.out.println("genomewide normalization: " + Duration.between(A,B).toMillis());
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
-            A = Instant.now();
 
             ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
             ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
-            ExpectedValueCalculation evSCALE = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.SCALE);
-            B = Instant.now();
+            List<ExpectedValueCalculation> evScales = new ArrayList<>();
+            evScales.add(new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.SCALE));
+            for (int i = 1; i < 10; i++) {
+                evScales.add(new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm,
+                        new NormalizationType("SCALE" + i, "Fast scaling Diagonal " + i)));
+            }
+
             //System.out.println("expected value calc initialization: " + Duration.between(A,B).toMillis());
 
             // Loop through chromosomes
@@ -148,7 +151,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
                 // Fast scaling normalization
                 if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
-                    buildScale(chr, nc, zoom, zd, evSCALE);
+                    for (int i = 0; i < evScales.size(); i++) {
+                        buildScale(chr, nc, zoom, zd, evScales.get(i), i);
+                    }
                 }
             }
 
@@ -161,10 +166,11 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             if (weShouldBuildKR && evKR.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
                 expectedValueCalculations.add(evKR);
             }
-            if (weShouldBuildScale && evSCALE.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
-                expectedValueCalculations.add(evSCALE);
+            for (ExpectedValueCalculation evSCALE : evScales) {
+                if (weShouldBuildScale && evSCALE.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
+                    expectedValueCalculations.add(evSCALE);
+                }
             }
-
 
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
@@ -229,12 +235,13 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
     }
 
-    protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE) throws IOException {
+    protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE, int diagNumberLimit) throws IOException {
         Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? mmbaFragFailedChromosomes : mmbaBPFailedChromosomes;
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
 
         if (!failureSetMMBA.contains(chr)) {
+            FinalScale.diagNumberLimit = diagNumberLimit;
             double[] mmba = nc.computeMMBA();
 
             if (mmba == null) {
