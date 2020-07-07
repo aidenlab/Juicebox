@@ -83,6 +83,25 @@ public class ContactRecord implements Comparable<ContactRecord> {
         return "" + binX + " " + binY + " " + counts;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 31 * binX;
+        hash = 37 * (hash + binY);
+        return 53 * (int) (hash + counts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        return compareTo((ContactRecord) obj) == 0;
+    }
+
+
     public String getKey(NormalizationType normalizationType) {
         return binX + "_" + binY + "_" + normalizationType;
     }

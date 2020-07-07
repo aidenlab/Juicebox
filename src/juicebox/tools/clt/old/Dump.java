@@ -471,6 +471,7 @@ public class Dump extends JuiceboxCLT {
 
     @Override
     public void run() {
+        HiCGlobals.allowDynamicBlockIndex = false;
         try {
             if (feature != null) {
                 dumpFeature();
