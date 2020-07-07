@@ -1318,6 +1318,13 @@ public class HiC {
         MatrixTools.saveMatrixTextV2(outputMatrixFile.getAbsolutePath(), realMatrix);
     }
 
+    public void createNewDynamicResolutions(int newResolution) {
+        dataset.addDynamicResolution(newResolution);
+        if (controlDataset != null) {
+            controlDataset.addDynamicResolution(newResolution);
+        }
+    }
+
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {
         STANDARD, DRAG, DIRECT, INITIAL, REVERSE

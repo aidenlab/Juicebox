@@ -70,10 +70,10 @@ public class MatrixZoomData {
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
-    private final int blockBinCount;   // block size in bins
-    private final int blockColumnCount;     // number of block columns
+    protected final int blockBinCount;   // block size in bins
+    protected final int blockColumnCount;     // number of block columns
     // Cache the last 20 blocks loaded
-    private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
+    protected final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
     private final HashSet<NormalizationType> missingPearsonFiles;
@@ -104,19 +104,21 @@ public class MatrixZoomData {
         this.blockColumnCount = blockColumnCount;
 
         int correctedBinCount = blockBinCount;
-        if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
-            boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
-            int len1 = chr1.getLength();
-            int len2 = chr2.getLength();
-            if (chr1Sites != null && chr2Sites != null && isFrag) {
-                len1 = chr1Sites.length + 1;
-                len2 = chr2Sites.length + 1;
+        if (!(this instanceof DynamicMatrixZoomData)) {
+            if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
+                boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
+                int len1 = chr1.getLength();
+                int len2 = chr2.getLength();
+                if (chr1Sites != null && chr2Sites != null && isFrag) {
+                    len1 = chr1Sites.length + 1;
+                    len2 = chr2Sites.length + 1;
+                }
+                int nBinsX = Math.max(len1, len2) / zoom.getBinSize() + 1;
+                correctedBinCount = nBinsX / blockColumnCount + 1;
             }
-            int nBinsX = Math.max(len1, len2) / zoom.getBinSize() + 1;
-            correctedBinCount = nBinsX / blockColumnCount + 1;
         }
 
-        if (this instanceof CustomMatrixZoomData) {
+        if (this instanceof CustomMatrixZoomData || this instanceof DynamicMatrixZoomData) {
             this.xGridAxis = new HiCFixedGridAxis(chr1.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
             this.yGridAxis = new HiCFixedGridAxis(chr2.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
         } else if (zoom.getUnit() == HiC.Unit.BP) {
@@ -239,14 +241,14 @@ public class MatrixZoomData {
      * @param binY1 leftmost position in "bins"
      * @param binX2 rightmost position in "bins"
      * @param binY2 bottom position in "bins"
-     * @param no    normalization type
+     * @param norm  normalization type
      * @return List of overlapping blocks, normalized
      */
     private List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                  final NormalizationType no, boolean getBelowDiagonal) {
+                                                  final NormalizationType norm, boolean getBelowDiagonal) {
 
         Set<Integer> blocksToLoad = new HashSet<>();
-      
+
         // have to do this regardless (just in case)
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
@@ -255,19 +257,19 @@ public class MatrixZoomData {
 
         for (int r = row1; r <= row2; r++) {
             for (int c = col1; c <= col2; c++) {
-                populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+                populateBlocksToLoad(r, c, norm, blockList, blocksToLoad);
             }
         }
 
         if (getBelowDiagonal && binY1 < binX2) {
             for (int r = row1; r <= row2; r++) {
                 for (int c = col1; c <= col2; c++) {
-                    populateBlocksToLoad(c, r, no, blockList, blocksToLoad);
+                    populateBlocksToLoad(c, r, norm, blockList, blocksToLoad);
                 }
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, norm);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }

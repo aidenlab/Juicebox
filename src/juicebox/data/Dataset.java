@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
 
@@ -59,8 +60,7 @@ public class Dataset {
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
     String genomeId;
     String restrictionEnzyme = null;
-    List<HiCZoom> bpZooms;
-    List<HiCZoom> fragZooms;
+    List<HiCZoom> bpZooms, dynamicZooms, fragZooms;
     private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
@@ -110,6 +110,25 @@ public class Dataset {
         }
 
         return m;
+    }
+
+    public void addDynamicResolution(int newRes) {
+
+        int highRes = -1;
+        for (int potentialRes : bpZoomResolutions) {
+            if (potentialRes < newRes && potentialRes > highRes && newRes % potentialRes == 0) {
+                highRes = potentialRes;
+            }
+        }
+        if (highRes < 0) {
+            System.err.println("No suitable higher resolution found");
+            return;
+        }
+
+        for (Matrix matrix : matrices.values()) {
+            matrix.createDynamicResolutionMZD(new Pair<>(newRes, highRes), true);
+        }
+        dynamicZooms.add(new HiCZoom(HiC.Unit.BP, newRes));
     }
 
 
@@ -240,16 +259,26 @@ public class Dataset {
     }
 
     public int getNumberZooms(HiC.Unit unit) {
-        return unit == HiC.Unit.BP ? bpZooms.size() : fragZooms.size();
+        return unit == HiC.Unit.BP ? bpZooms.size() + dynamicZooms.size() : fragZooms.size();
     }
 
-
+    // todo deprecate
     public HiCZoom getZoom(HiC.Unit unit, int index) {
         return unit == HiC.Unit.BP ? bpZooms.get(index) : fragZooms.get(index);
     }
 
     public HiCZoom getZoomForBPResolution(Integer resolution) {
-        return getZoom(HiC.Unit.BP, bpZoomResolutions.indexOf(resolution));
+        for (HiCZoom zoom : bpZooms) {
+            if (zoom.getBinSize() == resolution) {
+                return zoom;
+            }
+        }
+        for (HiCZoom zoom : dynamicZooms) {
+            if (zoom.getBinSize() == resolution) {
+                return zoom;
+            }
+        }
+        return null;
     }
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
@@ -759,7 +788,10 @@ public class Dataset {
     }
 
     public List<HiCZoom> getBpZooms() {
-        return bpZooms;
+        List<HiCZoom> zooms = new ArrayList<>(bpZooms);
+        zooms.addAll(dynamicZooms);
+        Collections.sort(zooms, Collections.reverseOrder());
+        return zooms;
     }
 
     public void setBpZooms(int[] bpBinSizes) {
@@ -770,6 +802,7 @@ public class Dataset {
         for (int bpBinSize : bpZoomResolutions) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
+        dynamicZooms = new ArrayList<>();
     }
 
     public List<HiCZoom> getFragZooms() {
@@ -807,12 +840,12 @@ public class Dataset {
      * @return Next zoom level
      */
 
-    public HiCZoom getNextZoom(HiCZoom zoom, boolean b) {
+    public HiCZoom getNextZoom(HiCZoom zoom, boolean useIncreasingOrder) {
         final HiC.Unit currentUnit = zoom.getUnit();
-        List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? bpZooms : fragZooms;
+        List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? getBpZooms() : fragZooms;
 
         // TODO MSS - is there a reason not to just rewrite this using indexOf? cleaner?
-        if (b) {
+        if (useIncreasingOrder) {
             for (int i = 0; i < zoomList.size() - 1; i++) {
                 if (zoom.equals(zoomList.get(i))) return zoomList.get(i + 1);
             }
@@ -935,6 +968,7 @@ public class Dataset {
     public List<HiCZoom> getAllPossibleResolutions() {
         List<HiCZoom> resolutions = new ArrayList<>();
         resolutions.addAll(bpZooms);
+        resolutions.addAll(dynamicZooms);
         resolutions.addAll(fragZooms);
         return resolutions;
     }

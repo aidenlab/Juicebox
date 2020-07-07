@@ -42,7 +42,7 @@ import java.util.*;
  */
 public class ChromosomeHandler {
     private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
-    public final static int CUSTOM_CHROMOSOME_BUFFER = 5000;
+    public final static int CUSTOM_CHROMOSOME_BUFFER = 10; // todo make to smallest value of resolution
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
     private final List<Chromosome> cleanedChromosomes;
