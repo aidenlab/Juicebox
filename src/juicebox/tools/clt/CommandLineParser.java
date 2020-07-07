@@ -63,6 +63,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option expectedVectorOption = addStringOption('e', "expected-vector-file");
     protected final Option normalizationTypeOption = addStringOption('k', "normalization");
     private final Option mndIndexOption = addStringOption('i', "mndindex");
+    private final Option ligationOption = addStringOption("ligation");
 
     // ints
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
@@ -161,6 +162,8 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public String getMndIndexOption() { return optionToString(mndIndexOption);}
+
+    public String getLigationOption() { return optionToString(ligationOption);}
 
     public Alignment getAlignmentOption() {
         int alignmentInt = optionToInt(alignmentFilterOption);

@@ -135,7 +135,10 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
+        } else if (cmd.equals("statisticsscript")) {
+            return new StatisticsScript();
         }
+
 
         return null;
     }
