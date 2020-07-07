@@ -32,61 +32,56 @@ import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.*;
 
-public class StatisticsScript extends JuiceboxCLT {
+public class Statistics extends JuiceboxCLT {
     //variables for getting parameters of input file, flags set to default initially
-    String outFile;
-    String siteFile ;
-    String ligationJunction = "GATCGATC";
-    String statsFile;
-    int mapqThreshold = 1;
-    String inFile;
-
-    String danglingJunction;
-    String statsFilePath;
-    String statsFileName;
-    String histsFile;
+    private String outFile;
+    private String siteFile ;
+    private String ligationJunction = "GATCGATC";
+    private String statsFile;
+    private int mapqThreshold = 1;
+    private String inFile;
 
     //Variables for calculating statistics
-    Map<String,long[]> chromosomes = new HashMap<>();
-    Map<Integer,Integer> hindIII = new HashMap<>();
-    Map<Integer,Integer> mapQ = new HashMap<>();
-    Map<Integer,Integer> mapQInter = new HashMap<>();
-    Map<Integer,Integer> mapQIntra = new HashMap<>();
-    Map<Integer,Integer> innerM = new HashMap<>();
-    Map<Integer,Integer> outerM = new HashMap<>();
-    Map<Integer,Integer> rightM = new HashMap<>();
-    Map<Integer,Integer> leftM = new HashMap<>();
+    private final Map<String,long[]> chromosomes = new HashMap<>();
+    private final Map<Integer,Integer> hindIII = new HashMap<>();
+    private final Map<Integer,Integer> mapQ = new HashMap<>();
+    private final Map<Integer,Integer> mapQInter = new HashMap<>();
+    private final Map<Integer,Integer> mapQIntra = new HashMap<>();
+    private final Map<Integer,Integer> innerM = new HashMap<>();
+    private final Map<Integer,Integer> outerM = new HashMap<>();
+    private final Map<Integer,Integer> rightM = new HashMap<>();
+    private final Map<Integer,Integer> leftM = new HashMap<>();
 
-    int threePrimeEnd = 0;
-    int fivePrimeEnd = 0;
-    int dangling = 0;
-    int ligation = 0;
-    int inner = 0;
-    int outer = 0;
-    int left = 0;
-    int right = 0;
-    int intra = 0;
-    int inter = 0;
-    int small = 0;
-    int large = 0;
-    int verySmall = 0;
-    int verySmallDangling = 0;
-    int smallDangling = 0;
-    int largeDangling = 0;
-    int interDangling = 0;
-    int trueDanglingIntraSmall = 0;
-    int trueDanglingIntraLarge = 0;
-    int trueDanglingInter = 0;
-    int totalCurrent = 0;
-    int underMapQ = 0;
-    int intraFragment = 0;
-    int unique = 0;
-    static int posDistThreshold = 20000;
-    static int distThreshold = 2000;
-    static int mapqValThreshold = 200;
-    static long[] bins = {10,12,15,19,23,28,35,43,53,66,81,100,123,152,187,231,285,351,433,534,658,811,1000,1233,1520,1874,2310,2848,3511,4329,5337,6579,8111,10000,12328,15199,18738,23101,28480,35112,43288,53367,65793,81113,100000,123285,151991,187382,231013,284804,351119,432876,533670,657933,811131,1000000,1232847,1519911,1873817,2310130,2848036,3511192,4328761,5336699,6579332,8111308,10000000,12328467,15199111,18738174,23101297,28480359,35111917,43287613,53366992,65793322,81113083,100000000,123284674,151991108,187381742,231012970,284803587,351119173,432876128,533669923,657933225,811130831,1000000000,1232846739,1519911083,1873817423,2310129700L,2848035868L,3511191734L,4328761281L,5336699231L,6579332247L,8111308308L,10000000000L};
+    private int threePrimeEnd = 0;
+    private int fivePrimeEnd = 0;
+    private int dangling = 0;
+    private int ligation = 0;
+    private int inner = 0;
+    private int outer = 0;
+    private int left = 0;
+    private int right = 0;
+    private int intra = 0;
+    private int inter = 0;
+    private int small = 0;
+    private int large = 0;
+    private int verySmall = 0;
+    private int verySmallDangling = 0;
+    private int smallDangling = 0;
+    private int largeDangling = 0;
+    private int interDangling = 0;
+    private int trueDanglingIntraSmall = 0;
+    private int trueDanglingIntraLarge = 0;
+    private int trueDanglingInter = 0;
+    private int totalCurrent = 0;
+    private int underMapQ = 0;
+    private int intraFragment = 0;
+    private int unique = 0;
+    private static final int posDistThreshold = 20000;
+    private static final int distThreshold = 2000;
+    private static final int mapqValThreshold = 200;
+    private static final long[] bins = {10,12,15,19,23,28,35,43,53,66,81,100,123,152,187,231,285,351,433,534,658,811,1000,1233,1520,1874,2310,2848,3511,4329,5337,6579,8111,10000,12328,15199,18738,23101,28480,35112,43288,53367,65793,81113,100000,123285,151991,187382,231013,284804,351119,432876,533670,657933,811131,1000000,1232847,1519911,1873817,2310130,2848036,3511192,4328761,5336699,6579332,8111308,10000000,12328467,15199111,18738174,23101297,28480359,35111917,43287613,53366992,65793322,81113083,100000000,123284674,151991108,187381742,231012970,284803587,351119173,432876128,533669923,657933225,811130831,1000000000,1232846739,1519911083,1873817423,2310129700L,2848035868L,3511191734L,4328761281L,5336699231L,6579332247L,8111308308L,10000000000L};
 
-    public StatisticsScript(){
+    public Statistics(){
         //constructor
         super(getUsage());
     }
@@ -131,7 +126,7 @@ public class StatisticsScript extends JuiceboxCLT {
 
     public void infileStatistics(){
         //read in infile and calculate statistics
-        danglingJunction = ligationJunction.substring(ligationJunction.length()/2);
+        String danglingJunction = ligationJunction.substring(ligationJunction.length()/2);
         try {
             BufferedReader files = new BufferedReader(new FileReader(inFile));
             String file = files.readLine();
@@ -422,10 +417,12 @@ public class StatisticsScript extends JuiceboxCLT {
     }
 
     public void writeHistFile(){
+        //separate stats file name
         int index = statsFile.lastIndexOf("\\");
-        statsFilePath = statsFile.substring(0,index+1); //directories
-        statsFileName = statsFile.substring(index+1).replaceAll(".txt",""); //filename
-        histsFile = statsFilePath + statsFileName + "_hists.m";
+        String statsFilePath = statsFile.substring(0,index+1); //directories
+        String statsFileName = statsFile.substring(index+1).replaceAll(".txt",""); //filename
+        String histsFile = statsFilePath + statsFileName + "_hists.m";
+
         try{
             BufferedWriter hist = new BufferedWriter(new FileWriter(histsFile, StandardCharsets.UTF_8, false));
             hist.write("A = [\n");
