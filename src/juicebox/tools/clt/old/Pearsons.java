@@ -32,13 +32,13 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.InMemoryMatrix;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;

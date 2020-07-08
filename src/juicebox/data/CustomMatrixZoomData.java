@@ -26,11 +26,11 @@ package juicebox.data;
 
 import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.censoring.CustomMZDRegionHandler;
 import juicebox.data.censoring.RegionPair;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
 

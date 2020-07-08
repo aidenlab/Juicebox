@@ -26,7 +26,7 @@ package juicebox.tools.utils.original;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.data.ChromosomeHandler;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.io.*;
 import java.util.HashMap;

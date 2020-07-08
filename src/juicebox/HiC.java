@@ -27,6 +27,7 @@ package juicebox;
 
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.*;
@@ -36,7 +37,6 @@ import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;

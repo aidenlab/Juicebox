@@ -30,9 +30,9 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser.Alignment;
 import juicebox.windowui.NormalizationHandler;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 

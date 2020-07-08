@@ -26,8 +26,8 @@ package juicebox.data.censoring;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.util.*;

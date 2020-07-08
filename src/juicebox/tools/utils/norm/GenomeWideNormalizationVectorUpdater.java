@@ -27,11 +27,11 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 

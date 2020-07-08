@@ -26,11 +26,11 @@ package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSRegionContainer;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.util.ArrayList;

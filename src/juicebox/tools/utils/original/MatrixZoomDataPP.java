@@ -27,8 +27,8 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.Chromosome;
 import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 

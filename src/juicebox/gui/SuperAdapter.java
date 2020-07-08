@@ -30,6 +30,7 @@ import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.PearsonColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -44,7 +45,6 @@ import juicebox.track.feature.*;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 

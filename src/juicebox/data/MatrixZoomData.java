@@ -31,6 +31,7 @@ import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.RealMatrixWrapper;
@@ -45,7 +46,6 @@ import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.linear.RealVector;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;

@@ -25,11 +25,11 @@
 package juicebox.tools.utils;
 
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.Random;
 

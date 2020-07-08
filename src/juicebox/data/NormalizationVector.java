@@ -26,10 +26,10 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.List;

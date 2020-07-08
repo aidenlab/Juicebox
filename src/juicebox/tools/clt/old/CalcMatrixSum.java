@@ -25,13 +25,13 @@
 package juicebox.tools.clt.old;
 
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.FileNotFoundException;

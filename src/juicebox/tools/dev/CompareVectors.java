@@ -27,13 +27,13 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.NormalizationVector;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 

@@ -25,11 +25,11 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.original.IndexEntry;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;

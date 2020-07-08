@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ import juicebox.HiC;
 import juicebox.data.Dataset;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
+import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
 

@@ -27,11 +27,11 @@ package juicebox.data;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.track.feature.Feature2DList;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.io.File;

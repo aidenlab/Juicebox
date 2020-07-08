@@ -26,13 +26,13 @@ package juicebox.data.anchor;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.FeatureFunction;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
 import java.util.*;

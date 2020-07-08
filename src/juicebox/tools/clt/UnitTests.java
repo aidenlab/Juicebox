@@ -27,6 +27,7 @@ package juicebox.tools.clt;
 
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.tools.utils.norm.ZeroScale;
@@ -34,7 +35,6 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;

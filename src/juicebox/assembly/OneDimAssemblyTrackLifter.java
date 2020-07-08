@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@ package juicebox.assembly;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
 import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.IGVFeature;
 import org.broad.igv.track.WindowFunction;
@@ -57,7 +57,7 @@ public class OneDimAssemblyTrackLifter {
                 AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        long actualBinSize = (long) binSize;
+        long actualBinSize = binSize;
         if (chromosome.getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
         }
@@ -131,7 +131,7 @@ public class OneDimAssemblyTrackLifter {
                     HiCDataAdapter.DataAccumulator accumPoint = (HiCDataAdapter.DataAccumulator) point;
                     HiCDataAdapter.DataAccumulator
                             newAccumPoint =
-                            new HiCDataAdapter.DataAccumulator((double) newBin, accumPoint.width, newStart, newEnd);
+                            new HiCDataAdapter.DataAccumulator(newBin, accumPoint.width, newStart, newEnd);
                     newAccumPoint.nPts = accumPoint.nPts;
                     newAccumPoint.weightedSum = accumPoint.weightedSum;
                     newAccumPoint.max = accumPoint.max;
@@ -159,7 +159,7 @@ public class OneDimAssemblyTrackLifter {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        long actualBinSize = (long) binSize;
+        long actualBinSize = binSize;
         if (chromosome.getIndex() == 0) {
             actualBinSize *= 1000;
         }

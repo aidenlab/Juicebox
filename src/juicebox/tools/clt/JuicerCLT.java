@@ -27,10 +27,10 @@ package juicebox.tools.clt;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
+import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.List;

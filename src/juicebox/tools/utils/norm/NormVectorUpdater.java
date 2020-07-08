@@ -25,11 +25,12 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.HiC;
-import juicebox.data.*;
+import juicebox.data.DatasetReaderV2;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;

@@ -25,7 +25,7 @@
 package juicebox.tools.utils.original;
 
 import juicebox.data.ChromosomeHandler;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.io.File;
 import java.io.IOException;

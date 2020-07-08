@@ -27,6 +27,7 @@ package juicebox.tools.clt.juicer;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
@@ -37,7 +38,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.Arrays;

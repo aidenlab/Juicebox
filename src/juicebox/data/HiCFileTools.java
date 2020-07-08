@@ -25,12 +25,12 @@
 package juicebox.data;
 
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
 import java.util.*;
