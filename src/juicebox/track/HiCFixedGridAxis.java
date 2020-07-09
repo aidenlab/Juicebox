@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,49 +33,49 @@ import org.broad.igv.Globals;
  */
 public class HiCFixedGridAxis implements HiCGridAxis {
 
-    private final int binCount;
+    private final long binCount;
     private final int binSize;
     private final int igvZoom;
     private final int[] sites;
-
-    public HiCFixedGridAxis(int binCount, int binSize, int[] sites) {
-
+    
+    public HiCFixedGridAxis(long binCount, int binSize, int[] sites) {
+        
         this.binCount = binCount;
         this.binSize = binSize;
         this.sites = sites;
-
+        
         // Compute an approximate igv zoom level
         igvZoom = Math.max(0, (int) (Math.log(binCount / 700) / Globals.log2));
-
+        
     }
 
     @Override
     public int getBinSize() {
         return binSize;
     }
-
+    
     @Override
-    public int getGenomicStart(double binNumber) {
-        return (int) (binNumber * binSize);
+    public long getGenomicStart(double binNumber) {
+        return (long) (binNumber * binSize);
     }
-
+    
     @Override
-    public int getGenomicEnd(double binNumber) {
-        return (int) ((binNumber + 1) * binSize);
+    public long getGenomicEnd(double binNumber) {
+        return (long) ((binNumber + 1) * binSize);
     }
-
+    
     @Override
-    public int getGenomicMid(double binNumber) {
-        return (int) ((binNumber + 0.5) * binSize);
+    public long getGenomicMid(double binNumber) {
+        return (long) ((binNumber + 0.5) * binSize);
     }
 
     @Override
     public int getIGVZoom() {
         return igvZoom;
     }
-
+    
     @Override
-    public int getBinNumberForGenomicPosition(int genomicPosition) {
+    public int getBinNumberForGenomicPosition(long genomicPosition) {
         return (int) (genomicPosition / ((double) binSize));
     }
 
@@ -88,9 +88,9 @@ public class HiCFixedGridAxis implements HiCGridAxis {
         }
         throw new RuntimeException("Fragment: " + fragment + " is out of range");
     }
-
+    
     @Override
-    public int getBinCount() {
+    public long getBinCount() {
         return binCount;
     }
 

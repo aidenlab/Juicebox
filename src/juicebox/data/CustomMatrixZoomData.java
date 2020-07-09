@@ -75,45 +75,45 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-            int newX = record.getBinX() * binSize;
+            long newX = record.getBinX() * binSize;
             if (newX >= rp.xRegion.getX1() && newX <= rp.xRegion.getX2()) {
                 newX = rp.xTransRegion.getX1() + newX - rp.xRegion.getX1();
-            } else {
-                continue;
-            }
-
-            int newY = record.getBinY() * binSize;
-            if (newY >= rp.yRegion.getX1() && newY <= rp.yRegion.getX2()) {
-                newY = rp.yTransRegion.getX1() + newY - rp.yRegion.getX1();
-            } else {
-                continue;
-            }
-            int newBinX = newX / binSize;
-            int newBinY = newY / binSize;
-
-            if (chr1Idx == chr2Idx && newBinY < newBinX) {
-                alteredContacts.add(new ContactRecord(newBinY, newBinX, record.getCounts()));
-            } else {
-                alteredContacts.add(new ContactRecord(newBinX, newBinY, record.getCounts()));
-            }
-        }
+			} else {
+				continue;
+			}
+	
+			long newY = record.getBinY() * binSize;
+			if (newY >= rp.yRegion.getX1() && newY <= rp.yRegion.getX2()) {
+				newY = rp.yTransRegion.getX1() + newY - rp.yRegion.getX1();
+			} else {
+				continue;
+			}
+			int newBinX = (int) (newX / binSize);
+			int newBinY = (int) (newY / binSize);
+	
+			if (chr1Idx == chr2Idx && newBinY < newBinX) {
+				alteredContacts.add(new ContactRecord(newBinY, newBinX, record.getCounts()));
+			} else {
+				alteredContacts.add(new ContactRecord(newBinX, newBinY, record.getCounts()));
+			}
+		}
         //System.out.println("num orig records "+block.getContactRecords().size()+ " after alter "+alteredContacts.size()+" bnum "+block.getNumber());
         return new Block(block.getNumber(), alteredContacts, key + rp.getDescription());
     }
-
-    @Override
-    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2,
-                                                      final NormalizationType norm, boolean isImportant, boolean fillUnderDiagonal) {
-        this.isImportant = isImportant;
-        float resolution = zoom.getBinSize();
-        //if(isImportant) System.out.println("zt12 "+resolution+" --x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
-        int gx1 = (int) (binX1 * resolution);
-        int gy1 = (int) (binY1 * resolution);
-        int gx2 = (int) (binX2 * resolution);
-        int gy2 = (int) (binY2 * resolution);
-
-        return addNormalizedBlocksToListByGenomeCoordinates(gx1, gy1, gx2, gy2, norm);
-    }
+	
+	@Override
+	public List<Block> getNormalizedBlocksOverlapping(long binX1, long binY1, long binX2, long binY2,
+													  final NormalizationType norm, boolean isImportant, boolean fillUnderDiagonal) {
+		this.isImportant = isImportant;
+		int resolution = zoom.getBinSize();
+		//if(isImportant) System.out.println("zt12 "+resolution+" --x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
+		long gx1 = (binX1 * resolution);
+		long gy1 = (binY1 * resolution);
+		long gx2 = (binX2 * resolution);
+		long gy2 = (binY2 * resolution);
+		
+		return addNormalizedBlocksToListByGenomeCoordinates(gx1, gy1, gx2, gy2, norm);
+	}
 
     @Override
     public void printFullDescription() {
@@ -121,18 +121,18 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         System.out.println("unit: " + zoom.getUnit());
         System.out.println("binSize (bp): " + zoom.getBinSize());
     }
-
-    private List<Block> addNormalizedBlocksToListByGenomeCoordinates(int gx1, int gy1, int gx2, int gy2,
-                                                                     final NormalizationType no) {
-        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
-        Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new ConcurrentHashMap<>();
-        // remember these are pseudo genome coordinates
-
-        // x window
-        //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
-
-        // y window
+	
+	private List<Block> addNormalizedBlocksToListByGenomeCoordinates(long gx1, long gy1, long gx2, long gy2,
+																	 final NormalizationType no) {
+		List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
+		Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new ConcurrentHashMap<>();
+		// remember these are pseudo genome coordinates
+		
+		// x window
+		//net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
+		List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
+		
+		// y window
         //currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
         List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1, gy2);
 
@@ -168,7 +168,8 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                                 blocksNumsToLoadForZd.get(zd).put(rp, new ArrayList<Integer>());
                             }
                         }
-
+	
+						// todo mss custom matrix zd doesn't have long support yet
                         List<Integer> tempBlockNumbers = zd.getBlockNumbersForRegionFromGenomePosition(rp.getOriginalGenomeRegion());
                         synchronized (blocksNumsToLoadForZd) {
                             for (int blockNumber : tempBlockNumbers) {
@@ -312,14 +313,14 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
     }
-
-    public List<Integer> getBoundariesOfCustomChromosomeX() {
-        return rTreeHandler.getBoundariesOfCustomChromosomeX();
-    }
-
-    public List<Integer> getBoundariesOfCustomChromosomeY() {
-        return rTreeHandler.getBoundariesOfCustomChromosomeY();
-    }
+	
+	public List<Long> getBoundariesOfCustomChromosomeX() {
+		return rTreeHandler.getBoundariesOfCustomChromosomeX();
+	}
+	
+	public List<Long> getBoundariesOfCustomChromosomeY() {
+		return rTreeHandler.getBoundariesOfCustomChromosomeY();
+	}
 
     // TODO get Expected should be appropriately caculated in the custom regions
     public double getExpected(int binX, int binY, ExpectedValueFunction df) {

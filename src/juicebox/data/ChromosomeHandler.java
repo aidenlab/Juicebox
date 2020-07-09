@@ -134,7 +134,7 @@ public class ChromosomeHandler {
 
         for (Chromosome c : getChromosomeArray()) {
             if (isAllByAll(c) || isGenomeWide(c)) continue;
-            MotifAnchor chromAnchor = new MotifAnchor(c.getName(), 0, c.getLength(), c.getName());
+            MotifAnchor chromAnchor = new MotifAnchor(c.getName(), 0, (int) c.getLength(), c.getName()); // not implemented or called
             List<MotifAnchor> anchors = new ArrayList<>();
             anchors.add(chromAnchor);
             chromDotSizes.setFeatures("" + c.getIndex(), anchors);
@@ -407,10 +407,10 @@ public class ChromosomeHandler {
         // default assume chromosomes ordered with biggest first
         // so for human, assuming first 8 chroms
         int firstBatchUpToChr = n / 3 + 1;
-        int prevLength = 0;
+        long prevLength = 0;
 
         for (int i = 0; i < n / 2; i++) {
-            int newLength = prevLength + chromosomeArrayAutosomesOnly[i].getLength();
+            long newLength = prevLength + chromosomeArrayAutosomesOnly[i].getLength();
             if (prevLength <= halfLength && newLength >= halfLength) {
                 // midpoint found
                 if (Math.abs(prevLength - halfLength) < Math.abs(newLength - halfLength)) {

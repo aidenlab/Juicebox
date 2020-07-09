@@ -105,25 +105,25 @@ public class OneDimAssemblyTrackLifter {
                 // disregard points outside of the bin positions for this aggregate scaffold
                 if (point.getBinNumber() < (int) (x1pos / actualBinSize) || point.getBinNumber() > (int) (x2pos / actualBinSize))
                     continue;
-
-                int newStart;
-                int newEnd;
-                int newBin;
-
+    
+                long newStart;
+                long newEnd;
+                long newBin;
+    
                 if (!xScaffold.getInvertedVsInitial()) {
-                    newStart = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                    newBin = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
+                    newStart = (long) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (long) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
                 } else {
-                    newStart = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                    newBin = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize - 1);
+                    newStart = (long) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (long) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize - 1);
                 }
-
+    
                 newEnd = newStart + point.getGenomicEnd() - point.getGenomicStart();
 
                 if (point instanceof HiCCoverageDataSource.CoverageDataPoint) {
 
                     HiCCoverageDataSource.CoverageDataPoint covPoint = (HiCCoverageDataSource.CoverageDataPoint) point;
-                    modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint(newStart / binSize,
+                    modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint((int) (newStart / binSize),
                             newStart,
                             newEnd,
                             covPoint.value));

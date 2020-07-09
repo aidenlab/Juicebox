@@ -62,9 +62,9 @@ public class Context {
         this.zoom = zoom;
     }
 
-    public int getChrLength() {
-        return chromosome.getLength();
-    }
+    public long getChrLength() {
+		return chromosome.getLength();
+	}
 
     public Chromosome getChromosome() {
         return chromosome;

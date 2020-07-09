@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -51,20 +52,41 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
     protected Map<HiCZoom, Set<Chromosome>> zoomSpecifickrFragFailedChromsomes = new ConcurrentHashMap<>();
     protected Map<HiCZoom, Set<Chromosome>> zoomSpecificmmbaBPFailedChromsomes = new ConcurrentHashMap<>();
     protected Map<HiCZoom, Set<Chromosome>> zoomSpecificmmbaFragFailedChromsomes = new ConcurrentHashMap<>();
-
-
+    
+    
     protected static int numCPUThreads = 1;
-
+    
     public void setNumCPUThreads(int numCPUThreads) {
         MultithreadedNormalizationVectorUpdater.numCPUThreads = numCPUThreads;
     }
-
+    
+    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+                                                               ExpectedValueCalculation ev, Map<Integer, BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+        vec.multiplyEverythingBy(factor);
+        
+        BufferedByteWriter normVectorBuffer = normVectorBuffers.get(currentBuffer);
+        int updateSize = 0;
+        int freeBytes = Integer.MAX_VALUE - normVectorBuffer.bytesWritten();
+        long bytesNeeded = 4 + (8 * vec.getLength());
+        // todo Suhas
+        if (bytesNeeded >= freeBytes) {
+            currentBuffer += 1;
+            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
+            normVectorBuffer = normVectorBuffers.get(currentBuffer);
+        }
+        updateSize = updateNormVectorIndexWithVector(masterPosition, normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
+        masterPosition += updateSize;
+        
+        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
+        
+    }
+    
     @Override
     public void updateHicFile(String path, List<NormalizationType> normalizationsToBuild,
                               Map<NormalizationType, Integer> resolutionsToBuildTo, int genomeWideLowestResolutionAllowed, boolean noFrag) throws IOException {
-
+        
         int minResolution = Integer.MAX_VALUE;
-        for (Map.Entry<NormalizationType,Integer> entry : resolutionsToBuildTo.entrySet()) {
+        for (Map.Entry<NormalizationType, Integer> entry : resolutionsToBuildTo.entrySet()) {
             if (entry.getValue() < minResolution) {
                 minResolution = entry.getValue();
             }
@@ -98,28 +120,28 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
             System.out.print("Calculating norms for zoom " + zoom);
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
-
+    
             ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
             ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
             ExpectedValueCalculation evSCALE = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.SCALE);
-
+    
             Map<Integer, Double> withinZoomVCSumFactors = new ConcurrentHashMap<>();
             Map<Integer, Double> withinZoomVCSQRTSumFactors = new ConcurrentHashMap<>();
             Map<Integer, Double> withinZoomKRSumFactors = new ConcurrentHashMap<>();
             Map<Integer, Double> withinZoomSCALESumFactors = new ConcurrentHashMap<>();
-            Map<Integer, double[]> withinZoomVCVectors = new ConcurrentHashMap<>();
-            Map<Integer, double[]> withinZoomVCSQRTVectors = new ConcurrentHashMap<>();
-            Map<Integer, double[]> withinZoomKRVectors = new ConcurrentHashMap<>();
-            Map<Integer, double[]> withinZoomSCALEVectors = new ConcurrentHashMap<>();
-
+            Map<Integer, ListOfDoubleArrays> withinZoomVCVectors = new ConcurrentHashMap<>();
+            Map<Integer, ListOfDoubleArrays> withinZoomVCSQRTVectors = new ConcurrentHashMap<>();
+            Map<Integer, ListOfDoubleArrays> withinZoomKRVectors = new ConcurrentHashMap<>();
+            Map<Integer, ListOfDoubleArrays> withinZoomSCALEVectors = new ConcurrentHashMap<>();
+    
             final AtomicInteger chromosomeIndex = new AtomicInteger(0);
-
+    
             Set<Chromosome> withinZoomSynckrBPFailedChromosomes = Collections.synchronizedSet(new HashSet<>());
             Set<Chromosome> withinZoomSynckrFragFailedChromosomes = Collections.synchronizedSet(new HashSet<>());
             Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes = Collections.synchronizedSet(new HashSet<>());
             Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes = Collections.synchronizedSet(new HashSet<>());
-
+    
             Map<Integer, MatrixZoomData> allChrZoomData = new ConcurrentHashMap<>();
 
             ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
@@ -224,8 +246,8 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
                                                Dataset ds, ChromosomeHandler chromosomeHandler, HiCZoom zoom, Map<NormalizationType, Integer> resolutionsToBuildTo,
                                                Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, Double> withinZoomVCSQRTSumFactors,
                                                Map<Integer, Double> withinZoomKRSumFactors, Map<Integer, Double> withinZoomSCALESumFactors,
-                                               Map<Integer, double[]> withinZoomVCVectors, Map<Integer, double[]> withinZoomVCSQRTVectors,
-                                               Map<Integer, double[]> withinZoomKRVectors, Map<Integer, double[]> withinZoomSCALEVectors,
+                                               Map<Integer, ListOfDoubleArrays> withinZoomVCVectors, Map<Integer, ListOfDoubleArrays> withinZoomVCSQRTVectors,
+                                               Map<Integer, ListOfDoubleArrays> withinZoomKRVectors, Map<Integer, ListOfDoubleArrays> withinZoomSCALEVectors,
                                                Set<Chromosome> withinZoomSynckrBPFailedChromosomes, Set<Chromosome> withinZoomSynckrFragFailedChromosomes,
                                                Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes, Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes,
                                                Map<Integer, MatrixZoomData> allChrZoomData, int threadnum) throws IOException {
@@ -264,24 +286,24 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
             i = chromosomeIndex.getAndIncrement();
         }
     }
-
+    
     protected void buildVCOrVCSQRT(boolean weShouldBuildVC, boolean weShouldBuildVCSqrt, Chromosome chr,
-                                   NormalizationCalculations nc, HiCZoom zoom, Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, double[]> withinZoomVCVectors,
-                                   Map<Integer, Double> withinZoomVCSQRTSumFactors, Map<Integer, double[]> withinZoomVCSQRTVectors) throws IOException {
+                                   NormalizationCalculations nc, HiCZoom zoom, Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, ListOfDoubleArrays> withinZoomVCVectors,
+                                   Map<Integer, Double> withinZoomVCSQRTSumFactors, Map<Integer, ListOfDoubleArrays> withinZoomVCSQRTVectors) throws IOException {
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
-        double[] vc = nc.computeVC();
+        ListOfDoubleArrays vc = nc.computeVC();
         if (weShouldBuildVC) {
             withinZoomVCSumFactors.put(chrIdx, nc.getSumFactor(vc));
             withinZoomVCVectors.put(chrIdx, vc);
         }
-
+        
         if (weShouldBuildVCSqrt) {
-            double[] vcSqrt = new double[vc.length];
-            for (int i = 0; i < vc.length; i++) {
-                vcSqrt[i] = Math.sqrt(vc[i]);
+            ListOfDoubleArrays vcSqrt = new ListOfDoubleArrays(vc.getLength());
+            for (long i = 0; i < vc.getLength(); i++) {
+                vcSqrt.set(i, Math.sqrt(vc.get(i)));
             }
-
+            
             withinZoomVCSQRTSumFactors.put(chrIdx, nc.getSumFactor(vcSqrt));
             withinZoomVCSQRTVectors.put(chrIdx, vcSqrt);
         }
@@ -290,7 +312,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
     protected void buildKR(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom,
                            Map<Integer, Double> withinZoomKRSumFactors,
-                           Map<Integer, double[]> withinZoomKRVectors,
+                           Map<Integer, ListOfDoubleArrays> withinZoomKRVectors,
                            Set<Chromosome> withinZoomSynckrBPFailedChromosomes,
                            Set<Chromosome> withinZoomSynckrFragFailedChromosomes) throws IOException {
         Set<Chromosome> failureSetKR = zoom.getUnit() == HiC.Unit.FRAG ? synckrFragFailedChromosomes : synckrBPFailedChromosomes;
@@ -299,7 +321,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
         long currentTime = System.currentTimeMillis();
         if (!failureSetKR.contains(chr)) {
-            double[] kr = nc.computeKR();
+            ListOfDoubleArrays kr = nc.computeKR();
             if (kr == null) {
                 failureSetKR.add(chr);
                 withinZoomFailureSetKR.add(chr);
@@ -316,7 +338,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
     protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom,
                               Map<Integer, Double> withinZoomSCALESumFactors,
-                              Map<Integer, double[]> withinZoomSCALEVectors,
+                              Map<Integer, ListOfDoubleArrays> withinZoomSCALEVectors,
                               Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes,
                               Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes) throws IOException {
         Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? syncmmbaFragFailedChromosomes : syncmmbaBPFailedChromosomes;
@@ -325,7 +347,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
         long currentTime = System.currentTimeMillis();
 
         if (!failureSetMMBA.contains(chr)) {
-            double[] mmba = nc.computeMMBA();
+            ListOfDoubleArrays mmba = nc.computeMMBA();
             if (mmba == null) {
                 failureSetMMBA.add(chr);
                 withinZoomFailureSetMMBA.add(chr);
@@ -338,27 +360,5 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
         } else {
             withinZoomFailureSetMMBA.add(chr);
         }
-    }
-
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                               ExpectedValueCalculation ev, Map<Integer, BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        for (int i = 0; i < vec.length; i++) {
-            vec[i] = vec[i] * factor;
-        }
-
-        BufferedByteWriter normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        int updateSize = 0;
-        int freeBytes = Integer.MAX_VALUE - normVectorBuffer.bytesWritten();
-        int bytesNeeded = 4 + (8*vec.length);
-        if (bytesNeeded >= freeBytes) {
-            currentBuffer += 1;
-            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
-            normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        }
-        updateSize = updateNormVectorIndexWithVector(masterPosition, normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
-        masterPosition += updateSize;
-
-        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
-
     }
 }

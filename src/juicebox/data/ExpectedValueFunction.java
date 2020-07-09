@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.NormalizationType;
 
 /**
@@ -33,18 +34,18 @@ import juicebox.windowui.NormalizationType;
  *         Time: 9:30 PM
  */
 public interface ExpectedValueFunction {
-
-    double getExpectedValue(int chrIdx, int distance);
-
-    int getLength();
-
-    NormalizationType getNormalizationType();
-
-    HiC.Unit getUnit();
-
-    int getBinSize();
-
-    double[] getExpectedValuesNoNormalization();
-
-    double[] getExpectedValuesWithNormalization(int chrIdx);
+	
+	double getExpectedValue(int chrIdx, long distance);
+	
+	long getLength();
+	
+	NormalizationType getNormalizationType();
+	
+	HiC.Unit getUnit();
+	
+	int getBinSize();
+	
+	ListOfDoubleArrays getExpectedValuesNoNormalization();
+	
+	ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx);
 }

@@ -184,9 +184,11 @@ public class Matrix {
             }
         }
 
-        int length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
+        long length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
         for (MatrixZoomData zd : matrix.bpZoomData) {
-            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(), length / zd.getBinSize(), length / zd.getBinSize(), null, null, reader));
+            // todo @dudcha is this done for resolutions where conversion will be lossy?
+            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(),
+                    (int) (length / zd.getBinSize()), (int) (length / zd.getBinSize()), null, null, reader));
         }
 
 

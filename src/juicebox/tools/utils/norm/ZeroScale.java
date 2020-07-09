@@ -26,41 +26,46 @@ package juicebox.tools.utils.norm;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.norm.final2.FinalScale;
 
 import java.util.List;
 
 public class ZeroScale {
-    public static double[] scale(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial, String key) {
-        double[] newVector = FinalScale.scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial);
-
+    public static ListOfDoubleArrays scale(List<List<ContactRecord>> contactRecordsListOfLists, ListOfDoubleArrays targetVectorInitial, String key) {
+        ListOfDoubleArrays newVector = FinalScale.scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial);
+        
         if (newVector == null && HiCGlobals.printVerboseComments) {
             System.err.println("Scaling result still null for " + key + "; vector did not converge");
         }
         return newVector;
     }
-
-
-    public static double[] normalizeVectorByScaleFactor(double[] newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
-
-        for (int k = 0; k < newNormVector.length; k++) {
-            if (newNormVector[k] <= 0 || Double.isNaN(newNormVector[k])) {
-                newNormVector[k] = Double.NaN;
+    
+    
+    public static ListOfDoubleArrays normalizeVectorByScaleFactor(ListOfDoubleArrays newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
+        
+        for (long k = 0; k < newNormVector.getLength(); k++) {
+            double kVal = newNormVector.get(k);
+            if (kVal <= 0 || Double.isNaN(kVal)) {
+                newNormVector.set(k, Double.NaN);
             } else {
-                newNormVector[k] = 1 / newNormVector[k];
+                newNormVector.set(k, 1. / kVal);
             }
         }
-
+        
         double normalizedSumTotal = 0, sumTotal = 0;
-
+        
         for (List<ContactRecord> records : contactRecordsListOfLists) {
             for (ContactRecord cr : records) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 final float counts = cr.getCounts();
-
-                if (!Double.isNaN(newNormVector[x]) && !Double.isNaN(newNormVector[y])) {
-                    double normalizedValue = counts / (newNormVector[x] * newNormVector[y]);
+                
+                double valX = newNormVector.get(x);
+                double valY = newNormVector.get(y);
+                
+                if (!Double.isNaN(valX) && !Double.isNaN(valY)) {
+                    double normalizedValue = counts / (valX * valY);
                     normalizedSumTotal += normalizedValue;
                     sumTotal += counts;
                     if (x != y) {
@@ -72,22 +77,17 @@ public class ZeroScale {
         }
 
         double scaleFactor = Math.sqrt(normalizedSumTotal / sumTotal);
-
-        for (int k = 0; k < newNormVector.length; k++) {
-            if (!Double.isNaN(newNormVector[k])) {
-                newNormVector[k] = scaleFactor * newNormVector[k];
-            }
-        }
+        newNormVector.multiplyEverythingBy(scaleFactor);
         return newNormVector;
     }
-
-    public static double[] mmbaScaleToVector(List<List<ContactRecord>> contactRecords, double[] tempTargetVector) {
-
-        double[] newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
+    
+    public static ListOfDoubleArrays mmbaScaleToVector(List<List<ContactRecord>> contactRecords, ListOfDoubleArrays tempTargetVector) {
+        
+        ListOfDoubleArrays newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
         if (newNormVector != null) {
             newNormVector = normalizeVectorByScaleFactor(newNormVector, contactRecords);
         }
-
+        
         return newNormVector;
     }
 

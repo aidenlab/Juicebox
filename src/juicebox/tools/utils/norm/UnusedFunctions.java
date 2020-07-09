@@ -24,10 +24,8 @@
 
 package juicebox.tools.utils.norm;
 
-import juicebox.data.*;
-import juicebox.data.basics.Chromosome;
+import juicebox.data.DatasetReaderV2;
 import juicebox.tools.utils.original.IndexEntry;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -64,6 +62,8 @@ class UnusedFunctions {
        */
     }
 
+    /*
+    
     static void writeNormSums(
             List<Chromosome> chromosomes, Dataset ds, List<HiCZoom> zooms, Map<String, NormalizationVector> normVectors,
             BufferedByteWriter buffer) throws IOException {
@@ -139,6 +139,8 @@ class UnusedFunctions {
             sums.add(new NormalizedSum(NormalizationHandler.VC.getLabel(), chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), vecSum));
         }
     }
+    
+    */
 
     static private void dumpNormalizationVectorIndex(String path, String outputFile, NormalizationHandler normalizationHandler) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);

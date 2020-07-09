@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.CompareLists;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
-import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -133,15 +132,15 @@ public class Feature2DTools {
                     List<Feature2D> base1FeatureList = firstFeatureList.getFeatureList(chr);
                     for (Feature2D f2 : secondFeature2DList) {
                         for (Feature2D f1 : base1FeatureList) {
-                            int dx = f1.getStart1() - f2.getStart1();
-                            int dy = f1.getStart2() - f2.getStart2();
-                            double d = HiCCUPSUtils.hypotenuse(dx, dy);
-                            if (d <= radius) {
-                                //f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
-                                centroids.addByKey(chr, f2);
-                                break;
-                            }
-                        }
+							int dx = (int) (f1.getStart1() - f2.getStart1());
+							int dy = (int) (f1.getStart2() - f2.getStart2());
+							double d = HiCCUPSUtils.hypotenuse(dx, dy);
+							if (d <= radius) {
+								//f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
+								centroids.addByKey(chr, f2);
+								break;
+							}
+						}
                     }
                 }
             }
@@ -162,14 +161,14 @@ public class Feature2DTools {
                         double lowestDistance = -1;
                         //Feature2D overlap = null;
                         for (Feature2D f1 : base1FeatureList) {
-                            int dx = f1.getStart1() - f2.getStart1();
-                            int dy = f1.getStart2() - f2.getStart2();
-                            double d = HiCCUPSUtils.hypotenuse(dx, dy);
-                            if (d < lowestDistance || lowestDistance == -1) {
-                                //overlap = f1;
-                                lowestDistance = d;
-                            }
-                        }
+							int dx = (int) (f1.getStart1() - f2.getStart1());
+							int dy = (int) (f1.getStart2() - f2.getStart2());
+							double d = HiCCUPSUtils.hypotenuse(dx, dy);
+							if (d < lowestDistance || lowestDistance == -1) {
+								//overlap = f1;
+								lowestDistance = d;
+							}
+						}
                         if (lowestDistance != -1) {
                             double f = lowestDistance / (f2.getStart2() - f2.getStart1());
                             if (lowestDistance <= radius && f <= fraction) {
@@ -192,7 +191,7 @@ public class Feature2DTools {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D f : feature2DList) {
-                    int dist = Math.abs(f.getStart1() - f.getStart2());
+					int dist = (int) Math.abs(f.getStart1() - f.getStart2());
                     if (dist < radius) {
                         //f.setAttribute(HiCCUPSUtils.nearDiagAttr, "1");
                         peaks.addByKey(chr, f);
@@ -296,13 +295,11 @@ public class Feature2DTools {
     }
 
     public static boolean domainContainsLoopWithinExpandedTolerance(Feature2D loop, Feature2D domain, int threshold) {
-
-        Rectangle bounds = new Rectangle(domain.getStart1() - threshold, domain.getStart2() - threshold,
-                domain.getWidth1() + 2 * threshold, domain.getWidth2() + 2 * threshold);
-        Point point = new Point(loop.getMidPt1(), loop.getMidPt2());
-
-        return bounds.contains(point);
-    }
+		return domain.getStart1() - threshold <= loop.getMidPt1()
+				&& loop.getMidPt1() <= domain.getEnd1() + threshold
+				&& domain.getStart2() - threshold <= loop.getMidPt2()
+				&& loop.getMidPt2() <= domain.getEnd2() + threshold;
+	}
 
     /**
      * Compares a feature against all other features in list

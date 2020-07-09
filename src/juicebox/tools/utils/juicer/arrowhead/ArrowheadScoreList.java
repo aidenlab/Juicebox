@@ -79,13 +79,14 @@ public class ArrowheadScoreList {
         return scoredList;
     }
 
-    private int[] scaleAndTranslateIndices(int[] indices, int resolution, int limStart) {
-        int[] transformedIndices = new int[indices.length];
-        for (int i = 0; i < indices.length; i++) {
-            transformedIndices[i] = indices[i] / resolution - limStart;
-        }
-        return transformedIndices;
-    }
+    private int[] scaleAndTranslateIndices(long[] indices, int resolution, int limStart) {
+		int[] transformedIndices = new int[indices.length];
+		for (int i = 0; i < indices.length; i++) {
+			// casting should be ok for Arrowhead
+			transformedIndices[i] = (int) (indices[i] / resolution - limStart);
+		}
+		return transformedIndices;
+	}
 
     private void setActiveListElements(int limStart, int limEnd) {
         for (ArrowheadScore score : arrowheadScores) {

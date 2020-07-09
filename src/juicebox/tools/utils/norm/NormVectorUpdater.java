@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.data.DatasetReaderV2;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -42,20 +43,26 @@ import java.util.Map;
 public class NormVectorUpdater {
 
     private static int currentExpectedBuffer=0;
-
-    static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
+    
+    static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, ListOfDoubleArrays vec,
                                                 int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
         int position = normVectorBuffer.bytesWritten();
-        putArrayValuesIntoBuffer(normVectorBuffer, vec);
+        // todo @suhas
+        for (double[] array : vec.getValues()) {
+            putArrayValuesIntoBuffer(normVectorBuffer, array);
+        }
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
         normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
+        
     }
-
-    public static int updateNormVectorIndexWithVector(long masterPosition, List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, double[] vec,
-                                                int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
+    
+    public static int updateNormVectorIndexWithVector(long masterPosition, List<NormalizationVectorIndexEntry> normVectorIndex, BufferedByteWriter normVectorBuffer, ListOfDoubleArrays vec,
+                                                      int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
         int position = normVectorBuffer.bytesWritten();
-        putArrayValuesIntoBuffer(normVectorBuffer, vec);
+        // todo suhas
+        for (double[] array : vec.getValues()) {
+            putArrayValuesIntoBuffer(normVectorBuffer, array);
+        }
         int sizeInBytes = normVectorBuffer.bytesWritten() - position;
         normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), masterPosition, sizeInBytes));
         return sizeInBytes;
@@ -207,12 +214,16 @@ public class NormVectorUpdater {
         for (ExpectedValueCalculation ev : expectedValueCalculations) {
             ev.computeDensity();
             buffer.putNullTerminatedString(ev.getType().toString());
-
+    
             HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
             buffer.putNullTerminatedString(unit.toString());
-
+    
+            // todo fix
             buffer.putInt(ev.getGridSize());
-            putArrayValuesIntoBuffer(buffer, ev.getDensityAvg());
+            // todo @Suhas to prevent buffer overflow
+            for (double[] array : ev.getDensityAvg().getValues()) {
+                putArrayValuesIntoBuffer(buffer, array);
+            }
             putMapValuesIntoBuffer(buffer, ev.getChrScaleFactors());
         }
     }
@@ -248,7 +259,7 @@ public class NormVectorUpdater {
                 buffer = expectedBuffers.get(currentExpectedBuffer);
             }
             buffer.putNullTerminatedString(unit.toString());
-
+    
             freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
             bytesNeeded = 4;
             if (bytesNeeded >= freeBytes) {
@@ -257,18 +268,22 @@ public class NormVectorUpdater {
                 buffer = expectedBuffers.get(currentExpectedBuffer);
             }
             buffer.putInt(ev.getGridSize());
-
+    
             freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4+(8*ev.getDensityAvg().length);
-            if (bytesNeeded >= freeBytes) {
+    
+            long bytesNeededLong = 4 + (8 * ev.getDensityAvg().getLength());
+            if (bytesNeededLong >= freeBytes) {
                 currentExpectedBuffer += 1;
                 expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
                 buffer = expectedBuffers.get(currentExpectedBuffer);
             }
-            putArrayValuesIntoBuffer(buffer, ev.getDensityAvg());
-
+            // todo buffer overflow @Suhas
+            for (double[] array : ev.getDensityAvg().getValues()) {
+                putArrayValuesIntoBuffer(buffer, array);
+            }
+    
             freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4+(12*ev.getChrScaleFactors().size());
+            bytesNeeded = 4 + (12 * ev.getChrScaleFactors().size());
             if (bytesNeeded >= freeBytes) {
                 currentExpectedBuffer += 1;
                 expectedBuffers.put(currentExpectedBuffer, new BufferedByteWriter());
@@ -283,9 +298,12 @@ public class NormVectorUpdater {
         for (ExpectedValueFunction function : expectedValueFunctionMap.values()) {
             buffer.putNullTerminatedString(function.getNormalizationType().toString());
             buffer.putNullTerminatedString(function.getUnit().toString());
-
+    
             buffer.putInt(function.getBinSize());
-            putArrayValuesIntoBuffer(buffer, function.getExpectedValuesNoNormalization());
+            // todo @suhas buffer
+            for (double[] array : function.getExpectedValuesNoNormalization().getValues()) {
+                putArrayValuesIntoBuffer(buffer, array);
+            }
             putMapValuesIntoBuffer(buffer, ((ExpectedValueFunctionImpl) function).getNormFactors());
         }
     }

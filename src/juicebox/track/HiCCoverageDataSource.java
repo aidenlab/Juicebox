@@ -79,7 +79,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
             if (nv == null) {
                 setDataRange(new DataRange(0, 1));
             } else {
-                double max = StatUtils.percentile(nv.getData(), 95);
+                double max = StatUtils.percentile(nv.getData().getValues().get(0), 95);
                 setDataRange(new DataRange(0, (float) max));
             }
 
@@ -148,14 +148,14 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
         NormalizationVector nv = dataset.getNormalizationVector(chr.getIndex(), zoom, normalizationType);
         if (nv == null) return null;
-
-        double[] data = nv.getData();
+    
+        double[] data = nv.getData().getValues().get(0);
 
         CoverageDataPoint[] dataPoints = new CoverageDataPoint[endBin - startBin + 1];
 
         for (int b = startBin; b <= endBin; b++) {
-            int gStart = gridAxis.getGenomicStart(b);
-            int gEnd = gridAxis.getGenomicEnd(b);
+            long gStart = gridAxis.getGenomicStart(b);
+            long gEnd = gridAxis.getGenomicEnd(b);
             int idx = b - startBin;
             double value = b < data.length ? data[b] : 0;
             dataPoints[idx] = new CoverageDataPoint(b, gStart, gEnd, value);
@@ -163,16 +163,16 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
         return dataPoints;
     }
-
+    
     public static class CoverageDataPoint implements HiCDataPoint {
-
+        
         final int binNumber;
-        public final int genomicStart;
-        public final int genomicEnd;
+        public final long genomicStart;
+        public final long genomicEnd;
         public final double value;
-
-
-        public CoverageDataPoint(int binNumber, int genomicStart, int genomicEnd, double value) {
+        
+        
+        public CoverageDataPoint(int binNumber, long genomicStart, long genomicEnd, double value) {
             this.binNumber = binNumber;
             this.genomicEnd = genomicEnd;
             this.genomicStart = genomicStart;
@@ -188,9 +188,9 @@ public class HiCCoverageDataSource implements HiCDataSource {
         public double getWithInBins() {
             return 1;
         }
-
+        
         @Override
-        public int getGenomicStart() {
+        public long getGenomicStart() {
             return genomicStart;
         }
 
@@ -198,10 +198,10 @@ public class HiCCoverageDataSource implements HiCDataSource {
         public double getValue(WindowFunction windowFunction) {
             return value;
         }
-
-
+        
+        
         @Override
-        public int getGenomicEnd() {
+        public long getGenomicEnd() {
             return genomicEnd;
         }
 

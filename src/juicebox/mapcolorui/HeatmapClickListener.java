@@ -81,17 +81,17 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         Chromosome yChrom = null;
 
         try {
-            int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
-            int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
-            for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                    xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                }
-                if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                    yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                }
-            }
-        } catch (Exception ex) {
+			long xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
+			long yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
+			for (int i = 0; i < chromosomeBoundaries.length; i++) {
+				if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
+					xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
+				}
+				if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
+					yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
+				}
+			}
+		} catch (Exception ex) {
             // do nothing, leave chromosomes null
         }
         if (xChrom != null && yChrom != null) {
@@ -106,15 +106,15 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         HiC hic = heatmapPanel.getHiC();
 
         try {
-            final String chrXName = hic.getXContext().getChromosome().toString();
-            final String chrYName = hic.getYContext().getChromosome().toString();
-
-            final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-            final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
-
-            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
-                    HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
-        } catch (Exception e) {
+			final String chrXName = hic.getXContext().getChromosome().toString();
+			final String chrYName = hic.getYContext().getChromosome().toString();
+	
+			final long xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+			final long yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+	
+			hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
+					HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
+		} catch (Exception e) {
             e.printStackTrace();
         }
     }

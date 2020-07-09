@@ -83,9 +83,9 @@ public class MatrixZoomDataPP {
 
         // Get length in proper units
         Chromosome longChr = chr1.getLength() > chr2.getLength() ? chr1 : chr2;
-        int len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
-
-        int nBinsX = len / binSize + 1;
+        long len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
+    
+        int nBinsX = (int) (len / binSize + 1);
 
         blockBinCount = nBinsX / blockColumnCount + 1;
         blocks = new LinkedHashMap<>(blockColumnCount * blockColumnCount);

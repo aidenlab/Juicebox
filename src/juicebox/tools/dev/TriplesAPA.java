@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -214,17 +214,17 @@ public class TriplesAPA extends JuicerCLT {
                                 }
                             }
                             if (k0 > -1) {
-                                int diff_1 = (triple.getX1() - canyons.get(i0).getX1()) / interval - midNumPoint;
-                                int diff_2 = (triple.getX2() - canyons.get(j0).getX1()) / interval - midNumPoint;
-                                int diff_3 = (triple.getX3() - canyons.get(k0).getX1()) / interval - midNumPoint;
-                                String key = makeKey(diff_1, diff_2, diff_3);
-                                if (plot3D.containsKey(key)) {
-                                    plot3D.put(key, plot3D.get(key) + 1);
-                                } else {
-                                    plot3D.put(key, 1);
-                                }
-                                count[0]++;
-                            }
+								int diff_1 = (int) ((triple.getX1() - canyons.get(i0).getX1()) / interval - midNumPoint);
+								int diff_2 = (int) ((triple.getX2() - canyons.get(j0).getX1()) / interval - midNumPoint);
+								int diff_3 = (int) ((triple.getX3() - canyons.get(k0).getX1()) / interval - midNumPoint);
+								String key = makeKey(diff_1, diff_2, diff_3);
+								if (plot3D.containsKey(key)) {
+									plot3D.put(key, plot3D.get(key) + 1);
+								} else {
+									plot3D.put(key, 1);
+								}
+								count[0]++;
+							}
                         }
                     }
                 }

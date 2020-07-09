@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -168,34 +169,44 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
-                normVectorBuffer, "Finished writing norms");
-    }
-
-    protected void reEvaluateWhichIntraNormsToBuild(List<NormalizationType> normalizationsToBuild) {
-        weShouldBuildVC = normalizationsToBuild.contains(NormalizationHandler.VC);
-        weShouldBuildVCSqrt = normalizationsToBuild.contains(NormalizationHandler.VC_SQRT);
-        weShouldBuildKR = normalizationsToBuild.contains(NormalizationHandler.KR);
-        weShouldBuildScale = normalizationsToBuild.contains(NormalizationHandler.SCALE);
-    }
-
-    protected void buildVCOrVCSQRT(boolean weShouldBuildVC, boolean weShouldBuildVCSqrt, Chromosome chr,
-                                 NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evVC,
-                                 ExpectedValueCalculation evVCSqrt) throws IOException {
-        final int chrIdx = chr.getIndex();
-        long currentTime = System.currentTimeMillis();
-        double[] vc = nc.computeVC();
-
-        double[] vcSqrt = new double[vc.length];
-        if (weShouldBuildVCSqrt) {
-            for (int i = 0; i < vc.length; i++) {
-                vcSqrt[i] = Math.sqrt(vc[i]);
-            }
-        }
-        if (weShouldBuildVC) {
-            updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
-        }
-        if (weShouldBuildVCSqrt) {
-            updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
+				normVectorBuffer, "Finished writing norms");
+	}
+	
+	protected void reEvaluateWhichIntraNormsToBuild(List<NormalizationType> normalizationsToBuild) {
+		weShouldBuildVC = normalizationsToBuild.contains(NormalizationHandler.VC);
+		weShouldBuildVCSqrt = normalizationsToBuild.contains(NormalizationHandler.VC_SQRT);
+		weShouldBuildKR = normalizationsToBuild.contains(NormalizationHandler.KR);
+		weShouldBuildScale = normalizationsToBuild.contains(NormalizationHandler.SCALE);
+	}
+	
+	protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+															   ExpectedValueCalculation ev, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+		double factor = nc.getSumFactor(vec);
+		vec.multiplyEverythingBy(factor);
+		
+		updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
+		
+		ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
+	}
+	
+	protected void buildVCOrVCSQRT(boolean weShouldBuildVC, boolean weShouldBuildVCSqrt, Chromosome chr,
+								   NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evVC,
+								   ExpectedValueCalculation evVCSqrt) throws IOException {
+		final int chrIdx = chr.getIndex();
+		long currentTime = System.currentTimeMillis();
+		ListOfDoubleArrays vc = nc.computeVC();
+		
+		ListOfDoubleArrays vcSqrt = new ListOfDoubleArrays(vc.getLength());
+		if (weShouldBuildVCSqrt) {
+			for (long i = 0; i < vc.getLength(); i++) {
+				vcSqrt.set(i, Math.sqrt(vc.get(i)));
+			}
+		}
+		if (weShouldBuildVC) {
+			updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
+		}
+		if (weShouldBuildVCSqrt) {
+			updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
         }
         printNormTiming("VC and VC_SQRT", chr, zoom, currentTime);
     }
@@ -206,7 +217,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         long currentTime = System.currentTimeMillis();
         if (!failureSetKR.contains(chr)) {
-            double[] kr = nc.computeKR();
+			ListOfDoubleArrays kr = nc.computeKR();
             if (kr == null) {
                 failureSetKR.add(chr);
                 printNormTiming("FAILED KR", chr, zoom, currentTime);
@@ -217,25 +228,13 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         }
     }
 
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                             ExpectedValueCalculation ev, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        double factor = nc.getSumFactor(vec);
-        for (int i = 0; i < vec.length; i++) {
-            vec[i] = vec[i] * factor;
-        }
-
-        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
-
-        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
-    }
-
     protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE) throws IOException {
         Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? mmbaFragFailedChromosomes : mmbaBPFailedChromosomes;
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
 
         if (!failureSetMMBA.contains(chr)) {
-            double[] mmba = nc.computeMMBA();
+			ListOfDoubleArrays mmba = nc.computeMMBA();
 
             if (mmba == null) {
                 failureSetMMBA.add(chr);

@@ -30,6 +30,7 @@ import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.IndexEntry;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -313,12 +314,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             blockIndexMap.put(zd.getKey(), blockIndex);
         }
         currentFilePointer += nBlocks * 16;
-
-        int nBins1 = chr1.getLength() / binSize;
-        int nBins2 = chr2.getLength() / binSize;
+    
+        long nBins1 = chr1.getLength() / binSize;
+        long nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
-
+    
         return new Pair<>(zd, currentFilePointer);
     }
 
@@ -427,19 +428,19 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         // Expected values from non-normalized matrix
         int nExpectedValues = dis.readInt();
         for (int i = 0; i < nExpectedValues; i++) {
-
+    
             NormalizationType no = NormalizationHandler.NONE;
             String unitString = dis.readString();
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
             String key = unitString + "_" + binSize + "_" + no;
-
-            int nValues = dis.readInt();
-            double[] values = new double[nValues];
-            for (int j = 0; j < nValues; j++) {
-                values[j] = dis.readDouble();
+    
+            long nValues = dis.readLong();
+            ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+            for (long j = 0; j < nValues; j++) {
+                values.set(j, dis.readDouble());
             }
-
+    
             int nNormalizationFactors = dis.readInt();
             Map<Integer, Double> normFactors = new LinkedHashMap<>();
             for (int j = 0; j < nNormalizationFactors; j++) {
@@ -469,19 +470,19 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
 
             for (int i = 0; i < nExpectedValues; i++) {
-
+    
                 String typeString = dis.readString();
                 String unitString = dis.readString();
                 HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
                 String key = unitString + "_" + binSize + "_" + typeString;
-
-                int nValues = dis.readInt();
-                double[] values = new double[nValues];
-                for (int j = 0; j < nValues; j++) {
-                    values[j] = dis.readDouble();
+    
+                long nValues = dis.readLong();
+                ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+                for (long j = 0; j < nValues; j++) {
+                    values.set(j, dis.readDouble());
                 }
-
+    
                 int nNormalizationFactors = dis.readInt();
                 Map<Integer, Double> normFactors = new LinkedHashMap<>();
                 for (int j = 0; j < nNormalizationFactors; j++) {
@@ -636,21 +637,22 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     @Override
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
-
+    
         String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
         if (normVectorIndex == null) return null;
         IndexEntry idx = normVectorIndex.get(key);
         if (idx == null) return null;
-
+    
         byte[] buffer = seekAndFullyReadCompressedBytes(idx);
         LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-
-        int nValues = dis.readInt();
-        double[] values = new double[nValues];
+    
+        long nValues = dis.readLong();
+        ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
         boolean allNaN = true;
-        for (int i = 0; i < nValues; i++) {
-            values[i] = dis.readDouble();
-            if (!Double.isNaN(values[i])) {
+        for (long i = 0; i < nValues; i++) {
+            double val = dis.readDouble();
+            values.set(i, val);
+            if (!Double.isNaN(val)) {
                 allNaN = false;
             }
         }
@@ -694,7 +696,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             timeDiffThings[0] = System.currentTimeMillis();
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
-
+    
             if (nv1 == null || nv2 == null) {
                 if (HiCGlobals.printVerboseComments) { // todo should this print an error always instead?
                     System.err.println("Norm " + no + " missing for: " + zd.getDescription());
@@ -702,21 +704,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 }
                 return null;
             }
-            double[] nv1Data = nv1.getData();
-            double[] nv2Data = nv2.getData();
+            ListOfDoubleArrays nv1Data = nv1.getData();
+            ListOfDoubleArrays nv2Data = nv2.getData();
             timeDiffThings[1] = System.currentTimeMillis();
             Block rawBlock = readBlock(blockNumber, zd);
             timeDiffThings[2] = System.currentTimeMillis();
             if (rawBlock == null) return null;
-
+    
             Collection<ContactRecord> records = rawBlock.getContactRecords();
             List<ContactRecord> normRecords = new ArrayList<>(records.size());
             for (ContactRecord rec : records) {
                 int x = rec.getBinX();
                 int y = rec.getBinY();
                 float counts;
-                if (nv1Data[x] != 0 && nv2Data[y] != 0 && !Double.isNaN(nv1Data[x]) && !Double.isNaN(nv2Data[y])) {
-                    counts = (float) (rec.getCounts() / (nv1Data[x] * nv2Data[y]));
+                double valX = nv1Data.get(x);
+                double valY = nv2Data.get(y);
+                // todo == 0 probably not the best thing to do here
+                if (valX != 0 && valY != 0 && !Double.isNaN(valX) && !Double.isNaN(valY)) {
+                    counts = (float) (rec.getCounts() / (valX * valY));
                 } else {
                     counts = Float.NaN;
                 }

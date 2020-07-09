@@ -61,7 +61,7 @@ public class BlockBuster {
 
         int chrIndex = chrom.getIndex();
         String chrName = chrom.getName();
-        int chrLength = chrom.getLength();
+		long chrLength = chrom.getLength();
         // used for sliding window across diagonal
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);

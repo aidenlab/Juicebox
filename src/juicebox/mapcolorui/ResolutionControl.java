@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -228,14 +228,14 @@ public class ResolutionControl extends JPanel {
                 }
 
                 if (hic.getXContext() != null) {
-
+    
                     double scaledXWidth = heatmapPanel.getWidth() / hic.getScaleFactor();
                     double scaledYHeight = heatmapPanel.getHeight() / hic.getScaleFactor();
                     double centerBinX = hic.getXContext().getBinOrigin() + scaledXWidth / 2;
                     double centerBinY = hic.getYContext().getBinOrigin() + scaledYHeight / 2;
-                    int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
-                    int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
-
+                    long xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
+                    long yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
+    
                     // this to center zooming when there is lots of whitespace in the margins
                     try {
                         if (scaledXWidth > hic.getZd().getXGridAxis().getBinCount()) {
@@ -243,7 +243,7 @@ public class ResolutionControl extends JPanel {
                         }
                     } catch (Exception ignored) {
                     }
-
+    
                     try {
                         if (scaledYHeight > hic.getZd().getYGridAxis().getBinCount()) {
                             yGenome = hic.getYContext().getChrLength() / 2;

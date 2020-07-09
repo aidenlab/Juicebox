@@ -27,6 +27,7 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -350,7 +351,7 @@ public class CombinedDatasetReader implements DatasetReader {
             int binSize = protoFunction.getBinSize();
             HiC.Unit unit = protoFunction.getUnit();
             NormalizationType type = protoFunction.getNormalizationType();
-            int len = protoFunction.getLength();
+            long len = protoFunction.getLength();
 
             for (ExpectedValueFunction df : densityFunctions) {
                 if (df.getBinSize() != binSize || !df.getUnit().equals(unit) || df.getNormalizationType() != type) {
@@ -358,13 +359,10 @@ public class CombinedDatasetReader implements DatasetReader {
                 }
                 len = Math.min(df.getLength(), len);
             }
-            double[] expectedValues = new double[len];
+            ListOfDoubleArrays expectedValues = new ListOfDoubleArrays(len);
 
             for (ExpectedValueFunction df : densityFunctions) {
-                double[] current = df.getExpectedValuesNoNormalization();
-                for (int i = 0; i < len; i++) {
-                    expectedValues[i] += current[i];
-                }
+                expectedValues.addValuesFrom(df.getExpectedValuesNoNormalization());
             }
 
 

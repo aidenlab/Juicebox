@@ -367,8 +367,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void goToScaffoldName(String scafName1, String scafName2) {
-        int location1 = -1;
-        int location2 = -1;
+        long location1 = -1;
+        long location2 = -1;
         String chr1Name = "";
         String chr2Name = "";
         for (Scaffold scaffold : superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds()) {

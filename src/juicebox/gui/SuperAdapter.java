@@ -337,16 +337,16 @@ public class SuperAdapter {
                         hic.getDataset().getFragZooms());
 //            Find right zoom level
                 int pixels = mainViewPanel.getHeatmapPanel().getMinimumDimension();
-                int len;
+				long len;
                 if (currentUnit == HiC.Unit.BP) {
                     len = (Math.max(hic.getXContext().getChrLength(), hic.getYContext().getChrLength()));
                 } else {
                     len = Math.max(hic.getDataset().getFragmentCounts().get(hic.getXContext().getChromosome().getName()),
                             hic.getDataset().getFragmentCounts().get(hic.getYContext().getChromosome().getName()));
                 }
-
-                int maxNBins = pixels / HiCGlobals.BIN_PIXEL_WIDTH;
-                int bp_bin = len / maxNBins;
+	
+				int maxNBins = pixels / HiCGlobals.BIN_PIXEL_WIDTH;
+				long bp_bin = len / maxNBins;
                 initialZoom = zooms.get(zooms.size() - 1);
                 for (int z = 1; z < zooms.size(); z++) {
                     if (zooms.get(z).getBinSize() < bp_bin) {

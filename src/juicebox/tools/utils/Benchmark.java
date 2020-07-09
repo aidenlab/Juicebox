@@ -98,11 +98,11 @@ public class Benchmark extends JuiceboxCLT {
             // Randomly choose chromosome and resolution to query
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
-
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
-            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+    
+            long end1 = random.nextInt((int) handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            long start1 = end1 - binSize * QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
-
+    
             dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();
@@ -117,11 +117,11 @@ public class Benchmark extends JuiceboxCLT {
             // Randomly choose chromosome and resolution to query
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
-
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
-            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+    
+            long end1 = random.nextInt((int) handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            long start1 = end1 - binSize * QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
-
+    
             dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();

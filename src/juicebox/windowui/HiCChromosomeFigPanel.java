@@ -248,7 +248,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         g.drawString(rangeString, strPosition, vPos);
     }
 
-    private int genomeLength() {
+    private long genomeLength() {
         return context.getChromosome().getLength();
     }
 
@@ -256,16 +256,16 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         Color chrContour = new Color(116, 173, 212);
         Color chrFillIn = new Color(163, 202, 187);
         Color chrInside = new Color(222, 222, 222);
-
-        int genomeLength = genomeLength();
-
-        int[] genomePositions;
+    
+        long genomeLength = genomeLength();
+    
+        long[] genomePositions;
         try {
             genomePositions = hic.getCurrentRegionWindowGenomicPositions();
         } catch (Exception e) {
             return;
         }
-
+    
         float chrFigLength = w - 2;
 
         if (isHorizontal()) {
@@ -279,7 +279,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             g.drawLine(chrFigStart, h / 2, chrFigStart, h / 4 - 3);
             g.drawLine(0, 0, 0, 3);
             g.drawLine(chrFigStart, h / 4 - 3, 0, 3);
-
+    
             MatrixZoomData zd;
             try {
                 zd = hic.getZd();
@@ -287,14 +287,14 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
                 return;
             }
             HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
-            int maxX = context.getChromosome().getLength();
-            int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
-            int endbinNumber = (genomePositions[1] > maxX) ? x : w;
-
+            long maxX = context.getChromosome().getLength();
+            long x = (long) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
+            int endbinNumber = (int) ((genomePositions[1] > maxX) ? x : w);
+    
             g.drawLine(chrFigEnd, h / 2, chrFigEnd, h / 4 - 3);
             g.drawLine(endbinNumber - 1, 0, endbinNumber - 1, 3);
             g.drawLine(chrFigEnd, h / 4 - 3, endbinNumber - 1, 3);
-
+    
             // Later implement shape to create a chromosome shape
             RoundRectangle2D chrFig = new RoundRectangle2D.Double(1, h / 4, w - 2, h / 2, h / 2, h / 2);
             g.setClip(chrFig);

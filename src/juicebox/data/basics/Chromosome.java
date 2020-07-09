@@ -23,27 +23,17 @@
  */
 
 package juicebox.data.basics;
-
-import org.broad.igv.feature.Cytoband;
-
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 public class Chromosome {
     private String name;
     private int index;
-    private int length = 0;
-    private List<Cytoband> cytobands;
-
-    public Chromosome(int index, String name, int length) {
+    private long length = 0;
+    
+    public Chromosome(int index, String name, long length) {
         this.index = index;
         this.name = name;
         this.length = length;
-        Cytoband cytoband = new Cytoband(name);
-        cytoband.setStart(0);
-        cytoband.setEnd(length);
-        this.cytobands = Arrays.asList(cytoband);
     }
 
     public int getIndex() {
@@ -53,16 +43,8 @@ public class Chromosome {
     public void setIndex(int ii) {
         this.index = ii;
     }
-
-    public List<Cytoband> getCytobands() {
-        return this.cytobands;
-    }
-
-    public void setCytobands(List<Cytoband> cytobands) {
-        this.cytobands = cytobands;
-    }
-
-    public int getLength() {
+    
+    public long getLength() {
         return this.length;
     }
 
@@ -83,7 +65,7 @@ public class Chromosome {
     }
 
     public org.broad.igv.feature.Chromosome toIGVChromosome() {
-        return new org.broad.igv.feature.Chromosome(index, name, length);
+        return new org.broad.igv.feature.Chromosome(index, name, (int) length); // todo assumed for IGV
     }
 }
 
