@@ -319,7 +319,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         long nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
-    
+
         return new Pair<>(zd, currentFilePointer);
     }
 
@@ -434,13 +434,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
             String key = unitString + "_" + binSize + "_" + no;
-    
-            long nValues = dis.readLong();
+            long nValues;
+            if (version > 8) {
+                nValues = dis.readLong();
+            } else {
+                nValues = dis.readInt();
+            }
             ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
             for (long j = 0; j < nValues; j++) {
                 values.set(j, dis.readDouble());
             }
-    
             int nNormalizationFactors = dis.readInt();
             Map<Integer, Double> normFactors = new LinkedHashMap<>();
             for (int j = 0; j < nNormalizationFactors; j++) {
@@ -470,19 +473,22 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
 
             for (int i = 0; i < nExpectedValues; i++) {
-    
                 String typeString = dis.readString();
                 String unitString = dis.readString();
                 HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
                 String key = unitString + "_" + binSize + "_" + typeString;
     
-                long nValues = dis.readLong();
+                long nValues;
+                if (version > 8) {
+                    nValues = dis.readLong();
+                } else {
+                    nValues = dis.readInt();
+                }
                 ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                 for (long j = 0; j < nValues; j++) {
                     values.set(j, dis.readDouble());
                 }
-    
                 int nNormalizationFactors = dis.readInt();
                 Map<Integer, Double> normFactors = new LinkedHashMap<>();
                 for (int j = 0; j < nNormalizationFactors; j++) {
@@ -637,7 +643,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     @Override
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
-    
         String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
         if (normVectorIndex == null) return null;
         IndexEntry idx = normVectorIndex.get(key);
@@ -646,7 +651,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         byte[] buffer = seekAndFullyReadCompressedBytes(idx);
         LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
     
-        long nValues = dis.readLong();
+        long nValues;
+        if (version > 8) {
+            nValues = dis.readLong();
+        } else {
+            nValues = dis.readInt();
+        }
         ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
         boolean allNaN = true;
         for (long i = 0; i < nValues; i++) {
