@@ -24,25 +24,32 @@
 
 package juicebox.tools.clt.old;
 
+import java.io.*;
+import java.util.*;
+import java.text.NumberFormat;
+import java.nio.charset.StandardCharsets;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
-import java.util.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.tools.utils.original.AlignmentPair;
+import juicebox.tools.utils.original.AlignmentPairLong;
+import juicebox.tools.utils.original.AsciiPairIterator;
+import juicebox.tools.utils.original.FragmentCalculation;
 
 public class Statistics extends JuiceboxCLT {
     //variables for getting parameters of input file, flags set to default initially
-    private String outFile;
     private String siteFile ;
-    private String ligationJunction = "GATCGATC";
     private String statsFile;
-    private int mapqThreshold = 1;
     private String inFile;
+    private String outFile;
+    private ChromosomeHandler localHandler;
+    private String ligationJunction = "GATCGATC";
+    private int mapqThreshold = 1;
+
 
     //Variables for calculating statistics
-    private final Map<String,long[]> chromosomes = new HashMap<>();
+    private FragmentCalculation chromosomes;
     private final Map<Integer,Integer> hindIII = new HashMap<>();
     private final Map<Integer,Integer> mapQ = new HashMap<>();
     private final Map<Integer,Integer> mapQInter = new HashMap<>();
@@ -87,62 +94,63 @@ public class Statistics extends JuiceboxCLT {
     }
 
     public static String getUsage(){
-        return  " Usage: StatisticsScript [--ligation NNNN] [-q mapq] <site file> <stats file> <infile> [outfile]\n" +
+        return  " Usage: statistics [--ligation NNNN] [-q mapq] <site file> <stats file> <infile> <genome ID> [outfile]\n" +
                 " --ligation: ligation junction\n" +
                 " -q: mapping quality threshold, do not consider reads < threshold\n" +
                 " <site file>: list of HindIII restriction sites, one line per chromosome\n" +
                 " <stats file>: output file containing total reads, for library complexity\n"+
                 " <infile>: file in intermediate format to calculate statistics on, can be stream\n" +
+                " <genome ID>: file to create chromosome handler\n" +
                 " [outfile]: output, results of fragment search\n";
     }
 
     public void readSiteFile(){
         //read in restriction site file and store as multidimensional array q
-        try{
-            BufferedReader restriction_site = new BufferedReader(new FileReader(siteFile));
-            String data = restriction_site.readLine();
-            while(data!= null){
-                String[] locs = data.split("\\s+");
-                String locKey = locs[0];
-                String[] locsShift = Arrays.copyOfRange(locs, 1, locs.length);
-                long [] locShift = new long[locsShift.length];
-                int counter = 0;
-                for(String loc: locsShift){
-                    locShift[counter] = Integer.parseInt(loc);
-                    counter++;}
-                chromosomes.put(locKey,locShift);
-                //adding keys for fragment reads
-                if (locKey.equals("14")){
-                    chromosomes.put(locKey+"m",locShift);
-                    chromosomes.put(locKey+"p",locShift);
-                }
-                data = restriction_site.readLine();
-            }
-            restriction_site.close();}
+        try {
+            chromosomes = FragmentCalculation.readFragments(siteFile, localHandler);
+        }
         catch (IOException error){
             error.printStackTrace();
         }
     }
-
     public void infileStatistics(){
         //read in infile and calculate statistics
         String danglingJunction = ligationJunction.substring(ligationJunction.length()/2);
         try {
-            BufferedReader files = new BufferedReader(new FileReader(inFile));
-            String file = files.readLine();
-            while (file != null) {
+            //create index for AsciiIterator
+            Map<String, Integer> chromosomeIndexes = new HashMap<>();
+            for (int i = 0; i < localHandler.size(); i++) {
+                chromosomeIndexes.put(localHandler.getChromosomeFromIndex(i).getName(), i);
+            }
+            //iterate through input file
+            AsciiPairIterator files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
+            while (files.hasNext()) {
                 unique++;
-                String[] record = file.split("\\s+");
-                int num_records = record.length;
+                AlignmentPairLong pair = (AlignmentPairLong) files.next();
+                int chr1,chr2,pos1,pos2,frag1,frag2,mapq1,mapq2;
+                boolean str1,str2;
+                String seq1,seq2;
+                chr1 = pair.getChr1();
+                chr2 = pair.getChr2();
+                pos1 = pair.getPos1();
+                pos2 = pair.getPos2();
+                frag1 = pair.getFrag1();
+                frag2 = pair.getFrag2();
+                mapq1 = pair.getMapq1();
+                mapq2 = pair.getMapq2();
+                str1 = pair.getStrand1();
+                str2 = pair.getStrand2();
+                seq1 = pair.getSeq1();
+                seq2 = pair.getSeq2();
                 //don't count as Hi-C contact if fails mapq or intra fragment test
                 boolean countMe = true;
 
-                if ((record[1].equals(record[5])) && (record[3].equals(record[7]))) {
+                if ((chr1==chr2) && (frag1==frag2)){
                     intraFragment++;
                     countMe = false;
                 }
-                else if (num_records > 8) {
-                    int mapqValue = Math.min(Integer.parseInt(record[8]), Integer.parseInt(record[11]));
+                else if (mapq1>=0&&mapq2>=0) {
+                    int mapqValue = Math.min(mapq1,mapq2);
                     if (mapqValue < mapqThreshold) {
                         underMapQ++;
                         countMe = false;
@@ -152,20 +160,20 @@ public class Statistics extends JuiceboxCLT {
                 if (countMe) {
                     totalCurrent++;
                     //position distance
-                    int posDist = Math.abs(Integer.parseInt(record[2]) - Integer.parseInt(record[6]));
-                    int histDist = bSearch(posDist, bins);
+                    int posDist = Math.abs(pos1-pos2);
+                    int histDist = bSearch(posDist);
                     boolean isDangling = false;
                     //one part of read pair has unligated end
-                    if (num_records > 8 && (record[10].contains(ligationJunction) || record[13].contains(ligationJunction))) {
+                    if ((seq1!=null&&seq2!=null) && (seq1.contains(ligationJunction) || seq2.contains(ligationJunction))) {
                         dangling++;
                         isDangling = true;
                     }
                     //look at chromosomes
-                    if (record[1].equals(record[5])) {
+                    if (chr1==chr2) {
                         intra++;
                         //determine right/left/inner/outer ordering of chromosomes/strands
-                        if (record[0].equals(record[4])) {
-                            if (Integer.parseInt(record[0]) == 0) {
+                        if (str1==str2) {
+                            if (str1) {
                                 if (posDist >= posDistThreshold) {
                                     right++;
                                 }
@@ -178,8 +186,8 @@ public class Statistics extends JuiceboxCLT {
                             }
                         }
                         else {
-                            if (Integer.parseInt(record[0]) == 0) {
-                                if (Integer.parseInt(record[2]) < Integer.parseInt(record[6])) {
+                            if (str1) {
+                                if (pos1<pos2) {
                                     if (posDist >= posDistThreshold) {
                                         inner++;
                                     }
@@ -193,7 +201,7 @@ public class Statistics extends JuiceboxCLT {
                                 }
                             }
                             else {
-                                if (Integer.parseInt(record[2]) < Integer.parseInt(record[6])) {
+                                if (pos1<pos2) {
                                     if (posDist >= posDistThreshold) {
                                         outer++;
                                     }
@@ -233,11 +241,11 @@ public class Statistics extends JuiceboxCLT {
                             interDangling++;
                         }
                     }
-                    if (num_records > 8) {
-                        int mapqVal = Math.min(Integer.parseInt(record[8]), Integer.parseInt(record[11]));
+                    if ((seq1!=null&&seq2!=null)&&(mapq1>=0&&mapq2>=0)) {
+                        int mapqVal = Math.min(mapq1,mapq2);
                         if (mapqVal <= mapqValThreshold) {
                             mapQ.put(mapqVal, mapQ.getOrDefault(mapqVal,0) + 1);
-                            if (record[1].equals(record[5])) {
+                            if (chr1==chr2) {
                                 mapQIntra.put(mapqVal, mapQIntra.getOrDefault(mapqVal,0) + 1);
                             }
                             else {
@@ -245,32 +253,32 @@ public class Statistics extends JuiceboxCLT {
                             }
                         }
                         //read pair contains ligation junction
-                        if (record[10].contains(ligationJunction) || record[13].contains(ligationJunction)) {
+                        if (seq1.contains(ligationJunction) || seq2.contains(ligationJunction)) {
                             ligation++;
                         }
                     }
                     //determine distance from nearest HindIII site, add to histogram
                     if (!siteFile.contains("none")) {
-                        boolean report = ((!record[1].equals(record[5])) || (posDist >= posDistThreshold));
-                        int dist = distHindIII(record[0], record[1], record[2], record[3], report);
+                        boolean report = ((chr1!=chr2) || (posDist >= posDistThreshold));
+                        int dist = distHindIII(str1,chr1,pos1,frag1,report);
                         if (dist <= distThreshold) {
                             hindIII.put(dist, hindIII.getOrDefault(dist,0) + 1);
                         }
-                        dist = distHindIII(record[4], record[5], record[6], record[7], report);
+                        dist = distHindIII(str2,chr2,pos2,frag2,report);
                         if (dist <= distThreshold) {
                             hindIII.put(dist, hindIII.getOrDefault(dist,0) + 1);
                         }
                     }
                     if (isDangling) {
                         int dist;
-                        if (record[10].contains(danglingJunction)) {
-                            dist = distHindIII(record[0], record[1], record[2], record[3], true);
+                        if (seq1.contains(danglingJunction)) {
+                            dist = distHindIII(str1,chr1,pos1,frag1,true);
                         }
                         else {
-                            dist = distHindIII(record[4], record[5], record[6], record[7], true);
+                            dist = distHindIII(str2,chr2,pos2,frag2,true);
                         } //$record[13] =~ m/^$danglingJunction/
                         if (dist == 1) {
-                            if (record[1].equals(record[5])) {
+                            if (chr1==chr2) {
                                 if (posDist < posDistThreshold) {
                                     trueDanglingIntraSmall++;
                                 }
@@ -284,7 +292,6 @@ public class Statistics extends JuiceboxCLT {
                         }
                     }
                 }
-                file = files.readLine();
             }
         }
         catch (IOException e){
@@ -306,7 +313,7 @@ public class Statistics extends JuiceboxCLT {
                         String[] tokens = statsData.split(":");
                         reads = Integer.parseInt(tokens[1].replaceAll("[, ]",""));
                     }
-                        statsData = stats.readLine();
+                    statsData = stats.readLine();
                 }
                 stats.close();
             }
@@ -356,8 +363,8 @@ public class Statistics extends JuiceboxCLT {
             statsOut.write(" / " + String.format("%.2f", (float)ligation*100/unique) + "%)" + "\n");
 
             if((fivePrimeEnd + threePrimeEnd)>0) {
-                float f1 = (float)threePrimeEnd*100/(threePrimeEnd+fivePrimeEnd);
-                float f2 = (float)fivePrimeEnd*100/(threePrimeEnd+fivePrimeEnd);
+                float f1 = (float)threePrimeEnd*100f/(threePrimeEnd+fivePrimeEnd);
+                float f2 = (float)fivePrimeEnd*100f/(threePrimeEnd+fivePrimeEnd);
                 statsOut.write(" 3' Bias (Long Range): " + (String.format("%.0f", f1)) + "%");
                 statsOut.write(" - " + (String.format("%.0f", f2)) + "%" + "\n");
             }
@@ -426,10 +433,10 @@ public class Statistics extends JuiceboxCLT {
         try{
             BufferedWriter hist = new BufferedWriter(new FileWriter(histsFile, StandardCharsets.UTF_8, false));
             hist.write("A = [\n");
-                for(int i=1; i<=2000;i++){
+            for(int i=1; i<=2000;i++){
                 int tmp = hindIII.getOrDefault(i,0);
                 hist.write(tmp + " ");
-                }
+            }
             hist.write("\n];\n");
 
             hist.write("B = [\n");
@@ -471,8 +478,8 @@ public class Statistics extends JuiceboxCLT {
             while (file != null) {
                 unique++;
                 String[] record = file.split("\\s+");
-                int indexOne = bSearch(Integer.parseInt(record[2]),chromosomes.get(record[1]));
-                int indexTwo = bSearch(Integer.parseInt(record[5]),chromosomes.get(record[4]));
+                int indexOne = FragmentCalculation.binarySearch(chromosomes.getSites(localHandler.cleanUpName(record[1])),Integer.parseInt(record[2]));
+                int indexTwo = FragmentCalculation.binarySearch(chromosomes.getSites(localHandler.cleanUpName(record[4])),Integer.parseInt(record[5]));
                 fragOut.write(record[0] + " " + record[1] + " " + record[2] + " " + indexOne + " ");
                 fragOut.write(record[3] + " " + record[4] + " " + record[5] + " " + indexTwo + " ");
                 for (int i = 6; i < record.length; i++) {
@@ -488,31 +495,25 @@ public class Statistics extends JuiceboxCLT {
             error.printStackTrace();
         }
     }
-    private int distHindIII(String record_0, String record_1, String record_2, String record_3, boolean rep){
+    private int distHindIII(boolean strand, int chr, int pos, int frag, boolean rep){
         //Find distance to nearest HindIII restriction site
         //find upper index of position in sites array via binary search
-        int index = Integer.parseInt(record_3);
         //get distance to each end of HindIII fragment
         int dist1;
         int dist2;
-        if (index==0){
+        if (frag ==0){
             //# first fragment, distance is position
-            dist1 = Integer.parseInt(record_2);
+            dist1 = pos;
         }
         else{
-            dist1 = Math.abs(Integer.parseInt(record_2) - (int) chromosomes.get(record_1)[index-1]);
-        }
-        if(chromosomes.get(record_1).length>index) {
-            dist2 = Math.abs(Integer.parseInt(record_2) - (int) chromosomes.get(record_1)[index]);
-        }
-        else{
-            dist2 = 0;
-        }
+            dist1 = Math.abs(pos - chromosomes.getSites(Integer.toString(chr))[frag-1]);}
+
+        dist2 = Math.abs(pos - chromosomes.getSites(Integer.toString(chr))[frag]);
         //get minimum value -- if (dist1 <= dist2), it's dist1, else dist2
         int retVal = Math.min(dist1,dist2);
         //get which end of the fragment this is, 3' or 5' (depends on strand)
         if ((retVal==dist1)&&(rep)){
-            if (Integer.parseInt(record_0) == 0) {
+            if (strand) {
                 fivePrimeEnd++;
             }
             else {
@@ -520,7 +521,7 @@ public class Statistics extends JuiceboxCLT {
             }
         }
         else if ((retVal==dist2)&&(rep)){
-            if (Integer.parseInt(record_0) == 16) {
+            if (!strand) {
                 fivePrimeEnd++;
             }
             else {
@@ -534,17 +535,17 @@ public class Statistics extends JuiceboxCLT {
         return NumberFormat.getNumberInstance(Locale.US).format(value);
     }
 
-    private static int bSearch(int distance, long[] bin){
+    private static int bSearch(int distance){
         //search for int distance in array binary
         int lower = 0;
-        int upper = bin.length-1;
+        int upper = bins.length-1;
         int index;
         while(lower<=upper){
             index = (lower+upper)/2;
-            if (bin[index]<distance) {
+            if (bins[index]<distance) {
                 lower=index+1;
             }
-            else if (bin[index]>distance) {
+            else if (bins[index]>distance) {
                 upper=index-1;
             }
             else {
@@ -556,14 +557,16 @@ public class Statistics extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CommandLineParser parser){
-        if(args.length!=4){
+        if(args.length!=5){
             printUsageAndExit();
         }
-
+        //set required arguments to variables
         siteFile = args[1];
         statsFile = args[2];
         inFile = args[3];
+        localHandler = HiCFileTools.loadChromosomes(args[4]); //genomeID
 
+        //check for flags
         int mapQT =  parser.getMapqThresholdOption();
         if(mapQT>0){
             mapqThreshold = mapQT;
