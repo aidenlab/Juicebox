@@ -46,13 +46,12 @@ import java.util.*;
  */
 public class NormalizationVectorUpdater extends NormVectorUpdater {
 
-    protected BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-    protected Map<Integer, BufferedByteWriter> normVectorBuffers = new HashMap<>();
-    protected static int currentBuffer = 0;
+
+    protected List<BufferedByteWriter> normVectorBuffers = new ArrayList<>();
+
     protected List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
     protected List<ExpectedValueCalculation> expectedValueCalculations = new ArrayList<>();
 
-    protected static long masterPosition;
 
     // Keep track of chromosomes that fail to converge, so we don't try them at higher resolutions.
     protected Set<Chromosome> krBPFailedChromosomes = new HashSet<>();
@@ -93,6 +92,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         reEvaluateWhichIntraNormsToBuild(normalizationsToBuild);
 
+        normVectorBuffers.add(new BufferedByteWriter());
         for (HiCZoom zoom : resolutions) {
             if (zoom.getBinSize() < minResolution) {
                 System.out.println("skipping zoom" + zoom);
@@ -105,8 +105,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
-                        normVectorIndices, normVectorBuffer, expectedValueCalculations);
+                        normVectorIndices, normVectorBuffers, expectedValueCalculations);
             }
+
             Instant B = Instant.now();
             //System.out.println("genomewide normalization: " + Duration.between(A,B).toMillis());
             System.out.println();
@@ -168,7 +169,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
-                normVectorBuffer, "Finished writing norms");
+                normVectorBuffers, "Finished writing norms");
     }
 
     protected void reEvaluateWhichIntraNormsToBuild(List<NormalizationType> normalizationsToBuild) {
@@ -192,10 +193,10 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             }
         }
         if (weShouldBuildVC) {
-            updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffer, normVectorIndices);
+            updateExpectedValueCalculationForChr(chrIdx, nc, vc, NormalizationHandler.VC, zoom, zd, evVC, normVectorBuffers, normVectorIndices);
         }
         if (weShouldBuildVCSqrt) {
-            updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffer, normVectorIndices);
+            updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffers, normVectorIndices);
         }
         printNormTiming("VC and VC_SQRT", chr, zoom, currentTime);
     }
@@ -211,23 +212,24 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 failureSetKR.add(chr);
                 printNormTiming("FAILED KR", chr, zoom, currentTime);
             } else {
-                updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffer, normVectorIndices);
+                updateExpectedValueCalculationForChr(chrIdx, nc, kr, NormalizationHandler.KR, zoom, zd, evKR, normVectorBuffers, normVectorIndices);
                 printNormTiming("KR", chr, zoom, currentTime);
             }
         }
     }
 
     protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                             ExpectedValueCalculation ev, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+                                                             ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
         double factor = nc.getSumFactor(vec);
         for (int i = 0; i < vec.length; i++) {
             vec[i] = vec[i] * factor;
         }
 
-        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
+        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
 
         ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
     }
+
 
     protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE) throws IOException {
         Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? mmbaFragFailedChromosomes : mmbaBPFailedChromosomes;
@@ -241,7 +243,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 failureSetMMBA.add(chr);
                 printNormTiming("FAILED SCALE", chr, zoom, currentTime);
             } else {
-                updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.SCALE, zoom, zd, evSCALE, normVectorBuffer, normVectorIndices);
+                updateExpectedValueCalculationForChr(chrIdx, nc, mmba, NormalizationHandler.SCALE, zoom, zd, evSCALE, normVectorBuffers, normVectorIndices);
                 printNormTiming("SCALE", chr, zoom, currentTime);
             }
         }
