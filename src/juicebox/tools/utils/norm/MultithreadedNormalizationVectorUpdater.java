@@ -80,6 +80,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
         reEvaluateWhichIntraNormsToBuild(normalizationsToBuild);
 
+        normVectorBuffers.add(new BufferedByteWriter());
         for (HiCZoom zoom : resolutions) {
             if (zoom.getBinSize() < minResolution) {
                 System.out.println("skipping zoom" + zoom);
@@ -90,9 +91,8 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
-                        normVectorIndices, normVectorBuffer, expectedValueCalculations);
+                        normVectorIndices, normVectorBuffers, expectedValueCalculations);
             }
-            masterPosition = normVectorBuffer.bytesWritten();
 
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
@@ -158,7 +158,7 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
             while (!executor.isTerminated()) {
             }
 
-            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
+
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
@@ -217,7 +217,8 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
-                normVectorBuffer, normVectorBuffers, currentBuffer, "Finished writing norms");
+                normVectorBuffers, "Finished writing norms");
+
     }
 
     protected void runIndividualChromosomeCode(AtomicInteger chromosomeIndex,
@@ -341,22 +342,12 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
     }
 
     protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                               ExpectedValueCalculation ev, Map<Integer, BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+                                                               ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
         for (int i = 0; i < vec.length; i++) {
             vec[i] = vec[i] * factor;
         }
 
-        BufferedByteWriter normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        int updateSize = 0;
-        int freeBytes = Integer.MAX_VALUE - normVectorBuffer.bytesWritten();
-        int bytesNeeded = 4 + (8*vec.length);
-        if (bytesNeeded >= freeBytes) {
-            currentBuffer += 1;
-            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
-            normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        }
-        updateSize = updateNormVectorIndexWithVector(masterPosition, normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
-        masterPosition += updateSize;
+        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
 
         ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
 

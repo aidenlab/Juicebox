@@ -115,7 +115,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
     public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild,
                                                             Map<NormalizationType, Integer> resolutionsToBuildTo, List<NormalizationVectorIndexEntry> normVectorIndices,
-                                                            BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
+                                                            List<BufferedByteWriter> normVectorBuffers, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
         for (NormalizationType normType : normalizationsToBuild) {
             if (NormalizationHandler.isGenomeWideNorm(normType)) {
                 if (zoom.getBinSize() >= resolutionsToBuildTo.get(normType)) {
@@ -129,7 +129,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     if (wgVectors != null) {
                         Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
                         for (Chromosome chromosome : nvMap.keySet()) {
-                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffers, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
                         }
 
                         expectedValueCalculations.add(wgVectors.getSecond());
