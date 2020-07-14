@@ -27,13 +27,13 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.NormalizationVector;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 
@@ -79,20 +79,24 @@ public class CompareVectors extends JuiceboxCLT {
     public void run() {
 
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            NormalizationVector nv1 = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
-            NormalizationVector nv2 = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm2);
-            if (nv2 == null) {
-                System.err.println(norm2 + " not available for " + chromosome.getName());
-            }
-
-            int numElements = (chromosome.getLength() / zoom.getBinSize()) + 1;
-            double[][] result = new double[2][numElements];
-
-            fillInVector(result, nv1, 0, norm, chromosome);
-            fillInVector(result, nv2, 1, norm2, chromosome);
-
-            File rOut = new File(outputFolder, chromosome.getName() + "_" + norm.getLabel() + "_vs_" + norm2.getLabel() + ".npy");
-            MatrixTools.saveMatrixTextNumpy(rOut.getAbsolutePath(), result);
+			NormalizationVector nv1 = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
+			NormalizationVector nv2 = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm2);
+			if (nv2 == null) {
+				System.err.println(norm2 + " not available for " + chromosome.getName());
+			}
+	
+			if (chromosome.getLength() / zoom.getBinSize() + 1 < Integer.MAX_VALUE) {
+				int numElements = (int) (chromosome.getLength() / zoom.getBinSize()) + 1;
+				double[][] result = new double[2][numElements];
+		
+				fillInVector(result, nv1, 0, norm, chromosome);
+				fillInVector(result, nv2, 1, norm2, chromosome);
+		
+				File rOut = new File(outputFolder, chromosome.getName() + "_" + norm.getLabel() + "_vs_" + norm2.getLabel() + ".npy");
+				MatrixTools.saveMatrixTextNumpy(rOut.getAbsolutePath(), result);
+			} else {
+				System.err.println("long vector support not currently available");
+			}
         }
     }
 

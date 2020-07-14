@@ -27,11 +27,12 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 
@@ -155,9 +156,9 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / resolution + 1;
         }
-
+    
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm);
+        ListOfDoubleArrays vector = calculations.getNorm(norm);
 
         if (vector == null) {
             return null;
@@ -176,8 +177,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 for (ContactRecord cr : crList) {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
-                    final double vx = vector[x + addY];
-                    final double vy = vector[y + addY];
+                    final double vx = vector.get(x + addY);
+                    final double vy = vector.get(y + addY);
                     if (isValidNormValue(vx) && isValidNormValue(vy)) {
                         double value = cr.getCounts() / (vx * vy);
                         expectedValueCalculation.addDistance(chrIdx, x, y, value);
@@ -190,12 +191,14 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
         // Split normalization vector by chromosome
         Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<>();
-        int location1 = 0;
+        long location1 = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            int chrBinned = c1.getLength() / resolution + 1;
-            double[] chrNV = new double[chrBinned];
-            System.arraycopy(vector, location1, chrNV, 0, chrNV.length);
-            location1 += chrNV.length;
+            long chrBinned = c1.getLength() / resolution + 1;
+            ListOfDoubleArrays chrNV = new ListOfDoubleArrays(chrBinned);
+            for (long k = 0; k < chrNV.getLength(); k++) { // todo optimize a version with system.arraycopy and long
+                chrNV.set(k, vector.get(location1 + k));
+            }
+            location1 += chrNV.getLength();
             normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
         }
 

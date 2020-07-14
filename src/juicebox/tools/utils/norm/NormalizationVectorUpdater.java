@@ -27,11 +27,12 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
@@ -184,12 +185,12 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                                  ExpectedValueCalculation evVCSqrt) throws IOException {
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
-        double[] vc = nc.computeVC();
+        ListOfDoubleArrays vc = nc.computeVC();
 
-        double[] vcSqrt = new double[vc.length];
+        ListOfDoubleArrays vcSqrt = new ListOfDoubleArrays(vc.getLength());
         if (weShouldBuildVCSqrt) {
-            for (int i = 0; i < vc.length; i++) {
-                vcSqrt[i] = Math.sqrt(vc[i]);
+            for (int i = 0; i < vc.getLength(); i++) {
+                vcSqrt.set(i, Math.sqrt(vc.get(i)));
             }
         }
         if (weShouldBuildVC) {
@@ -198,8 +199,18 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         if (weShouldBuildVCSqrt) {
             updateExpectedValueCalculationForChr(chrIdx, nc, vcSqrt, NormalizationHandler.VC_SQRT, zoom, zd, evVCSqrt, normVectorBuffers, normVectorIndices);
         }
-        printNormTiming("VC and VC_SQRT", chr, zoom, currentTime);
-    }
+	}
+
+
+	protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+															   ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+		double factor = nc.getSumFactor(vec);
+		vec.multiplyEverythingBy(factor);
+
+		updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
+
+		ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
+	}
 
     protected void buildKR(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evKR) throws IOException {
         Set<Chromosome> failureSetKR = zoom.getUnit() == HiC.Unit.FRAG ? krFragFailedChromosomes : krBPFailedChromosomes;
@@ -207,7 +218,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         long currentTime = System.currentTimeMillis();
         if (!failureSetKR.contains(chr)) {
-            double[] kr = nc.computeKR();
+            ListOfDoubleArrays kr = nc.computeKR();
             if (kr == null) {
                 failureSetKR.add(chr);
                 printNormTiming("FAILED KR", chr, zoom, currentTime);
@@ -218,26 +229,13 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         }
     }
 
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                             ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        double factor = nc.getSumFactor(vec);
-        for (int i = 0; i < vec.length; i++) {
-            vec[i] = vec[i] * factor;
-        }
-
-        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
-
-        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
-    }
-
-
     protected void buildScale(Chromosome chr, NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evSCALE) throws IOException {
         Set<Chromosome> failureSetMMBA = zoom.getUnit() == HiC.Unit.FRAG ? mmbaFragFailedChromosomes : mmbaBPFailedChromosomes;
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
 
         if (!failureSetMMBA.contains(chr)) {
-            double[] mmba = nc.computeMMBA();
+			ListOfDoubleArrays mmba = nc.computeMMBA();
 
             if (mmba == null) {
                 failureSetMMBA.add(chr);

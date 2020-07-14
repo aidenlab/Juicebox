@@ -26,15 +26,15 @@ package juicebox.tools.clt;
 
 
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
@@ -110,6 +110,7 @@ class UnitTests {
                 filteredConfigurations, norm, outputDirectory, false, outputMergedFile);
     }
 
+    /*
     public static void testCustomFastScaling() {
         ArrayList<String> files = new ArrayList<>();
         files.add("/Users/muhammad/Desktop/local_hic_files/gm12878_intra_nofrag_30.hic");
@@ -117,7 +118,8 @@ class UnitTests {
         Chromosome chr1 = ds.getChromosomeHandler().getAutosomalChromosomesArray()[0];
         MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr1, 50000);
 
-        double[] targetVectorInitial = new double[(chr1.getLength() / 50000) + 1];
+        int numEntries = (int)(chr1.getLength() / 50000) + 1; // assume for this test
+        double[] targetVectorInitial = new double[numEntries];
         Arrays.fill(targetVectorInitial, 1);
 
         HiCGlobals.printVerboseComments = true;
@@ -375,6 +377,7 @@ class UnitTests {
 
          HiCTools.main(ajkhsd);
          *
+     
+         }
          */
-    }
 }

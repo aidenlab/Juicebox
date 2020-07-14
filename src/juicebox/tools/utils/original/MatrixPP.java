@@ -25,7 +25,7 @@
 package juicebox.tools.utils.original;
 
 import juicebox.data.ChromosomeHandler;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,18 +64,20 @@ public class MatrixPP {
 
         int zoom = 0; //
         for (int idx = 0; idx < bpBinSizes.length; idx++) {
-            int binSize = bpBinSizes[zoom];
-            Chromosome chrom1 = chromosomeHandler.getChromosomeFromIndex(chr1Idx);
-            Chromosome chrom2 = chromosomeHandler.getChromosomeFromIndex(chr2Idx);
-
-            // Size block (submatrices) to be ~500 bins wide.
-            int len = Math.max(chrom1.getLength(), chrom2.getLength());
-            int nBins = len / binSize + 1;   // Size of chrom in bins
-            int nColumns = getNumColumnsFromNumBins(nBins);
-            zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold);
-            zoom++;
-
-        }
+			int binSize = bpBinSizes[zoom];
+			Chromosome chrom1 = chromosomeHandler.getChromosomeFromIndex(chr1Idx);
+			Chromosome chrom2 = chromosomeHandler.getChromosomeFromIndex(chr2Idx);
+	
+			// Size block (submatrices) to be ~500 bins wide.
+	
+			long len = Math.max(chrom1.getLength(), chrom2.getLength());
+			// for now, this will not be a long
+			int nBins = (int) (len / binSize + 1);   // Size of chrom in bins
+			int nColumns = getNumColumnsFromNumBins(nBins);
+			zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold);
+			zoom++;
+	
+		}
 
         if (fragmentCalculation != null) {
             Chromosome chrom1 = chromosomeHandler.getChromosomeFromIndex(chr1Idx);

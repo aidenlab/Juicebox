@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
@@ -289,12 +289,18 @@ public class HiCTrackManager {
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                ArrayList<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
+                List<Chromosome> chrList = new ArrayList<>(Arrays.asList(hic.getDataset().getChromosomeHandler().getChromosomeArray()));
                 Chromosome chrMT = hic.getDataset().getChromosomeHandler().getChromosomeFromName("MT");
                 if (chrMT != null) {
                     chrList.add(new Chromosome(chrMT.getIndex(), "chrM", chrMT.getLength()));
                 }
-                genome = new Genome(hic.getDataset().getGenomeId(), chrList);
+
+                List<org.broad.igv.feature.Chromosome> igvChrList = new ArrayList<>();
+                for (Chromosome chrom : chrList) {
+                    igvChrList.add(chrom.toIGVChromosome());
+                }
+
+                genome = new Genome(hic.getDataset().getGenomeId(), igvChrList);
 
             }
         }

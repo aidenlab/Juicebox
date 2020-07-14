@@ -27,12 +27,13 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.*;
@@ -117,7 +118,10 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                         NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                         if (existingNorm != null) {
                             int position = normVectorBuffer.bytesWritten();
-                            putArrayValuesIntoBuffer(normVectorBuffer, existingNorm.getData());
+                            // todo @suhas
+                            for (double[] array : existingNorm.getData().getValues()) {
+                                putArrayValuesIntoBuffer(normVectorBuffer, array);
+                            }
                             int sizeInBytes = normVectorBuffer.bytesWritten() - position;
                             normVectorIndices.add(new NormalizationVectorIndexEntry(
                                     type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
@@ -202,12 +206,15 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             if (vector == null || vector.getData() == null) return;
             // Write custom norm
             int position = normVectorBuffer.bytesWritten();
-            putArrayValuesIntoBuffer(normVectorBuffer, vector.getData());
-
+            // todo @suhas
+            for (double[] array : vector.getData().getValues()) {
+                putArrayValuesIntoBuffer(normVectorBuffer, array);
+            }
+    
             int sizeInBytes = normVectorBuffer.bytesWritten() - position;
             normVectorIndex.add(new NormalizationVectorIndexEntry(
                     customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
-
+    
             evLoaded.addDistancesFromIterator(chrIndx, zd.getContactRecordList(), vector.getData());
         }
     }
@@ -255,18 +262,21 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     if (HiCGlobals.printVerboseComments) {
                         System.out.println("Adding norm " + customNormType + " for chr " + chr.getName() + " at " + resolution + " " + unit + " resolution.");
                     }
-
+    
                     // Now do work on loaded norm vector
                     // Create the new vector by looping through the loaded vector file line by line
-                    int size = chr.getLength() / resolution + 1;
-                    double[] data = new double[size];
+                    // assume custom norm vectors aren't for indices requiring long
+                    long size = (chr.getLength() / resolution + 1);
+                    ListOfDoubleArrays data = new ListOfDoubleArrays(size);
                     int i = 0;
                     nextLine = vectorReader.readLine();
                     // List<Double> data = new ArrayList<Double>();
                     while (nextLine != null && !(nextLine.startsWith("vector"))) {
                         if (nextLine.toLowerCase().equals("nan") || nextLine.equals(".")) {
-                            data[i] = Double.NaN;
-                        } else data[i] = Double.parseDouble(nextLine);
+                            data.set(i, Double.NaN);
+                        } else {
+                            data.set(i, Double.parseDouble(nextLine));
+                        }
                         i++;
                         if (i > size) {
                             throw new IOException("More values than resolution would indicate");

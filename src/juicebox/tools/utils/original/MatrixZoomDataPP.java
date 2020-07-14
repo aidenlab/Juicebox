@@ -27,8 +27,8 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.Chromosome;
 import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
@@ -83,9 +83,9 @@ public class MatrixZoomDataPP {
 
         // Get length in proper units
         Chromosome longChr = chr1.getLength() > chr2.getLength() ? chr1 : chr2;
-        int len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
-
-        int nBinsX = len / binSize + 1;
+        long len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
+    
+        int nBinsX = (int) (len / binSize + 1);
 
         blockBinCount = nBinsX / blockColumnCount + 1;
         blocks = new LinkedHashMap<>(blockColumnCount * blockColumnCount);
