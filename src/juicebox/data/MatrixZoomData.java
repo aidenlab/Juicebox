@@ -219,7 +219,7 @@ public class MatrixZoomData {
         
         final List<Block> blockList = Collections.synchronizedList(new ArrayList<>());
         if (reader.getVersion() > 8) {
-            return addNormalizedBlocksToListV9(blockList, (int) binX1, (int) binY1, (int) binX2, (int) binY2, no, fillUnderDiagonal);
+            return addNormalizedBlocksToListV9(blockList, (int) binX1, (int) binY1, (int) binX2, (int) binY2, no);
         } else {
             if (HiCGlobals.isAssemblyMatCheck) {
                 return addNormalizedBlocksToList(blockList, (int) binX1, (int) binY1, (int) binX2, (int) binY2, no, 1, 1);
@@ -231,16 +231,12 @@ public class MatrixZoomData {
         }
     }
     
-    public int getBlockNumberVersion9(int binI, int binJ, int numberOfBinsInThisIntraMatrixAtResolution, int blockSize) {
-        int numberOfBlocksOnDiagonal = numberOfBinsInThisIntraMatrixAtResolution / blockSize + 1;
-        int depth = log2(1 + Math.abs(binI - binJ) / Math.sqrt(2) / blockSize);
-        int positionAlongDiagonal = ((binI + binJ) / 2 / blockSize);
-        return depth * numberOfBlocksOnDiagonal + positionAlongDiagonal;
+    public int getBlockNumberVersion9FromPADAndDepth(int positionAlongDiagonal, int depth) {
+        return depth * blockColumnCount + positionAlongDiagonal;
     }
     
-    private void populateBlocksToLoadV9(int binI, int binJ, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
-        int blockNumber = binI * getBlockColumnCount() + binJ;
-        getBlockColumnCount();
+    private void populateBlocksToLoadV9(int positionAlongDiagonal, int depth, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
+        int blockNumber = getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
         String key = getBlockKey(blockNumber, no);
         Block b;
         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
@@ -251,28 +247,35 @@ public class MatrixZoomData {
         }
     }
     
+    // for reference
+    public int getBlockNumberVersion9(int binI, int binJ) {
+        //int numberOfBlocksOnDiagonal = numberOfBinsInThisIntraMatrixAtResolution / blockSizeInBinCount + 1;
+        // assuming number of blocks on diagonal is blockClolumnSize
+        int depth = log2(1 + Math.abs(binI - binJ) / Math.sqrt(2) / blockBinCount);
+        int positionAlongDiagonal = ((binI + binJ) / 2 / blockBinCount);
+        return getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
+    }
+    
     private List<Block> addNormalizedBlocksToListV9(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                    final NormalizationType norm, boolean getBelowDiagonal) {
+                                                    final NormalizationType norm) {
         
         Set<Integer> blocksToLoad = new HashSet<>();
         
-        // have to do this regardless (just in case)
-        int col1 = binX1 / blockBinCount;
-        int row1 = binY1 / blockBinCount;
-        int col2 = binX2 / blockBinCount;
-        int row2 = binY2 / blockBinCount;
+        // PAD = positionAlongDiagonal (~projected)
+        // Depth is axis perpendicular to diagonal; nearer means closer to diagonal
+        int translatedLowerPAD = (binX1 + binY1) / 2 / blockBinCount;
+        int translatedHigherPAD = (binX2 + binY2) / 2 / blockBinCount + 1;
+        int translatedNearerDepth = log2(1 + Math.abs(binX1 - binY2) / Math.sqrt(2) / blockBinCount);
+        int translatedFurtherDepth = log2(1 + Math.abs(binX2 - binY1) / Math.sqrt(2) / blockBinCount);
         
-        for (int r = row1; r <= row2; r++) {
-            for (int c = col1; c <= col2; c++) {
-                populateBlocksToLoad(r, c, norm, blockList, blocksToLoad);
-            }
-        }
+        // because code above assume above diagonal; but we could be below diagonal
+        int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
+        int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
         
-        if (getBelowDiagonal && binY1 < binX2) {
-            for (int r = row1; r <= row2; r++) {
-                for (int c = col1; c <= col2; c++) {
-                    populateBlocksToLoad(c, r, norm, blockList, blocksToLoad);
-                }
+        
+        for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
+            for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {
+                populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
             }
         }
         
