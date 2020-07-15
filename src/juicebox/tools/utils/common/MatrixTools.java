@@ -162,13 +162,13 @@ public class MatrixTools {
     public static double[] flattenedRowMajorOrderMatrix(double[][] matrix) {
         int m = matrix.length;
         int n = matrix[0].length;
-
+    
         int numElements = m * n;
         double[] flattenedMatrix = new double[numElements];
-
+    
         int index = 0;
-        for (int i = 0; i < m; i++) {
-            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
+        for (double[] doubles : matrix) {
+            System.arraycopy(doubles, 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
@@ -177,13 +177,13 @@ public class MatrixTools {
     public static float[] flattenedRowMajorOrderMatrix(float[][] matrix) {
         int m = matrix.length;
         int n = matrix[0].length;
-
+    
         int numElements = m * n;
         float[] flattenedMatrix = new float[numElements];
-
+    
         int index = 0;
-        for (int i = 0; i < m; i++) {
-            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
+        for (float[] floats : matrix) {
+            System.arraycopy(floats, 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
@@ -192,13 +192,13 @@ public class MatrixTools {
     public static int[] flattenedRowMajorOrderMatrix(int[][] matrix) {
         int m = matrix.length;
         int n = matrix[0].length;
-
+    
         int numElements = m * n;
         int[] flattenedMatrix = new int[numElements];
-
+    
         int index = 0;
-        for (int i = 0; i < m; i++) {
-            System.arraycopy(matrix[i], 0, flattenedMatrix, index, n);
+        for (int[] ints : matrix) {
+            System.arraycopy(ints, 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
@@ -624,9 +624,9 @@ public class MatrixTools {
 
     public static float[] getAbsValColSums(float[][] matrix) {
         float[] colSum = new float[matrix[0].length];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                colSum[j] += Math.abs(matrix[i][j]);
+        for (float[] floats : matrix) {
+            for (int j = 0; j < floats.length; j++) {
+                colSum[j] += Math.abs(floats[j]);
             }
         }
         return colSum;
@@ -634,9 +634,9 @@ public class MatrixTools {
 
     public static int[] getAbsValColSums(int[][] matrix) {
         int[] colSum = new int[matrix[0].length];
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                colSum[j] += Math.abs(matrix[i][j]);
+        for (int[] ints : matrix) {
+            for (int j = 0; j < ints.length; j++) {
+                colSum[j] += Math.abs(ints[j]);
             }
         }
         return colSum;

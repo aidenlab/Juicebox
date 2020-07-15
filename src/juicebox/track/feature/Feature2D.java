@@ -232,7 +232,7 @@ public class Feature2D implements Comparable<Feature2D> {
             // organize attributes into categories. +1 is for the leftover category if no keywords present
             ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<>();
             for (int i = 0; i < categories.length + 1; i++) {
-                sortedFeatureAttributes.add(new ArrayList<Map.Entry<String, String>>());
+                sortedFeatureAttributes.add(new ArrayList<>());
             }
 
             // sorting the entries, also filtering out f1-f5 flags
@@ -262,7 +262,7 @@ public class Feature2D implements Comparable<Feature2D> {
                         return o1.getKey().compareToIgnoreCase(o2.getKey());
                     }
                 };
-                Collections.sort(attributeCategory, cmp);
+				attributeCategory.sort(cmp);
                 for (Map.Entry<String, String> entry : attributeCategory) {
                     String tmpKey = entry.getKey();
                     txt.append("<br>");

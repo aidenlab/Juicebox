@@ -96,6 +96,8 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         }
         if (xChrom != null && yChrom != null) {
             heatmapPanel.unsafeSetSelectedChromosomes(xChrom, yChrom);
+        } else {
+            System.err.println("null chromosome " + xChrom + " - " + yChrom);
         }
 
         //Only if zoom is changed All->Chr:

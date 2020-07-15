@@ -24,7 +24,10 @@
 
 package juicebox.tools.utils.original;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 class BlockQueueMem implements BlockQueue {
 
@@ -34,7 +37,7 @@ class BlockQueueMem implements BlockQueue {
     BlockQueueMem(Collection<BlockPP> blockCollection) {
 
         this.blocks = new ArrayList<>(blockCollection);
-        Collections.sort(blocks, new Comparator<BlockPP>() {
+        blocks.sort(new Comparator<BlockPP>() {
             @Override
             public int compare(BlockPP o1, BlockPP o2) {
                 return o1.getNumber() - o2.getNumber();

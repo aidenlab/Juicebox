@@ -239,7 +239,7 @@ public class HiC {
     }
 
     public List<HiCTrack> getLoadedTracks() {
-        return trackManager == null ? new ArrayList<HiCTrack>() : trackManager.getLoadedTracks();
+        return trackManager == null ? new ArrayList<>() : trackManager.getLoadedTracks();
     }
 
     public void unsafeLoadHostedTracks(List<ResourceLocator> locators) {
@@ -944,7 +944,7 @@ public class HiC {
 
     public int validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
-            return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
+            return Integer.parseInt(String.valueOf(binSizeDictionary.get(key)));
         } else {
             return Integer.MIN_VALUE;
         }

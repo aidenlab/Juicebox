@@ -649,12 +649,12 @@ public class Dataset {
             String value = statsMap.get("Five prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Three prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
         } else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
@@ -667,22 +667,22 @@ public class Dataset {
             String value = statsMap.get("Left");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Inner");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Outer");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num3 = Math.round(Float.valueOf(value));
+            int num3 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Right");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num4 = Math.round(Float.valueOf(value));
+            int num4 = Math.round(Float.parseFloat(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
         } else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
             newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
@@ -790,7 +790,7 @@ public class Dataset {
     public List<HiCZoom> getBpZooms() {
         List<HiCZoom> zooms = new ArrayList<>(bpZooms);
         zooms.addAll(dynamicZooms);
-        Collections.sort(zooms, Collections.reverseOrder());
+        zooms.sort(Collections.reverseOrder());
         return zooms;
     }
 
@@ -831,12 +831,12 @@ public class Dataset {
     public void setFragmentCounts(Map<String, Integer> map) {
         fragmentCounts = map;
     }
-
+    
     /**
      * Return the "next" zoom level, relative to the current one, in the direction indicated
      *
-     * @param zoom - current zoom level
-     * @param b    -- direction, true == increasing resolution, false decreasing
+     * @param zoom               - current zoom level
+     * @param useIncreasingOrder -- direction, true == increasing resolution, false decreasing
      * @return Next zoom level
      */
 

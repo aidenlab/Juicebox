@@ -64,39 +64,23 @@ public class ListOfDoubleArrays {
 	
 	public double get(long index) {
 		if (index < overallLength) {
-			long tempIndex = index;
-			for (int lIndex = 0; lIndex < internalList.size(); lIndex++) {
-				if (tempIndex < internalList.get(lIndex).length) {
-					return internalList.get(lIndex)[(int) tempIndex];
-				} else {
-					tempIndex -= internalList.get(lIndex).length;
-				}
-			}
+			int pseudoRow = (int) (index / DEFAULT_LENGTH);
+			int pseudoCol = (int) (index % DEFAULT_LENGTH);
+			return internalList.get(pseudoRow)[pseudoCol];
 		} else {
 			System.err.println("long index exceeds max size of list of arrays while getting");
 			return Double.NaN;
 		}
-		System.err.println("unusual - long index exceeds max size of list of arrays while getting");
-		return Double.NaN;
 	}
 	
 	public void set(long index, double value) {
-		long tempIndex = index;
 		if (index < overallLength) {
-			for (int lIndex = 0; lIndex < internalList.size(); lIndex++) {
-				if (tempIndex < internalList.get(lIndex).length) {
-					internalList.get(lIndex)[(int) tempIndex] = value;
-					return;
-				} else {
-					tempIndex -= internalList.get(lIndex).length;
-				}
-			}
+			int pseudoRow = (int) (index / DEFAULT_LENGTH);
+			int pseudoCol = (int) (index % DEFAULT_LENGTH);
+			internalList.get(pseudoRow)[pseudoCol] = value;
 		} else {
 			System.err.println("long index exceeds max size of list of arrays while setting");
-			return;
 		}
-		System.err.println("unusual - long index exceeds max size of list of arrays while setting");
-		return;
 	}
 	
 	public long getLength() {
@@ -113,21 +97,13 @@ public class ListOfDoubleArrays {
 	
 	public void divideBy(long index, double value) {
 		if (index < overallLength) {
-			long tempIndex = index;
-			for (int lIndex = 0; lIndex < internalList.size(); lIndex++) {
-				if (tempIndex < internalList.get(lIndex).length) {
-					internalList.get(lIndex)[(int) tempIndex] /= value;
-					return;
-				} else {
-					tempIndex -= internalList.get(lIndex).length;
-				}
-			}
+			int pseudoRow = (int) (index / DEFAULT_LENGTH);
+			int pseudoCol = (int) (index % DEFAULT_LENGTH);
+			internalList.get(pseudoRow)[pseudoCol] /= value;
 		} else {
 			System.err.println("long index exceeds max size of list of arrays while dividing");
 			return;
 		}
-		System.err.println("unusual - long index exceeds max size of list of arrays while dividing");
-		return;
 	}
 	
 	public void multiplyBy(long index, double value) {

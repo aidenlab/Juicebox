@@ -307,7 +307,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private int cleanUpNumber(String number) {
-        return (int) (Long.valueOf(number.toLowerCase()
+        return (int) (Long.parseLong(number.toLowerCase()
                 .replaceAll(",", "")
                 .replaceAll("m", "000000")
                 .replaceAll("k", "000")) / HiCGlobals.hicMapScale);

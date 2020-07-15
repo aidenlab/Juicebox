@@ -106,7 +106,7 @@ public class BlockBuster {
                 // merge/bin domains in very close proximity
                 List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5 * resolution);
                 binnedScores = binScoresByDistance(binnedScores, 10 * resolution);
-                Collections.sort(binnedScores, Collections.reverseOrder());
+                binnedScores.sort(Collections.reverseOrder());
 
                 // convert to Feature2DList format
                 Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);

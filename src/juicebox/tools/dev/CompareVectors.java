@@ -104,7 +104,7 @@ public class CompareVectors extends JuiceboxCLT {
         if (nv == null) {
             System.err.println(normalizationType + " not available for " + chromosome.getName());
         } else {
-            System.arraycopy(nv.getData(), 0, array[rowIdx], 0, array[rowIdx].length);
+            System.arraycopy(nv.getData().getValues().get(0), 0, array[rowIdx], 0, array[rowIdx].length);
         }
     }
 }

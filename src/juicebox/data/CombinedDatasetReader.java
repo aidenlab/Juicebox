@@ -145,7 +145,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<>());
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb = r.readNormalizedBlock(blockNumber, zd, no);
@@ -240,7 +240,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
 //            dataset.bpZooms.retainAll(ds.getBpZooms());
         }
-        Collections.sort(dataset.bpZooms, Collections.reverseOrder());
+        dataset.bpZooms.sort(Collections.reverseOrder());
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
             for (Dataset ds : datasetList) {

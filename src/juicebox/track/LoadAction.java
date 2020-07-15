@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
-import juicebox.windowui.NormalizationType;
 import org.apache.commons.io.FilenameUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
@@ -236,7 +235,7 @@ public class LoadAction extends AbstractAction {
     private ArrayList<String> getAvaliableXmlResourses() throws Exception {
 
         String resourses_path = "juicebox/track";
-        ArrayList<String> resourses = new ArrayList<String>();
+        ArrayList<String> resourses = new ArrayList<>();
         File jarFile = new File(LoadAction.class.getProtectionDomain().getCodeSource()
                 .getLocation().getPath());
         if(jarFile.isFile()) {  // Run with JAR file

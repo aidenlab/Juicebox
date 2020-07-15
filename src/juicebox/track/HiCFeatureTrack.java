@@ -41,8 +41,10 @@ import org.broad.igv.util.ResourceLocator;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-import java.util.*;
 
 /**
  * @author jrobinso
@@ -262,7 +264,7 @@ public class HiCFeatureTrack extends HiCTrack {
         List<Feature> featuresAtMouse = FeatureUtils.getAllFeaturesAt(middle, maxFeatureLength, buffer, allFeatures);
         // Return the most specific (smallest);
         if (featuresAtMouse != null && featuresAtMouse.size() > 0) {
-            Collections.sort(featuresAtMouse, new Comparator<Feature>() {
+            featuresAtMouse.sort(new Comparator<Feature>() {
                 @Override
                 public int compare(Feature feature, Feature feature1) {
                     return ((feature.getEnd() - feature.getStart()) - (feature1.getEnd() - feature1.getStart()));

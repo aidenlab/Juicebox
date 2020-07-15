@@ -31,7 +31,6 @@ import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.track.feature.Feature2DList;
-import org.broad.igv.Globals;
 import org.broad.igv.util.Pair;
 
 import java.io.File;
@@ -43,6 +42,7 @@ import java.util.*;
 public class ChromosomeHandler {
     private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
     public final static int CUSTOM_CHROMOSOME_BUFFER = 10; // todo make to smallest value of resolution
+    private static final String CHR_ALL = "All";
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
     private final List<Chromosome> cleanedChromosomes;
@@ -74,7 +74,7 @@ public class ChromosomeHandler {
         // set the global chromosome list
         if (createAllChr) {
             long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
-            chromosomes.set(0, new Chromosome(0, cleanUpName(Globals.CHR_ALL), (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, cleanUpName(CHR_ALL), (int) (genomeLength / 1000)));
         }
 
         cleanedChromosomes = initializeCleanedChromosomesList(chromosomes);
@@ -86,11 +86,11 @@ public class ChromosomeHandler {
     }
 
     public static boolean isAllByAll(String name) {
-        return name.contains("All") || name.contains("ALL") || name.contains("all");
+        return name.toLowerCase().contains("all");
     }
 
     public static void sort(List<Chromosome> indices) {
-        Collections.sort(indices, new ChromosomeComparator());
+        indices.sort(new ChromosomeComparator());
     }
 
     /**
@@ -331,7 +331,7 @@ public class ChromosomeHandler {
 
         List<Chromosome> newSetOfChrs = new ArrayList<>();
         long genomeLength = getTotalLengthOfAllChromosomes(cleanedChromosomes);
-        newSetOfChrs.add(new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        newSetOfChrs.add(new Chromosome(0, CHR_ALL, (int) (genomeLength / 1000)));
         for (Chromosome chromosome : cleanedChromosomes) {
             if (!isAllByAll(chromosome) && intersection.contains(chromosome)) {
                 newSetOfChrs.add(chromosome);

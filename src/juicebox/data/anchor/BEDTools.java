@@ -133,16 +133,16 @@ class BEDTools {
      * @return intersection of anchor1 and anchor2
      */
     private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr() == anchor2.getChr()) {
-	
-			long start = Math.max(anchor1.getX1(), anchor2.getX1());
-			long end = Math.min(anchor1.getX2(), anchor2.getX2());
-	
-			if (start > end) {
-				System.err.println("err _ " + start + " " + end);
-			}
-	
-			MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
+        if (anchor1.getChr().equals(anchor2.getChr())) {
+    
+            long start = Math.max(anchor1.getX1(), anchor2.getX1());
+            long end = Math.min(anchor1.getX2(), anchor2.getX2());
+    
+            if (start > end) {
+                System.err.println("err _ " + start + " " + end);
+            }
+    
+            MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
 	
 			// if all secondary attributes are also to be copied
 			if (conductFullIntersection) {
@@ -228,16 +228,16 @@ class BEDTools {
      * @return preservative intersection of anchor1 and anchor2
      */
     private static MotifAnchor preservativeIntersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr() == anchor2.getChr()) {
-
+        if (anchor1.getChr().equals(anchor2.getChr())) {
+        
             MotifAnchor intersectedMotif = (MotifAnchor) anchor1.deepClone();
-
+        
             // if all secondary attributes are also to be copied
             if (conductFullIntersection) {
                 if (anchor2.hasFIMOAttributes()) {
                     intersectedMotif.addFIMOAttributesFrom(anchor2);
                 }
-
+            
                 intersectedMotif.addFeatureReferencesFrom(anchor2);
             }
 
