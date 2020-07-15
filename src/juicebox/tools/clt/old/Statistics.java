@@ -122,6 +122,7 @@ public class Statistics extends JuiceboxCLT {
             for (int i = 0; i < localHandler.size(); i++) {
                 chromosomeIndexes.put(localHandler.getChromosomeFromIndex(i).getName(), i);
             }
+
             //iterate through input file
             AsciiPairIterator files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
             while (files.hasNext()) {
@@ -144,7 +145,7 @@ public class Statistics extends JuiceboxCLT {
                 seq2 = pair.getSeq2();
                 //don't count as Hi-C contact if fails mapq or intra fragment test
                 boolean countMe = true;
-
+                //if(null||null) {do nothing}
                 if ((chr1==chr2) && (frag1==frag2)){
                     intraFragment++;
                     countMe = false;
@@ -164,7 +165,7 @@ public class Statistics extends JuiceboxCLT {
                     int histDist = bSearch(posDist);
                     boolean isDangling = false;
                     //one part of read pair has unligated end
-                    if ((seq1!=null&&seq2!=null) && (seq1.contains(ligationJunction) || seq2.contains(ligationJunction))) {
+                    if ((seq1!=null&&seq2!=null) && (seq1.startsWith(danglingJunction) || seq2.startsWith(danglingJunction))) {
                         dangling++;
                         isDangling = true;
                     }
@@ -271,7 +272,7 @@ public class Statistics extends JuiceboxCLT {
                     }
                     if (isDangling) {
                         int dist;
-                        if (seq1.contains(danglingJunction)) {
+                        if (seq1.startsWith(danglingJunction)) {
                             dist = distHindIII(str1,chr1,pos1,frag1,true);
                         }
                         else {
@@ -501,14 +502,18 @@ public class Statistics extends JuiceboxCLT {
         //get distance to each end of HindIII fragment
         int dist1;
         int dist2;
+        int arr = chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName()).length;
+        if(frag>=arr){
+            return 0;
+        }
         if (frag ==0){
             //# first fragment, distance is position
             dist1 = pos;
         }
         else{
-            dist1 = Math.abs(pos - chromosomes.getSites(Integer.toString(chr))[frag-1]);}
+            dist1 = Math.abs(pos - chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag-1]);}
 
-        dist2 = Math.abs(pos - chromosomes.getSites(Integer.toString(chr))[frag]);
+        dist2 = Math.abs(pos - chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag]);
         //get minimum value -- if (dist1 <= dist2), it's dist1, else dist2
         int retVal = Math.min(dist1,dist2);
         //get which end of the fragment this is, 3' or 5' (depends on strand)

@@ -29,6 +29,7 @@ public class AlignmentPairLong extends AlignmentPair {
     private final String seq1;
     private final String seq2;
 
+
     public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
                              boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2){
         super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
