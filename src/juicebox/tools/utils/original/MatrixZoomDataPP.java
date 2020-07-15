@@ -277,7 +277,7 @@ public class MatrixZoomDataPP {
         }
 
         do {
-            Collections.sort(activeList, new Comparator<BlockQueue>() {
+            activeList.sort(new Comparator<BlockQueue>() {
                 @Override
                 public int compare(BlockQueue o1, BlockQueue o2) {
                     return o1.getBlock().getNumber() - o2.getBlock().getNumber();
@@ -413,7 +413,7 @@ public class MatrixZoomDataPP {
 
         // Sort keys in row-major order
         List<Point> keys = new ArrayList<>(records.keySet());
-        Collections.sort(keys, new Comparator<Point>() {
+        keys.sort(new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
                 if (o1.y != o2.y) {

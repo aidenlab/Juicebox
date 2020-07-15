@@ -343,7 +343,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;
@@ -456,7 +456,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;

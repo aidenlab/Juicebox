@@ -91,24 +91,30 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             version = dis.readInt();
             position += 4;
-
+    
             if (HiCGlobals.guiIsCurrentlyActive) {
                 System.out.println("HiC file version: " + version);
             }
             masterIndexPos = dis.readLong();
-
+    
             position += 8;
-
+    
             // will set genomeId below
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
-
+    
+            if (version > 8) {
+                // read NVI todo
+                dis.readLong();
+                dis.readLong();
+            }
+    
             Map<String, String> attributes = new HashMap<>();
             // Attributes  (key-value pairs)
             if (version > 4) {
                 int nAttributes = dis.readInt();
                 position += 4;
-
+        
                 for (int i = 0; i < nAttributes; i++) {
                     String key = dis.readString();
                     position += key.length() + 1;
@@ -133,10 +139,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             for (int i = 0; i < nchrs; i++) {
                 String name = dis.readString();
                 position += name.length() + 1;
-
-                int size = dis.readInt();
-                position += 4;
-
+    
+                long size;
+                if (version > 8) {
+                    size = dis.readLong();
+                    position += 8;
+                } else {
+                    size = dis.readInt();
+                    position += 4;
+                }
+    
                 chromosomes.add(new Chromosome(i, name, size));
             }
             boolean createWholeChr = false;

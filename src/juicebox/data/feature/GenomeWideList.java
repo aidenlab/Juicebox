@@ -57,7 +57,7 @@ public class GenomeWideList<T extends Feature> {
      */
     public GenomeWideList(ChromosomeHandler handler) {
         for (Chromosome c : handler.getChromosomeArray()) {
-            featureLists.put("" + c.getIndex(), new ArrayList<T>());
+            featureLists.put("" + c.getIndex(), new ArrayList<>());
         }
     }
 

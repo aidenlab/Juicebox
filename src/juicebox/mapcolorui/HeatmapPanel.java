@@ -2621,9 +2621,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         int scroll = 0;
   
-        if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
           double precScroll = e.getPreciseWheelRotation();
-    
+  
           if (precScroll >= 0) {
             scroll = (int) Math.ceil(precScroll);
           } else {

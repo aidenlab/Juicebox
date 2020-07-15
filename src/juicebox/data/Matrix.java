@@ -147,11 +147,11 @@ public class Matrix {
             } else {
                 fragZoomData.add(zd);
             }
-
+    
             // Zooms should be sorted, but in case they are not...
-
-            Collections.sort(bpZoomData, comparator);
-            Collections.sort(fragZoomData, comparator);
+    
+            bpZoomData.sort(comparator);
+            fragZoomData.sort(comparator);
         }
 
         for (Pair<Integer, Integer> resPair : dynamicZoomResolutions) {
@@ -161,7 +161,7 @@ public class Matrix {
                 System.err.println("Dynamic resolution could not be made");
             }
         }
-        Collections.sort(dynamicBPZoomData, comparator);
+        dynamicBPZoomData.sort(comparator);
 
     }
 
@@ -285,7 +285,6 @@ public class Matrix {
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
-        if (HiCGlobals.printVerboseComments) System.out.println("c1 " + chr1 + " c2 " + chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);

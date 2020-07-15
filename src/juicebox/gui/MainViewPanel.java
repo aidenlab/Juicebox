@@ -666,8 +666,9 @@ public class MainViewPanel {
             //           hic.getMatrix().getZoomData(initialZoom);
             MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
             MatrixZoomData zdControl = null;
-            if (hic.getControlMatrix() != null)
+            if (hic.getControlMatrix() != null) {
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
+            }
             try {
                 Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
                         thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),

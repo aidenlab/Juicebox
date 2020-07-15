@@ -124,15 +124,15 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 	
 	private List<Block> addNormalizedBlocksToListByGenomeCoordinates(long gx1, long gy1, long gx2, long gy2,
 																	 final NormalizationType no) {
-		List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
-		Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new ConcurrentHashMap<>();
-		// remember these are pseudo genome coordinates
-		
-		// x window
-		//net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-		List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
-		
-		// y window
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<>());
+        Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new ConcurrentHashMap<>();
+        // remember these are pseudo genome coordinates
+        
+        // x window
+        //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
+        List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
+        
+        // y window
         //currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
         List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1, gy2);
 
@@ -161,11 +161,11 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
                         synchronized (blocksNumsToLoadForZd) {
                             if (!blocksNumsToLoadForZd.containsKey(zd)) {
-                                blocksNumsToLoadForZd.put(zd, new HashMap<RegionPair, List<Integer>>());
+                                blocksNumsToLoadForZd.put(zd, new HashMap<>());
                             }
 
                             if (!blocksNumsToLoadForZd.get(zd).containsKey(rp)) {
-                                blocksNumsToLoadForZd.get(zd).put(rp, new ArrayList<Integer>());
+                                blocksNumsToLoadForZd.get(zd).put(rp, new ArrayList<>());
                             }
                         }
 	
@@ -250,10 +250,10 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                                 if (HiCGlobals.useCache) {
                                     synchronized (allBlockCaches) {
                                         if (!allBlockCaches.containsKey(zd)) {
-                                            allBlockCaches.put(zd, new HashMap<RegionPair, LRUCache<String, Block>>());
+                                            allBlockCaches.put(zd, new HashMap<>());
                                         }
                                         if (!allBlockCaches.get(zd).containsKey(rp)) {
-                                            allBlockCaches.get(zd).put(rp, new LRUCache<String, Block>(50));
+                                            allBlockCaches.get(zd).put(rp, new LRUCache<>(50));
                                         }
                                         allBlockCaches.get(zd).get(rp).put(key, b);
                                     }

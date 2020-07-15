@@ -26,7 +26,7 @@ package juicebox.data.basics;
 import java.util.Objects;
 
 public class Chromosome {
-    private String name;
+    private final String name;
     private int index;
     private long length = 0;
     
@@ -57,7 +57,7 @@ public class Chromosome {
     }
 
     public boolean equals(Object obj) {
-        return obj instanceof org.broad.igv.feature.Chromosome && ((org.broad.igv.feature.Chromosome) obj).getIndex() == this.getIndex() && ((org.broad.igv.feature.Chromosome) obj).getLength() == this.getLength();
+        return obj instanceof Chromosome && ((Chromosome) obj).getIndex() == this.getIndex() && ((Chromosome) obj).getLength() == this.getLength();
     }
 
     public int hashCode() {

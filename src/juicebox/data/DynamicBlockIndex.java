@@ -127,7 +127,7 @@ public class DynamicBlockIndex extends BlockIndex {
         }
         // Midpoint in units of 16 byte chunks
         int nEntries = (int) ((boundsMax - boundsMin) / 16);
-        long positionToSeek = boundsMin + (long) Math.floor(nEntries / 2) * 16;
+        long positionToSeek = boundsMin + (long) Math.floor(nEntries / 2f) * 16;
 
         int blockNumberFound, blockSizeInBytes;
         long filePosition;
