@@ -66,6 +66,7 @@ public class MatrixZoomData {
 
     final Chromosome chr1;  // Chromosome on the X axis
     final Chromosome chr2;  // Chromosome on the Y axis
+    private final boolean isIntra;
     final HiCZoom zoom;    // Unit and bin size
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
@@ -99,6 +100,7 @@ public class MatrixZoomData {
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.zoom = zoom;
+        this.isIntra = chr1.getIndex() == chr2.getIndex();
         this.reader = reader;
         this.blockBinCount = blockBinCount;
         this.blockColumnCount = blockColumnCount;
@@ -218,7 +220,7 @@ public class MatrixZoomData {
                                                       boolean isImportant, boolean fillUnderDiagonal) {
         
         final List<Block> blockList = Collections.synchronizedList(new ArrayList<>());
-        if (reader.getVersion() > 8) {
+        if (reader.getVersion() > 8 && isIntra) {
             return addNormalizedBlocksToListV9(blockList, (int) binX1, (int) binY1, (int) binX2, (int) binY2, no);
         } else {
             if (HiCGlobals.isAssemblyMatCheck) {
