@@ -479,7 +479,6 @@ public class Preprocessor {
         if (stats != null) nAttributes += 1;
         if (graphs != null) nAttributes += 1;
         if (hicFileScaling != null) nAttributes += 1;
-        nAttributes += 2; // NVI info
     
         los.writeInt(nAttributes);
         los.writeString(SOFTWARE);
@@ -686,6 +685,16 @@ public class Preprocessor {
                     frag2 = pair.getFrag2();
                     chr1 = pair.getChr1();
                     chr2 = pair.getChr2();
+                    if (bp1 < 0) {
+                        bp1 = 0;
+                    } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
+                        bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
+                    }
+                    if (bp2 < 0) {
+                        bp2 = 0;
+                    } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
+                        bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
+                    }
                 } else {
                     bp1 = pair.getPos2();
                     bp2 = pair.getPos1();
@@ -693,6 +702,16 @@ public class Preprocessor {
                     frag2 = pair.getFrag1();
                     chr1 = pair.getChr2();
                     chr2 = pair.getChr1();
+                    if (bp1 < 0) {
+                        bp1 = 0;
+                    } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
+                        bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
+                    }
+                    if (bp2 < 0) {
+                        bp2 = 0;
+                    } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
+                        bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
+                    }
                 }
 
                 // Randomize position within fragment site
@@ -812,6 +831,7 @@ public class Preprocessor {
             BufferedByteWriter buffer = new BufferedByteWriter();
             buffer.putLong(masterIndexPosition);
             raf.write(buffer.getBytes());
+            System.out.println("masterIndexPosition: " + masterIndexPosition);
 
         } finally {
             if (raf != null) raf.close();
@@ -845,18 +865,25 @@ public class Preprocessor {
     protected void writeFooter(LittleEndianOutputStream[] los) throws IOException {
 
         // Index
-        BufferedByteWriter buffer = new BufferedByteWriter();
-        buffer.putInt(matrixPositions.size());
+        List<BufferedByteWriter> bufferList = new ArrayList<>();
+        bufferList.add(new BufferedByteWriter());
+        bufferList.get(bufferList.size()-1).putInt(matrixPositions.size());
         for (Map.Entry<String, IndexEntry> entry : matrixPositions.entrySet()) {
-            buffer.putNullTerminatedString(entry.getKey());
-            buffer.putLong(entry.getValue().position);
-            buffer.putInt(entry.getValue().size);
+            if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000) {
+                bufferList.add(new BufferedByteWriter());
+            }
+            bufferList.get(bufferList.size()-1).putNullTerminatedString(entry.getKey());
+            bufferList.get(bufferList.size()-1).putLong(entry.getValue().position);
+            bufferList.get(bufferList.size()-1).putInt(entry.getValue().size);
         }
 
         // Vectors  (Expected values,  other).
         /***  NEVA ***/
         if (expectedVectorFile == null) {
-            buffer.putInt(expectedValueCalculations.size());
+            if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000) {
+                bufferList.add(new BufferedByteWriter());
+            }
+            bufferList.get(bufferList.size()-1).putInt(expectedValueCalculations.size());
             for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
                 ExpectedValueCalculation ev = entry.getValue();
     
@@ -864,26 +891,33 @@ public class Preprocessor {
     
                 int binSize = ev.getGridSize();
                 HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
-    
-                buffer.putNullTerminatedString(unit.toString());
-                buffer.putInt(binSize);
+
+                bufferList.get(bufferList.size()-1).putNullTerminatedString(unit.toString());
+                bufferList.get(bufferList.size()-1).putInt(binSize);
     
                 // The density values
                 ListOfDoubleArrays expectedValues = ev.getDensityAvg();
                 // todo @Suhas to handle buffer overflow
-                buffer.putLong(expectedValues.getLength());
+                bufferList.get(bufferList.size()-1).putLong(expectedValues.getLength());
                 for (double[] expectedArray : expectedValues.getValues()) {
+                    bufferList.add(new BufferedByteWriter());
                     for (double value : expectedArray) {
-                        buffer.putDouble(value);
+                        if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
+                            bufferList.add(new BufferedByteWriter());
+                        }
+                        bufferList.get(bufferList.size()-1).putDouble(value);
                     }
                 }
     
                 // Map of chromosome index -> normalization factor
                 Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-                buffer.putInt(normalizationFactors.size());
+                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
+                    bufferList.add(new BufferedByteWriter());
+                }
+                bufferList.get(bufferList.size()-1).putInt(normalizationFactors.size());
                 for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                    buffer.putInt(normFactor.getKey());
-                    buffer.putDouble(normFactor.getValue());
+                    bufferList.get(bufferList.size()-1).putInt(normFactor.getKey());
+                    bufferList.get(bufferList.size()-1).putDouble(normFactor.getValue());
                     //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
                 }
             }
@@ -905,7 +939,7 @@ public class Preprocessor {
                     }
                 }
             }
-            buffer.putInt(count);
+            bufferList.get(bufferList.size()-1).putInt(count);
             try (Reader reader = new FileReader(expectedVectorFile);
                  BufferedReader bufferedReader = new BufferedReader(reader)) {
 
@@ -923,10 +957,16 @@ public class Preprocessor {
                 }
             }
         }
+        long nBytesV5 = 0;
+        for (int i = 0; i<bufferList.size(); i++) {
+            nBytesV5 += bufferList.get(i).getBytes().length;
+        }
+        System.out.println("nBytesV5: " + nBytesV5);
 
-        byte[] bytes = buffer.getBytes();
-        los[0].writeInt(bytes.length);
-        los[0].write(bytes);
+        los[0].writeLong(nBytesV5);
+        for (int i = 0; i<bufferList.size(); i++) {
+            los[0].write(bufferList.get(i).getBytes());
+        }
     }
 
     protected Deflater getDefaultCompressor() {

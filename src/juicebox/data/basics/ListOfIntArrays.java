@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class ListOfIntArrays {
 	
-	private final int DEFAULT_LENGTH = Integer.MAX_VALUE - 1;
+	private final int DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
 	private final long overallLength;
 	private List<int[]> internalList = new ArrayList<>();
 	
@@ -83,7 +83,7 @@ public class ListOfIntArrays {
 			System.err.println("long index exceeds max size of list of arrays while setting");
 			return;
 		}
-		System.err.println("unusual - long index exceeds max size of list of arrays while setting");
+		//System.err.println("unusual - long index exceeds max size of list of arrays while setting");
 		return;
 	}
 	

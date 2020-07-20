@@ -60,26 +60,6 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
         MultithreadedNormalizationVectorUpdater.numCPUThreads = numCPUThreads;
     }
 
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                               ExpectedValueCalculation ev, Map<Integer, BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        vec.multiplyEverythingBy(factor);
-
-        BufferedByteWriter normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        int updateSize = 0;
-        int freeBytes = Integer.MAX_VALUE - normVectorBuffer.bytesWritten();
-        long bytesNeeded = 4 + (8 * vec.getLength());
-        // todo Suhas
-        if (bytesNeeded >= freeBytes) {
-            currentBuffer += 1;
-            normVectorBuffers.put(currentBuffer, new BufferedByteWriter());
-            normVectorBuffer = normVectorBuffers.get(currentBuffer);
-        }
-        updateSize = updateNormVectorIndexWithVector(masterPosition, normVectorIndex, normVectorBuffer, vec, chrIdx, type, zoom);
-        masterPosition += updateSize;
-
-        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
-
-    }
 
     @Override
     public void updateHicFile(String path, List<NormalizationType> normalizationsToBuild,
@@ -363,11 +343,9 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
         }
     }
 
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, double[] vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
                                                                ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        for (int i = 0; i < vec.length; i++) {
-            vec[i] = vec[i] * factor;
-        }
+        vec.multiplyEverythingBy(factor);
 
         updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
 

@@ -53,7 +53,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         String[] vectorPaths = vectorPath.split(",");
         NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, vectorPaths, true);
         writeNormsToUpdateFile(reader, path, false, null, normVectorInfo.getExpectedValueFunctionMap(),
-                normVectorInfo.getNormVectorIndices(), normVectorInfo.getNormVectorBuffer(), "Finished adding another normalization.");
+                normVectorInfo.getNormVectorIndices(), normVectorInfo.getNormVectorBuffers(), "Finished adding another normalization.");
 
         System.out.println("all custom norms added");
     }
@@ -99,7 +99,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         Map<String, Integer> fragCountMap = ds.getFragmentCounts();
         List<HiCZoom> resolutions = ds.getAllPossibleResolutions();
 
-        BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
+        List<BufferedByteWriter> normVectorBuffers = new ArrayList<>();
         List<NormalizationVectorIndexEntry> normVectorIndices = new ArrayList<>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
@@ -117,12 +117,18 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                         NormalizationVector existingNorm = ds.getNormalizationVector(chr.getIndex(), zoom, type);
                         if (existingNorm != null) {
-                            int position = normVectorBuffer.bytesWritten();
-                            // todo @suhas
-                            for (double[] array : existingNorm.getData().getValues()) {
-                                putArrayValuesIntoBuffer(normVectorBuffer, array);
+                            long position = 0;
+                            for (int i=0; i < normVectorBuffers.size(); i++) {
+                                position += normVectorBuffers.get(i).bytesWritten();
                             }
-                            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+                            // todo @suhas
+                            putArrayValuesIntoBufferList(normVectorBuffers, existingNorm.getData().getValues());
+
+                            long newPos = 0;
+                            for (int i=0; i < normVectorBuffers.size(); i++) {
+                                newPos += normVectorBuffers.get(i).bytesWritten();
+                            }
+                            int sizeInBytes = (int) (newPos - position);
                             normVectorIndices.add(new NormalizationVectorIndexEntry(
                                     type.toString(), chr.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
                         }
@@ -186,18 +192,18 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     if (zd == null) continue;
 
                     handleLoadedVector(customNormType, chr.getIndex(), zoom, normalizationVectorMap.get(customNormType),
-                                normVectorBuffer, normVectorIndices, zd, evLoaded);
+                                normVectorBuffers, normVectorIndices, zd, evLoaded);
                 }
                 expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
             }
         }
 
         ds.setExpectedValueFunctionMap(expectedValueFunctionMap);
-        return new NormVectorInfo(normalizationVectorMap, normVectorBuffer, normVectorIndices, expectedValueFunctionMap);
+        return new NormVectorInfo(normalizationVectorMap, normVectorBuffers, normVectorIndices, expectedValueFunctionMap);
     }
 
     private static void handleLoadedVector(NormalizationType customNormType, final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
-                                           BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndex,
+                                           List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex,
                                            MatrixZoomData zd, ExpectedValueCalculation evLoaded) throws IOException {
 
         String key = NormalizationVector.getKey(customNormType, chrIndx, zoom.getUnit().toString(), zoom.getBinSize());
@@ -205,13 +211,19 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             NormalizationVector vector = normVectors.get(key);
             if (vector == null || vector.getData() == null) return;
             // Write custom norm
-            int position = normVectorBuffer.bytesWritten();
-            // todo @suhas
-            for (double[] array : vector.getData().getValues()) {
-                putArrayValuesIntoBuffer(normVectorBuffer, array);
+            long position = 0;
+            for (int i=0; i < normVectorBuffers.size(); i++) {
+                position += normVectorBuffers.get(i).bytesWritten();
             }
-    
-            int sizeInBytes = normVectorBuffer.bytesWritten() - position;
+            // todo @suhas
+            putArrayValuesIntoBufferList(normVectorBuffers, vector.getData().getValues());
+
+            long newPos = 0;
+            for (int i=0; i < normVectorBuffers.size(); i++) {
+                newPos += normVectorBuffers.get(i).bytesWritten();
+            }
+
+            int sizeInBytes = (int) (newPos - position);
             normVectorIndex.add(new NormalizationVectorIndexEntry(
                     customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
     

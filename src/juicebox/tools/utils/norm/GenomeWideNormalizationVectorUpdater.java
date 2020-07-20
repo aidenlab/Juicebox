@@ -49,7 +49,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
 
-        BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
+        List<BufferedByteWriter> normVectorBuffers = new ArrayList<>();
         List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
@@ -73,7 +73,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     if (wgVectors != null) {
                         Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
                         for (Chromosome chromosome : nvMap.keySet()) {
-                            updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                            updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
                         }
                         ExpectedValueCalculation calculation = wgVectors.getSecond();
                         String key = ExpectedValueFunctionImpl.getKey(zoom, normType);
@@ -98,7 +98,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 for (NormalizationType normType : NormalizationHandler.getAllNormTypes()) {
                     NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
                     if (vector != null) {
-                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vector.getData(), chr.getIndex(), normType, zoom);
+                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vector.getData(), chr.getIndex(), normType, zoom);
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         reader.close();
         System.out.println();
         NormalizationVectorUpdater.update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
-                normVectorBuffer.getBytes());
+                normVectorBuffers);
         System.out.println("Finished normalization");
     }
 

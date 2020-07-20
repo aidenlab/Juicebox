@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class ListOfDoubleArrays {
 	
-	private final long DEFAULT_LENGTH = Integer.MAX_VALUE - 1;
+	private final long DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
 	private final long overallLength;
 	private List<double[]> internalList = new ArrayList<>();
 	
@@ -68,7 +68,9 @@ public class ListOfDoubleArrays {
 			int pseudoCol = (int) (index % DEFAULT_LENGTH);
 			return internalList.get(pseudoRow)[pseudoCol];
 		} else {
-			System.err.println("long index exceeds max size of list of arrays while getting");
+			System.err.println("long index exceeds max size of list of arrays while getting: " + index + " " + overallLength);
+			Exception ioe = new Exception();
+			ioe.printStackTrace();
 			return Double.NaN;
 		}
 	}
@@ -121,9 +123,16 @@ public class ListOfDoubleArrays {
 		if (index < overallLength) {
 			int pseudoRow = (int) (index / DEFAULT_LENGTH);
 			int pseudoCol = (int) (index % DEFAULT_LENGTH);
-			internalList.get(pseudoRow)[pseudoCol] += value;
+			try {
+				internalList.get(pseudoRow)[pseudoCol] += value;
+			} catch (Exception e) {
+				System.err.println(index + " " + pseudoCol);
+				e.printStackTrace();
+			}
 		} else {
-			System.err.println("long index exceeds max size of list of arrays while adding");
+			System.err.println("long index exceeds max size of list of arrays while adding: " + index + " " + overallLength);
+			Exception ioe = new Exception();
+			ioe.printStackTrace();
 		}
 	}
 	
