@@ -32,6 +32,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -43,7 +44,6 @@ import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
@@ -309,7 +309,7 @@ public class HiCCUPS extends JuicerCLT {
 
         try {
             final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
-            double firstExpected = df.getExpectedValuesNoNormalization()[0]; // expected value on diagonal
+            double firstExpected = df.getExpectedValuesNoNormalization().getFirstValue(); // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
             // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs

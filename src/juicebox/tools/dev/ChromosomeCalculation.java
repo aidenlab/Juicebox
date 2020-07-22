@@ -29,8 +29,8 @@ import juicebox.data.ContactRecord;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.common.ArrayTools;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedWriter;
 import java.io.File;

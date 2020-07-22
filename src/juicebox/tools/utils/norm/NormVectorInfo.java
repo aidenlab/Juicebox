@@ -34,22 +34,22 @@ import java.util.Map;
 
 class NormVectorInfo {
 
-    private final BufferedByteWriter normVectorBuffer;
+    private final List<BufferedByteWriter> normVectorBuffers;
     private final List<NormalizationVectorIndexEntry> normVectorIndices;
     private final Map<String, ExpectedValueFunction> expectedValueFunctionMap;
     private final Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorsMap;
 
-    NormVectorInfo(Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorsMap, BufferedByteWriter normVectorBuffer, List<NormalizationVectorIndexEntry> normVectorIndices,
+    NormVectorInfo(Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorsMap, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndices,
                    Map<String, ExpectedValueFunction> expectedValueFunctionMap) {
         this.normalizationVectorsMap = normalizationVectorsMap;
-        this.normVectorBuffer = normVectorBuffer;
+        this.normVectorBuffers = normVectorBuffers;
         this.normVectorIndices = normVectorIndices;
         this.expectedValueFunctionMap = expectedValueFunctionMap;
 
     }
 
-    public BufferedByteWriter getNormVectorBuffer() {
-        return normVectorBuffer;
+    public List<BufferedByteWriter> getNormVectorBuffers() {
+        return normVectorBuffers;
     }
 
     public List<NormalizationVectorIndexEntry> getNormVectorIndices() {

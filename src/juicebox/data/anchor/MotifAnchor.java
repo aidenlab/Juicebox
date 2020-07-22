@@ -30,68 +30,68 @@ import juicebox.track.feature.Feature2DWithMotif;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by muhammadsaadshamim on 9/28/15.
  * todo rename locus or something generic, with motifanchor extending from this
  */
 public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
-
-    public static boolean uniquenessShouldSupercedeConvergentRule = true;
-    private static int posCount = 0;
-    private static int negCount = 0;
-    // critical components of a motif anchor
-    private final String chr;
-    // references to original features if applicable
-    private final List<Feature2D> originalFeatures1 = new ArrayList<>();
-    private final List<Feature2D> originalFeatures2 = new ArrayList<>();
-    private boolean strand;
-    private int x1;
-    private int x2;
-    // fimo output loaded as attributes
-    private boolean fimoAttributesHaveBeenInitialized = false;
-    private double score = 0, pValue, qValue;
-    private String sequence;
-    private String name = "";
-
-    /**
-     * Inititalize anchor given parameters (e.g. from BED file)
-     *
-     * @param chr
-     * @param x1
-     * @param x2
-     */
-    public MotifAnchor(String chr, int x1, int x2) {
-        this.chr = chr;
-        if (x1 <= x2) {
-            // x1 < x2
-            this.x1 = x1;
-            this.x2 = x2;
-        } else {
-            System.err.println("Improperly formatted Motif file: chr " + chr + " x1 " + x1 + " x2 " + x2);
-            // todo throw new InvalidObjectException();
-        }
-    }
+	
+	public static boolean uniquenessShouldSupercedeConvergentRule = true;
+	private static int posCount = 0;
+	private static int negCount = 0;
+	// critical components of a motif anchor
+	private final String chr;
+	// references to original features if applicable
+	private final List<Feature2D> originalFeatures1 = new ArrayList<>();
+	private final List<Feature2D> originalFeatures2 = new ArrayList<>();
+	private boolean strand;
+	private long x1, x2;
+	// fimo output loaded as attributes
+	private boolean fimoAttributesHaveBeenInitialized = false;
+	private double score = 0, pValue, qValue;
+	private String sequence;
+	private String name = "";
+	
+	/**
+	 * Inititalize anchor given parameters (e.g. from BED file)
+	 *
+	 * @param chr
+	 * @param x1
+	 * @param x2
+	 */
+	public MotifAnchor(String chr, long x1, long x2) {
+		this.chr = chr;
+		if (x1 <= x2) {
+			// x1 < x2
+			this.x1 = x1;
+			this.x2 = x2;
+		} else {
+			System.err.println("Improperly formatted Motif file: chr " + chr + " x1 " + x1 + " x2 " + x2);
+			// todo throw new InvalidObjectException();
+		}
+	}
 
     public MotifAnchor(String chr, int x1, int x2, String name) {
         this(chr, x1, x2);
         this.name = name;
     }
-
-    /**
-     * Inititalize anchor given parameters (e.g. from feature list)
-     *
-     * @param chrIndex
-     * @param x1
-     * @param x2
-     * @param originalFeatures1
-     * @param originalFeatures2
-     */
-    public MotifAnchor(String chrIndex, int x1, int x2, List<Feature2D> originalFeatures1, List<Feature2D> originalFeatures2) {
-        this(chrIndex, x1, x2);
-        this.originalFeatures1.addAll(originalFeatures1);
-        this.originalFeatures2.addAll(originalFeatures2);
-    }
+	
+	/**
+	 * Inititalize anchor given parameters (e.g. from feature list)
+	 *
+	 * @param chrIndex
+	 * @param x1
+	 * @param x2
+	 * @param originalFeatures1
+	 * @param originalFeatures2
+	 */
+	public MotifAnchor(String chrIndex, long x1, long x2, List<Feature2D> originalFeatures1, List<Feature2D> originalFeatures2) {
+		this(chrIndex, x1, x2);
+		this.originalFeatures1.addAll(originalFeatures1);
+		this.originalFeatures2.addAll(originalFeatures2);
+	}
 
     @Override
     public String getKey() {
@@ -115,26 +115,26 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     public String getChr() {
         return chr;
     }
-
-    /**
-     * @return start point
-     */
-    public int getX1() {
-        return x1;
-    }
-
-    /**
-     * @return end point
-     */
-    public int getX2() {
-        return x2;
-    }
+	
+	/**
+	 * @return start point
+	 */
+	public long getX1() {
+		return x1;
+	}
+	
+	/**
+	 * @return end point
+	 */
+	public long getX2() {
+		return x2;
+	}
 
     /**
      * @return width of this anchor
      */
     public int getWidth() {
-        return x2 - x1;
+		return (int) (x2 - x1);
     }
 
     /**
@@ -146,14 +146,14 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         x1 = x1 - width / 2;
         x2 = x2 + width / 2;
     }
-
-    /**
-     * @param x
-     * @return true if x is within bounds of anchor
-     */
-    public boolean contains(int x) {
-        return x >= x1 && x <= x2;
-    }
+	
+	/**
+	 * @param x
+	 * @return true if x is within bounds of anchor
+	 */
+	public boolean contains(long x) {
+		return x >= x1 && x <= x2;
+	}
 
     /**
      * @param anchor
@@ -210,7 +210,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     @Override
     public int hashCode() {
-        return x2 * chr.hashCode() + x1;
+		return Objects.hash(x2, chr, x1);
     }
 
     @Override
@@ -220,9 +220,9 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
                 if (x2 == o.x2 && sequence != null && o.sequence != null) {
                     return sequence.compareTo(o.sequence);
                 }
-                return Integer.compare(x2, o.x2);
+				return Long.compare(x2, o.x2);
             }
-            return Integer.compare(x1, o.x1);
+			return Long.compare(x1, o.x1);
         }
         return chr.compareTo(o.chr);
     }

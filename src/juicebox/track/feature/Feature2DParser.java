@@ -28,10 +28,10 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.util.ParsingUtils;
 

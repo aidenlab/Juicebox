@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -133,20 +133,20 @@ class BEDTools {
      * @return intersection of anchor1 and anchor2
      */
     private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr() == anchor2.getChr()) {
-
-            int start = Math.max(anchor1.getX1(), anchor2.getX1());
-            int end = Math.min(anchor1.getX2(), anchor2.getX2());
-
+        if (anchor1.getChr().equals(anchor2.getChr())) {
+    
+            long start = Math.max(anchor1.getX1(), anchor2.getX1());
+            long end = Math.min(anchor1.getX2(), anchor2.getX2());
+    
             if (start > end) {
                 System.err.println("err _ " + start + " " + end);
             }
-
+    
             MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
-
-            // if all secondary attributes are also to be copied
-            if (conductFullIntersection) {
-                if (anchor1.hasFIMOAttributes()) {
+	
+			// if all secondary attributes are also to be copied
+			if (conductFullIntersection) {
+				if (anchor1.hasFIMOAttributes()) {
                     intersectedMotif.addFIMOAttributesFrom(anchor1);
                 } else if (anchor2.hasFIMOAttributes()) {
                     intersectedMotif.addFIMOAttributesFrom(anchor2);
@@ -228,16 +228,16 @@ class BEDTools {
      * @return preservative intersection of anchor1 and anchor2
      */
     private static MotifAnchor preservativeIntersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr() == anchor2.getChr()) {
-
+        if (anchor1.getChr().equals(anchor2.getChr())) {
+        
             MotifAnchor intersectedMotif = (MotifAnchor) anchor1.deepClone();
-
+        
             // if all secondary attributes are also to be copied
             if (conductFullIntersection) {
                 if (anchor2.hasFIMOAttributes()) {
                     intersectedMotif.addFIMOAttributesFrom(anchor2);
                 }
-
+            
                 intersectedMotif.addFeatureReferencesFrom(anchor2);
             }
 

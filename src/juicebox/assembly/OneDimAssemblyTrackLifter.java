@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@ package juicebox.assembly;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
 import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.IGVFeature;
 import org.broad.igv.track.WindowFunction;
@@ -57,7 +57,7 @@ public class OneDimAssemblyTrackLifter {
                 AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        long actualBinSize = (long) binSize;
+        long actualBinSize = binSize;
         if (chromosome.getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
         }
@@ -105,25 +105,25 @@ public class OneDimAssemblyTrackLifter {
                 // disregard points outside of the bin positions for this aggregate scaffold
                 if (point.getBinNumber() < (int) (x1pos / actualBinSize) || point.getBinNumber() > (int) (x2pos / actualBinSize))
                     continue;
-
-                int newStart;
-                int newEnd;
-                int newBin;
-
+    
+                long newStart;
+                long newEnd;
+                long newBin;
+    
                 if (!xScaffold.getInvertedVsInitial()) {
-                    newStart = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                    newBin = (int) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
+                    newStart = (long) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getGenomicStart() - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (long) ((xScaffold.getCurrentStart() + HiCGlobals.hicMapScale * point.getBinNumber() * binSize - xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize);
                 } else {
-                    newStart = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
-                    newBin = (int) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize - 1);
+                    newStart = (long) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getGenomicEnd() + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale);
+                    newBin = (long) ((xScaffold.getCurrentEnd() - HiCGlobals.hicMapScale * point.getBinNumber() * binSize + xScaffold.getOriginalStart()) / HiCGlobals.hicMapScale / binSize - 1);
                 }
-
+    
                 newEnd = newStart + point.getGenomicEnd() - point.getGenomicStart();
 
                 if (point instanceof HiCCoverageDataSource.CoverageDataPoint) {
 
                     HiCCoverageDataSource.CoverageDataPoint covPoint = (HiCCoverageDataSource.CoverageDataPoint) point;
-                    modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint(newStart / binSize,
+                    modifiedDataPoints.add(new HiCCoverageDataSource.CoverageDataPoint((int) (newStart / binSize),
                             newStart,
                             newEnd,
                             covPoint.value));
@@ -131,7 +131,7 @@ public class OneDimAssemblyTrackLifter {
                     HiCDataAdapter.DataAccumulator accumPoint = (HiCDataAdapter.DataAccumulator) point;
                     HiCDataAdapter.DataAccumulator
                             newAccumPoint =
-                            new HiCDataAdapter.DataAccumulator((double) newBin, accumPoint.width, newStart, newEnd);
+                            new HiCDataAdapter.DataAccumulator(newBin, accumPoint.width, newStart, newEnd);
                     newAccumPoint.nPts = accumPoint.nPts;
                     newAccumPoint.weightedSum = accumPoint.weightedSum;
                     newAccumPoint.max = accumPoint.max;
@@ -159,7 +159,7 @@ public class OneDimAssemblyTrackLifter {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        long actualBinSize = (long) binSize;
+        long actualBinSize = binSize;
         if (chromosome.getIndex() == 0) {
             actualBinSize *= 1000;
         }

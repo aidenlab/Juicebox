@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import com.jidesoft.swing.JideBoxLayout;
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.IGV;
-import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -46,10 +45,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.text.ParseException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,9 +55,9 @@ import java.util.regex.Pattern;
  * @author Jim Robinson
  */
 public class EncodeFileBrowser extends JDialog {
-
+    
     private static final long serialVersionUID = 3049287764412827292L;
-    private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
+    private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
     private final EncodeTableModel model;
     private JTable table;

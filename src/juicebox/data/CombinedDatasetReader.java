@@ -27,6 +27,8 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -144,7 +146,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = Collections.synchronizedList(new ArrayList<Block>());
+        List<Block> blockList = Collections.synchronizedList(new ArrayList<>());
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb = r.readNormalizedBlock(blockNumber, zd, no);
@@ -198,6 +200,11 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
     @Override
+    public NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) {
+        return null; //Undefined for combined datasets
+    }
+
+    @Override
     public BasicMatrix readPearsons(String chr1Name, String chr2Name, HiCZoom zoom, NormalizationType type) {
         // At this time combined datasets do not have precomputed pearsons.
         return null;
@@ -239,7 +246,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
 //            dataset.bpZooms.retainAll(ds.getBpZooms());
         }
-        Collections.sort(dataset.bpZooms, Collections.reverseOrder());
+        dataset.bpZooms.sort(Collections.reverseOrder());
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
             for (Dataset ds : datasetList) {
@@ -350,7 +357,7 @@ public class CombinedDatasetReader implements DatasetReader {
             int binSize = protoFunction.getBinSize();
             HiC.Unit unit = protoFunction.getUnit();
             NormalizationType type = protoFunction.getNormalizationType();
-            int len = protoFunction.getLength();
+            long len = protoFunction.getLength();
 
             for (ExpectedValueFunction df : densityFunctions) {
                 if (df.getBinSize() != binSize || !df.getUnit().equals(unit) || df.getNormalizationType() != type) {
@@ -358,13 +365,10 @@ public class CombinedDatasetReader implements DatasetReader {
                 }
                 len = Math.min(df.getLength(), len);
             }
-            double[] expectedValues = new double[len];
+            ListOfDoubleArrays expectedValues = new ListOfDoubleArrays(len);
 
             for (ExpectedValueFunction df : densityFunctions) {
-                double[] current = df.getExpectedValuesNoNormalization();
-                for (int i = 0; i < len; i++) {
-                    expectedValues[i] += current[i];
-                }
+                expectedValues.addValuesFrom(df.getExpectedValuesNoNormalization());
             }
 
 

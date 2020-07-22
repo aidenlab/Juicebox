@@ -26,6 +26,9 @@ package juicebox.tools.utils.norm.final2;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.basics.ListOfIntArrays;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,132 +47,138 @@ public class FinalScale {
     private final static int totalIterations = 3 * maxIter;
     private final static float minErrorThreshold = .02f;
     private static final float OFFSET = .5f;
-
-    public static double[] scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, double[] targetVectorInitial) {
-
+    
+    public static ListOfFloatArrays scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial) {
+        
         double low, zHigh, zLow;
         int rlind, zlind, zhind;
         float localPercentLowRowSumExcluded = percentLowRowSumExcluded;
         float localPercentZValsToIgnore = percentZValsToIgnore;
-
+        
         //	find the matrix dimensions
-        int k = targetVectorInitial.length;
-
-        double[] current = new double[k];
-        double[] row, col;
-        double[] rowBackup = new double[k];
-        double[] dr = new double[k];
-        double[] dc = new double[k];
-        double[] r0 = new double[k];
-        int[] bad = new int[k];
-        int[] bad1 = new int[k];
-        double[] one = new double[k];
-        double[] s = new double[k];
-        double[] zz = new double[k];
-        double[] zTargetVector = targetVectorInitial.clone();
-        double[] calculatedVectorB = new double[k];
+        long k = targetVectorInitial.getLength();
+        
+        ListOfFloatArrays current = new ListOfFloatArrays(k);
+        ListOfFloatArrays row, col;
+        ListOfFloatArrays rowBackup = new ListOfFloatArrays(k);
+        ListOfFloatArrays dr = new ListOfFloatArrays(k);
+        ListOfFloatArrays dc = new ListOfFloatArrays(k);
+        ListOfIntArrays bad;
+        ListOfIntArrays bad1 = new ListOfIntArrays(k);
+        ListOfFloatArrays s = new ListOfFloatArrays(k);
+        double[] zz = new double[(int) Math.min(k, Integer.MAX_VALUE - 1)];
+        double[] r0 = new double[(int) Math.min(k, Integer.MAX_VALUE - 1)];
+        
+        ListOfFloatArrays zTargetVector = targetVectorInitial.deepClone();
+        ListOfFloatArrays calculatedVectorB = new ListOfFloatArrays(k);
+        ListOfFloatArrays one = new ListOfFloatArrays(k, 1);
+        ListOfIntArrays numNonZero = new ListOfIntArrays(k, 0);
+        
         double[] reportErrorForIteration = new double[totalIterations + 3];
         int[] numItersForAllIterations = new int[totalIterations + 3];
-
+        
         int l = 0;
-        for (int p = 0; p < k; p++) {
-            if (Double.isNaN(zTargetVector[p])) continue;
-            if (zTargetVector[p] > 0) {
-                zz[l++] = zTargetVector[p];
+        for (long p = 0; p < k; p++) {
+            if (Double.isNaN(zTargetVector.get(p))) continue;
+            if (zTargetVector.get(p) > 0) {
+                zz[l++] = zTargetVector.get(p);
             }
         }
         zz = dealWithSorting(zz, l);
-
+        
+        // unlikey to exceed max int for lind; hind
+        // for now we will only sort one vector and hope that suffices
         zlind = (int) Math.max(0, l * localPercentZValsToIgnore + OFFSET);
         zhind = (int) Math.min(l - 1, l * (1.0 - localPercentZValsToIgnore) + OFFSET);
         zLow = zz[zlind];
         zHigh = zz[zhind];
-
-        for (int p = 0; p < k; p++) {
-            if (zTargetVector[p] > 0 && (zTargetVector[p] < zLow || zTargetVector[p] > zHigh)) {
-                zTargetVector[p] = Double.NaN;
+        
+        for (long p = 0; p < k; p++) {
+            double valZ = zTargetVector.get(p);
+            if (valZ > 0 && (valZ < zLow || valZ > zHigh)) {
+                zTargetVector.set(p, Float.NaN);
             }
         }
-
-        Arrays.fill(one, 1);
-        for (int p = 0; p < k; p++) {
-            if (zTargetVector[p] == 0) {
-                one[p] = 0;
+        
+        
+        for (long p = 0; p < k; p++) {
+            if (zTargetVector.get(p) == 0) {
+                one.set(p, 0);
             }
         }
-
-
+        
+        
         if (removeZerosOnDiag) {
-            Arrays.fill(bad, 1);
+            bad = new ListOfIntArrays(k, 1);
             for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
                 for (ContactRecord cr : contactRecords) {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
                     if (x == y) {
-                        bad[x] = 0;
+                        bad.set(x, 0);
                     }
                 }
             }
         } else {
-            Arrays.fill(bad, 0);
+            bad = new ListOfIntArrays(k, 0);
         }
 
         //	find rows sums
-        int[] numNonZero = new int[k];
-        Arrays.fill(numNonZero, 0);
+
         for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
             for (ContactRecord cr : contactRecords) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
-                numNonZero[x]++;
+                numNonZero.addTo(x, 1);
                 if (x != y) {
-                    numNonZero[y]++;
+                    numNonZero.addTo(y, 1);
                 }
             }
         }
-
-
+        
+        
         //	find relevant percentiles
         int n0 = 0;
-        for (int p = 0; p < k; p++) {
-            if (numNonZero[p] > 0) {
-                r0[n0++] = numNonZero[p];
+        for (long p = 0; p < k; p++) {
+            int valP = numNonZero.get(p);
+            if (valP > 0) {
+                r0[n0++] = valP;
             }
         }
         r0 = dealWithSorting(r0, n0);
-
+        
         rlind = (int) Math.max(0, n0 * localPercentLowRowSumExcluded + OFFSET);
         low = r0[rlind];
-
-
+        
+        
         //	find the "bad" rows and exclude them
-        for (int p = 0; p < k; p++) {
-            if ((numNonZero[p] < low && zTargetVector[p] > 0) || Double.isNaN(zTargetVector[p])) {
-                bad[p] = 1;
-                zTargetVector[p] = 1.0;
+        for (long p = 0; p < k; p++) {
+            if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Double.isNaN(zTargetVector.get(p))) {
+                bad.set(p, 1);
+                zTargetVector.set(p, 1.0f);
             }
         }
-
+        
         row = sparseMultiplyGetRowSums(contactRecordsListOfLists, one, k);
-        System.arraycopy(row, 0, rowBackup, 0, k);
-
-        for (int p = 0; p < k; p++) {
-            dr[p] = 1 - bad[p];
+        rowBackup = row.deepClone();
+        
+        for (long p = 0; p < k; p++) {
+            dr.set(p, 1 - bad.get(p));
         }
-        System.arraycopy(dr, 0, dc, 0, k);
-        System.arraycopy(dr, 0, one, 0, k);
-
+        dc = dr.deepClone();
+        one = dr.deepClone();
+        
         // treat separately rows for which z[p] = 0
-        for (int p = 0; p < k; p++) {
-            if (zTargetVector[p] == 0) {
-                one[p] = 0;
+        for (long p = 0; p < k; p++) {
+            if (zTargetVector.get(p) == 0) {
+                one.set(p, 0);
             }
         }
-        for (int p = 0; p < k; p++) {
-            bad1[p] = (int) (1 - one[p]);
+        for (long p = 0; p < k; p++) {
+            bad1.set(p, (int) (1 - one.get(p)));
         }
-
-        System.arraycopy(dr, 0, current, 0, k);
+        
+        current = dr.deepClone();
         //	start iterations
         //	row is the current rows sum; dr and dc are the current rows and columns scaling vectors
         double ber = 10.0 * (1.0 + tolerance);
@@ -183,66 +192,66 @@ public class FinalScale {
         // if perc or perc1 reached upper bound or the total number of iterationbs is too high, exit
         while ((ber > tolerance || err > 5.0 * tolerance) && iter < maxIter && allItersI < totalIterations
                 && localPercentLowRowSumExcluded <= 0.2 && localPercentZValsToIgnore <= 0.1) {
-
+    
             iter++;
             allItersI++;
             fail = 1;
-
+    
             for (int p = 0; p < k; p++) {
-                if (bad1[p] == 1) row[p] = 1.0;
+                if (bad1.get(p) == 1) row.set(p, 1.0f);
             }
             for (int p = 0; p < k; p++) {
-                s[p] = zTargetVector[p] / row[p];
+                s.set(p, zTargetVector.get(p) / row.get(p));
             }
-            for (int p = 0; p < k; p++) {
-                dr[p] *= s[p];
+            for (long p = 0; p < k; p++) {
+                dr.multiplyBy(p, s.get(p));
             }
-
+    
             // find column sums and update rows scaling vector
             col = sparseMultiplyGetRowSums(contactRecordsListOfLists, dr, k);
-            for (int p = 0; p < k; p++) col[p] *= dc[p];
-            for (int p = 0; p < k; p++) if (bad1[p] == 1) col[p] = 1.0;
-            for (int p = 0; p < k; p++) s[p] = zTargetVector[p] / col[p];
-            for (int p = 0; p < k; p++) dc[p] *= s[p];
-
+            for (long p = 0; p < k; p++) col.multiplyBy(p, dc.get(p));
+            for (long p = 0; p < k; p++) if (bad1.get(p) == 1) col.set(p, 1.0f);
+            for (long p = 0; p < k; p++) s.set(p, zTargetVector.get(p) / col.get(p));
+            for (long p = 0; p < k; p++) dc.multiplyBy(p, s.get(p));
+    
             // find row sums and update columns scaling vector
             row = sparseMultiplyGetRowSums(contactRecordsListOfLists, dc, k);
-            for (int p = 0; p < k; p++) row[p] *= dr[p];
-
+            for (long p = 0; p < k; p++) row.multiplyBy(p, dr.get(p));
+    
             // calculate current scaling vector
-            for (int p = 0; p < k; p++) {
-                calculatedVectorB[p] = Math.sqrt(dr[p] * dc[p]);
+            for (long p = 0; p < k; p++) {
+                calculatedVectorB.set(p, (float) Math.sqrt(dr.get(p) * dc.get(p)));
             }
-
+    
             //	calculate the current error
             ber = 0;
-            for (int p = 0; p < k; p++) {
-                if (bad1[p] == 1) continue;
-                double tempErr = Math.abs(calculatedVectorB[p] - current[p]);
+            for (long p = 0; p < k; p++) {
+                if (bad1.get(p) == 1) continue;
+                double tempErr = Math.abs(calculatedVectorB.get(p) - current.get(p));
                 if (tempErr > ber) {
                     ber = tempErr;
                 }
             }
-
+    
             reportErrorForIteration[allItersI - 1] = ber;
             numItersForAllIterations[allItersI - 1] = iter;
-
+    
             //	since calculating the error in row sums requires matrix-vector multiplication we are are doing this every 10
             //	iterations
             if (iter % 10 == 0) {
                 col = sparseMultiplyGetRowSums(contactRecordsListOfLists, calculatedVectorB, k);
                 err = 0;
-                for (int p = 0; p < k; p++) {
-                    if (bad1[p] == 1) continue;
-                    double tempErr = Math.abs((col[p] * calculatedVectorB[p] - zTargetVector[p]));
+                for (long p = 0; p < k; p++) {
+                    if (bad1.get(p) == 1) continue;
+                    double tempErr = Math.abs((col.get(p) * calculatedVectorB.get(p) - zTargetVector.get(p)));
                     if (err < tempErr) {
                         err = tempErr;
                     }
                 }
                 errors[nerr++] = err;
             }
-
-            System.arraycopy(calculatedVectorB, 0, current, 0, k);
+    
+            current = calculatedVectorB.deepClone();
 
             // check whether convergence rate is satisfactory
             // if less than 5 iterations (so less than 5 errors) and less than 2 row sums errors, there is nothing to check
@@ -250,16 +259,16 @@ public class FinalScale {
             if ((ber < tolerance) && (nerr < 2 || (nerr >= 2 && errors[nerr - 1] < 0.5 * errors[nerr - 2]))) continue;
 
             if (iter > 5) {
-                for (int p = 1; p <= 5; p++) {
-                    if (reportErrorForIteration[allItersI - p] * (1.0 + minErrorThreshold) < reportErrorForIteration[allItersI - p - 1]) {
+                for (int q = 1; q <= 5; q++) {
+                    if (reportErrorForIteration[allItersI - q] * (1.0 + minErrorThreshold) < reportErrorForIteration[allItersI - q - 1]) {
                         fail = 0;
                     }
                 }
-
+    
                 if (nerr >= 2 && errors[nerr - 1] > 0.75 * errors[nerr - 2]) {
                     fail = 1;
                 }
-
+    
                 if (iter >= maxIter) {
                     fail = 1;
                 }
@@ -274,40 +283,40 @@ public class FinalScale {
                     zhind = (int) Math.min(l - 1, l * (1.0 - localPercentZValsToIgnore) + OFFSET);
                     zLow = zz[zlind];
                     zHigh = zz[zhind];
-                    for (int p = 0; p < k; p++) {
-                        if (zTargetVector[p] > 0 && (zTargetVector[p] < zLow || zTargetVector[p] > zHigh)) {
-                            zTargetVector[p] = Double.NaN;
+                    for (long p = 0; p < k; p++) {
+                        if (zTargetVector.get(p) > 0 && (zTargetVector.get(p) < zLow || zTargetVector.get(p) > zHigh)) {
+                            zTargetVector.set(p, Float.NaN);
                         }
                     }
-                    for (int p = 0; p < k; p++) {
-                        if ((numNonZero[p] < low && zTargetVector[p] > 0) || Double.isNaN(zTargetVector[p])) {
-                            bad[p] = 1;
-                            bad1[p] = 1;
-                            one[p] = 0;
-                            zTargetVector[p] = 1.0;
+                    for (long p = 0; p < k; p++) {
+                        if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Double.isNaN(zTargetVector.get(p))) {
+                            bad.set(p, 1);
+                            bad1.set(p, 1);
+                            one.set(p, 0);
+                            zTargetVector.set(p, 1.0f);
                         }
                     }
-
-
+    
+    
                     ber = 10.0 * (1.0 + tol);
                     err = 10.0 * (1.0 + tol);
-
+    
                     //	if the current error is larger than 5 iteration ago start from scratch,
                     //	otherwise continue from the current position
                     if (reportErrorForIteration[allItersI - 1] > reportErrorForIteration[allItersI - 6]) {
-                        for (int p = 0; p < k; p++) {
-                            dr[p] = 1 - bad[p];
+                        for (long p = 0; p < k; p++) {
+                            dr.set(p, 1 - bad.get(p));
                         }
-                        System.arraycopy(dr, 0, dc, 0, k);
-                        System.arraycopy(dr, 0, one, 0, k);
-                        System.arraycopy(dr, 0, current, 0, k);
-                        System.arraycopy(rowBackup, 0, row, 0, k);
+                        dc = dr.deepClone();
+                        one = dr.deepClone();
+                        current = dr.deepClone();
+                        row = rowBackup.deepClone();
                     } else {
-                        for (int p = 0; p < k; p++) {
-                            dr[p] *= (1 - bad[p]);
+                        for (long p = 0; p < k; p++) {
+                            dr.multiplyBy(p, (1 - bad.get(p)));
                         }
-                        for (int p = 0; p < k; p++) {
-                            dc[p] *= (1 - bad[p]);
+                        for (long p = 0; p < k; p++) {
+                            dc.multiplyBy(p, (1 - bad.get(p)));
                         }
                     }
                     iter = 0;
@@ -321,42 +330,43 @@ public class FinalScale {
             col = sparseMultiplyGetRowSums(contactRecordsListOfLists, calculatedVectorB, k);
             err = 0;
             for (int p = 0; p < k; p++) {
-                if (bad1[p] == 1) continue;
-                double tempErr = Math.abs(col[p] * calculatedVectorB[p] - zTargetVector[p]);
+                if (bad1.get(p) == 1) continue;
+                double tempErr = Math.abs(col.get(p) * calculatedVectorB.get(p) - zTargetVector.get(p));
                 if (err < tempErr)
                     err = tempErr;
             }
         }
-
+        
         reportErrorForIteration[allItersI + 1] = ber;
         reportErrorForIteration[allItersI + 2] = err;
-
-        for (int p = 0; p < k; p++) {
-            if (bad[p] == 1) {
-                calculatedVectorB[p] = Double.NaN;
+        
+        for (long p = 0; p < k; p++) {
+            if (bad.get(p) == 1) {
+                calculatedVectorB.set(p, Float.NaN);
             }
         }
-
+        
         if (HiCGlobals.printVerboseComments) {
             System.out.println(allItersI);
             System.out.println(localPercentLowRowSumExcluded);
             System.out.println(localPercentZValsToIgnore);
             System.out.println(Arrays.toString(reportErrorForIteration));
         }
-
+        
         return calculatedVectorB;
     }
-
+    
     private static double[] dealWithSorting(double[] vector, int length) {
         double[] realVector = new double[length];
         System.arraycopy(vector, 0, realVector, 0, length);
         Arrays.sort(realVector);
         return realVector;
     }
-
-    private static double[] sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists, double[] vector, int vectorLength) {
-        double[] sumVector = new double[vectorLength];
-
+    
+    private static ListOfFloatArrays sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists,
+                                                               ListOfFloatArrays vector, long vectorLength) {
+        ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
+        
         for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
             for (ContactRecord cr : contactRecords) {
                 int x = cr.getBinX();
@@ -365,9 +375,9 @@ public class FinalScale {
                 if (x == y) {
                     counts *= .5;
                 }
-
-                sumVector[x] += counts * vector[y];
-                sumVector[y] += counts * vector[x];
+                
+                sumVector.addTo(x, counts * vector.get(y));
+                sumVector.addTo(y, counts * vector.get(x));
             }
         }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,11 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyOperationExecutor;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DGuiContainer;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,21 +81,23 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         Chromosome yChrom = null;
 
         try {
-            int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
-            int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
-            for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                    xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                }
-                if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                    yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                }
-            }
-        } catch (Exception ex) {
+			long xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
+			long yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
+			for (int i = 0; i < chromosomeBoundaries.length; i++) {
+				if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
+					xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
+				}
+				if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
+					yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
+				}
+			}
+		} catch (Exception ex) {
             // do nothing, leave chromosomes null
         }
         if (xChrom != null && yChrom != null) {
             heatmapPanel.unsafeSetSelectedChromosomes(xChrom, yChrom);
+        } else {
+            System.err.println("null chromosome " + xChrom + " - " + yChrom);
         }
 
         //Only if zoom is changed All->Chr:
@@ -106,15 +108,15 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         HiC hic = heatmapPanel.getHiC();
 
         try {
-            final String chrXName = hic.getXContext().getChromosome().toString();
-            final String chrYName = hic.getYContext().getChromosome().toString();
-
-            final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-            final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
-
-            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
-                    HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
-        } catch (Exception e) {
+			final String chrXName = hic.getXContext().getChromosome().toString();
+			final String chrYName = hic.getYContext().getChromosome().toString();
+	
+			final long xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+			final long yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+	
+			hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
+					HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
+		} catch (Exception e) {
             e.printStackTrace();
         }
     }

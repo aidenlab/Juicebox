@@ -29,9 +29,11 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,18 +71,18 @@ public class ExpectedValueCalculation {
     private final NormalizationType type;
     // A little redundant, for clarity
     public boolean isFrag = false;
-    /**
-     * Genome wide count of binned reads at a given distance
-     */
-    private final double[] actualDistances;
-    /**
-     * Expected count at a given binned distance from diagonal
-     */
-    private double[] densityAvg = null;
-    /**
-     * Chromosome in this genome, needed for normalizations
-     */
-    private final Map<Integer, Chromosome> chromosomesMap = new ConcurrentHashMap<>();
+	/**
+	 * Genome wide count of binned reads at a given distance
+	 */
+	private final double[] actualDistances;
+	/**
+	 * Expected count at a given binned distance from diagonal
+	 */
+	private ListOfDoubleArrays densityAvg;
+	/**
+	 * Chromosome in this genome, needed for normalizations
+	 */
+	private final Map<Integer, Chromosome> chromosomesMap = new ConcurrentHashMap<>();
     /**
      * Stores restriction site fragment information for fragment maps
      */
@@ -152,24 +154,19 @@ public class ExpectedValueCalculation {
      * @param bin2   Position2 observed in units of "bins"
      */
     public synchronized void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
-
-        // Ignore NaN values    TODO -- is this the right thing to do?
-        if (Double.isNaN(weight)) return;
-
-        int dist;
-        Chromosome chr = chromosomesMap.get(chrIdx);
-        if (chr == null) return;
-
-        Double count = chromosomeCounts.get(chrIdx);
-        if (count == null) {
-            chromosomeCounts.put(chrIdx, weight);
-        } else {
-            chromosomeCounts.put(chrIdx, count + weight);
-        }
-        dist = Math.abs(bin1 - bin2);
-
-        actualDistances[dist] += weight;
-    }
+	
+		// Ignore NaN values    TODO -- is this the right thing to do?
+		if (Double.isNaN(weight)) return;
+	
+		int dist;
+		Chromosome chr = chromosomesMap.get(chrIdx);
+		if (chr == null) return;
+	
+		chromosomeCounts.merge(chrIdx, weight, Double::sum);
+		dist = Math.abs(bin1 - bin2);
+	
+		actualDistances[dist] += weight;
+	}
 
     public void merge(ExpectedValueCalculation otherEVCalc) {
         for (Map.Entry<Integer, Chromosome> entry : otherEVCalc.chromosomesMap.entrySet()) {
@@ -204,57 +201,58 @@ public class ExpectedValueCalculation {
      * an "expected" or average uniform density.
      */
     public synchronized void computeDensity() {
-
-        int maxNumBins = 0;
-
-        //System.err.println("# of bins=" + numberOfBins);
-        /**
-         * Genome wide binned possible distances
-         */
-        double[] possibleDistances = new double[numberOfBins];
-
-        for (Chromosome chr : chromosomesMap.values()) {
-
-            // didn't see anything at all from a chromosome, then don't include it in possDists.
-            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
-
-            // use correct units (bp or fragments)
-            int len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
-            int nChrBins = len / gridSize;
-
-            maxNumBins = Math.max(maxNumBins, nChrBins);
-
-            for (int i = 0; i < nChrBins; i++) {
-                possibleDistances[i] += (nChrBins - i);
-            }
-
-        }
-        //System.err.println("max # bins " + maxNumBins);
-        densityAvg = new double[maxNumBins];
-        // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
-
-        double numSum = actualDistances[0];
-        double denSum = possibleDistances[0];
-        int bound1 = 0;
-        int bound2 = 0;
-        for (int ii = 0; ii < maxNumBins; ii++) {
-            if (numSum < 400) {
-                while (numSum < 400 && bound2 < maxNumBins) {
-                    // increase window size until window is big enough.  This code will only execute once;
-                    // after this, the window will always contain at least 400 reads.
-                    bound2++;
-                    numSum += actualDistances[bound2];
-                    denSum += possibleDistances[bound2];
-                }
-            } else if (numSum >= 400 && bound2 - bound1 > 0) {
-                while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
+	
+		long maxNumBins = 0;
+	
+		//System.err.println("# of bins=" + numberOfBins);
+		/**
+		 * Genome wide binned possible distances
+		 */
+		double[] possibleDistances = new double[numberOfBins];
+	
+		for (Chromosome chr : chromosomesMap.values()) {
+		
+			// didn't see anything at all from a chromosome, then don't include it in possDists.
+			if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
+		
+			// use correct units (bp or fragments)
+			long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+			long nChrBins = len / gridSize;
+		
+			maxNumBins = Math.max(maxNumBins, nChrBins);
+		
+			for (int i = 0; i < nChrBins; i++) {
+				possibleDistances[i] += (nChrBins - i);
+			}
+		
+		}
+		//System.err.println("max # bins " + maxNumBins);
+		densityAvg = new ListOfDoubleArrays(maxNumBins);
+	
+		// Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
+	
+		double numSum = actualDistances[0];
+		double denSum = possibleDistances[0];
+		int bound1 = 0;
+		int bound2 = 0;
+		for (long ii = 0; ii < maxNumBins; ii++) {
+			if (numSum < 400) {
+				while (numSum < 400 && bound2 < maxNumBins) {
+					// increase window size until window is big enough.  This code will only execute once;
+					// after this, the window will always contain at least 400 reads.
+					bound2++;
+					numSum += actualDistances[bound2];
+					denSum += possibleDistances[bound2];
+				}
+			} else if (numSum >= 400 && bound2 - bound1 > 0) {
+				while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
                     numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
                     denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
                     bound1++;
                     bound2--;
                 }
             }
-            densityAvg[ii] = numSum / denSum;
+			densityAvg.set(ii, numSum / denSum);
             // Default case - bump the window size up by 2 to keep it centered for the next iteration
             if (bound2 + 2 < maxNumBins) {
                 numSum += actualDistances[bound2 + 1] + actualDistances[bound2 + 2];
@@ -271,27 +269,27 @@ public class ExpectedValueCalculation {
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
         for (Chromosome chr : chromosomesMap.values()) {
-
-            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
-                continue;
-            }
-            //int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
-            int len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
-            int nChrBins = len / gridSize;
-
-
-            double expectedCount = 0;
-            for (int n = 0; n < nChrBins; n++) {
-                if (n < maxNumBins) {
-                    final double v = densityAvg[n];
-                    // this is the sum of the diagonal for this particular chromosome.
-                    // the value in each bin is multiplied by the length of the diagonal to get expected count
-                    // the total at the end should be the sum of the expected matrix for this chromosome
-                    // i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
-                    // then multiply it by the chromosome-wide possible == nChrBins - n.
-                    expectedCount += (nChrBins - n) * v;
-
-                }
+	
+			if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
+				continue;
+			}
+			//int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
+			long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+			long nChrBins = len / gridSize;
+	
+	
+			double expectedCount = 0;
+			for (long n = 0; n < nChrBins; n++) {
+				if (n < maxNumBins) {
+					final double v = densityAvg.get(n);
+					// this is the sum of the diagonal for this particular chromosome.
+					// the value in each bin is multiplied by the length of the diagonal to get expected count
+					// the total at the end should be the sum of the expected matrix for this chromosome
+					// i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
+					// then multiply it by the chromosome-wide possible == nChrBins - n.
+					expectedCount += (nChrBins - n) * v;
+			
+				}
             }
 
             double observedCount = chromosomeCounts.get(chr.getIndex());
@@ -308,15 +306,15 @@ public class ExpectedValueCalculation {
     public Map<Integer, Double> getChrScaleFactors() {
         return chrScaleFactors;
     }
-
-    /**
-     * Accessor for the densities
-     *
-     * @return The densities
-     */
-    public double[] getDensityAvg() {
-        return densityAvg;
-    }
+	
+	/**
+	 * Accessor for the densities
+	 *
+	 * @return The densities
+	 */
+	public ListOfDoubleArrays getDensityAvg() {
+		return densityAvg;
+	}
 
     /**
      * Accessor for the normalization type
@@ -331,19 +329,21 @@ public class ExpectedValueCalculation {
         computeDensity();
         return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
     }
-
-    // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-    public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, double[] vector) {
-        for (List<ContactRecord> recordList : recordLists) {
-            for (ContactRecord cr : recordList) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                final float counts = cr.getCounts();
-                if (NormVectorUpdater.isValidNormValue(vector[x]) & NormVectorUpdater.isValidNormValue(vector[y])) {
-                    double value = counts / (vector[x] * vector[y]);
-                    addDistance(chrIndx, x, y, value);
-                }
-            }
+	
+	// TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
+	public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, ListOfFloatArrays vector) {
+		for (List<ContactRecord> recordList : recordLists) {
+			for (ContactRecord cr : recordList) {
+				int x = cr.getBinX();
+				int y = cr.getBinY();
+				final float counts = cr.getCounts();
+				float xVal = vector.get(x);
+				float yVal = vector.get(y);
+				if (NormVectorUpdater.isValidNormValue(xVal) & NormVectorUpdater.isValidNormValue(yVal)) {
+					double value = counts / (xVal * yVal);
+					addDistance(chrIndx, x, y, value);
+				}
+			}
         }
     }
 }

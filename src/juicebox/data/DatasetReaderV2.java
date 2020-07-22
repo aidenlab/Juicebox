@@ -29,13 +29,16 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.IndexEntry;
+import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.exceptions.HttpResponseException;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.CompressionUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ParsingUtils;
@@ -62,7 +65,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
     private final SeekableStream stream, backUpStream, highResStream;
     private Map<String, IndexEntry> masterIndex;
-    private Map<String, IndexEntry> normVectorIndex;
+    private Map<String, LargeIndexEntry> normVectorIndex;
     private Dataset dataset = null;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
@@ -90,24 +93,33 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             version = dis.readInt();
             position += 4;
-
+    
             if (HiCGlobals.guiIsCurrentlyActive) {
                 System.out.println("HiC file version: " + version);
             }
+            //System.out.println("HiC file version: " + version);
             masterIndexPos = dis.readLong();
-
+    
             position += 8;
-
+    
             // will set genomeId below
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
-
+    
+            if (version > 8) {
+                // read NVI todo
+                dis.readLong();
+                position += 8;
+                dis.readLong();
+                position += 8;
+            }
+    
             Map<String, String> attributes = new HashMap<>();
             // Attributes  (key-value pairs)
             if (version > 4) {
                 int nAttributes = dis.readInt();
                 position += 4;
-
+        
                 for (int i = 0; i < nAttributes; i++) {
                     String key = dis.readString();
                     position += key.length() + 1;
@@ -132,10 +144,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             for (int i = 0; i < nchrs; i++) {
                 String name = dis.readString();
                 position += name.length() + 1;
-
-                int size = dis.readInt();
-                position += 4;
-
+    
+                long size;
+                if (version > 8) {
+                    size = dis.readLong();
+                    position += 8;
+                } else {
+                    size = dis.readInt();
+                    position += 4;
+                }
+    
                 chromosomes.add(new Chromosome(i, name, size));
             }
             boolean createWholeChr = false;
@@ -313,9 +331,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             blockIndexMap.put(zd.getKey(), blockIndex);
         }
         currentFilePointer += nBlocks * 16;
-
-        int nBins1 = chr1.getLength() / binSize;
-        int nBins2 = chr2.getLength() / binSize;
+    
+        long nBins1 = chr1.getLength() / binSize;
+        long nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
 
@@ -403,18 +421,44 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         stream.seek(position);
 
         //Get the size in bytes of the v5 footer, that is the footer up to normalization and normalized expected values
-        byte[] buffer = new byte[4];
-        stream.read(buffer);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-        int nBytes = dis.readInt();
+        byte[] buffer;
 
-        normVectorFilePosition = masterIndexPos + nBytes + 4;  // 4 bytes for the buffer size
 
-        buffer = new byte[nBytes];
-        stream.read(buffer);
-        dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+        long nBytes;
+        LittleEndianInputStream dis;
+
+        if (version > 8) {
+            buffer = new byte[8];
+            stream.read(buffer);
+            dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+            nBytes = dis.readLong();
+            normVectorFilePosition = masterIndexPos + nBytes + 8;  // 8 bytes for the buffer size
+        } else {
+            buffer = new byte[4];
+            stream.read(buffer);
+            dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+            nBytes = (long) dis.readInt();
+            normVectorFilePosition = masterIndexPos + nBytes + 4;  // 4 bytes for the buffer size
+        }
+
+        //List<ByteArrayInputStream> disList = new ArrayList<>();
+        //long nBytesCounter = nBytes;
+        //while (nBytesCounter > (Integer.MAX_VALUE-10)) {
+        //    buffer = new byte[(Integer.MAX_VALUE - 10)];
+        //    stream.read(buffer);
+        //    disList.add(new ByteArrayInputStream(buffer));
+        //    nBytesCounter = nBytesCounter - (Integer.MAX_VALUE - 10);
+        //}
+        //buffer = new byte[(int) nBytesCounter];
+        //stream.read(buffer);
+        //disList.add(new ByteArrayInputStream(buffer));
+
+        //dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
+        dis = new LittleEndianInputStream(new BufferedInputStream(stream));
 
         int nEntries = dis.readInt();
+        //System.err.println(nEntries);
+
         for (int i = 0; i < nEntries; i++) {
             String key = dis.readString();
             long filePosition = dis.readLong();
@@ -426,20 +470,29 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         // Expected values from non-normalized matrix
         int nExpectedValues = dis.readInt();
-        for (int i = 0; i < nExpectedValues; i++) {
+        //System.err.println(nExpectedValues);
 
+        for (int i = 0; i < nExpectedValues; i++) {
+    
             NormalizationType no = NormalizationHandler.NONE;
             String unitString = dis.readString();
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
             String key = unitString + "_" + binSize + "_" + no;
-
-            int nValues = dis.readInt();
-            double[] values = new double[nValues];
-            for (int j = 0; j < nValues; j++) {
-                values[j] = dis.readDouble();
+            long nValues;
+            if (version > 8) {
+                nValues = dis.readLong();
+            } else {
+                nValues = dis.readInt();
             }
+            //System.err.println(nValues);
 
+            ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+            //System.out.println(binSize + " " + nValues + " " + stream.position());
+            for (long j = 0; j < nValues; j++) {
+                values.set(j, dis.readDouble());
+            }
+            //System.out.println(binSize + " " + stream.position());
             int nNormalizationFactors = dis.readInt();
             Map<Integer, Double> normFactors = new LinkedHashMap<>();
             for (int j = 0; j < nNormalizationFactors; j++) {
@@ -447,6 +500,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 Double normFactor = dis.readDouble();
                 normFactors.put(chrIdx, normFactor);
             }
+            //System.out.println(binSize + " " + stream.position());
 
             expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors));
         }
@@ -456,11 +510,15 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (version >= 6) {
 
+            //System.out.println(stream.position());
+            //System.out.println(normVectorFilePosition);
+            stream.seek(normVectorFilePosition);
             //dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
             dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
             try {
                 nExpectedValues = dis.readInt();
+                //System.out.println(nExpectedValues);
             } catch (EOFException | HttpResponseException e) {
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("No normalization vectors");
@@ -469,19 +527,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
 
             for (int i = 0; i < nExpectedValues; i++) {
-
                 String typeString = dis.readString();
                 String unitString = dis.readString();
                 HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
                 String key = unitString + "_" + binSize + "_" + typeString;
-
-                int nValues = dis.readInt();
-                double[] values = new double[nValues];
-                for (int j = 0; j < nValues; j++) {
-                    values[j] = dis.readDouble();
+                //System.out.println(key);
+    
+                long nValues;
+                if (version > 8) {
+                    nValues = dis.readLong();
+                    //System.out.println(nValues);
+                } else {
+                    nValues = dis.readInt();
                 }
-
+                ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+                for (long j = 0; j < nValues; j++) {
+                    values.set(j, dis.readDouble());
+                }
                 int nNormalizationFactors = dis.readInt();
                 Map<Integer, Double> normFactors = new LinkedHashMap<>();
                 for (int j = 0; j < nNormalizationFactors; j++) {
@@ -498,6 +561,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             // Normalization vectors (indexed)
 
             nEntries = dis.readInt();
+            //System.out.println(nEntries);
             normVectorIndex = new HashMap<>(nEntries * 2);
             for (int i = 0; i < nEntries; i++) {
 
@@ -506,13 +570,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 String unit = dis.readString();
                 int resolution = dis.readInt();
                 long filePosition = dis.readLong();
-                int sizeInBytes = dis.readInt();
+                long sizeInBytes = version > 8 ? dis.readLong() : dis.readInt();
 
                 String key = NormalizationVector.getKey(type, chrIdx, unit, resolution);
 
                 dataset.addNormalizationType(type);
 
-                normVectorIndex.put(key, new IndexEntry(filePosition, sizeInBytes));
+                normVectorIndex.put(key, new LargeIndexEntry(filePosition, sizeInBytes));
             }
         }
     }
@@ -616,7 +680,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
     }
 
-    public Map<String, IndexEntry> getNormVectorIndex() {
+    public Map<String, LargeIndexEntry> getNormVectorIndex() {
         return normVectorIndex;
     }
 
@@ -636,21 +700,82 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     @Override
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
-
         String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
         if (normVectorIndex == null) return null;
-        IndexEntry idx = normVectorIndex.get(key);
+        LargeIndexEntry idx = normVectorIndex.get(key);
+        boolean useVCForVCSQRT = false;
+        if (idx == null && type.equals(NormalizationHandler.VC_SQRT)) {
+            key = NormalizationVector.getKey(NormalizationHandler.VC, chrIdx, unit.toString(), binSize);
+            idx = normVectorIndex.get(key);
+            useVCForVCSQRT = true;
+        }
+        if (idx == null) return null;
+    
+        List<byte[]> buffer = seekAndFullyReadLargeCompressedBytes(idx);
+        List<ByteArrayInputStream> disList = new ArrayList<>();
+        for (int i = 0; i < buffer.size(); i++) {
+            disList.add(new ByteArrayInputStream(buffer.get(i)));
+        }
+        LittleEndianInputStream dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
+    
+        long nValues;
+        if (version > 8) {
+            nValues = dis.readLong();
+        } else {
+            nValues = dis.readInt();
+        }
+        ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+        boolean allNaN = true;
+        for (long i = 0; i < nValues; i++) {
+            double val = version > 8 ? (double) dis.readFloat() : dis.readDouble();
+            if (!useVCForVCSQRT) {
+                values.set(i, val);
+            } else {
+                values.set(i, Math.sqrt(val));
+            }
+            if (!Double.isNaN(val)) {
+                allNaN = false;
+            }
+        }
+        if (allNaN) return null;
+        else return new NormalizationVector(type, chrIdx, unit, binSize, values);
+    }
+
+    @Override
+    public NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) throws IOException {
+        String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
+        if (normVectorIndex == null) return null;
+        LargeIndexEntry idx = normVectorIndex.get(key);
+        boolean useVCForVCSQRT = false;
+        if (idx == null && type.equals(NormalizationHandler.VC_SQRT)) {
+            key = NormalizationVector.getKey(NormalizationHandler.VC, chrIdx, unit.toString(), binSize);
+            idx = normVectorIndex.get(key);
+            useVCForVCSQRT = true;
+        }
         if (idx == null) return null;
 
-        byte[] buffer = seekAndFullyReadCompressedBytes(idx);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+        long partPosition = version > 8 ? idx.position + 8 + 4*bound1 : idx.position + 4 + 8*bound1;
+        long partSize = version > 8 ? (bound2-bound1+1) * 4 : (bound2-bound1+1) * 8;
+        LargeIndexEntry partIdx = new LargeIndexEntry(partPosition, partSize);
 
-        int nValues = dis.readInt();
-        double[] values = new double[nValues];
+        List<byte[]> buffer = seekAndFullyReadLargeCompressedBytes(partIdx);
+        List<ByteArrayInputStream> disList = new ArrayList<>();
+        for (int i = 0; i < buffer.size(); i++) {
+            disList.add(new ByteArrayInputStream(buffer.get(i)));
+        }
+        LittleEndianInputStream dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
+
+        long nValues = bound2-bound1+1;
+        ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
         boolean allNaN = true;
-        for (int i = 0; i < nValues; i++) {
-            values[i] = dis.readDouble();
-            if (!Double.isNaN(values[i])) {
+        for (long i = 0; i < nValues; i++) {
+            double val = version > 8 ? (double) dis.readFloat() : dis.readDouble();
+            if (!useVCForVCSQRT) {
+                values.set(i, val);
+            } else {
+                values.set(i, Math.sqrt(val));
+            }
+            if (!Double.isNaN(val)) {
                 allNaN = false;
             }
         }
@@ -682,6 +807,38 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return compressedBytes;
     }
 
+    private List<byte[]> seekAndFullyReadLargeCompressedBytes(LargeIndexEntry idx) throws IOException {
+        boolean currentlyUseMainStream;
+        List<byte[]> compressedBytes = new ArrayList<>();
+        long counter = idx.size;
+        while (counter > Integer.MAX_VALUE-10) {
+            compressedBytes.add(new byte[Integer.MAX_VALUE-10]);
+            counter = counter - Integer.MAX_VALUE-10;
+        }
+            compressedBytes.add(new byte[(int) counter]);
+
+        synchronized (useMainStream) {
+            currentlyUseMainStream = useMainStream.get();
+            useMainStream.set(!currentlyUseMainStream);
+        }
+
+        if (currentlyUseMainStream) {
+            synchronized (stream) {
+                stream.seek(idx.position);
+                for (int i = 0; i < compressedBytes.size(); i++) {
+                    stream.readFully(compressedBytes.get(i));
+                }
+            }
+        } else {
+            synchronized (backUpStream) {
+                backUpStream.seek(idx.position);
+                for (int i = 0; i < compressedBytes.size(); i++) {
+                    backUpStream.readFully(compressedBytes.get(i));
+                }
+            }
+        }
+        return compressedBytes;
+    }
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
@@ -692,9 +849,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             long[] timeDiffThings = new long[4];
             timeDiffThings[0] = System.currentTimeMillis();
+            List<Integer> bounds;
+            if (version > 8 && zd.getChr1Idx() == zd.getChr2Idx()) {
+                bounds = zd.getBlockBoundsFromNumberVersion9Up(blockNumber);
+            }
+            else {
+                bounds = zd.getBlockBoundsFromNumberVersion8Below(blockNumber);
+            }
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
-
+    
             if (nv1 == null || nv2 == null) {
                 if (HiCGlobals.printVerboseComments) { // todo should this print an error always instead?
                     System.err.println("Norm " + no + " missing for: " + zd.getDescription());
@@ -702,21 +866,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 }
                 return null;
             }
-            double[] nv1Data = nv1.getData();
-            double[] nv2Data = nv2.getData();
+            ListOfDoubleArrays nv1Data = nv1.getData();
+            ListOfDoubleArrays nv2Data = nv2.getData();
             timeDiffThings[1] = System.currentTimeMillis();
             Block rawBlock = readBlock(blockNumber, zd);
             timeDiffThings[2] = System.currentTimeMillis();
             if (rawBlock == null) return null;
-
+    
             Collection<ContactRecord> records = rawBlock.getContactRecords();
             List<ContactRecord> normRecords = new ArrayList<>(records.size());
             for (ContactRecord rec : records) {
                 int x = rec.getBinX();
                 int y = rec.getBinY();
                 float counts;
-                if (nv1Data[x] != 0 && nv2Data[y] != 0 && !Double.isNaN(nv1Data[x]) && !Double.isNaN(nv2Data[y])) {
-                    counts = (float) (rec.getCounts() / (nv1Data[x] * nv2Data[y]));
+                double valX = nv1Data.get(x);
+                double valY = nv2Data.get(y);
+                // todo == 0 probably not the best thing to do here
+                if (valX != 0 && valY != 0 && !Double.isNaN(valX) && !Double.isNaN(valY)) {
+                    counts = (float) (rec.getCounts() / (valX * valY));
                 } else {
                     counts = Float.NaN;
                 }
@@ -779,22 +946,30 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     int binYOffset = dis.readInt();
 
                     boolean useShort = dis.readByte() == 0;
+                    boolean useShortBinX, useShortBinY;
+                    if (version > 8) {
+                        useShortBinX = dis.readByte() == 0;
+                        useShortBinY = dis.readByte() == 0;
+                    } else {
+                        useShortBinX = true;
+                        useShortBinY = true;
+                    }
 
                     byte type = dis.readByte();
 
                     switch (type) {
                         case 1:
                             // List-of-rows representation
-                            int rowCount = dis.readShort();
+                            int rowCount = useShortBinY ? dis.readShort() : dis.readInt();
 
                             for (int i = 0; i < rowCount; i++) {
 
-                                int binY = binYOffset + dis.readShort();
-                                int colCount = dis.readShort();
+                                int binY = useShortBinY ? binYOffset + dis.readShort() : binYOffset + dis.readInt();
+                                int colCount = useShortBinX ? dis.readShort() : dis.readInt();
 
                                 for (int j = 0; j < colCount; j++) {
 
-                                    int binX = binXOffset + dis.readShort();
+                                    int binX = useShortBinX ? binXOffset + dis.readShort() : binXOffset + dis.readInt();
                                     float counts = useShort ? dis.readShort() : dis.readFloat();
                                     records.add(new ContactRecord(binX, binY, counts));
                                 }

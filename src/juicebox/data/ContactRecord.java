@@ -26,12 +26,14 @@ package juicebox.data;
 
 import juicebox.windowui.NormalizationType;
 
+import java.util.Objects;
+
 /**
  * @author jrobinso
  * @since Aug 3, 2010
  */
 public class ContactRecord implements Comparable<ContactRecord> {
-
+    
     /**
      * Bin number in x coordinate
      */
@@ -85,9 +87,7 @@ public class ContactRecord implements Comparable<ContactRecord> {
 
     @Override
     public int hashCode() {
-        int hash = 31 * binX;
-        hash = 37 * (hash + binY);
-        return 53 * (int) (hash + counts);
+        return Objects.hash(binX, binY, counts);
     }
 
     @Override

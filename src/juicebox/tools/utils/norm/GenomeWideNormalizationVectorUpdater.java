@@ -27,11 +27,13 @@ package juicebox.tools.utils.norm;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 
@@ -48,7 +50,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
 
-        BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
+        List<BufferedByteWriter> normVectorBuffers = new ArrayList<>();
         List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
@@ -72,7 +74,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     if (wgVectors != null) {
                         Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
                         for (Chromosome chromosome : nvMap.keySet()) {
-                            updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                            updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, nvMap.get(chromosome).getData().convertToFloats(), chromosome.getIndex(), normType, zoom);
                         }
                         ExpectedValueCalculation calculation = wgVectors.getSecond();
                         String key = ExpectedValueFunctionImpl.getKey(zoom, normType);
@@ -97,7 +99,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 for (NormalizationType normType : NormalizationHandler.getAllNormTypes()) {
                     NormalizationVector vector = ds.getNormalizationVector(chr.getIndex(), zoom, normType);
                     if (vector != null) {
-                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffer, vector.getData(), chr.getIndex(), normType, zoom);
+                        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vector.getData().convertToFloats(), chr.getIndex(), normType, zoom);
                     }
                 }
             }
@@ -108,14 +110,14 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         reader.close();
         System.out.println();
         NormalizationVectorUpdater.update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
-                normVectorBuffer.getBytes());
+                normVectorBuffers);
         System.out.println("Finished normalization");
     }
 
 
     public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild,
                                                             Map<NormalizationType, Integer> resolutionsToBuildTo, List<NormalizationVectorIndexEntry> normVectorIndices,
-                                                            BufferedByteWriter normVectorBuffer, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
+                                                            List<BufferedByteWriter> normVectorBuffers, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
         for (NormalizationType normType : normalizationsToBuild) {
             if (NormalizationHandler.isGenomeWideNorm(normType)) {
                 if (zoom.getBinSize() >= resolutionsToBuildTo.get(normType)) {
@@ -129,7 +131,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     if (wgVectors != null) {
                         Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
                         for (Chromosome chromosome : nvMap.keySet()) {
-                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffer, nvMap.get(chromosome).getData(), chromosome.getIndex(), normType, zoom);
+                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffers, nvMap.get(chromosome).getData().convertToFloats(), chromosome.getIndex(), normType, zoom);
                         }
 
                         expectedValueCalculations.add(wgVectors.getSecond());
@@ -155,9 +157,9 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / resolution + 1;
         }
-
+    
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm);
+        ListOfFloatArrays vector = calculations.getNorm(norm);
 
         if (vector == null) {
             return null;
@@ -176,8 +178,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 for (ContactRecord cr : crList) {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
-                    final double vx = vector[x + addY];
-                    final double vy = vector[y + addY];
+                    final float vx = vector.get(x + addY);
+                    final float vy = vector.get(y + addY);
                     if (isValidNormValue(vx) && isValidNormValue(vy)) {
                         double value = cr.getCounts() / (vx * vy);
                         expectedValueCalculation.addDistance(chrIdx, x, y, value);
@@ -190,12 +192,14 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
         // Split normalization vector by chromosome
         Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<>();
-        int location1 = 0;
+        long location1 = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            int chrBinned = c1.getLength() / resolution + 1;
-            double[] chrNV = new double[chrBinned];
-            System.arraycopy(vector, location1, chrNV, 0, chrNV.length);
-            location1 += chrNV.length;
+            long chrBinned = c1.getLength() / resolution + 1;
+            ListOfDoubleArrays chrNV = new ListOfDoubleArrays(chrBinned);
+            for (long k = 0; k < chrNV.getLength(); k++) { // todo optimize a version with system.arraycopy and long
+                chrNV.set(k, vector.get(location1 + k));
+            }
+            location1 += chrNV.getLength();
             normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
         }
 

@@ -22,24 +22,50 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
-import juicebox.data.basics.Chromosome;
+package juicebox.data.basics;
+import java.util.Objects;
 
-public class GeneLocation {
-
-    private final Chromosome chromosome;
-    private final int centerPosition;
-
-    public GeneLocation(Chromosome chromosome, int centerPosition) {
-        this.chromosome = chromosome;
-        this.centerPosition = centerPosition;
+public class Chromosome {
+    private final String name;
+    private int index;
+    private long length = 0;
+    
+    public Chromosome(int index, String name, long length) {
+        this.index = index;
+        this.name = name;
+        this.length = length;
     }
 
-    public int getCenterPosition() {
-        return centerPosition;
+    public int getIndex() {
+        return this.index;
     }
 
-    public Chromosome getChromosome() {
-        return chromosome;
+    public void setIndex(int ii) {
+        this.index = ii;
+    }
+    
+    public long getLength() {
+        return this.length;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String toString() {
+        return this.name;
+    }
+
+    public boolean equals(Object obj) {
+        return obj instanceof Chromosome && ((Chromosome) obj).getIndex() == this.getIndex() && ((Chromosome) obj).getLength() == this.getLength();
+    }
+
+    public int hashCode() {
+        return Objects.hash(this.index, this.length);
+    }
+
+    public org.broad.igv.feature.Chromosome toIGVChromosome() {
+        return new org.broad.igv.feature.Chromosome(index, name, (int) length); // todo assumed for IGV
     }
 }
+

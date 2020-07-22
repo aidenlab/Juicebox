@@ -29,10 +29,10 @@ class NormalizationVectorIndexEntry {
     final int chrIdx;
     final String unit;
     final int resolution;
-    final int sizeInBytes;
+    final long sizeInBytes;
     long position;
 
-    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
+    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, long sizeInBytes) {
         this.type = type;
         this.chrIdx = chrIdx;
         this.unit = unit;

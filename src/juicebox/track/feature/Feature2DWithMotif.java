@@ -29,10 +29,8 @@ import juicebox.data.anchor.MotifAnchor;
 import juicebox.tools.clt.juicer.CompareLists;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -58,38 +56,38 @@ public class Feature2DWithMotif extends Feature2D {
     private final String MFSEQ2 = "sequence_2";
     private final String MFO2 = "orientation_2";
     private final String MFU2 = "uniqueness_2";
-
-    private final String LEGACY_MFS1 = "motif_x1";
-    private final String LEGACY_MFE1 = "motif_x2";
-    private final String LEGACY_MFS2 = "motif_y1";
-    private final String LEGACY_MFE2 = "motif_y2";
-
-    // true = +, false = -, null = NA
-    private boolean strand1, strand2;
-    // true - unique, false = inferred, null = NA
-    private boolean unique1, unique2;
-    private String sequence1, sequence2;
-    private int motifStart1, motifEnd1, motifStart2, motifEnd2;
-    private double score1, score2;
-
-    public Feature2DWithMotif(FeatureType featureType, String chr1, int start1, int end1,
-                              String chr2, int start2, int end2, Color c, Map<String, String> attributes) {
-        super(featureType, chr1, start1, end1, chr2, start2, end2, c, attributes);
-        importAttributesForMotifInformation();
-    }
-
-
-    public void updateMotifData(boolean strand, boolean unique, String sequence, int motifStart, int motifEnd,
-                                boolean dataBelongsToAnchor1, double score) {
-        if (unique) {
-            if (dataBelongsToAnchor1) {
-                if (sequence1 == null || score > score1) {//unique
-                    this.strand1 = strand;
-                    this.unique1 = unique;
-                    this.sequence1 = sequence;
-                    this.motifStart1 = motifStart;
-                    this.motifEnd1 = motifEnd;
-                    this.score1 = score;
+	
+	private final String LEGACY_MFS1 = "motif_x1";
+	private final String LEGACY_MFE1 = "motif_x2";
+	private final String LEGACY_MFS2 = "motif_y1";
+	private final String LEGACY_MFE2 = "motif_y2";
+	
+	// true = +, false = -, null = NA
+	private boolean strand1, strand2;
+	// true - unique, false = inferred, null = NA
+	private boolean unique1, unique2;
+	private String sequence1, sequence2;
+	private long motifStart1, motifEnd1, motifStart2, motifEnd2;
+	private double score1, score2;
+	
+	public Feature2DWithMotif(FeatureType featureType, String chr1, long start1, long end1,
+							  String chr2, long start2, long end2, Color c, Map<String, String> attributes) {
+		super(featureType, chr1, start1, end1, chr2, start2, end2, c, attributes);
+		importAttributesForMotifInformation();
+	}
+	
+	
+	public void updateMotifData(boolean strand, boolean unique, String sequence, long motifStart, long motifEnd,
+								boolean dataBelongsToAnchor1, double score) {
+		if (unique) {
+			if (dataBelongsToAnchor1) {
+				if (sequence1 == null || score > score1) {//unique
+					this.strand1 = strand;
+					this.unique1 = unique;
+					this.sequence1 = sequence;
+					this.motifStart1 = motifStart;
+					this.motifEnd1 = motifEnd;
+					this.score1 = score;
                 }/* else if (!(sequence.equals(sequence1) && motifStart1 == motifStart)) {//check equivalence for dups; otherwise not unique
                     sequence1 = "null";
                 }*/
@@ -353,11 +351,7 @@ public class Feature2DWithMotif extends Feature2D {
 
     @Override
     public int hashCode() {
-        int hash = super.hashCode();
-        if (sequence1 != null) hash = 51 * hash + sequence1.hashCode();
-        if (sequence2 != null) hash = 53 * hash + sequence2.hashCode();
-
-        return hash;
+		return Objects.hash(super.hashCode(), sequence1, sequence2);
     }
 
     public int getConvergenceStatus() {

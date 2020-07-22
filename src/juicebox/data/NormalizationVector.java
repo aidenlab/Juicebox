@@ -26,10 +26,12 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,18 +47,18 @@ public class NormalizationVector {
     private final int chrIdx;
     private final HiC.Unit unit;
     private final int resolution;
-    private final double[] data;
+    private final ListOfDoubleArrays data;
     private boolean needsToBeScaledTo = false;
-
-    public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, double[] data) {
+    
+    public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, ListOfDoubleArrays data) {
         this.type = type;
         this.chrIdx = chrIdx;
         this.unit = unit;
         this.resolution = resolution;
         this.data = data;
     }
-
-    public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, double[] data, boolean needsToBeScaledTo) {
+    
+    public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, ListOfDoubleArrays data, boolean needsToBeScaledTo) {
         this(type, chrIdx, unit, resolution, data);
         this.needsToBeScaledTo = needsToBeScaledTo;
     }
@@ -76,8 +78,8 @@ public class NormalizationVector {
     public String getKey() {
         return NormalizationVector.getKey(type, chrIdx, unit.toString(), resolution);
     }
-
-    public double[] getData() {
+    
+    public ListOfDoubleArrays getData() {
         return data;
     }
 
@@ -96,11 +98,11 @@ public class NormalizationVector {
 
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
         listOfLists.addAll(zd.getContactRecordList());
-        double[] newNormVector = ZeroScale.scale(listOfLists, data, getKey());
+        ListOfFloatArrays newNormVector = ZeroScale.scale(listOfLists, data.convertToFloats(), getKey());
         if (newNormVector != null) {
             newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, listOfLists);
         }
-
-        return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);
+        ListOfDoubleArrays newDoubleNormVector = newNormVector.convertToDoubles();
+        return new NormalizationVector(type, chrIdx, unit, resolution, newDoubleNormVector);
     }
 }

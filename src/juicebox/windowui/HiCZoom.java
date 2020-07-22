@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +27,17 @@ package juicebox.windowui;
 
 import juicebox.HiC;
 
+import java.util.Objects;
+
 /**
  * @author jrobinso
- *         Date: 12/17/12
- *         Time: 9:16 AM
+ * Date: 12/17/12
+ * Time: 9:16 AM
  */
 public class HiCZoom implements Comparable<HiCZoom> {
-
-    private final HiC.Unit unit;
-    private final Integer binSize;
+	
+	private final HiC.Unit unit;
+	private final Integer binSize;
 
     public HiCZoom(HiC.Unit unit, int binSize) {
         this.unit = unit;
@@ -75,10 +77,10 @@ public class HiCZoom implements Comparable<HiCZoom> {
 
     @Override
     public int hashCode() {
-        return 31 * unit.hashCode() + binSize;
-    }
-
-    @Override
+        return Objects.hash(unit.hashCode(), binSize);
+	}
+	
+	@Override
     public int compareTo(HiCZoom o) {
         return binSize.compareTo(o.binSize);
     }

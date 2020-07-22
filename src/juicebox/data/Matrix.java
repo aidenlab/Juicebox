@@ -28,10 +28,10 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.util.*;
@@ -147,11 +147,11 @@ public class Matrix {
             } else {
                 fragZoomData.add(zd);
             }
-
+    
             // Zooms should be sorted, but in case they are not...
-
-            Collections.sort(bpZoomData, comparator);
-            Collections.sort(fragZoomData, comparator);
+    
+            bpZoomData.sort(comparator);
+            fragZoomData.sort(comparator);
         }
 
         for (Pair<Integer, Integer> resPair : dynamicZoomResolutions) {
@@ -161,7 +161,7 @@ public class Matrix {
                 System.err.println("Dynamic resolution could not be made");
             }
         }
-        Collections.sort(dynamicBPZoomData, comparator);
+        dynamicBPZoomData.sort(comparator);
 
     }
 
@@ -184,9 +184,11 @@ public class Matrix {
             }
         }
 
-        int length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
+        long length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
         for (MatrixZoomData zd : matrix.bpZoomData) {
-            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(), length / zd.getBinSize(), length / zd.getBinSize(), null, null, reader));
+            // todo @dudcha is this done for resolutions where conversion will be lossy?
+            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(),
+                    (int) (length / zd.getBinSize()), (int) (length / zd.getBinSize()), null, null, reader));
         }
 
 
@@ -283,7 +285,6 @@ public class Matrix {
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
-        if (HiCGlobals.printVerboseComments) System.out.println("c1 " + chr1 + " c2 " + chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);
