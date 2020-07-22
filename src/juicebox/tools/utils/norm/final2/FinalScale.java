@@ -27,6 +27,7 @@ package juicebox.tools.utils.norm.final2;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
 
 import java.util.Arrays;
@@ -47,7 +48,7 @@ public class FinalScale {
     private final static float minErrorThreshold = .02f;
     private static final float OFFSET = .5f;
     
-    public static ListOfDoubleArrays scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, ListOfDoubleArrays targetVectorInitial) {
+    public static ListOfFloatArrays scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial) {
         
         double low, zHigh, zLow;
         int rlind, zlind, zhind;
@@ -57,20 +58,20 @@ public class FinalScale {
         //	find the matrix dimensions
         long k = targetVectorInitial.getLength();
         
-        ListOfDoubleArrays current = new ListOfDoubleArrays(k);
-        ListOfDoubleArrays row, col;
-        ListOfDoubleArrays rowBackup = new ListOfDoubleArrays(k);
-        ListOfDoubleArrays dr = new ListOfDoubleArrays(k);
-        ListOfDoubleArrays dc = new ListOfDoubleArrays(k);
+        ListOfFloatArrays current = new ListOfFloatArrays(k);
+        ListOfFloatArrays row, col;
+        ListOfFloatArrays rowBackup = new ListOfFloatArrays(k);
+        ListOfFloatArrays dr = new ListOfFloatArrays(k);
+        ListOfFloatArrays dc = new ListOfFloatArrays(k);
         ListOfIntArrays bad;
         ListOfIntArrays bad1 = new ListOfIntArrays(k);
-        ListOfDoubleArrays s = new ListOfDoubleArrays(k);
+        ListOfFloatArrays s = new ListOfFloatArrays(k);
         double[] zz = new double[(int) Math.min(k, Integer.MAX_VALUE - 1)];
         double[] r0 = new double[(int) Math.min(k, Integer.MAX_VALUE - 1)];
         
-        ListOfDoubleArrays zTargetVector = targetVectorInitial.deepClone();
-        ListOfDoubleArrays calculatedVectorB = new ListOfDoubleArrays(k);
-        ListOfDoubleArrays one = new ListOfDoubleArrays(k, 1);
+        ListOfFloatArrays zTargetVector = targetVectorInitial.deepClone();
+        ListOfFloatArrays calculatedVectorB = new ListOfFloatArrays(k);
+        ListOfFloatArrays one = new ListOfFloatArrays(k, 1);
         ListOfIntArrays numNonZero = new ListOfIntArrays(k, 0);
         
         double[] reportErrorForIteration = new double[totalIterations + 3];
@@ -95,7 +96,7 @@ public class FinalScale {
         for (long p = 0; p < k; p++) {
             double valZ = zTargetVector.get(p);
             if (valZ > 0 && (valZ < zLow || valZ > zHigh)) {
-                zTargetVector.set(p, Double.NaN);
+                zTargetVector.set(p, Float.NaN);
             }
         }
         
@@ -154,7 +155,7 @@ public class FinalScale {
         for (long p = 0; p < k; p++) {
             if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Double.isNaN(zTargetVector.get(p))) {
                 bad.set(p, 1);
-                zTargetVector.set(p, 1.0);
+                zTargetVector.set(p, 1.0f);
             }
         }
         
@@ -197,7 +198,7 @@ public class FinalScale {
             fail = 1;
     
             for (int p = 0; p < k; p++) {
-                if (bad1.get(p) == 1) row.set(p, 1.0);
+                if (bad1.get(p) == 1) row.set(p, 1.0f);
             }
             for (int p = 0; p < k; p++) {
                 s.set(p, zTargetVector.get(p) / row.get(p));
@@ -209,7 +210,7 @@ public class FinalScale {
             // find column sums and update rows scaling vector
             col = sparseMultiplyGetRowSums(contactRecordsListOfLists, dr, k);
             for (long p = 0; p < k; p++) col.multiplyBy(p, dc.get(p));
-            for (long p = 0; p < k; p++) if (bad1.get(p) == 1) col.set(p, 1.0);
+            for (long p = 0; p < k; p++) if (bad1.get(p) == 1) col.set(p, 1.0f);
             for (long p = 0; p < k; p++) s.set(p, zTargetVector.get(p) / col.get(p));
             for (long p = 0; p < k; p++) dc.multiplyBy(p, s.get(p));
     
@@ -219,7 +220,7 @@ public class FinalScale {
     
             // calculate current scaling vector
             for (long p = 0; p < k; p++) {
-                calculatedVectorB.set(p, Math.sqrt(dr.get(p) * dc.get(p)));
+                calculatedVectorB.set(p, (float) Math.sqrt(dr.get(p) * dc.get(p)));
             }
     
             //	calculate the current error
@@ -284,7 +285,7 @@ public class FinalScale {
                     zHigh = zz[zhind];
                     for (long p = 0; p < k; p++) {
                         if (zTargetVector.get(p) > 0 && (zTargetVector.get(p) < zLow || zTargetVector.get(p) > zHigh)) {
-                            zTargetVector.set(p, Double.NaN);
+                            zTargetVector.set(p, Float.NaN);
                         }
                     }
                     for (long p = 0; p < k; p++) {
@@ -292,7 +293,7 @@ public class FinalScale {
                             bad.set(p, 1);
                             bad1.set(p, 1);
                             one.set(p, 0);
-                            zTargetVector.set(p, 1.0);
+                            zTargetVector.set(p, 1.0f);
                         }
                     }
     
@@ -341,7 +342,7 @@ public class FinalScale {
         
         for (long p = 0; p < k; p++) {
             if (bad.get(p) == 1) {
-                calculatedVectorB.set(p, Double.NaN);
+                calculatedVectorB.set(p, Float.NaN);
             }
         }
         
@@ -362,9 +363,9 @@ public class FinalScale {
         return realVector;
     }
     
-    private static ListOfDoubleArrays sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists,
-                                                               ListOfDoubleArrays vector, long vectorLength) {
-        ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
+    private static ListOfFloatArrays sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists,
+                                                               ListOfFloatArrays vector, long vectorLength) {
+        ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
         
         for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
             for (ContactRecord cr : contactRecords) {

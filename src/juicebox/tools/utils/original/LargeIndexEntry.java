@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,21 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.norm;
+package juicebox.tools.utils.original;
 
-class NormalizationVectorIndexEntry {
-    final String type;
-    final int chrIdx;
-    final String unit;
-    final int resolution;
-    final long sizeInBytes;
-    long position;
+public class LargeIndexEntry {
+    public final long position;
+    public final long size;
+    int id;
 
-    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, long sizeInBytes) {
-        this.type = type;
-        this.chrIdx = chrIdx;
-        this.unit = unit;
-        this.resolution = resolution;
+    LargeIndexEntry(int id, long position, long size) {
+        this.id = id;
         this.position = position;
-        this.sizeInBytes = sizeInBytes;
+        this.size = size;
     }
 
-    @Override
-    public String toString() {
-        return type + " " + chrIdx + " " + unit + " " + resolution + " " + position + " " + sizeInBytes;
+    public LargeIndexEntry(long position, long size) {
+        this.position = position;
+        this.size = size;
     }
 }

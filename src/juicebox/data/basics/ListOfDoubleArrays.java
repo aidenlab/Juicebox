@@ -168,4 +168,14 @@ public class ListOfDoubleArrays {
 			}
 		}
 	}
+
+	public ListOfFloatArrays convertToFloats() {
+		ListOfFloatArrays newList = new ListOfFloatArrays(overallLength);
+		for (int j = 0; j < internalList.size(); j++) {
+			for (int k = 0; k < internalList.get(j).length; k++) {
+				newList.getValues().get(j)[k] = (float) internalList.get(j)[k];
+			}
+		}
+		return newList;
+	}
 }

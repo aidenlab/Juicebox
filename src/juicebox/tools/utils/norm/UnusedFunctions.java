@@ -26,6 +26,7 @@ package juicebox.tools.utils.norm;
 
 import juicebox.data.DatasetReaderV2;
 import juicebox.tools.utils.original.IndexEntry;
+import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -155,11 +156,11 @@ class UnusedFunctions {
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
 
-            Map<String, IndexEntry> normVectorMap = reader.getNormVectorIndex();
+            Map<String, LargeIndexEntry> normVectorMap = reader.getNormVectorIndex();
 
             List<NormalizationVectorIndexEntry> normList = new ArrayList<>();
 
-            for (Map.Entry<String, IndexEntry> entry : normVectorMap.entrySet()) {
+            for (Map.Entry<String, LargeIndexEntry> entry : normVectorMap.entrySet()) {
                 String[] parts = entry.getKey().split("_");
                 String strType;
                 int chrIdx;

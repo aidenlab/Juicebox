@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -185,12 +186,12 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                                  ExpectedValueCalculation evVCSqrt) throws IOException {
         final int chrIdx = chr.getIndex();
         long currentTime = System.currentTimeMillis();
-        ListOfDoubleArrays vc = nc.computeVC();
+        ListOfFloatArrays vc = nc.computeVC();
 
-        ListOfDoubleArrays vcSqrt = new ListOfDoubleArrays(vc.getLength());
+        ListOfFloatArrays vcSqrt = new ListOfFloatArrays(vc.getLength());
         if (weShouldBuildVCSqrt) {
             for (int i = 0; i < vc.getLength(); i++) {
-                vcSqrt.set(i, Math.sqrt(vc.get(i)));
+                vcSqrt.set(i, (float) Math.sqrt(vc.get(i)));
             }
         }
         if (weShouldBuildVC) {
@@ -202,7 +203,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 	}
 
 
-	protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, ListOfDoubleArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+	protected static void updateExpectedValueCalculationForChr(final int chrIdx, NormalizationCalculations nc, ListOfFloatArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
 															   ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
 		double factor = nc.getSumFactor(vec);
 		vec.multiplyEverythingBy(factor);
@@ -218,7 +219,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
         long currentTime = System.currentTimeMillis();
         if (!failureSetKR.contains(chr)) {
-            ListOfDoubleArrays kr = nc.computeKR();
+            ListOfFloatArrays kr = nc.computeKR();
             if (kr == null) {
                 failureSetKR.add(chr);
                 printNormTiming("FAILED KR", chr, zoom, currentTime);
@@ -235,7 +236,7 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
         long currentTime = System.currentTimeMillis();
 
         if (!failureSetMMBA.contains(chr)) {
-			ListOfDoubleArrays mmba = nc.computeMMBA();
+			ListOfFloatArrays mmba = nc.computeMMBA();
 
             if (mmba == null) {
                 failureSetMMBA.add(chr);

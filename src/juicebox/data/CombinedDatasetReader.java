@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -196,6 +197,11 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) {
         return null; // Undefined for combined datasets
+    }
+
+    @Override
+    public NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) {
+        return null; //Undefined for combined datasets
     }
 
     @Override

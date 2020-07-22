@@ -27,6 +27,7 @@ package juicebox.tools.utils.norm;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -112,7 +113,7 @@ public class NormalizationCalculations {
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
         listOfLists.add(readList);
         NormalizationCalculations nc = new NormalizationCalculations(listOfLists, maxBin + 1);
-        for (double[] array : nc.getNorm(NormalizationHandler.KR).getValues()) {
+        for (float[] array : nc.getNorm(NormalizationHandler.KR).getValues()) {
             for (double d : array) {
                 System.out.println(d);
             }
@@ -140,10 +141,10 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static ListOfDoubleArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfDoubleArrays x0, double delta) {
+    private static ListOfFloatArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfFloatArrays x0, double delta) {
     
         long n = x0.getLength();
-        ListOfDoubleArrays e = new ListOfDoubleArrays(n, 1);
+        ListOfFloatArrays e = new ListOfFloatArrays(n, 1);
     
         double g = 0.9;
         double etamax = 0.1;
@@ -151,15 +152,15 @@ public class NormalizationCalculations {
     
         double rt = Math.pow(tol, 2);
     
-        ListOfDoubleArrays v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
-        ListOfDoubleArrays rk = new ListOfDoubleArrays(v.getLength());
+        ListOfFloatArrays v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
+        ListOfFloatArrays rk = new ListOfFloatArrays(v.getLength());
         for (long i = 0; i < v.getLength(); i++) {
             v.multiplyBy(i, x0.get(i));
             rk.set(i, 1 - v.get(i));
         }
-        double rho_km1 = 0;
-        for (double[] aRkArray : rk.getValues()) {
-            for (double aRk : aRkArray) {
+        float rho_km1 = 0;
+        for (float[] aRkArray : rk.getValues()) {
+            for (float aRk : aRkArray) {
                 rho_km1 += aRk * aRk;
             }
         }
@@ -170,14 +171,14 @@ public class NormalizationCalculations {
         int not_changing = 0;
         while (rout > rt && not_changing < 100) {    // Outer iteration
             int k = 0;
-            ListOfDoubleArrays y = e.deepClone();
-            ListOfDoubleArrays ynew = new ListOfDoubleArrays(e.getLength());
-            ListOfDoubleArrays Z = new ListOfDoubleArrays(e.getLength());
-            ListOfDoubleArrays p = new ListOfDoubleArrays(e.getLength());
-            ListOfDoubleArrays w = new ListOfDoubleArrays(e.getLength());
-            double alpha;
+            ListOfFloatArrays y = e.deepClone();
+            ListOfFloatArrays ynew = new ListOfFloatArrays(e.getLength());
+            ListOfFloatArrays Z = new ListOfFloatArrays(e.getLength());
+            ListOfFloatArrays p = new ListOfFloatArrays(e.getLength());
+            ListOfFloatArrays w = new ListOfFloatArrays(e.getLength());
+            float alpha;
             double beta;
-            double gamma;
+            float gamma;
             double rho_km2 = rho_km1;
         
         
@@ -188,8 +189,8 @@ public class NormalizationCalculations {
                 if (k == 1) {
                     rho_km1 = 0;
                     for (long i = 0; i < Z.getLength(); i++) {
-                        double rkVal = rk.get(i);
-                        double zVal = rkVal / v.get(i);
+                        float rkVal = rk.get(i);
+                        float zVal = rkVal / v.get(i);
                         Z.set(i, zVal);
                         rho_km1 += rkVal * zVal;
                     }
@@ -202,7 +203,7 @@ public class NormalizationCalculations {
                         p.addTo(i, Z.get(i));
                     }
                 }
-                ListOfDoubleArrays tmp = new ListOfDoubleArrays(e.getLength());
+                ListOfFloatArrays tmp = new ListOfFloatArrays(e.getLength());
                 for (long i = 0; i < tmp.getLength(); i++) {
                     tmp.set(i, x0.get(i) * p.get(i));
                 }
@@ -211,7 +212,7 @@ public class NormalizationCalculations {
                 // Update search direction efficiently.
                 for (long i = 0; i < tmp.getLength(); i++) {
                     double pVal = p.get(i);
-                    double wVal = x0.get(i) * tmp.get(i) + v.get(i) * pVal;
+                    float wVal = (float) (x0.get(i) * tmp.get(i) + v.get(i) * pVal);
                     w.set(i, wVal);
                     alpha += pVal * wVal;
                 }
@@ -219,7 +220,7 @@ public class NormalizationCalculations {
                 double minynew = Double.MAX_VALUE;
                 // Test distance to boundary of cone.
                 for (long i = 0; i < p.getLength(); i++) {
-                    double yVal = y.get(i) + alpha * p.get(i);
+                    float yVal = y.get(i) + alpha * p.get(i);
                     ynew.set(i, yVal);
                     if (yVal < minynew) {
                         minynew = yVal;
@@ -227,13 +228,13 @@ public class NormalizationCalculations {
                 }
                 if (minynew <= delta) {
                     if (delta == 0) break;     // break out of inner loop?
-                    gamma = Double.MAX_VALUE;
+                    gamma = Float.MAX_VALUE;
                     for (int i = 0; i < ynew.getLength(); i++) {
                         double pVal = p.get(i);
                         if (alpha * pVal < 0) {
                             double yVal = y.get(i);
                             if ((delta - yVal) / (alpha * pVal) < gamma) {
-                                gamma = (delta - yVal) / (alpha * pVal);
+                                gamma = (float) ((delta - yVal) / (alpha * pVal));
                             }
                         }
                     }
@@ -246,7 +247,7 @@ public class NormalizationCalculations {
                 for (long i = 0; i < y.getLength(); i++) {
                     y.set(i, ynew.get(i));
                     rk.addTo(i, -alpha * w.get(i));
-                    double rkVal = rk.get(i);
+                    float rkVal = rk.get(i);
                     Z.set(i, rkVal / v.get(i));
                     rho_km1 += rkVal * Z.get(i);
                 }
@@ -259,7 +260,7 @@ public class NormalizationCalculations {
             rho_km1 = 0;
             for (long i = 0; i < v.getLength(); i++) {
                 v.multiplyBy(i, x0.get(i));
-                double rkVal = 1 - v.get(i);
+                float rkVal = 1 - v.get(i);
                 rk.set(i, rkVal);
             
                 rho_km1 += rkVal * rkVal;
@@ -286,8 +287,8 @@ public class NormalizationCalculations {
         return x0;
     }
     
-    private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfDoubleArrays vector) {
-        ListOfDoubleArrays result = new ListOfDoubleArrays(vector.getLength());
+    private static ListOfFloatArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfFloatArrays vector) {
+        ListOfFloatArrays result = new ListOfFloatArrays(vector.getLength());
         
         for (List<ContactRecord> localList : listOfLists) {
             for (ContactRecord cr : localList) {
@@ -314,8 +315,8 @@ public class NormalizationCalculations {
         return isEnoughMemory;
     }
     
-    public ListOfDoubleArrays getNorm(NormalizationType normOption) {
-        ListOfDoubleArrays norm;
+    public ListOfFloatArrays getNorm(NormalizationType normOption) {
+        ListOfFloatArrays norm;
         switch (normOption.getLabel().toUpperCase()) {
             case NormalizationHandler.strKR:
             case NormalizationHandler.strGW_KR:
@@ -334,7 +335,7 @@ public class NormalizationCalculations {
                 norm = computeMMBA();
                 break;
             case NormalizationHandler.strNONE:
-                return new ListOfDoubleArrays(totSize, 1);
+                return new ListOfFloatArrays(totSize, 1);
             default:
                 System.err.println("Not supported for normalization " + normOption);
                 return null;
@@ -353,8 +354,8 @@ public class NormalizationCalculations {
      *
      * @return Normalization vector
      */
-    ListOfDoubleArrays computeVC() {
-        ListOfDoubleArrays rowsums = new ListOfDoubleArrays(totSize, 0);
+    ListOfFloatArrays computeVC() {
+        ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
         
         for (List<ContactRecord> localList : contactRecords) {
             for (ContactRecord cr : localList) {
@@ -378,12 +379,12 @@ public class NormalizationCalculations {
      * @param norm Normalization vector
      * @return Square root of ratio of original to normalized vector
      */
-    public double getSumFactor(ListOfDoubleArrays norm) {
+    public double getSumFactor(ListOfFloatArrays norm) {
         Double[] normMatrixSums = getNormMatrixSumFactor(norm);
         return Math.sqrt(normMatrixSums[0] / normMatrixSums[1]);
     }
     
-    public Double[] getNormMatrixSumFactor(ListOfDoubleArrays norm) {
+    public Double[] getNormMatrixSumFactor(ListOfFloatArrays norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (List<ContactRecord> localList : contactRecords) {
@@ -445,11 +446,11 @@ public class NormalizationCalculations {
     }
     
     
-    ListOfDoubleArrays computeKR() {
+    ListOfFloatArrays computeKR() {
         
         boolean recalculate = true;
         ListOfIntArrays offset = getOffset(0);
-        ListOfDoubleArrays kr = null;
+        ListOfFloatArrays kr = null;
         int iteration = 1;
         
         while (recalculate && iteration <= 6) {
@@ -463,7 +464,7 @@ public class NormalizationCalculations {
             }
             
             // initialize x0 for call the compute KR norm
-            ListOfDoubleArrays x0 = new ListOfDoubleArrays(newSize, 1);
+            ListOfFloatArrays x0 = new ListOfFloatArrays(newSize, 1);
             
             x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
             
@@ -483,14 +484,14 @@ public class NormalizationCalculations {
             } else {
                 // otherwise, check to be sure there are no tiny KR values
                 // create true KR vector
-                kr = new ListOfDoubleArrays(totSize);
+                kr = new ListOfFloatArrays(totSize);
                 int krIndex = 0;
                 for (int[] offsetArray : offset.getValues()) {
                     for (int offset1 : offsetArray) {
                         if (offset1 == -1) {
-                            kr.set(krIndex++, Double.NaN);
+                            kr.set(krIndex++, Float.NaN);
                         } else {
-                            kr.set(krIndex++, (1.0 / x0.get(offset1)));
+                            kr.set(krIndex++, (1.0f / x0.get(offset1)));
                         }
                     }
                 }
@@ -517,7 +518,7 @@ public class NormalizationCalculations {
             System.gc();
         }
         if (iteration > 6 && recalculate) {
-            kr = new ListOfDoubleArrays(totSize, Double.NaN);
+            kr = new ListOfFloatArrays(totSize, Float.NaN);
         }
         
         return kr;
@@ -575,9 +576,9 @@ public class NormalizationCalculations {
         
     }
     
-    public ListOfDoubleArrays computeMMBA() {
+    public ListOfFloatArrays computeMMBA() {
         
-        ListOfDoubleArrays tempTargetVector = new ListOfDoubleArrays(totSize, 1);
+        ListOfFloatArrays tempTargetVector = new ListOfFloatArrays(totSize, 1);
         
         return ZeroScale.mmbaScaleToVector(contactRecords, tempTargetVector);
     }

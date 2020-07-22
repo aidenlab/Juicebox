@@ -31,7 +31,9 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.IndexEntry;
+import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -63,7 +65,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
     private final SeekableStream stream, backUpStream, highResStream;
     private Map<String, IndexEntry> masterIndex;
-    private Map<String, IndexEntry> normVectorIndex;
+    private Map<String, LargeIndexEntry> normVectorIndex;
     private Dataset dataset = null;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
@@ -568,13 +570,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 String unit = dis.readString();
                 int resolution = dis.readInt();
                 long filePosition = dis.readLong();
-                int sizeInBytes = dis.readInt();
+                long sizeInBytes = version > 8 ? dis.readLong() : dis.readInt();
 
                 String key = NormalizationVector.getKey(type, chrIdx, unit, resolution);
 
                 dataset.addNormalizationType(type);
 
-                normVectorIndex.put(key, new IndexEntry(filePosition, sizeInBytes));
+                normVectorIndex.put(key, new LargeIndexEntry(filePosition, sizeInBytes));
             }
         }
     }
@@ -678,7 +680,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
     }
 
-    public Map<String, IndexEntry> getNormVectorIndex() {
+    public Map<String, LargeIndexEntry> getNormVectorIndex() {
         return normVectorIndex;
     }
 
@@ -700,11 +702,21 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
         String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
         if (normVectorIndex == null) return null;
-        IndexEntry idx = normVectorIndex.get(key);
+        LargeIndexEntry idx = normVectorIndex.get(key);
+        boolean useVCForVCSQRT = false;
+        if (idx == null && type.equals(NormalizationHandler.VC_SQRT)) {
+            key = NormalizationVector.getKey(NormalizationHandler.VC, chrIdx, unit.toString(), binSize);
+            idx = normVectorIndex.get(key);
+            useVCForVCSQRT = true;
+        }
         if (idx == null) return null;
     
-        byte[] buffer = seekAndFullyReadCompressedBytes(idx);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+        List<byte[]> buffer = seekAndFullyReadLargeCompressedBytes(idx);
+        List<ByteArrayInputStream> disList = new ArrayList<>();
+        for (int i = 0; i < buffer.size(); i++) {
+            disList.add(new ByteArrayInputStream(buffer.get(i)));
+        }
+        LittleEndianInputStream dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
     
         long nValues;
         if (version > 8) {
@@ -715,8 +727,54 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
         boolean allNaN = true;
         for (long i = 0; i < nValues; i++) {
-            double val = dis.readDouble();
-            values.set(i, val);
+            double val = version > 8 ? (double) dis.readFloat() : dis.readDouble();
+            if (!useVCForVCSQRT) {
+                values.set(i, val);
+            } else {
+                values.set(i, Math.sqrt(val));
+            }
+            if (!Double.isNaN(val)) {
+                allNaN = false;
+            }
+        }
+        if (allNaN) return null;
+        else return new NormalizationVector(type, chrIdx, unit, binSize, values);
+    }
+
+    @Override
+    public NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) throws IOException {
+        String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
+        if (normVectorIndex == null) return null;
+        LargeIndexEntry idx = normVectorIndex.get(key);
+        boolean useVCForVCSQRT = false;
+        if (idx == null && type.equals(NormalizationHandler.VC_SQRT)) {
+            key = NormalizationVector.getKey(NormalizationHandler.VC, chrIdx, unit.toString(), binSize);
+            idx = normVectorIndex.get(key);
+            useVCForVCSQRT = true;
+        }
+        if (idx == null) return null;
+
+        long partPosition = version > 8 ? idx.position + 8 + 4*bound1 : idx.position + 4 + 8*bound1;
+        long partSize = version > 8 ? (bound2-bound1+1) * 4 : (bound2-bound1+1) * 8;
+        LargeIndexEntry partIdx = new LargeIndexEntry(partPosition, partSize);
+
+        List<byte[]> buffer = seekAndFullyReadLargeCompressedBytes(partIdx);
+        List<ByteArrayInputStream> disList = new ArrayList<>();
+        for (int i = 0; i < buffer.size(); i++) {
+            disList.add(new ByteArrayInputStream(buffer.get(i)));
+        }
+        LittleEndianInputStream dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
+
+        long nValues = bound2-bound1+1;
+        ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+        boolean allNaN = true;
+        for (long i = 0; i < nValues; i++) {
+            double val = version > 8 ? (double) dis.readFloat() : dis.readDouble();
+            if (!useVCForVCSQRT) {
+                values.set(i, val);
+            } else {
+                values.set(i, Math.sqrt(val));
+            }
             if (!Double.isNaN(val)) {
                 allNaN = false;
             }
@@ -749,6 +807,38 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return compressedBytes;
     }
 
+    private List<byte[]> seekAndFullyReadLargeCompressedBytes(LargeIndexEntry idx) throws IOException {
+        boolean currentlyUseMainStream;
+        List<byte[]> compressedBytes = new ArrayList<>();
+        long counter = idx.size;
+        while (counter > Integer.MAX_VALUE-10) {
+            compressedBytes.add(new byte[Integer.MAX_VALUE-10]);
+            counter = counter - Integer.MAX_VALUE-10;
+        }
+            compressedBytes.add(new byte[(int) counter]);
+
+        synchronized (useMainStream) {
+            currentlyUseMainStream = useMainStream.get();
+            useMainStream.set(!currentlyUseMainStream);
+        }
+
+        if (currentlyUseMainStream) {
+            synchronized (stream) {
+                stream.seek(idx.position);
+                for (int i = 0; i < compressedBytes.size(); i++) {
+                    stream.readFully(compressedBytes.get(i));
+                }
+            }
+        } else {
+            synchronized (backUpStream) {
+                backUpStream.seek(idx.position);
+                for (int i = 0; i < compressedBytes.size(); i++) {
+                    backUpStream.readFully(compressedBytes.get(i));
+                }
+            }
+        }
+        return compressedBytes;
+    }
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
@@ -759,6 +849,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             long[] timeDiffThings = new long[4];
             timeDiffThings[0] = System.currentTimeMillis();
+            List<Integer> bounds;
+            if (version > 8 && zd.getChr1Idx() == zd.getChr2Idx()) {
+                bounds = zd.getBlockBoundsFromNumberVersion9Up(blockNumber);
+            }
+            else {
+                bounds = zd.getBlockBoundsFromNumberVersion8Below(blockNumber);
+            }
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
     

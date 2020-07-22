@@ -29,6 +29,7 @@ import juicebox.data.DatasetReaderV2;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -40,14 +41,14 @@ import java.util.*;
 
 public class NormVectorUpdater {
 
-    static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBufferList, ListOfDoubleArrays vec,
+    static void updateNormVectorIndexWithVector(List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBufferList, ListOfFloatArrays vec,
                                                 int chrIdx, NormalizationType type, HiCZoom zoom) throws IOException {
         long position = 0;
         for (int i=0; i < normVectorBufferList.size(); i++) {
             position += normVectorBufferList.get(i).bytesWritten();
         }
 
-        putArrayValuesIntoBufferList(normVectorBufferList, vec.getValues());
+        putFloatArraysIntoBufferList(normVectorBufferList, vec.getValues());
 
         long newPos = 0;
         for (int i=0; i < normVectorBufferList.size(); i++) {
@@ -57,8 +58,8 @@ public class NormVectorUpdater {
         normVectorIndex.add(new NormalizationVectorIndexEntry(type.toString(), chrIdx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
     }
 
-    public static boolean isValidNormValue(double v) {
-        return v > 0 && !Double.isNaN(v);
+    public static boolean isValidNormValue(float v) {
+        return v > 0 && !Float.isNaN(v);
     }
 
     static void putArrayValuesIntoBuffer(BufferedByteWriter buffer, double[] array) throws IOException {
@@ -68,7 +69,7 @@ public class NormVectorUpdater {
         }
     }
 
-    static void putArrayValuesIntoBufferList(List<BufferedByteWriter> bufferList, List<double[]> arrays) throws IOException {
+    static void putDoubleArraysIntoBufferList(List<BufferedByteWriter> bufferList, List<double[]> arrays) throws IOException {
         int freeBytes = Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten();
         long bytesNeeded = 4;
         if (bytesNeeded >= freeBytes) {
@@ -87,6 +88,29 @@ public class NormVectorUpdater {
                     bufferList.add(new BufferedByteWriter());
                 }
                 bufferList.get(bufferList.size()-1).putDouble(val);
+            }
+        }
+    }
+
+    static void putFloatArraysIntoBufferList(List<BufferedByteWriter> bufferList, List<float[]> arrays) throws IOException {
+        int freeBytes = Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten();
+        long bytesNeeded = 4;
+        if (bytesNeeded >= freeBytes) {
+            bufferList.add(new BufferedByteWriter());
+        }
+        long vectorLength = 0;
+        for (float[] array : arrays) {
+            vectorLength += array.length;
+        }
+        bufferList.get(bufferList.size()-1).putLong(vectorLength);
+
+        for (float[] array : arrays) {
+            bufferList.add(new BufferedByteWriter());
+            for (float val : array) {
+                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
+                    bufferList.add(new BufferedByteWriter());
+                }
+                bufferList.get(bufferList.size()-1).putFloat(val);
             }
         }
     }
@@ -133,7 +157,7 @@ public class NormVectorUpdater {
             buffer.putNullTerminatedString(entry.unit);
             buffer.putInt(entry.resolution);
             buffer.putLong(entry.position);
-            buffer.putInt(entry.sizeInBytes);
+            buffer.putLong(entry.sizeInBytes);
         }
     }
 
@@ -221,7 +245,7 @@ public class NormVectorUpdater {
             }
             buffer.putInt(ev.getGridSize());
 
-            putArrayValuesIntoBufferList(expectedBuffers, ev.getDensityAvg().getValues());
+            putDoubleArraysIntoBufferList(expectedBuffers, ev.getDensityAvg().getValues());
 
 
             buffer = expectedBuffers.get(expectedBuffers.size()-1);
@@ -269,7 +293,7 @@ public class NormVectorUpdater {
             }
             buffer.putInt(function.getBinSize());
 
-            putArrayValuesIntoBufferList(expectedBuffers, function.getExpectedValuesNoNormalization().getValues());
+            putDoubleArraysIntoBufferList(expectedBuffers, function.getExpectedValuesNoNormalization().getValues());
 
             buffer = expectedBuffers.get(expectedBuffers.size()-1);
             freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();

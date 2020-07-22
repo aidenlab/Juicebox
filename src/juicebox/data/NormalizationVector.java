@@ -28,6 +28,7 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -97,11 +98,11 @@ public class NormalizationVector {
 
         List<List<ContactRecord>> listOfLists = new ArrayList<>();
         listOfLists.addAll(zd.getContactRecordList());
-        ListOfDoubleArrays newNormVector = ZeroScale.scale(listOfLists, data, getKey());
+        ListOfFloatArrays newNormVector = ZeroScale.scale(listOfLists, data.convertToFloats(), getKey());
         if (newNormVector != null) {
             newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, listOfLists);
         }
-
-        return new NormalizationVector(type, chrIdx, unit, resolution, newNormVector);
+        ListOfDoubleArrays newDoubleNormVector = newNormVector.convertToDoubles();
+        return new NormalizationVector(type, chrIdx, unit, resolution, newDoubleNormVector);
     }
 }

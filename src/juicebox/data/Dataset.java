@@ -909,6 +909,23 @@ public class Dataset {
         return normalizationVectorCache.get(key);
     }
 
+    public NormalizationVector getPartNormalizationVector(int chrIdx, HiCZoom zoom, NormalizationType type, int bound1, int bound2) {
+        String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
+        NormalizationVector nv;
+
+        if (type.equals(NormalizationHandler.NONE)) {
+            return null;
+        } else {
+            try {
+                nv = reader.readNormalizationVectorPart(type, chrIdx, zoom.getUnit(), zoom.getBinSize(), bound1, bound2);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        return nv;
+    }
+
     public void addNormalizationVectorDirectlyToRAM(NormalizationVector normalizationVector) {
         normalizationsVectorsOnlySavedInRAMCache.put(normalizationVector.getKey(), normalizationVector);
     }

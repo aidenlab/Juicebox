@@ -27,13 +27,14 @@ package juicebox.tools.utils.norm;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.final2.FinalScale;
 
 import java.util.List;
 
 public class ZeroScale {
-    public static ListOfDoubleArrays scale(List<List<ContactRecord>> contactRecordsListOfLists, ListOfDoubleArrays targetVectorInitial, String key) {
-        ListOfDoubleArrays newVector = FinalScale.scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial);
+    public static ListOfFloatArrays scale(List<List<ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial, String key) {
+        ListOfFloatArrays newVector = FinalScale.scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial);
         
         if (newVector == null && HiCGlobals.printVerboseComments) {
             System.err.println("Scaling result still null for " + key + "; vector did not converge");
@@ -42,14 +43,14 @@ public class ZeroScale {
     }
     
     
-    public static ListOfDoubleArrays normalizeVectorByScaleFactor(ListOfDoubleArrays newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
+    public static ListOfFloatArrays normalizeVectorByScaleFactor(ListOfFloatArrays newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
         
         for (long k = 0; k < newNormVector.getLength(); k++) {
-            double kVal = newNormVector.get(k);
+            float kVal = newNormVector.get(k);
             if (kVal <= 0 || Double.isNaN(kVal)) {
-                newNormVector.set(k, Double.NaN);
+                newNormVector.set(k, Float.NaN);
             } else {
-                newNormVector.set(k, 1. / kVal);
+                newNormVector.set(k, 1.f / kVal);
             }
         }
         
@@ -81,9 +82,9 @@ public class ZeroScale {
         return newNormVector;
     }
     
-    public static ListOfDoubleArrays mmbaScaleToVector(List<List<ContactRecord>> contactRecords, ListOfDoubleArrays tempTargetVector) {
+    public static ListOfFloatArrays mmbaScaleToVector(List<List<ContactRecord>> contactRecords, ListOfFloatArrays tempTargetVector) {
         
-        ListOfDoubleArrays newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
+        ListOfFloatArrays newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
         if (newNormVector != null) {
             newNormVector = normalizeVectorByScaleFactor(newNormVector, contactRecords);
         }

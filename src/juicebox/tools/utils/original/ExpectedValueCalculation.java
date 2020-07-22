@@ -31,6 +31,7 @@ import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
@@ -330,14 +331,14 @@ public class ExpectedValueCalculation {
     }
 	
 	// TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-	public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, ListOfDoubleArrays vector) {
+	public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, ListOfFloatArrays vector) {
 		for (List<ContactRecord> recordList : recordLists) {
 			for (ContactRecord cr : recordList) {
 				int x = cr.getBinX();
 				int y = cr.getBinY();
 				final float counts = cr.getCounts();
-				double xVal = vector.get(x);
-				double yVal = vector.get(y);
+				float xVal = vector.get(x);
+				float yVal = vector.get(y);
 				if (NormVectorUpdater.isValidNormValue(xVal) & NormVectorUpdater.isValidNormValue(yVal)) {
 					double value = counts / (xVal * yVal);
 					addDistance(chrIndx, x, y, value);

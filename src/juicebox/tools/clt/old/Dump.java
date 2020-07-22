@@ -115,7 +115,7 @@ public class Dump extends JuiceboxCLT {
         }
     
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm).getValues().get(0);
+        float[] vector = calculations.getNorm(norm).getValues().get(0);
 
 
         if (matrixType == MatrixType.NORM) {

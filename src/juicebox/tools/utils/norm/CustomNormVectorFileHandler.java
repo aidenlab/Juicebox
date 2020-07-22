@@ -122,7 +122,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                                 position += normVectorBuffers.get(i).bytesWritten();
                             }
                             // todo @suhas
-                            putArrayValuesIntoBufferList(normVectorBuffers, existingNorm.getData().getValues());
+                            putFloatArraysIntoBufferList(normVectorBuffers, existingNorm.getData().convertToFloats().getValues());
 
                             long newPos = 0;
                             for (int i=0; i < normVectorBuffers.size(); i++) {
@@ -216,7 +216,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                 position += normVectorBuffers.get(i).bytesWritten();
             }
             // todo @suhas
-            putArrayValuesIntoBufferList(normVectorBuffers, vector.getData().getValues());
+            putFloatArraysIntoBufferList(normVectorBuffers, vector.getData().convertToFloats().getValues());
 
             long newPos = 0;
             for (int i=0; i < normVectorBuffers.size(); i++) {
@@ -227,7 +227,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             normVectorIndex.add(new NormalizationVectorIndexEntry(
                     customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
     
-            evLoaded.addDistancesFromIterator(chrIndx, zd.getContactRecordList(), vector.getData());
+            evLoaded.addDistancesFromIterator(chrIndx, zd.getContactRecordList(), vector.getData().convertToFloats());
         }
     }
 
