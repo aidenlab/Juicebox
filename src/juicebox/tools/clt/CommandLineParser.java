@@ -77,6 +77,8 @@ public class CommandLineParser extends CmdLineParser {
     private final Option resolutionOption = addStringOption('r', "resolutions");
     private final Option randomizePositionMapsOption = addStringOption("frag-site-maps");
 
+    //set of ints
+    private final Option multipleMapQOption = addStringOption("mapqs");
 
     //filter optrectionalion based on diity
     private final Option hicFileScalingOption = addDoubleOption('z', "scale");
@@ -253,6 +255,24 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
+
+    /**
+     * Int Set flags
+     */
+    protected List<Integer> optionToIntList(Option option) {
+        Object opt = getOptionValue(option);
+        if(opt == null){
+            return null;
+        }
+        String[] temp = opt.toString().split(",");
+        List<Integer> options = new ArrayList<>();
+        for(String s : temp){
+            options.add(Integer.parseInt(s));
+        }
+        return options;
+    }
+
+    public List<Integer> getMultipleMapQOptions() {return optionToIntList(multipleMapQOption);}
 
     public List<NormalizationType> getAllNormalizationTypesOption() {
         NormalizationHandler normalizationHandler = new NormalizationHandler();
