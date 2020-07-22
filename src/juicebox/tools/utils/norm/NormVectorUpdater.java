@@ -119,7 +119,7 @@ public class NormVectorUpdater {
         buffer.putInt(hashmap.size());
         for (Map.Entry<Integer, Double> keyValuePair : hashmap.entrySet()) {
             buffer.putInt(keyValuePair.getKey());
-            buffer.putDouble(keyValuePair.getValue());
+            buffer.putFloat(keyValuePair.getValue().floatValue());
         }
     }
 
@@ -245,7 +245,7 @@ public class NormVectorUpdater {
             }
             buffer.putInt(ev.getGridSize());
 
-            putDoubleArraysIntoBufferList(expectedBuffers, ev.getDensityAvg().getValues());
+            putFloatArraysIntoBufferList(expectedBuffers, ev.getDensityAvg().convertToFloats().getValues());
 
 
             buffer = expectedBuffers.get(expectedBuffers.size()-1);
@@ -293,7 +293,7 @@ public class NormVectorUpdater {
             }
             buffer.putInt(function.getBinSize());
 
-            putDoubleArraysIntoBufferList(expectedBuffers, function.getExpectedValuesNoNormalization().getValues());
+            putFloatArraysIntoBufferList(expectedBuffers, function.getExpectedValuesNoNormalization().convertToFloats().getValues());
 
             buffer = expectedBuffers.get(expectedBuffers.size()-1);
             freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();

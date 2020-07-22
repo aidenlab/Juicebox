@@ -490,14 +490,23 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
             //System.out.println(binSize + " " + nValues + " " + stream.position());
             for (long j = 0; j < nValues; j++) {
-                values.set(j, dis.readDouble());
+                if (version > 8) {
+                    values.set(j, (double) dis.readFloat());
+                } else {
+                    values.set(j, dis.readDouble());
+                }
             }
             //System.out.println(binSize + " " + stream.position());
             int nNormalizationFactors = dis.readInt();
             Map<Integer, Double> normFactors = new LinkedHashMap<>();
             for (int j = 0; j < nNormalizationFactors; j++) {
                 Integer chrIdx = dis.readInt();
-                Double normFactor = dis.readDouble();
+                Double normFactor ;
+                if (version > 8) {
+                    normFactor = (double) dis.readFloat();
+                } else {
+                    normFactor = dis.readDouble();
+                }
                 normFactors.put(chrIdx, normFactor);
             }
             //System.out.println(binSize + " " + stream.position());
@@ -543,13 +552,22 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 }
                 ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                 for (long j = 0; j < nValues; j++) {
-                    values.set(j, dis.readDouble());
+                    if (version > 8) {
+                        values.set(j, (double) dis.readFloat());
+                    } else {
+                        values.set(j, dis.readDouble());
+                    }
                 }
                 int nNormalizationFactors = dis.readInt();
                 Map<Integer, Double> normFactors = new LinkedHashMap<>();
                 for (int j = 0; j < nNormalizationFactors; j++) {
                     Integer chrIdx = dis.readInt();
-                    Double normFactor = dis.readDouble();
+                    Double normFactor;
+                    if (version > 8) {
+                        normFactor = (double) dis.readFloat();
+                    } else {
+                        normFactor = dis.readDouble();
+                    }
                     normFactors.put(chrIdx, normFactor);
                 }
 

@@ -905,7 +905,7 @@ public class Preprocessor {
                         if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
                             bufferList.add(new BufferedByteWriter());
                         }
-                        bufferList.get(bufferList.size()-1).putDouble(value);
+                        bufferList.get(bufferList.size()-1).putFloat( (float) value);
                     }
                 }
     
@@ -917,7 +917,7 @@ public class Preprocessor {
                 bufferList.get(bufferList.size()-1).putInt(normalizationFactors.size());
                 for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
                     bufferList.get(bufferList.size()-1).putInt(normFactor.getKey());
-                    bufferList.get(bufferList.size()-1).putDouble(normFactor.getValue());
+                    bufferList.get(bufferList.size()-1).putFloat(normFactor.getValue().floatValue());
                     //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
                 }
             }
