@@ -92,17 +92,17 @@ public class StatisticsWorker {
                         files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
                         while(files.hasNext()){
                             AlignmentPairLong pair = (AlignmentPairLong) files.next();
-                            processSingleEntry(pair, "single-thread");
+                            processSingleEntry(pair, "", false);
                         }
             } else {
                 files = new AsciiPairIterator(inFile, chromosomeIndexes, mndIndexStart, localHandler);
                 if(files.hasNext()) {
                     AlignmentPairLong firstPair = (AlignmentPairLong) files.next();
                     String previousBlock = firstPair.getChr1() + "_" + firstPair.getChr2();
-                    processSingleEntry(firstPair, previousBlock);
+                    processSingleEntry(firstPair, previousBlock, true);
                     while (files.hasNext()) {
                         AlignmentPairLong pair = (AlignmentPairLong) files.next();
-                        if (processSingleEntry(pair, previousBlock)) {
+                        if (processSingleEntry(pair, previousBlock, true)) {
                             break;
                         }
                     }
@@ -113,14 +113,14 @@ public class StatisticsWorker {
             e.printStackTrace();
         }
     }
-    private boolean processSingleEntry(AlignmentPairLong pair, String blockKey){
+    private boolean processSingleEntry(AlignmentPairLong pair, String blockKey, boolean multithread){
         int chr1,chr2,pos1,pos2,frag1,frag2,mapq1,mapq2;
         boolean str1,str2;
         String seq1,seq2;
         chr1 = pair.getChr1();
         chr2 = pair.getChr2();
         String currentBlock = chr1 + "_" + chr2;
-        if(!currentBlock.equals(blockKey)&& !blockKey.equals("single-thread")){
+        if(!currentBlock.equals(blockKey)&& multithread){
             return true;
         }
         pos1 = pair.getPos1();
