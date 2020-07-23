@@ -210,6 +210,21 @@ public class StatisticsWorker {
                         if (isDangling) {
                             resultsContainer.verySmallDangling[ind]++;
                         }
+                    } else if (posDist < 1000) {
+                        resultsContainer.oneKBRes[ind]++;
+                        if (isDangling) {
+                            resultsContainer.oneKBResDangling[ind]++;
+                        }
+                    } else if (posDist < 2000) {
+                        resultsContainer.twoKBRes[ind]++;
+                        if (isDangling) {
+                            resultsContainer.twoKBResDangling[ind]++;
+                        }
+                    } else if (posDist < 5000) {
+                        resultsContainer.fiveKBRes[ind]++;
+                        if (isDangling) {
+                            resultsContainer.fiveKBResDangling[ind]++;
+                        }
                     } else if (posDist < posDistThreshold) {
                         resultsContainer.small[ind]++;
                         if (isDangling) {
