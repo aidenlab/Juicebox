@@ -144,6 +144,8 @@ public class StatisticsContainer {
     private String commify(int value) {
         return NumberFormat.getNumberInstance(Locale.US).format(value);
     }
+    private String percentify(int num, int total){ return String.format("%.2f", (float) num * 100 / total) + "%";}
+    private String wholePercentify(int num, int total) { return String.format("%.0f", (float) num * 100 / total) + "%" ;}
 
     public void outputStatsFile(List<String> statsFiles) {
         for (int i =0; i<statsFiles.size();i++) {
@@ -175,118 +177,62 @@ public class StatisticsContainer {
                         unique++;
                     }
                     if(sequencedReadsGiven) {
-                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) intraFragment[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) intraFragment[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) underMapQ[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) underMapQ[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) totalCurrent[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) totalCurrent[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) ligation[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) ligation[i] * 100 / unique) + "%)" + "\n");
-
+                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (" + percentify(intraFragment[i],reads) + " / " + percentify(intraFragment[i],unique) + ")\n");
+                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (" + percentify(underMapQ[i],reads) + " / " + percentify(underMapQ[i],unique)  + ")\n");
+                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (" + percentify(totalCurrent[i],reads) + " / " + percentify(totalCurrent[i],unique)  + ")\n");
+                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (" + percentify(ligation[i],reads) + " / " + percentify(ligation[i],unique)  + ")\n");
                         if ((fivePrimeEnd[i] + threePrimeEnd[i]) > 0) {
-                            float f1 = (float) threePrimeEnd[i] * 100f / (threePrimeEnd[i] + fivePrimeEnd[i]);
-                            float f2 = (float) fivePrimeEnd[i] * 100f / (threePrimeEnd[i] + fivePrimeEnd[i]);
-                            statsOut.write(" 3' Bias (Long Range): " + (String.format("%.0f", f1)) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", f2)) + "%" + "\n");
+                            statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]));
+                            statsOut.write(" - " + wholePercentify(fivePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]) + "\n");
                         } else {
                             statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
                         }
                         if (large[i] > 0) {
-                            statsOut.write(" Pair Type %(L-I-O-R): " + (String.format("%.0f", (float) left[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) inner[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) outer[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) right[i] * 100 / large[i])) + "%" + "\n");
+                            statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(inner[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(outer[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(right[i],large[i])+ "\n");
                         } else {
                             statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
                         }
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) inter[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) inter[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Intra-chromosomal: %s " + commify(intra[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) intra[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) intra[i] * 100 / unique) + "%)" + "\n");
-
+                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (" + percentify(inter[i],reads) + " / " + percentify(inter[i],unique)  + ")\n");
+                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " (" + percentify(intra[i],reads) + " / " + percentify(intra[i],unique)  + ")\n");
                         statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  5kB-20kB: " + commify(small[i]) + " (" + String.format("%.2f", (float) small[i] * 100 / reads) + "%)");
-                        statsOut.write(" / " + String.format("%.2f", (float) small[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + " (" + String.format("%.2f", (float) fiveKBRes[i] * 100 / reads) + "%)");
-                        statsOut.write(" / " + String.format("%.2f", (float) fiveKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + " (" + String.format("%.2f", (float) twoKBRes[i] * 100 / reads) + "%)");
-                        statsOut.write(" / " + String.format("%.2f", (float) twoKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + " (" + String.format("%.2f", (float) oneKBRes[i] * 100 / reads) + "%)");
-                        statsOut.write(" / " + String.format("%.2f", (float) oneKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  <10B: " + commify(verySmall[i]) + " (" + String.format("%.2f", (float) verySmall[i] * 100 / reads) + "%)");
-                        statsOut.write(" / " + String.format("%.2f", (float) verySmall[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (");
-                        statsOut.write(String.format("%.2f", (float) large[i] * 100 / reads) + "%");
-                        statsOut.write(" / " + String.format("%.2f", (float) large[i] * 100 / unique) + "%)" + "\n");
+                        statsOut.write("  <10B: " + commify(verySmall[i]) + " (" + percentify(verySmall[i],reads) + " / " + percentify(verySmall[i],unique)  + ")\n");
+                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + " (" + percentify(oneKBRes[i],reads) + " / " + percentify(oneKBRes[i],unique)  + ")\n");
+                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + " (" + percentify(twoKBRes[i],reads) + " / " + percentify(twoKBRes[i],unique)  + ")\n");
+                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + " (" + percentify(fiveKBRes[i],reads) + " / " + percentify(fiveKBRes[i],unique)  + ")\n");
+                        statsOut.write("  5kB-20kB: " + commify(small[i]) + " (" + percentify(small[i],reads) + " / " + percentify(small[i],unique)  + ")\n");
+                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (" + percentify(large[i],reads) + " / " + percentify(large[i],unique)  + ")\n");
                     }
                     else{
-                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) intraFragment[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) underMapQ[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) totalCurrent[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) ligation[i] * 100 / unique) + "%)" + "\n");
-
+                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " ((" + percentify(intraFragment[i],unique) + ")\n");
+                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " ((" + percentify(underMapQ[i],unique) + ")\n");
+                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " ((" + percentify(totalCurrent[i],unique) + ")\n");
+                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " ((" + percentify(ligation[i],unique) + ")\n");
                         if ((fivePrimeEnd[i] + threePrimeEnd[i]) > 0) {
-                            float f1 = (float) threePrimeEnd[i] * 100f / (threePrimeEnd[i] + fivePrimeEnd[i]);
-                            float f2 = (float) fivePrimeEnd[i] * 100f / (threePrimeEnd[i] + fivePrimeEnd[i]);
-                            statsOut.write(" 3' Bias (Long Range): " + (String.format("%.0f", f1)) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", f2)) + "%" + "\n");
+                            statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]));
+                            statsOut.write(" - " + wholePercentify(fivePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]) + "\n");
                         } else {
                             statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
                         }
                         if (large[i] > 0) {
-                            statsOut.write(" Pair Type %(L-I-O-R): " + (String.format("%.0f", (float) left[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) inner[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) outer[i] * 100 / large[i])) + "%");
-                            statsOut.write(" - " + (String.format("%.0f", (float) right[i] * 100 / large[i])) + "%" + "\n");
+                            statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(inner[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(outer[i],large[i]));
+                            statsOut.write(" - " + wholePercentify(right[i],large[i])+ "\n");
                         } else {
                             statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
                         }
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) inter[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Intra-chromosomal: %s " + commify(intra[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) intra[i] * 100 / unique) + "%)" + "\n");
-
+                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " ((" + percentify(inter[i],unique) + ")\n");
+                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " ((" + percentify(intra[i],unique) + ")\n");
                         statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  5kB-20kB: " + commify(small[i]) + "(" + "(");
-                        statsOut.write(" / " + String.format("%.2f", (float) small[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + "(" + "(");
-                        statsOut.write(" / " + String.format("%.2f", (float) fiveKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + "(" + "(");
-                        statsOut.write(" / " + String.format("%.2f", (float) twoKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + "(" + "(");
-                        statsOut.write(" / " + String.format("%.2f", (float) oneKBRes[i] * 100 / unique) + "%)" + "\n");
-                        statsOut.write("  <10B: " + commify(verySmall[i]) + "(" + "(");
-                        statsOut.write(" / " + String.format("%.2f", (float) verySmall[i] * 100 / unique) + "%)" + "\n");
-
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (");
-                        statsOut.write("(");
-                        statsOut.write(" / " + String.format("%.2f", (float) large[i] * 100 / unique) + "%)" + "\n");
+                        statsOut.write("  <10B: " + commify(verySmall[i]) + " ((" + percentify(verySmall[i],unique) + ")\n");
+                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + " ((" + percentify(oneKBRes[i],unique) + ")\n");
+                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + " ((" + percentify(twoKBRes[i],unique) + ")\n");
+                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + " ((" + percentify(fiveKBRes[i],unique) + ")\n");
+                        statsOut.write("  5kB-20kB: " + commify(small[i]) + " ((" + percentify(small[i],unique) + ")\n");
+                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " ((" + percentify(large[i],unique) + ")\n");
                     }
 
                     statsOut.close();
