@@ -27,12 +27,12 @@ package juicebox.data;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.dev.Private;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
@@ -649,12 +649,12 @@ public class Dataset {
             String value = statsMap.get("Five prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Three prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
         } else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
@@ -667,22 +667,22 @@ public class Dataset {
             String value = statsMap.get("Left");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Inner");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Outer");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num3 = Math.round(Float.valueOf(value));
+            int num3 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Right");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num4 = Math.round(Float.valueOf(value));
+            int num4 = Math.round(Float.parseFloat(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
         } else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
             newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
@@ -790,7 +790,7 @@ public class Dataset {
     public List<HiCZoom> getBpZooms() {
         List<HiCZoom> zooms = new ArrayList<>(bpZooms);
         zooms.addAll(dynamicZooms);
-        Collections.sort(zooms, Collections.reverseOrder());
+        zooms.sort(Collections.reverseOrder());
         return zooms;
     }
 
@@ -831,12 +831,12 @@ public class Dataset {
     public void setFragmentCounts(Map<String, Integer> map) {
         fragmentCounts = map;
     }
-
+    
     /**
      * Return the "next" zoom level, relative to the current one, in the direction indicated
      *
-     * @param zoom - current zoom level
-     * @param b    -- direction, true == increasing resolution, false decreasing
+     * @param zoom               - current zoom level
+     * @param useIncreasingOrder -- direction, true == increasing resolution, false decreasing
      * @return Next zoom level
      */
 
@@ -907,6 +907,23 @@ public class Dataset {
         }
 
         return normalizationVectorCache.get(key);
+    }
+
+    public NormalizationVector getPartNormalizationVector(int chrIdx, HiCZoom zoom, NormalizationType type, int bound1, int bound2) {
+        String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
+        NormalizationVector nv;
+
+        if (type.equals(NormalizationHandler.NONE)) {
+            return null;
+        } else {
+            try {
+                nv = reader.readNormalizationVectorPart(type, chrIdx, zoom.getUnit(), zoom.getBinSize(), bound1, bound2);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        return nv;
     }
 
     public void addNormalizationVectorDirectlyToRAM(NormalizationVector normalizationVector) {

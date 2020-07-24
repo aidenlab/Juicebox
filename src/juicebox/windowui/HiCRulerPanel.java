@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.track.HiCGridAxis;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import java.awt.*;
@@ -293,21 +293,21 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             }
         } else {
             HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
-
+    
             int binRange = (int) (w / hic.getScaleFactor());
             double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
-
-            int genomeOrigin = axis.getGenomicStart(binOrigin);
-            int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
-            int range = genomeEnd - genomeOrigin;
-
+    
+            long genomeOrigin = axis.getGenomicStart(binOrigin);
+            long genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+            long range = genomeEnd - genomeOrigin;
+    
             TickSpacing ts = findSpacing(range, w, false);
-
+    
             if (showOnlyEndPts) {
-
+        
                 // Hundredths decimal point
-                int[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
-
+                long[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
+        
                 double startPosition = isHorizontal() ? genomePositions[0] : genomePositions[2];
                 double endPosition = isHorizontal() ? genomePositions[1] : genomePositions[3];
                 int endPositionBin = (int) (axis.getBinNumberForGenomicPosition((int) (endPosition - startPosition)) * hic.getScaleFactor());
@@ -332,17 +332,17 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
             } else {
                 try {
-
-                    int maxX = context.getChromosome().getLength();
+    
+                    long maxX = context.getChromosome().getLength();
                     double spacing = ts.getMajorTick();
-
+    
                     // Find starting point closest to the current origin
                     int nTick = (int) (genomeOrigin / spacing) - 1;
                     int genomePosition = (int) (nTick * spacing);
-
+    
                     int binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
                     int x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
-
+    
                     while (genomePosition < maxX && x < w) {
                         Color tColor = isHorizontal() ? topTick : leftTick;
                         g.setColor(tColor);

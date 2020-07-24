@@ -28,8 +28,8 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.GenomeWideList;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

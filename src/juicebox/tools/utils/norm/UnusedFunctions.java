@@ -24,12 +24,11 @@
 
 package juicebox.tools.utils.norm;
 
-import juicebox.data.*;
+import juicebox.data.DatasetReaderV2;
 import juicebox.tools.utils.original.IndexEntry;
-import juicebox.windowui.HiCZoom;
+import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
@@ -64,6 +63,8 @@ class UnusedFunctions {
        */
     }
 
+    /*
+    
     static void writeNormSums(
             List<Chromosome> chromosomes, Dataset ds, List<HiCZoom> zooms, Map<String, NormalizationVector> normVectors,
             BufferedByteWriter buffer) throws IOException {
@@ -139,6 +140,8 @@ class UnusedFunctions {
             sums.add(new NormalizedSum(NormalizationHandler.VC.getLabel(), chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), vecSum));
         }
     }
+    
+    */
 
     static private void dumpNormalizationVectorIndex(String path, String outputFile, NormalizationHandler normalizationHandler) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
@@ -153,11 +156,11 @@ class UnusedFunctions {
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
 
-            Map<String, IndexEntry> normVectorMap = reader.getNormVectorIndex();
+            Map<String, LargeIndexEntry> normVectorMap = reader.getNormVectorIndex();
 
             List<NormalizationVectorIndexEntry> normList = new ArrayList<>();
 
-            for (Map.Entry<String, IndexEntry> entry : normVectorMap.entrySet()) {
+            for (Map.Entry<String, LargeIndexEntry> entry : normVectorMap.entrySet()) {
                 String[] parts = entry.getKey().split("_");
                 String strType;
                 int chrIdx;

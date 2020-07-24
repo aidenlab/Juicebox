@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.awt.*;
 import java.io.File;

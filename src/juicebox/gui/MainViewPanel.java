@@ -30,6 +30,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
 import juicebox.mapcolorui.ResolutionControl;
@@ -38,7 +39,6 @@ import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.MiniAnnotationsLayerPanel;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -666,8 +666,9 @@ public class MainViewPanel {
             //           hic.getMatrix().getZoomData(initialZoom);
             MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
             MatrixZoomData zdControl = null;
-            if (hic.getControlMatrix() != null)
+            if (hic.getControlMatrix() != null) {
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
+            }
             try {
                 Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
                         thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),

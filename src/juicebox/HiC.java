@@ -27,6 +27,7 @@ package juicebox;
 
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.*;
@@ -36,7 +37,6 @@ import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
@@ -239,7 +239,7 @@ public class HiC {
     }
 
     public List<HiCTrack> getLoadedTracks() {
-        return trackManager == null ? new ArrayList<HiCTrack>() : trackManager.getLoadedTracks();
+        return trackManager == null ? new ArrayList<>() : trackManager.getLoadedTracks();
     }
 
     public void unsafeLoadHostedTracks(List<ResourceLocator> locators) {
@@ -368,22 +368,22 @@ public class HiC {
         gwCursorPoint = point;
     }
 
-    public int[] getCurrentRegionWindowGenomicPositions() {
-
+    public long[] getCurrentRegionWindowGenomicPositions() {
+    
         // address int overflow or exceeding bound issues
-        int xEndEdge = xContext.getGenomicPositionOrigin() +
+        long xEndEdge = xContext.getGenomicPositionOrigin() +
                 (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
         if (xEndEdge < 0 || xEndEdge > xContext.getChromosome().getLength()) {
             xEndEdge = xContext.getChromosome().getLength();
         }
-
-        int yEndEdge = yContext.getGenomicPositionOrigin() +
+    
+        long yEndEdge = yContext.getGenomicPositionOrigin() +
                 (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
         if (yEndEdge < 0 || yEndEdge > yContext.getChromosome().getLength()) {
             yEndEdge = yContext.getChromosome().getLength();
         }
-
-        return new int[]{xContext.getGenomicPositionOrigin(), xEndEdge, yContext.getGenomicPositionOrigin(), yEndEdge};
+    
+        return new long[]{xContext.getGenomicPositionOrigin(), xEndEdge, yContext.getGenomicPositionOrigin(), yEndEdge};
     }
 
     public String getXPosition() {
@@ -648,7 +648,7 @@ public class HiC {
 
         return val;
     }
-
+    
     /**
      * Called from alt-drag zoom
      *
@@ -656,8 +656,8 @@ public class HiC {
      * @param yBP0
      * @param targetBinSize
      */
-    public void zoomToDrawnBox(final int xBP0, final int yBP0, final double targetBinSize) {
-
+    public void zoomToDrawnBox(final long xBP0, final long yBP0, final double targetBinSize) {
+        
         HiCZoom newZoom = currentZoom;
         if (!isResolutionLocked()) {
             List<HiCZoom> zoomList = currentZoom.getUnit() == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
@@ -710,8 +710,8 @@ public class HiC {
         unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
                 true, zoomCallType, allowLocationBroadcast, isResolutionLocked() ? 1 : 0, true);
     }
-
-    private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+    
+    private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, long genomeX, long genomeY, double scaleFactor,
                                                    boolean resetZoom, ZoomCallType zoomCallType, String message,
                                                    boolean allowLocationBroadcast) {
         return safeActuallySetZoomAndLocation(xContext.getChromosome().toString(), yContext.getChromosome().toString(),
@@ -719,7 +719,7 @@ public class HiC {
     }
 
     private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
-                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
+                                                   final HiCZoom newZoom, final long genomeX, final long genomeY,
                                                    final double scaleFactor, final boolean resetZoom,
                                                    final ZoomCallType zoomCallType, String message,
                                                    final boolean allowLocationBroadcast) {
@@ -750,7 +750,7 @@ public class HiC {
      * @return
      */
     public boolean unsafeActuallySetZoomAndLocation(String chrXName, String chrYName,
-                                                    HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                                    HiCZoom newZoom, long genomeX, long genomeY, double scaleFactor,
                                                     boolean resetZoom, ZoomCallType zoomCallType,
                                                     boolean allowLocationBroadcast, int resolutionLocked, boolean storeZoomAction) {
 
@@ -808,7 +808,7 @@ public class HiC {
         if (scaleFactor > 0) {
             setScaleFactor(scaleFactor);
         } else {
-            int maxBinCount = Math.max(newZD.getXGridAxis().getBinCount(), newZD.getYGridAxis().getBinCount());
+            long maxBinCount = Math.max(newZD.getXGridAxis().getBinCount(), newZD.getYGridAxis().getBinCount());
             double defaultScaleFactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
             setScaleFactor(defaultScaleFactor);
         }
@@ -866,19 +866,19 @@ public class HiC {
 
     private Point computeStandardUnzoomCoordinates(Matrix preZoomMatrix, Context preZoomXContext, Context preZoomYContext,
                                                    MatrixZoomData newZD, HiCZoom preZoomHiCZoom, double preZoomScaleFactor) {
-
+    
         double xMousePos = cursorPoint.getX();
         double yMousePos = cursorPoint.getY();
-
+    
         double preZoomCenterBinX = preZoomXContext.getBinOrigin() + xMousePos / preZoomScaleFactor;
         double preZoomCenterBinY = preZoomYContext.getBinOrigin() + yMousePos / preZoomScaleFactor;
-
-        int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
-        int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
-
-        int postZoomBinCountX = newZD.getXGridAxis().getBinCount();
-        int postZoomBinCountY = newZD.getYGridAxis().getBinCount();
-
+    
+        long preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
+        long preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
+    
+        long postZoomBinCountX = newZD.getXGridAxis().getBinCount();
+        long postZoomBinCountY = newZD.getYGridAxis().getBinCount();
+    
         return new Point((int) (preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX),
                 (int) (preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY));
     }
@@ -944,7 +944,7 @@ public class HiC {
 
     public int validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
-            return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
+            return Integer.parseInt(String.valueOf(binSizeDictionary.get(key)));
         } else {
             return Integer.MIN_VALUE;
         }
@@ -1001,22 +1001,22 @@ public class HiC {
     }
 
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
-
+    
         if (!MatrixType.isObservedOrControl(displayOption)) {
             SuperAdapter.showMessageDialog("This feature is only available for Observed or Control views");
             return;
         }
-
+    
         // extract the starting position
-        int binStartPosition = (int) (getXContext().getBinOrigin() + mousePos / getScaleFactor());
-        if (isHorizontal) binStartPosition = (int) (getYContext().getBinOrigin() + mousePos / getScaleFactor());
-
+        long binStartPosition = (long) (getXContext().getBinOrigin() + mousePos / getScaleFactor());
+        if (isHorizontal) binStartPosition = (long) (getYContext().getBinOrigin() + mousePos / getScaleFactor());
+    
         // Initialize default file name
         String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
         filename += isHorizontal ? "_horz" : "_vert";
         filename += "_bin" + binStartPosition + "_res" + currentZoom.getBinSize();
         filename = cleanUpNumbersInName(filename);
-
+    
         // allow user to customize or change the name
         filename = MessageUtils.showInputDialog("Enter a name for the resulting .wig file", filename);
         if (filename == null || filename.equalsIgnoreCase("null"))
@@ -1067,9 +1067,9 @@ public class HiC {
         feature2DHandler.removeFeaturePath(path);
     }
     */
-
+    
     private void safeSave1DTrackToWigFile(final Chromosome chromosomeForPosition, final File outputWigFile,
-                                          final int binStartPosition) {
+                                          final long binStartPosition) {
         superAdapter.getMainWindow().executeLongRunningTask(new Runnable() {
             @Override
             public void run() {
@@ -1092,9 +1092,9 @@ public class HiC {
         }, "Saving_1D_track_as_wig");
 
     }
-
+    
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
-                                            int binStartPosition) {
+                                            long binStartPosition) {
         // todo could crash with custom chromosomes - so make sure this doesn't get called on those chromosomes
         int resolution = getZoom().getBinSize();
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
@@ -1110,12 +1110,12 @@ public class HiC {
             MatrixZoomData zd = matrix.getZoomData(currentZoom);
             printWriter.println("fixedStep chrom=chr" + chromosome.getName().replace("chr", "")
                     + " start=1 step=" + resolution + " span=" + resolution);
-
-            int[] regionIndices;
+            
+            long[] regionIndices;
             if (chromosomeForPosition.getIndex() < chromosome.getIndex()) {
-                regionIndices = new int[]{binStartPosition, binStartPosition, 0, chromosome.getLength()};
+                regionIndices = new long[]{binStartPosition, binStartPosition, 0, chromosome.getLength()};
             } else {
-                regionIndices = new int[]{0, chromosome.getLength(), binStartPosition, binStartPosition};
+                regionIndices = new long[]{0, chromosome.getLength(), binStartPosition, binStartPosition};
             }
 
             zd.dump1DTrackFromCrossHairAsWig(printWriter, binStartPosition,

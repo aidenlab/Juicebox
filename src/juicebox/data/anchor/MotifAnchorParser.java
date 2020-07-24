@@ -27,10 +27,10 @@ package juicebox.data.anchor;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;

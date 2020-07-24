@@ -26,13 +26,13 @@ package juicebox.data.anchor;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.FeatureFunction;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
 import java.util.*;
@@ -343,7 +343,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;
@@ -456,7 +456,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;

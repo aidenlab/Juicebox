@@ -83,8 +83,10 @@ public class DumpDialog extends JFileChooser {
                         NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : nv.getData()) {
-                            pw.println(element);
+                        for (double[] array : nv.getData().getValues()) {
+                            for (double element : array) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }
@@ -99,18 +101,20 @@ public class DumpDialog extends JFileChooser {
                     }
 
                     if (box.getSelectedItem().equals("Expected vector")) {
-                        int length = df.getLength();
+                        long length = df.getLength();
                         int c = zd.getChr1Idx();
                         PrintWriter pw = new PrintWriter(getSelectedFile());
-                        for (int i = 0; i < length; i++) {
+                        for (long i = 0; i < length; i++) {
                             pw.println((float) df.getExpectedValue(c, i));
                         }
                         pw.flush();
                     } else {
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : df.getExpectedValuesNoNormalization()) {
-                            pw.println(element);
+                        for (double[] values : df.getExpectedValuesNoNormalization().getValues()) {
+                            for (double element : values) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }

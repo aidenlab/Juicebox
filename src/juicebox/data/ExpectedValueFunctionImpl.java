@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
@@ -44,16 +45,16 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
     private final HiC.Unit unit;
 
     private final Map<Integer, Double> normFactors;
-
-    private final double[] expectedValues;
-
-    public ExpectedValueFunctionImpl(NormalizationType type, HiC.Unit unit, int binSize, double[] expectedValues, Map<Integer, Double> normFactors) {
-        this.type = type;
-        this.unit = unit;
-        this.binSize = binSize;
-        this.normFactors = normFactors;
-        this.expectedValues = expectedValues;
-    }
+	
+	private final ListOfDoubleArrays expectedValues;
+	
+	public ExpectedValueFunctionImpl(NormalizationType type, HiC.Unit unit, int binSize, ListOfDoubleArrays expectedValues, Map<Integer, Double> normFactors) {
+		this.type = type;
+		this.unit = unit;
+		this.binSize = binSize;
+		this.normFactors = normFactors;
+		this.expectedValues = expectedValues;
+	}
 
     public static String getKey(HiCZoom zoom, NormalizationType normType) {
         return zoom.getKey() + "_" + normType;
@@ -63,70 +64,67 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
     public Map<Integer, Double> getNormFactors() {
         return normFactors;
     }
-
-
-    /**
-     * Expected value vector.  No chromosome normalization
-     *
-     * @return Genome-wide expected value vector
-     */
-    @Override
-    public double[] getExpectedValuesNoNormalization() {
-        return expectedValues;
-    }
-
-    /**
-     * Gets the expected value, distance and coverage normalized, chromosome-length normalized
-     *
-     * @param chrIdx   Chromosome index
-     * @param distance Distance from diagonal in bins
-     * @return Expected value, distance and coverage normalized
-     */
-    @Override
-    public double getExpectedValue(int chrIdx, int distance) {
-
-        double normFactor = 1.0;
-        if (normFactors != null && normFactors.containsKey(chrIdx)) {
-            normFactor = normFactors.get(chrIdx);
-        }
-
-        if (expectedValues.length > 0) {
-            if (distance >= expectedValues.length) {
-                return expectedValues[expectedValues.length - 1] / normFactor;
-            } else {
-                return expectedValues[distance] / normFactor;
-            }
-        } else {
-            System.err.println("Expected values array is empty");
-            return -1;
-        }
-    }
-
-    @Override
-    public double[] getExpectedValuesWithNormalization(int chrIdx) {
-
-        double normFactor = 1.0;
-        if (normFactors != null && normFactors.containsKey(chrIdx)) {
-            normFactor = normFactors.get(chrIdx);
-        }
-
-        if (expectedValues.length > 0) {
-            double[] normedExpectedValues = new double[expectedValues.length];
-            System.arraycopy(expectedValues, 0, normedExpectedValues, 0, expectedValues.length);
-            for (int i = 0; i < normedExpectedValues.length; i++) {
-                normedExpectedValues[i] /= normFactor;
-            }
-            return normedExpectedValues;
-        } else {
-            System.err.println("Expected values array is empty");
-            return null;
-        }
-    }
-
-    @Override
-    public int getLength() {
-        return expectedValues.length;
-    }
+	
+	
+	/**
+	 * Expected value vector.  No chromosome normalization
+	 *
+	 * @return Genome-wide expected value vector
+	 */
+	@Override
+	public ListOfDoubleArrays getExpectedValuesNoNormalization() {
+		return expectedValues;
+	}
+	
+	/**
+	 * Gets the expected value, distance and coverage normalized, chromosome-length normalized
+	 *
+	 * @param chrIdx   Chromosome index
+	 * @param distance Distance from diagonal in bins
+	 * @return Expected value, distance and coverage normalized
+	 */
+	@Override
+	public double getExpectedValue(int chrIdx, long distance) {
+		
+		double normFactor = 1.0;
+		if (normFactors != null && normFactors.containsKey(chrIdx)) {
+			normFactor = normFactors.get(chrIdx);
+		}
+		
+		if (expectedValues.getLength() > 0) {
+			if (distance >= expectedValues.getLength()) {
+				return expectedValues.getLastValue() / normFactor;
+			} else {
+				return expectedValues.get(distance) / normFactor;
+			}
+		} else {
+			System.err.println("Expected values array is empty");
+			return -1;
+		}
+	}
+	
+	@Override
+	public ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx) {
+		
+		double normFactor = 1.0;
+		if (normFactors != null && normFactors.containsKey(chrIdx)) {
+			normFactor = normFactors.get(chrIdx);
+		}
+		
+		if (expectedValues.getLength() > 0) {
+			ListOfDoubleArrays normedExpectedValues = expectedValues.deepClone();
+			normedExpectedValues.multiplyEverythingBy(1.0 / normFactor);
+			return normedExpectedValues;
+		} else {
+			System.err.println("Expected values array is empty");
+			return null;
+		}
+	}
+	
+	@Override
+	public long getLength() {
+		return expectedValues.getLength();
+	}
 
     @Override
     public NormalizationType getNormalizationType() {

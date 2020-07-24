@@ -28,6 +28,8 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
@@ -37,7 +39,6 @@ import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationHandler;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 
@@ -46,9 +47,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Dump extends JuiceboxCLT {
-
-
-    private static int[] regionIndices = new int[]{-1, -1, -1, -1};
+    
+    
+    private static long[] regionIndices = new long[]{-1, -1, -1, -1};
     private static boolean useRegionIndices = false;
     private HiC.Unit unit = null;
     private String chr1, chr2;
@@ -112,9 +113,9 @@ public class Dump extends JuiceboxCLT {
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / binSize + 1;
         }
-
+    
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm);
+        float[] vector = calculations.getNorm(norm).getValues().get(0);
 
 
         if (matrixType == MatrixType.NORM) {
@@ -138,19 +139,23 @@ public class Dump extends JuiceboxCLT {
                         }
                     }
                 }
-
+    
                 addY += chr.getLength() / binSize + 1;
             }
             evKR.computeDensity();
-            double[] exp = evKR.getDensityAvg();
-            pw.println(binSize + "\t" + vector.length + "\t" + exp.length);
+            ListOfDoubleArrays exp = evKR.getDensityAvg();
+            pw.println(binSize + "\t" + vector.length + "\t" + exp.getLength());
             for (double aVector : vector) {
                 pw.println(aVector);
             }
-
-            for (double aVector : exp) {
-                pw.println(aVector);
+    
+            for (double[] values : exp.getValues()) {
+                for (double aVector : values) {
+                    pw.println(aVector);
+                }
             }
+    
+    
         } else {   // type == "observed"
 
             for (List<ContactRecord> localList : recordArrayList) {
@@ -160,7 +165,7 @@ public class Dump extends JuiceboxCLT {
                     float value = cr.getCounts();
 
                     if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                        value = (float) (value / (vector[x] * vector[y]));
+                        value = (value / (vector[x] * vector[y]));
                     } else {
                         value = Float.NaN;
                     }
@@ -183,34 +188,38 @@ public class Dump extends JuiceboxCLT {
                 System.err.println("Norm not available at " + zoom + " " + norm);
                 System.exit(9);
             }
-            int count=0;
-            int total = (chromosome.getLength()/zoom.getBinSize())+1;
+            int count = 0;
+            long total = (chromosome.getLength() / zoom.getBinSize()) + 1;
             // print out vector
-            for (double element : nv.getData()) {
-                pw.println(element);
-                count++;
-                // Do not print out more entries than length of chromosome
-                if (zoom.getUnit() == HiC.Unit.BP) {
-                    if (count >= total) break;
+            for (double[] array : nv.getData().getValues()) {
+                for (double element : array) {
+                    pw.println(element);
+                    count++;
+                    // Do not print out more entries than length of chromosome
+                    if (zoom.getUnit() == HiC.Unit.BP) {
+                        if (count >= total) break;
+                    }
                 }
             }
             pw.close();
-
+    
         } else if (matrixType == MatrixType.EXPECTED) {
             final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
-
-            double[] values = df.getExpectedValuesNoNormalization();
+    
+            ListOfDoubleArrays values = df.getExpectedValuesNoNormalization();
             if (!ChromosomeHandler.isAllByAll(chromosome)) {
                 values = df.getExpectedValuesWithNormalization(chromosome.getIndex());
             }
-
+    
             if (ofile != null && ofile.endsWith(".npy")) {
-                MatrixTools.saveMatrixTextNumpy(ofile, values);
+                MatrixTools.saveMatrixTextNumpy(ofile, values.getValues().get(0)); // todo fix
             } else {
-                for (double element : values) {
-                    pw.println(element);
-                    pw.close();
+                for (double[] vals : values.getValues()) {
+                    for (double element : vals) {
+                        pw.println(element);
+                    }
                 }
+                pw.close();
             }
         }
     }
@@ -226,7 +235,7 @@ public class Dump extends JuiceboxCLT {
         Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
 
         if (chromosome2.getIndex() < chromosome1.getIndex()) {
-            regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
+            regionIndices = new long[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
         }
 
         MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome2, zoom);

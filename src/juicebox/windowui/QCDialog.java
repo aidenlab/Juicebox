@@ -296,7 +296,7 @@ public class QCDialog extends JDialog {
 
 
         if (df != null) {
-            double[] expected = df.getExpectedValuesNoNormalization();
+            double[] expected = df.getExpectedValuesNoNormalization().getValues().get(0);
             final XYSeriesCollection collection = new XYSeriesCollection();
             final XYSeries expectedValues = new XYSeries("Expected");
             for (int i = 0; i < expected.length; i++) {

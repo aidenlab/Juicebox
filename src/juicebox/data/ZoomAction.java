@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,27 +31,25 @@ import juicebox.windowui.HiCZoom;
  * Created by ranganmostofa on 7/8/17.
  */
 public class ZoomAction {
-    private final String chromosomeX;
-    private final String chromosomeY;
-    private final HiCZoom hiCZoom;
-    private final int genomeX;
-    private final int genomeY;
-    private double scaleFactor;
-    private final boolean resetZoom;
-    private final HiC.ZoomCallType zoomCallType;
-    private final int resolutionLocked;
-
-    public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
-                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, int resolutionLocked) {
-        this.chromosomeX = chromosomeX;
-        this.chromosomeY = chromosomeY;
-        this.hiCZoom = hiCZoom;
-        this.genomeX = genomeX;
-        this.genomeY = genomeY;
-        this.scaleFactor = scaleFactor;
-        this.resetZoom = resetZoom;
-        this.zoomCallType = zoomCallType;
-        this.resolutionLocked = resolutionLocked;
+	private final String chromosomeX, chromosomeY;
+	private final HiCZoom hiCZoom;
+	private final long genomeX, genomeY;
+	private double scaleFactor;
+	private final boolean resetZoom;
+	private final HiC.ZoomCallType zoomCallType;
+	private final int resolutionLocked;
+	
+	public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, long genomeX, long genomeY,
+					  double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, int resolutionLocked) {
+		this.chromosomeX = chromosomeX;
+		this.chromosomeY = chromosomeY;
+		this.hiCZoom = hiCZoom;
+		this.genomeX = genomeX;
+		this.genomeY = genomeY;
+		this.scaleFactor = scaleFactor;
+		this.resetZoom = resetZoom;
+		this.zoomCallType = zoomCallType;
+		this.resolutionLocked = resolutionLocked;
     }
 
     public boolean equals(ZoomAction other) {
@@ -69,14 +67,14 @@ public class ZoomAction {
     public HiCZoom getHiCZoom() {
         return this.hiCZoom;
     }
-
-    public int getGenomeX() {
-        return this.genomeX;
-    }
-
-    public int getGenomeY() {
-        return this.genomeY;
-    }
+	
+	public long getGenomeX() {
+		return this.genomeX;
+	}
+	
+	public long getGenomeY() {
+		return this.genomeY;
+	}
 
     public double getScaleFactor() {
         return this.scaleFactor;

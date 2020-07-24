@@ -27,8 +27,8 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.Chromosome;
 import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
@@ -83,12 +83,12 @@ public class MatrixZoomDataPP {
 
         // Get length in proper units
         Chromosome longChr = chr1.getLength() > chr2.getLength() ? chr1 : chr2;
-        int len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
-
-        int nBinsX = len / binSize + 1;
+        long len = isFrag ? fragmentCalculation.getNumberFragments(longChr.getName()) : longChr.getLength();
+    
+        int nBinsX = (int) (len / binSize + 1);
 
         blockBinCount = nBinsX / blockColumnCount + 1;
-        blocks = new LinkedHashMap<>(blockColumnCount * blockColumnCount);
+        blocks = new LinkedHashMap<>(blockColumnCount);
     }
 
     HiC.Unit getUnit() {
@@ -138,6 +138,10 @@ public class MatrixZoomDataPP {
         return blockColumnCount;
     }
 
+    private static int log2(double v) {
+        return (int) (Math.log(v) / Math.log(2));
+    }
+
     Map<Integer, BlockPP> getBlocks() {
         return blocks;
     }
@@ -155,6 +159,8 @@ public class MatrixZoomDataPP {
 
         int xBin = pos1 / binSize;
         int yBin = pos2 / binSize;
+
+        int blockNumber;
 
         // Intra chromosome -- we'll store lower diagonal only
         if (chr1.equals(chr2)) {
@@ -174,12 +180,19 @@ public class MatrixZoomDataPP {
                     ev.addDistance(chr1.getIndex(), xBin, yBin, score);
                 }
             }
+
+            //compute intra chromosomal block number (version 9 and up)
+            int depth = log2(1 + Math.abs(xBin - yBin) / Math.sqrt(2) / blockBinCount);
+            int positionAlongDiagonal = ((xBin + yBin) / 2 / blockBinCount);
+            blockNumber = depth * blockColumnCount + positionAlongDiagonal;
+        }
+        else {
+            // compute interchromosomal block number (version 9 and up, first block is zero)
+            int blockCol = xBin / blockBinCount;
+            int blockRow = yBin / blockBinCount;
+            blockNumber = blockColumnCount * blockRow + blockCol;
         }
 
-        // compute block number (fist block is zero)
-        int blockCol = xBin / blockBinCount;
-        int blockRow = yBin / blockBinCount;
-        int blockNumber = blockColumnCount * blockRow + blockCol;
 
         BlockPP block = blocks.get(blockNumber);
         if (block == null) {
@@ -277,7 +290,7 @@ public class MatrixZoomDataPP {
         }
 
         do {
-            Collections.sort(activeList, new Comparator<BlockQueue>() {
+            activeList.sort(new Comparator<BlockQueue>() {
                 @Override
                 public int compare(BlockQueue o1, BlockQueue o2) {
                     return o1.getBlock().getNumber() - o2.getBlock().getNumber();
@@ -413,7 +426,7 @@ public class MatrixZoomDataPP {
 
         // Sort keys in row-major order
         List<Point> keys = new ArrayList<>(records.keySet());
-        Collections.sort(keys, new Comparator<Point>() {
+        keys.sort(new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
                 if (o1.y != o2.y) {
@@ -425,6 +438,8 @@ public class MatrixZoomDataPP {
         });
         Point lastPoint = keys.get(keys.size() - 1);
         final short w = (short) (binXMax - binXOffset + 1);
+        final int w1 = binXMax - binXOffset + 1;
+        final int w2 = binYMax - binYOffset + 1;
 
         boolean isInteger = true;
         float maxCounts = 0;
@@ -451,6 +466,8 @@ public class MatrixZoomDataPP {
 
         // Compute size for each representation and choose smallest
         boolean useShort = isInteger && (maxCounts < Short.MAX_VALUE);
+        boolean useShortBinX = w1 < Short.MAX_VALUE;
+        boolean useShortBinY = w2 < Short.MAX_VALUE;
         int valueSize = useShort ? 2 : 4;
 
         int lorSize = 0;
@@ -462,24 +479,45 @@ public class MatrixZoomDataPP {
         }
 
         buffer.put((byte) (useShort ? 0 : 1));
+        buffer.put((byte) (useShortBinX ? 0 : 1));
+        buffer.put((byte) (useShortBinY ? 0 : 1));
+
+        //dense calculation is incorrect for v9
+        denseSize = Integer.MAX_VALUE;
 
         if (lorSize < denseSize) {
 
             buffer.put((byte) 1);  // List of rows representation
 
-            buffer.putShort((short) rows.size());  // # of rows
+            if (useShortBinY) {
+                buffer.putShort((short) rows.size()); // # of rows
+            } else {
+                buffer.putInt(rows.size());  // # of rows
+            }
 
             for (Map.Entry<Integer, List<ContactRecord>> entry : rows.entrySet()) {
 
                 int py = entry.getKey();
                 List<ContactRecord> row = entry.getValue();
-                buffer.putShort((short) py);  // Row number
-                buffer.putShort((short) row.size());  // size of row
+                if (useShortBinY) {
+                    buffer.putShort((short) py);  // Row number
+                } else {
+                    buffer.putInt(py); // Row number
+                }
+                if (useShortBinX) {
+                    buffer.putShort((short) row.size());  // size of row
+                } else {
+                    buffer.putInt(row.size()); // size of row
+                }
 
                 for (ContactRecord contactRecord : row) {
-                    buffer.putShort((short) (contactRecord.getBinX()));
-                    final float counts = contactRecord.getCounts();
+                    if (useShortBinX) {
+                        buffer.putShort((short) (contactRecord.getBinX()));
+                    } else {
+                        buffer.putInt(contactRecord.getBinX());
+                    }
 
+                    final float counts = contactRecord.getCounts();
                     if (useShort) {
                         buffer.putShort((short) counts);
                     } else {

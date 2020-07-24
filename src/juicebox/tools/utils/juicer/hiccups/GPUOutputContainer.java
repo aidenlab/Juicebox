@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -217,19 +217,19 @@ public class GPUOutputContainer {
         Feature2DList peaks = new Feature2DList();
 
         for (Feature2D f : inputListFoundFeatures) {
-
-            int i = ((f.getStart1() + f.getEnd1()) / (2 * resolution)) - rowOffset;
-            int j = ((f.getStart2() + f.getEnd2()) / (2 * resolution)) - columnOffset;
-            float peakVal = peak[i][j];
-
-
-            float observedVal = observed[i][j];
-            float expectedBLVal = expectedBL[i][j];
-            float expectedDonutVal = expectedDonut[i][j];
-            float expectedHVal = expectedH[i][j];
-            float expectedVVal = expectedV[i][j];
-            float binBLVal = binBL[i][j];
-            float binDonutVal = binDonut[i][j];
+	
+			int i = (int) ((f.getStart1() + f.getEnd1()) / (2 * resolution)) - rowOffset;
+			int j = (int) ((f.getStart2() + f.getEnd2()) / (2 * resolution)) - columnOffset;
+			float peakVal = peak[i][j];
+	
+	
+			float observedVal = observed[i][j];
+			float expectedBLVal = expectedBL[i][j];
+			float expectedDonutVal = expectedDonut[i][j];
+			float expectedHVal = expectedH[i][j];
+			float expectedVVal = expectedV[i][j];
+			float binBLVal = binBL[i][j];
+			float binDonutVal = binDonut[i][j];
             float binHVal = binH[i][j];
             float binVVal = binV[i][j];
 

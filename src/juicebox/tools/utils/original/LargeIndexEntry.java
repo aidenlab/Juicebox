@@ -22,24 +22,21 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
-import juicebox.data.basics.Chromosome;
+package juicebox.tools.utils.original;
 
-public class GeneLocation {
+public class LargeIndexEntry {
+    public final long position;
+    public final long size;
+    int id;
 
-    private final Chromosome chromosome;
-    private final int centerPosition;
-
-    public GeneLocation(Chromosome chromosome, int centerPosition) {
-        this.chromosome = chromosome;
-        this.centerPosition = centerPosition;
+    LargeIndexEntry(int id, long position, long size) {
+        this.id = id;
+        this.position = position;
+        this.size = size;
     }
 
-    public int getCenterPosition() {
-        return centerPosition;
-    }
-
-    public Chromosome getChromosome() {
-        return chromosome;
+    public LargeIndexEntry(long position, long size) {
+        this.position = position;
+        this.size = size;
     }
 }

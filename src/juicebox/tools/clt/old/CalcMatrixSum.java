@@ -25,13 +25,13 @@
 package juicebox.tools.clt.old;
 
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -95,7 +95,7 @@ public class CalcMatrixSum extends JuiceboxCLT {
                         double[] actualVector;
                         MatrixZoomData zd;
                         try {
-                            actualVector = normalizationVector.getData();
+                            actualVector = normalizationVector.getData().getValues().get(0);
                             zd = HiCFileTools.getMatrixZoomData(dataset, chromosome, chromosome, zoom);
                         } catch (Exception e) {
                             System.err.println("No data for " + norm.getLabel() + " - " + chromosome + " at " + zoom);
@@ -103,7 +103,7 @@ public class CalcMatrixSum extends JuiceboxCLT {
                         }
 
                         NormalizationCalculations calculations = new NormalizationCalculations(zd);
-                        Double[] matrixSum = calculations.getNormMatrixSumFactor(actualVector);
+                        Double[] matrixSum = getNormMatrixSumFactor(actualVector, zd.getContactRecordList());
 
 
                         int numValidVectorEntries = calculations.getNumberOfValidEntriesInVector(actualVector);
@@ -151,20 +151,45 @@ public class CalcMatrixSum extends JuiceboxCLT {
                 }
             }
         }
-
+    
         printWriter.close();
-
+    
         double[][] matrixFormatArray = new double[matrixFormat.size()][5];
         for (int i = 0; i < matrixFormat.size(); i++) {
             matrixFormatArray[i] = matrixFormat.get(i);
         }
-
+    
         MatrixTools.saveMatrixTextV2(outputTxtFile.getAbsolutePath(), matrixFormatArray);
         MatrixTools.saveMatrixTextNumpy(outputNpyFile.getAbsolutePath(), matrixFormatArray);
     }
-
+    
+    public Double[] getNormMatrixSumFactor(double[] norm, List<List<ContactRecord>> contactRecords) {
+        double matrix_sum = 0;
+        double norm_sum = 0;
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                double valX = norm[x];
+                double valY = norm[y];
+                if (!Double.isNaN(valX) && !Double.isNaN(valY) && valX > 0 && valY > 0) {
+                    // want total sum of matrix, not just upper triangle
+                    if (x == y) {
+                        norm_sum += value / (valX * valY);
+                        matrix_sum += value;
+                    } else {
+                        norm_sum += 2 * value / (valX * valY);
+                        matrix_sum += 2 * value;
+                    }
+                }
+            }
+        }
+        return new Double[]{norm_sum, matrix_sum};
+    }
+    
     private void testCode(HiCZoom zoom, List<ContactRecord> contactRecordList, double[] actualVector, double scalar1, double scalar2) {
-
+        
         if (zoom.getBinSize() > 100000) {
             System.out.println("No scaling");
             System.out.println(Arrays.toString(MatrixTools.getRowSums(contactRecordList,
