@@ -27,21 +27,18 @@ package juicebox.tools.clt.old;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class StatisticsContainer {
     //Variables for calculating statistics
-    public final Map<Integer,Integer>[] hindIII = new HashMap[2];
-    public final Map<Integer,Integer>[] mapQ = new HashMap[2];
-    public final Map<Integer,Integer>[] mapQInter = new HashMap[2];
-    public final Map<Integer,Integer>[] mapQIntra = new HashMap[2];
-    public final Map<Integer,Integer>[] innerM = new HashMap[2];
-    public final Map<Integer,Integer>[] outerM = new HashMap[2];
-    public final Map<Integer,Integer>[] rightM = new HashMap[2];
-    public final Map<Integer,Integer>[] leftM = new HashMap[2];
+    public final List<Map<Integer,Integer>> hindIII = new ArrayList<>();
+    public final List<Map<Integer,Integer>> mapQ = new ArrayList<>();
+    public final List<Map<Integer,Integer>> mapQInter = new ArrayList<>();
+    public final List<Map<Integer,Integer>> mapQIntra = new ArrayList<>();
+    public final List<Map<Integer,Integer>> innerM = new ArrayList<>();
+    public final List<Map<Integer,Integer>> outerM = new ArrayList<>();
+    public final List<Map<Integer,Integer>> rightM = new ArrayList<>();
+    public final List<Map<Integer,Integer>> leftM = new ArrayList<>();
 
     public int unique = 0;
     public int[] intraFragment = new int[2];
@@ -79,15 +76,15 @@ public class StatisticsContainer {
     private static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
 
     public void initMaps(){
-        for(int i=0; i<hindIII.length; i++){
-            hindIII[i] = new HashMap<>();
-            mapQ[i] = new HashMap<>();
-            mapQInter[i] = new HashMap<>();
-            mapQIntra[i] = new HashMap<>();
-            innerM[i] = new HashMap<>();
-            outerM[i] = new HashMap<>();
-            rightM[i] = new HashMap<>();
-            leftM[i] = new HashMap<>();
+        for(int i=0; i<2; i++){
+            hindIII.add(new HashMap<>());
+            mapQ.add(new HashMap<>());
+            mapQInter.add(new HashMap<>());
+            mapQIntra.add(new HashMap<>());
+            innerM.add(new HashMap<>());
+            outerM.add(new HashMap<>());
+            rightM.add(new HashMap<>());
+            leftM.add(new HashMap<>());
         }
     }
     public void add(StatisticsContainer individualContainer, int numberOfMapQValues) {
@@ -95,18 +92,18 @@ public class StatisticsContainer {
 
         for (int j=0; j<numberOfMapQValues; j++) {
             for (int i = 1; i <= 2000; i++) {
-                hindIII[j].put(i, hindIII[j].getOrDefault(i, 0) + individualContainer.hindIII[j].getOrDefault(i, 0));
+                hindIII.get(j).put(i, hindIII.get(j).getOrDefault(i, 0) + individualContainer.hindIII.get(j).getOrDefault(i, 0));
             }
             for (int i = 1; i <= 200; i++) {
-                mapQ[j].put(i, mapQ[j].getOrDefault(i, 0) + individualContainer.mapQ[j].getOrDefault(i, 0));
-                mapQInter[j].put(i, mapQInter[j].getOrDefault(i, 0) + individualContainer.mapQInter[j].getOrDefault(i, 0));
-                mapQIntra[j].put(i, mapQIntra[j].getOrDefault(i, 0) + individualContainer.mapQIntra[j].getOrDefault(i, 0));
+                mapQ.get(j).put(i, mapQ.get(j).getOrDefault(i, 0) + individualContainer.mapQ.get(j).getOrDefault(i, 0));
+                mapQInter.get(j).put(i, mapQInter.get(j).getOrDefault(i, 0) + individualContainer.mapQInter.get(j).getOrDefault(i, 0));
+                mapQIntra.get(j).put(i, mapQIntra.get(j).getOrDefault(i, 0) + individualContainer.mapQIntra.get(j).getOrDefault(i, 0));
             }
             for (int i = 1; i <= 100; i++) {
-                innerM[j].put(i, innerM[j].getOrDefault(i, 0) + individualContainer.innerM[j].getOrDefault(i, 0));
-                outerM[j].put(i, outerM[j].getOrDefault(i, 0) + individualContainer.outerM[j].getOrDefault(i, 0));
-                rightM[j].put(i, rightM[j].getOrDefault(i, 0) + individualContainer.rightM[j].getOrDefault(i, 0));
-                leftM[j].put(i, leftM[j].getOrDefault(i, 0) + individualContainer.leftM[j].getOrDefault(i, 0));
+                innerM.get(j).put(i, innerM.get(j).getOrDefault(i, 0) + individualContainer.innerM.get(j).getOrDefault(i, 0));
+                outerM.get(j).put(i, outerM.get(j).getOrDefault(i, 0) + individualContainer.outerM.get(j).getOrDefault(i, 0));
+                rightM.get(j).put(i, rightM.get(j).getOrDefault(i, 0) + individualContainer.rightM.get(j).getOrDefault(i, 0));
+                leftM.get(j).put(i, leftM.get(j).getOrDefault(i, 0) + individualContainer.leftM.get(j).getOrDefault(i, 0));
 
             }
         }
@@ -269,29 +266,29 @@ public class StatisticsContainer {
                 String statsFileName = statsFiles.get(j).substring(index + 1).replaceAll(".txt", ""); //filename
                 String histsFile = statsFilePath + statsFileName + "_hists.m";
                 try {
-                    BufferedWriter hist = new BufferedWriter(new FileWriter(histsFile, StandardCharsets.UTF_8, false));
+                    BufferedWriter hist = new BufferedWriter(new FileWriter(histsFile, false));
                     hist.write("A = [\n");
                     for (int i = 1; i <= 2000; i++) {
-                        int tmp = hindIII[j].getOrDefault(i, 0);
+                        int tmp = hindIII.get(j).getOrDefault(i, 0);
                         hist.write(tmp + " ");
                     }
                     hist.write("\n];\n");
 
                     hist.write("B = [\n");
                     for (int i = 1; i <= 200; i++) {
-                        int tmp = mapQ[j].getOrDefault(i, 0);
-                        int tmp2 = mapQIntra[j].getOrDefault(i, 0);
-                        int tmp3 = mapQInter[j].getOrDefault(i, 0);
+                        int tmp = mapQ.get(j).getOrDefault(i, 0);
+                        int tmp2 = mapQIntra.get(j).getOrDefault(i, 0);
+                        int tmp3 = mapQInter.get(j).getOrDefault(i, 0);
                         hist.write(tmp + " " + tmp2 + " " + tmp3 + "\n");
                     }
                     hist.write("\n];\n");
 
                     hist.write("D = [\n");
                     for (int i = 0; i < bins.length; i++) {
-                        int tmp = innerM[j].getOrDefault(i, 0);
-                        int tmp2 = outerM[j].getOrDefault(i, 0);
-                        int tmp3 = rightM[j].getOrDefault(i, 0);
-                        int tmp4 = leftM[j].getOrDefault(i, 0);
+                        int tmp = innerM.get(j).getOrDefault(i, 0);
+                        int tmp2 = outerM.get(j).getOrDefault(i, 0);
+                        int tmp3 = rightM.get(j).getOrDefault(i, 0);
+                        int tmp4 = leftM.get(j).getOrDefault(i, 0);
                         hist.write(tmp + " " + tmp2 + " " + tmp3 + " " + tmp4 + "\n");
                     }
                     hist.write("\n];");

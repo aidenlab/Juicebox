@@ -170,12 +170,12 @@ public class StatisticsWorker {
                             if (posDist >= posDistThreshold) {
                                 resultsContainer.right[ind]++;
                             }
-                            resultsContainer.rightM[ind].put(histDist, resultsContainer.rightM[ind].getOrDefault(histDist, 0) + 1);
+                            resultsContainer.rightM.get(ind).put(histDist, resultsContainer.rightM.get(ind).getOrDefault(histDist, 0) + 1);
                         } else {
                             if (posDist >= posDistThreshold) {
                                 resultsContainer.left[ind]++;
                             }
-                            resultsContainer.leftM[ind].put(histDist, resultsContainer.leftM[ind].getOrDefault(histDist, 0) + 1);
+                            resultsContainer.leftM.get(ind).put(histDist, resultsContainer.leftM.get(ind).getOrDefault(histDist, 0) + 1);
                         }
                     } else {
                         if (str1) {
@@ -183,24 +183,24 @@ public class StatisticsWorker {
                                 if (posDist >= posDistThreshold) {
                                     resultsContainer.inner[ind]++;
                                 }
-                                resultsContainer.innerM[ind].put(histDist, resultsContainer.innerM[ind].getOrDefault(histDist, 0) + 1);
+                                resultsContainer.innerM.get(ind).put(histDist, resultsContainer.innerM.get(ind).getOrDefault(histDist, 0) + 1);
                             } else {
                                 if (posDist >= posDistThreshold) {
                                     resultsContainer.outer[ind]++;
                                 }
-                                resultsContainer.outerM[ind].put(histDist, resultsContainer.outerM[ind].getOrDefault(histDist, 0) + 1);
+                                resultsContainer.outerM.get(ind).put(histDist, resultsContainer.outerM.get(ind).getOrDefault(histDist, 0) + 1);
                             }
                         } else {
                             if (pos1 < pos2) {
                                 if (posDist >= posDistThreshold) {
                                     resultsContainer.outer[ind]++;
                                 }
-                                resultsContainer.outerM[ind].put(histDist, resultsContainer.outerM[ind].getOrDefault(histDist, 0) + 1);
+                                resultsContainer.outerM.get(ind).put(histDist, resultsContainer.outerM.get(ind).getOrDefault(histDist, 0) + 1);
                             } else {
                                 if (posDist >= posDistThreshold) {
                                     resultsContainer.inner[ind]++;
                                 }
-                                resultsContainer.innerM[ind].put(histDist, resultsContainer.innerM[ind].getOrDefault(histDist, 0) + 1);
+                                resultsContainer.innerM.get(ind).put(histDist, resultsContainer.innerM.get(ind).getOrDefault(histDist, 0) + 1);
                             }
                         }
                     }
@@ -245,11 +245,11 @@ public class StatisticsWorker {
                 if ((seq1 != null && seq2 != null) && (mapq1 >= 0 && mapq2 >= 0)) {
                     int mapqVal = Math.min(mapq1, mapq2);
                     if (mapqVal <= mapqValThreshold) {
-                        resultsContainer.mapQ[ind].put(mapqVal, resultsContainer.mapQ[ind].getOrDefault(mapqVal, 0) + 1);
+                        resultsContainer.mapQ.get(ind).put(mapqVal, resultsContainer.mapQ.get(ind).getOrDefault(mapqVal, 0) + 1);
                         if (chr1 == chr2) {
-                            resultsContainer.mapQIntra[ind].put(mapqVal, resultsContainer.mapQIntra[ind].getOrDefault(mapqVal, 0) + 1);
+                            resultsContainer.mapQIntra.get(ind).put(mapqVal, resultsContainer.mapQIntra.get(ind).getOrDefault(mapqVal, 0) + 1);
                         } else {
-                            resultsContainer.mapQInter[ind].put(mapqVal, resultsContainer.mapQInter[ind].getOrDefault(mapqVal, 0) + 1);
+                            resultsContainer.mapQInter.get(ind).put(mapqVal, resultsContainer.mapQInter.get(ind).getOrDefault(mapqVal, 0) + 1);
                         }
                     }
                     //read pair contains ligation junction
@@ -262,11 +262,11 @@ public class StatisticsWorker {
                     boolean report = ((chr1 != chr2) || (posDist >= posDistThreshold));
                     int dist = distHindIII(str1, chr1, pos1, frag1, report, ind);
                     if (dist <= distThreshold) {
-                        resultsContainer.hindIII[ind].put(dist, resultsContainer.hindIII[ind].getOrDefault(dist, 0) + 1);
+                        resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0) + 1);
                     }
                     dist = distHindIII(str2, chr2, pos2, frag2, report, ind);
                     if (dist <= distThreshold) {
-                        resultsContainer.hindIII[ind].put(dist, resultsContainer.hindIII[ind].getOrDefault(dist, 0) + 1);
+                        resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0) + 1);
                     }
                 }
                 if (isDangling) {

@@ -160,10 +160,15 @@ public class Statistics extends JuiceboxCLT {
         if (mapQT != null && (mapQT.size() == 1 || mapQT.size() == 2)) { //only one or two mapq values
             int mapqThreshold = mapQT.get(0) > 0 ? mapQT.get(0) : 1;
             mapqThresholds.add(mapqThreshold);
+            mapqThreshold = 30;
             if (mapQT.size() == 2) {
                 mapqThreshold = mapQT.get(1) > 0 ? mapQT.get(1) : 30;
-                mapqThresholds.add(mapqThreshold);
             }
+            mapqThresholds.add(mapqThreshold);
+        }
+        else{
+            mapqThresholds.add(1);
+            mapqThresholds.add(30);
         }
         String ligJunc = parser.getLigationOption();
         if (ligJunc != null) {
