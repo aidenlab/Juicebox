@@ -191,6 +191,29 @@ public class AsciiPairIterator implements PairIterator {
 
                         break;
                     }
+                    case LONG: {
+                        String chrom1 = handler.cleanUpName(getInternedString(tokens[1]));
+                        String chrom2 = handler.cleanUpName(getInternedString(tokens[5]));
+                        // some contigs will not be present in the chrom.sizes file
+                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                            int chr1 = chromosomeOrdinals.get(chrom1);
+                            int chr2 = chromosomeOrdinals.get(chrom2);
+                            int pos1 = Integer.parseInt(tokens[2]);
+                            int pos2 = Integer.parseInt(tokens[6]);
+                            int frag1 = Integer.parseInt(tokens[3]);
+                            int frag2 = Integer.parseInt(tokens[7]);
+                            int mapq1 = Integer.parseInt(tokens[8]);
+                            int mapq2 = Integer.parseInt(tokens[11]);
+                            String seq1 = tokens[10];
+                            String seq2 = tokens[13];
+                            boolean strand1 = Integer.parseInt(tokens[0]) == 0;
+                            boolean strand2 = Integer.parseInt(tokens[4]) == 0;
+                            nextPair = new AlignmentPairLong(strand1, chr1, pos1, frag1, mapq1, seq1, strand2, chr2, pos2, frag2, mapq2, seq2);
+                        } else {
+                            nextPair = new AlignmentPairLong(); // sets dummy values, sets isContigPair
+                        }
+                        break;
+                    }
                     case DCIC: {
                         String chrom1 = handler.cleanUpName(getInternedString(tokens[1]));
                         String chrom2 = handler.cleanUpName(getInternedString(tokens[3]));
