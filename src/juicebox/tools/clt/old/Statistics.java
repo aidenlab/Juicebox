@@ -166,9 +166,11 @@ public class Statistics extends JuiceboxCLT {
             }
             mapqThresholds.add(mapqThreshold);
         }
-        else{
+        else {
             mapqThresholds.add(1);
-            mapqThresholds.add(30);
+            if (statsFiles.size() == 2) {
+                mapqThresholds.add(30);
+            }
         }
         String ligJunc = parser.getLigationOption();
         if (ligJunc != null) {
