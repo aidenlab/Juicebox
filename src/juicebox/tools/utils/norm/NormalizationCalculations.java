@@ -141,10 +141,10 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static ListOfFloatArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfFloatArrays x0, double delta) {
+    private static ListOfDoubleArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfDoubleArrays x0, double delta) {
     
         long n = x0.getLength();
-        ListOfFloatArrays e = new ListOfFloatArrays(n, 1);
+        ListOfDoubleArrays e = new ListOfDoubleArrays(n, 1);
     
         double g = 0.9;
         double etamax = 0.1;
@@ -152,15 +152,15 @@ public class NormalizationCalculations {
     
         double rt = Math.pow(tol, 2);
     
-        ListOfFloatArrays v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
-        ListOfFloatArrays rk = new ListOfFloatArrays(v.getLength());
+        ListOfDoubleArrays v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
+        ListOfDoubleArrays rk = new ListOfDoubleArrays(v.getLength());
         for (long i = 0; i < v.getLength(); i++) {
             v.multiplyBy(i, x0.get(i));
             rk.set(i, 1 - v.get(i));
         }
-        float rho_km1 = 0;
-        for (float[] aRkArray : rk.getValues()) {
-            for (float aRk : aRkArray) {
+        double rho_km1 = 0;
+        for (double[] aRkArray : rk.getValues()) {
+            for (double aRk : aRkArray) {
                 rho_km1 += aRk * aRk;
             }
         }
@@ -171,26 +171,26 @@ public class NormalizationCalculations {
         int not_changing = 0;
         while (rout > rt && not_changing < 100) {    // Outer iteration
             int k = 0;
-            ListOfFloatArrays y = e.deepClone();
-            ListOfFloatArrays ynew = new ListOfFloatArrays(e.getLength());
-            ListOfFloatArrays Z = new ListOfFloatArrays(e.getLength());
-            ListOfFloatArrays p = new ListOfFloatArrays(e.getLength());
-            ListOfFloatArrays w = new ListOfFloatArrays(e.getLength());
-            float alpha;
+            ListOfDoubleArrays y = e.deepClone();
+            ListOfDoubleArrays ynew = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays Z = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays p = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays w = new ListOfDoubleArrays(e.getLength());
+            double alpha;
             double beta;
-            float gamma;
+            double gamma;
             double rho_km2 = rho_km1;
         
         
             double innertol = Math.max(Math.pow(eta, 2) * rout, rt);
             while (rho_km1 > innertol) {   // Inner iteration by CG
                 k++;
-
+            
                 if (k == 1) {
                     rho_km1 = 0;
                     for (long i = 0; i < Z.getLength(); i++) {
-                        float rkVal = rk.get(i);
-                        float zVal = rkVal / v.get(i);
+                        double rkVal = rk.get(i);
+                        double zVal = rkVal / v.get(i);
                         Z.set(i, zVal);
                         rho_km1 += rkVal * zVal;
                     }
@@ -203,7 +203,7 @@ public class NormalizationCalculations {
                         p.addTo(i, Z.get(i));
                     }
                 }
-                ListOfFloatArrays tmp = new ListOfFloatArrays(e.getLength());
+                ListOfDoubleArrays tmp = new ListOfDoubleArrays(e.getLength());
                 for (long i = 0; i < tmp.getLength(); i++) {
                     tmp.set(i, x0.get(i) * p.get(i));
                 }
@@ -212,7 +212,7 @@ public class NormalizationCalculations {
                 // Update search direction efficiently.
                 for (long i = 0; i < tmp.getLength(); i++) {
                     double pVal = p.get(i);
-                    float wVal = (float) (x0.get(i) * tmp.get(i) + v.get(i) * pVal);
+                    double wVal = (x0.get(i) * tmp.get(i) + v.get(i) * pVal);
                     w.set(i, wVal);
                     alpha += pVal * wVal;
                 }
@@ -220,7 +220,7 @@ public class NormalizationCalculations {
                 double minynew = Double.MAX_VALUE;
                 // Test distance to boundary of cone.
                 for (long i = 0; i < p.getLength(); i++) {
-                    float yVal = y.get(i) + alpha * p.get(i);
+                    double yVal = y.get(i) + alpha * p.get(i);
                     ynew.set(i, yVal);
                     if (yVal < minynew) {
                         minynew = yVal;
@@ -228,26 +228,27 @@ public class NormalizationCalculations {
                 }
                 if (minynew <= delta) {
                     if (delta == 0) break;     // break out of inner loop?
-                    gamma = Float.MAX_VALUE;
-                    for (int i = 0; i < ynew.getLength(); i++) {
+                    gamma = Double.MAX_VALUE;
+                    for (long i = 0; i < ynew.getLength(); i++) {
                         double pVal = p.get(i);
                         if (alpha * pVal < 0) {
                             double yVal = y.get(i);
                             if ((delta - yVal) / (alpha * pVal) < gamma) {
-                                gamma = (float) ((delta - yVal) / (alpha * pVal));
+                                gamma = ((delta - yVal) / (alpha * pVal));
                             }
                         }
                     }
-                    for (int i = 0; i < y.getLength(); i++)
+                    for (long i = 0; i < y.getLength(); i++) {
                         y.addTo(i, gamma * alpha * p.get(i));
+                    }
                     break;   // break out of inner loop?
                 }
                 rho_km2 = rho_km1;
                 rho_km1 = 0;
+                y = ynew.deepClone();
                 for (long i = 0; i < y.getLength(); i++) {
-                    y.set(i, ynew.get(i));
                     rk.addTo(i, -alpha * w.get(i));
-                    float rkVal = rk.get(i);
+                    double rkVal = rk.get(i);
                     Z.set(i, rkVal / v.get(i));
                     rho_km1 += rkVal * Z.get(i);
                 }
@@ -260,7 +261,7 @@ public class NormalizationCalculations {
             rho_km1 = 0;
             for (long i = 0; i < v.getLength(); i++) {
                 v.multiplyBy(i, x0.get(i));
-                float rkVal = 1 - v.get(i);
+                double rkVal = 1 - v.get(i);
                 rk.set(i, rkVal);
             
                 rho_km1 += rkVal * rkVal;
@@ -287,8 +288,8 @@ public class NormalizationCalculations {
         return x0;
     }
     
-    private static ListOfFloatArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfFloatArrays vector) {
-        ListOfFloatArrays result = new ListOfFloatArrays(vector.getLength());
+    private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfDoubleArrays vector) {
+        ListOfDoubleArrays result = new ListOfDoubleArrays(vector.getLength());
         
         for (List<ContactRecord> localList : listOfLists) {
             for (ContactRecord cr : localList) {
@@ -380,11 +381,11 @@ public class NormalizationCalculations {
      * @return Square root of ratio of original to normalized vector
      */
     public double getSumFactor(ListOfFloatArrays norm) {
-        Double[] normMatrixSums = getNormMatrixSumFactor(norm);
+        double[] normMatrixSums = getNormMatrixSumFactor(norm);
         return Math.sqrt(normMatrixSums[0] / normMatrixSums[1]);
     }
     
-    public Double[] getNormMatrixSumFactor(ListOfFloatArrays norm) {
+    public double[] getNormMatrixSumFactor(ListOfFloatArrays norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (List<ContactRecord> localList : contactRecords) {
@@ -406,32 +407,7 @@ public class NormalizationCalculations {
                 }
             }
         }
-        return new Double[]{norm_sum, matrix_sum};
-    }
-    
-    public Double[] getNormMatrixSumFactor(double[] norm) {
-        double matrix_sum = 0;
-        double norm_sum = 0;
-        for (List<ContactRecord> localList : contactRecords) {
-            for (ContactRecord cr : localList) {
-                int x = cr.getBinX();
-                int y = cr.getBinY();
-                float value = cr.getCounts();
-                double valX = norm[x];
-                double valY = norm[y];
-                if (!Double.isNaN(valX) && !Double.isNaN(valY) && valX > 0 && valY > 0) {
-                    // want total sum of matrix, not just upper triangle
-                    if (x == y) {
-                        norm_sum += value / (valX * valY);
-                        matrix_sum += value;
-                    } else {
-                        norm_sum += 2 * value / (valX * valY);
-                        matrix_sum += 2 * value;
-                    }
-                }
-            }
-        }
-        return new Double[]{norm_sum, matrix_sum};
+        return new double[]{norm_sum, matrix_sum};
     }
     
     
@@ -464,7 +440,7 @@ public class NormalizationCalculations {
             }
             
             // initialize x0 for call the compute KR norm
-            ListOfFloatArrays x0 = new ListOfFloatArrays(newSize, 1);
+            ListOfDoubleArrays x0 = new ListOfDoubleArrays(newSize, 1);
             
             x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
             
@@ -491,7 +467,7 @@ public class NormalizationCalculations {
                         if (offset1 == -1) {
                             kr.set(krIndex++, Float.NaN);
                         } else {
-                            kr.set(krIndex++, (1.0f / x0.get(offset1)));
+                            kr.set(krIndex++, (float) (1.0f / x0.get(offset1)));
                         }
                     }
                 }

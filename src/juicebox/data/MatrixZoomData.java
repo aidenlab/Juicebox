@@ -126,9 +126,13 @@ public class MatrixZoomData {
         } else if (zoom.getUnit() == HiC.Unit.BP) {
             this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr1Sites);
             this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr2Sites);
-        } else {
+        } else if (zoom.getUnit() == HiC.Unit.FRAG) {
             this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr1Sites, chr1.getLength());
             this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr2Sites, chr2.getLength());
+        } else {
+            System.err.println("Requested " + zoom.getUnit() + " unit; error encountered");
+            this.xGridAxis = null;
+            this.yGridAxis = null;
         }
 
         pearsonsMap = new HashMap<>();
