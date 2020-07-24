@@ -81,26 +81,12 @@ public class StatisticsContainer {
     public void initMaps(){
         for(int i=0; i<hindIII.length; i++){
             hindIII[i] = new HashMap<>();
-        }
-        for(int i=0; i<mapQ.length; i++){
             mapQ[i] = new HashMap<>();
-        }
-        for(int i=0; i<mapQInter.length; i++){
             mapQInter[i] = new HashMap<>();
-        }
-        for(int i=0; i<mapQIntra.length; i++){
             mapQIntra[i] = new HashMap<>();
-        }
-        for(int i=0; i<innerM.length; i++){
             innerM[i] = new HashMap<>();
-        }
-        for(int i=0; i<outerM.length; i++){
             outerM[i] = new HashMap<>();
-        }
-        for(int i=0; i<rightM.length; i++){
             rightM[i] = new HashMap<>();
-        }
-        for(int i=0; i<leftM.length; i++){
             leftM[i] = new HashMap<>();
         }
     }
