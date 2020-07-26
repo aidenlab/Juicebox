@@ -43,8 +43,8 @@ import java.util.Map;
  */
 
 class HiCFileUtils {
-
-    private Dataset dataset;
+	
+	private final Dataset dataset;
 
     private HiCFileUtils(String hicfile) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(hicfile);

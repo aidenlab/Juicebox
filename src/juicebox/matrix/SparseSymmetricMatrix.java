@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,15 +41,15 @@ import java.util.List;
  * TODO - able to do Pearson's and gradient?
  */
 public class SparseSymmetricMatrix implements BasicMatrix {
-
+    
     private final int numValsEstimate;
-    private IntArrayList rows1;
-    private IntArrayList cols1;
-    private FloatArrayList values1;
+    private final IntArrayList rows1;
+    private final IntArrayList cols1;
+    private final FloatArrayList values1;
     private IntArrayList rows2 = null;
     private IntArrayList cols2 = null;
     private FloatArrayList values2 = null;
-
+    
     public SparseSymmetricMatrix(int numValsEstimate) {
         this.numValsEstimate = numValsEstimate;
         rows1 = new IntArrayList(numValsEstimate);

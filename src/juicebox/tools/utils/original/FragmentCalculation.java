@@ -37,8 +37,8 @@ import java.util.regex.Pattern;
  *         Date: 8/26/12
  */
 public class FragmentCalculation {
-
-    private Map<String, int[]> sitesMap;
+    
+    private final Map<String, int[]> sitesMap;
 
     private FragmentCalculation(Map<String, int[]> sitesMap) {
         this.sitesMap = sitesMap;

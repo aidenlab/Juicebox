@@ -25,21 +25,21 @@
 package juicebox.tools.utils.norm.final2;
 
 public class ScaleThreadObject {
-    private int[] iIndexes;
-    private int[] jIndexes;
-    private float[] xValues;
-    private float[] vVector;
-    private float[] result;
-
-    public ScaleThreadObject(int[] iIndexes, int[] jIndexes, float[] xValues, float[] vVector, float[] result) {
-        this.iIndexes = iIndexes;
-        this.jIndexes = jIndexes;
-        this.xValues = xValues;
-        this.vVector = vVector;
-        this.result = result;
-    }
-
-    public void execute() {
+	private final int[] iIndexes;
+	private final int[] jIndexes;
+	private final float[] xValues;
+	private final float[] vVector;
+	private final float[] result;
+	
+	public ScaleThreadObject(int[] iIndexes, int[] jIndexes, float[] xValues, float[] vVector, float[] result) {
+		this.iIndexes = iIndexes;
+		this.jIndexes = jIndexes;
+		this.xValues = xValues;
+		this.vVector = vVector;
+		this.result = result;
+	}
+	
+	public void execute() {
         for (int p = 0; p < xValues.length; p++) {
             result[iIndexes[p]] += xValues[p] * vVector[jIndexes[p]];
             result[jIndexes[p]] += xValues[p] * vVector[iIndexes[p]];

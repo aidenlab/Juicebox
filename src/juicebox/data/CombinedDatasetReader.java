@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.basics.ListOfDoubleArrays;
-import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;

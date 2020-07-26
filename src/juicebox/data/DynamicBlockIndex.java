@@ -39,7 +39,7 @@ public class DynamicBlockIndex extends BlockIndex {
     private final long minPosition, maxPosition;
     private Integer blockNumberRangeMin = null, blockNumberRangeMax = null;
     private Long mapFileBoundsMin = null, mapFileBoundsMax = null;
-    private SeekableStream stream;
+    private final SeekableStream stream;
 
     public DynamicBlockIndex(SeekableStream stream, int numBlocks, int maxBlocks, long minPosition) {
         super(numBlocks);

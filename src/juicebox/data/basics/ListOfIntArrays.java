@@ -35,7 +35,7 @@ public class ListOfIntArrays {
 	
 	private final int DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
 	private final long overallLength;
-	private List<int[]> internalList = new ArrayList<>();
+	private final List<int[]> internalList = new ArrayList<>();
 	
 	public ListOfIntArrays(long length) {
 		this.overallLength = length;

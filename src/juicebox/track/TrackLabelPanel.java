@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,8 +49,8 @@ public class TrackLabelPanel extends JPanel {
     private final HiC hic;
     final private int leftMargin = 10;
     final private int rightMargin = 5;
-    private HiCTrack eigenvectorTrack;
-    private int numExtraBufferLinesSpaces = 2;
+	private HiCTrack eigenvectorTrack;
+	private final int numExtraBufferLinesSpaces = 2;
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;

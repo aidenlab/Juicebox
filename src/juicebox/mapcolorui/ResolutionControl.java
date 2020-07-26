@@ -61,7 +61,7 @@ public class ResolutionControl extends JPanel {
     private final HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
-    private JSlider resolutionSlider;
+    private final JSlider resolutionSlider;
     private int lastValue = 0;
 
     {

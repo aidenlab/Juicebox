@@ -50,7 +50,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     private final Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
     private final Map<MatrixZoomData, Map<RegionPair, LRUCache<String, Block>>> allBlockCaches = new HashMap<>();
     private final CustomMZDRegionHandler rTreeHandler = new CustomMZDRegionHandler();
-    private ChromosomeHandler handler;
+    private final ChromosomeHandler handler;
 
     public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                 HiCZoom zoom, DatasetReader reader) {

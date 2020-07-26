@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
-import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;

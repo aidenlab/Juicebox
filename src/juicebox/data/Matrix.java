@@ -48,7 +48,7 @@ public class Matrix {
     protected List<MatrixZoomData> bpZoomData = new ArrayList<>();
     protected List<MatrixZoomData> fragZoomData = new ArrayList<>();
     protected List<MatrixZoomData> dynamicBPZoomData = new ArrayList<>();
-    private Comparator<MatrixZoomData> comparator = new Comparator<MatrixZoomData>() {
+    private final Comparator<MatrixZoomData> comparator = new Comparator<MatrixZoomData>() {
         @Override
         public int compare(MatrixZoomData o1, MatrixZoomData o2) {
             return o2.getBinSize() - o1.getBinSize();

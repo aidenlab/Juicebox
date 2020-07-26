@@ -25,9 +25,11 @@
 package juicebox.tools.clt.old;
 
 import juicebox.data.ChromosomeHandler;
-import juicebox.tools.utils.original.*;
+import juicebox.tools.utils.original.AlignmentPairLong;
+import juicebox.tools.utils.original.AsciiPairIterator;
+import juicebox.tools.utils.original.FragmentCalculation;
+
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

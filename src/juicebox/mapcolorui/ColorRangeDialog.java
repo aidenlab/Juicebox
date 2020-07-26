@@ -41,25 +41,25 @@ import java.text.ParseException;
  * @author Jim Robinson
  */
 class ColorRangeDialog extends JDialog {
-
+    
     private static final long serialVersionUID = -2570891809264626823L;
     private final DecimalFormat df2;
-    private JTextField minimumField = new JTextField();
-    private JTextField maximumField = new JTextField();
-    private JTextField lowerField = new JTextField();
-    private JTextField upperField = new JTextField();
-    private JLabel minTextLabel = new JLabel("Minimum:");
-    private JLabel lowerValTextLabel = new JLabel("Lower value:");
-    private JLabel maxTextLabel = new JLabel("Maximum:");
-    private JLabel higherValTextLabel = new JLabel("Higher value:");
-
+    private final JTextField minimumField = new JTextField();
+    private final JTextField maximumField = new JTextField();
+    private final JTextField lowerField = new JTextField();
+    private final JTextField upperField = new JTextField();
+    private final JLabel minTextLabel = new JLabel("Minimum:");
+    private final JLabel lowerValTextLabel = new JLabel("Lower value:");
+    private final JLabel maxTextLabel = new JLabel("Maximum:");
+    private final JLabel higherValTextLabel = new JLabel("Higher value:");
+    
     public ColorRangeDialog(SuperAdapter superAdapter, JColorRangePanel colorRangePanel,
                             RangeSlider colorSlider, double colorRangeFactor, MatrixType option) {
         super(superAdapter.getMainWindow());
-
+        
         boolean isOEColorScaleType = MatrixType.isOEColorScaleType(option);
         initComponents(superAdapter, colorRangePanel, isOEColorScaleType);
-
+        
         df2 = new DecimalFormat("####.###");
 
         minimumField.setText(df2.format(colorSlider.getMinimum() / colorRangeFactor));

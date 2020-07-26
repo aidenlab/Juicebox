@@ -23,20 +23,26 @@
  */
 
 package juicebox.tools.clt.old;
+
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
-import java.util.*;
+import juicebox.tools.utils.original.FragmentCalculation;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import juicebox.data.ChromosomeHandler;
-import juicebox.tools.utils.original.FragmentCalculation;
 
 public class Statistics extends JuiceboxCLT {
 

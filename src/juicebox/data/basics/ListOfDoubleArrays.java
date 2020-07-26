@@ -35,7 +35,7 @@ public class ListOfDoubleArrays {
 	
 	private final long DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
 	private final long overallLength;
-	private List<double[]> internalList = new ArrayList<>();
+	private final List<double[]> internalList = new ArrayList<>();
 	
 	public ListOfDoubleArrays(long length) {
 		this.overallLength = length;

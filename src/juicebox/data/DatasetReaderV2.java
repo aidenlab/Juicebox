@@ -31,7 +31,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
-import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.IndexEntry;
 import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.HiCZoom;
@@ -69,7 +68,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private Dataset dataset = null;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
-    private Map<String, BlockIndex> blockIndexMap;
+    private final Map<String, BlockIndex> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
     private boolean activeStatus = true;
@@ -437,7 +436,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             buffer = new byte[4];
             stream.read(buffer);
             dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-            nBytes = (long) dis.readInt();
+            nBytes = dis.readInt();
             normVectorFilePosition = masterIndexPos + nBytes + 4;  // 4 bytes for the buffer size
         }
 
@@ -491,7 +490,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             //System.out.println(binSize + " " + nValues + " " + stream.position());
             for (long j = 0; j < nValues; j++) {
                 if (version > 8) {
-                    values.set(j, (double) dis.readFloat());
+                    values.set(j, dis.readFloat());
                 } else {
                     values.set(j, dis.readDouble());
                 }
@@ -553,7 +552,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                 for (long j = 0; j < nValues; j++) {
                     if (version > 8) {
-                        values.set(j, (double) dis.readFloat());
+                        values.set(j, dis.readFloat());
                     } else {
                         values.set(j, dis.readDouble());
                     }

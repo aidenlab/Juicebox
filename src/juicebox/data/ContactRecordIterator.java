@@ -36,14 +36,14 @@ public /**
  * Class for iterating over the contact records
  */
 class ContactRecordIterator implements Iterator<ContactRecord> {
-
+    
     private final List<Integer> blockNumbers;
     private int blockIdx;
     private Iterator<ContactRecord> currentBlockIterator;
-    private DatasetReader reader;
-    private MatrixZoomData zd;
-    private LRUCache<String, Block> blockCache;
-
+    private final DatasetReader reader;
+    private final MatrixZoomData zd;
+    private final LRUCache<String, Block> blockCache;
+    
     /**
      * Initializes the iterator
      */

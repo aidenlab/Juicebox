@@ -47,9 +47,9 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
     private boolean noNorm = false;
     private boolean noFragNorm = false;
-    private int genomeWide;
-    private List<NormalizationType> normalizationTypes = new ArrayList<>();
-    protected static int numCPUThreads = 1;
+	private int genomeWide;
+	private final List<NormalizationType> normalizationTypes = new ArrayList<>();
+	protected static int numCPUThreads = 1;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"

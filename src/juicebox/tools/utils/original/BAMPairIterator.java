@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,21 +41,21 @@ import java.util.Map;
  * @since 9/24/11
  */
 public class BAMPairIterator implements PairIterator {
-
-    private AlignmentPair nextPair = null;
-    private AlignmentPair preNext = null;
-    private CloseableIterator<?> iterator;
-    private AlignmentReader<?> reader;
-    // Map of name -> index
-    private Map<String, Integer> chromosomeOrdinals;
-
-    public BAMPairIterator(String path) throws IOException {
-
-        this.reader = AlignmentReaderFactory.getReader(path, false);
-
-        this.iterator = reader.iterator();
-        advance();
-    }
+	
+	private AlignmentPair nextPair = null;
+	private AlignmentPair preNext = null;
+	private final CloseableIterator<?> iterator;
+	private final AlignmentReader<?> reader;
+	// Map of name -> index
+	private Map<String, Integer> chromosomeOrdinals;
+	
+	public BAMPairIterator(String path) throws IOException {
+		
+		this.reader = AlignmentReaderFactory.getReader(path, false);
+		
+		this.iterator = reader.iterator();
+		advance();
+	}
 
     private void advance() {
 

@@ -108,7 +108,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
   private Feature2D debrisFeature = null;
   private Feature2D tempSelectedGroup = null;
   private List<Feature2D> selectedFeatures = null;
-  private List<Feature2D> lastSelectedFeatures = null;
+  private final List<Feature2D> lastSelectedFeatures = null;
   private Feature2DGuiContainer currentFeature = null;
   private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
   private boolean changedSize = false;

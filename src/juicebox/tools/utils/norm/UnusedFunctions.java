@@ -25,7 +25,6 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.DatasetReaderV2;
-import juicebox.tools.utils.original.IndexEntry;
 import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;

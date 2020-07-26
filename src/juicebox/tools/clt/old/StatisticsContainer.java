@@ -25,7 +25,6 @@
 package juicebox.tools.clt.old;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.*;
 

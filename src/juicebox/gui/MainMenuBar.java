@@ -394,11 +394,7 @@ public class MainMenuBar extends JMenuBar {
     layersItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (layersItem.isSelected()) {
-          superAdapter.setLayersPanelVisible(true);
-        } else {
-          superAdapter.setLayersPanelVisible(false);
-        }
+        superAdapter.setLayersPanelVisible(layersItem.isSelected());
 
       }
     });
