@@ -866,13 +866,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             long[] timeDiffThings = new long[4];
             timeDiffThings[0] = System.currentTimeMillis();
-            List<Integer> bounds;
+            
+            /*
+            int[] bounds;
             if (version > 8 && zd.getChr1Idx() == zd.getChr2Idx()) {
                 bounds = zd.getBlockBoundsFromNumberVersion9Up(blockNumber);
             }
             else {
                 bounds = zd.getBlockBoundsFromNumberVersion8Below(blockNumber);
             }
+             */
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
     
@@ -961,42 +964,74 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                     int binXOffset = dis.readInt();
                     int binYOffset = dis.readInt();
-
+    
                     boolean useShort = dis.readByte() == 0;
-                    boolean useShortBinX, useShortBinY;
+                    boolean useShortBinX = true, useShortBinY = true;
                     if (version > 8) {
                         useShortBinX = dis.readByte() == 0;
                         useShortBinY = dis.readByte() == 0;
-                    } else {
-                        useShortBinX = true;
-                        useShortBinY = true;
                     }
 
                     byte type = dis.readByte();
 
                     switch (type) {
                         case 1:
-                            // List-of-rows representation
-                            int rowCount = useShortBinY ? dis.readShort() : dis.readInt();
-
-                            for (int i = 0; i < rowCount; i++) {
-
-                                int binY = useShortBinY ? binYOffset + dis.readShort() : binYOffset + dis.readInt();
-                                int colCount = useShortBinX ? dis.readShort() : dis.readInt();
-
-                                for (int j = 0; j < colCount; j++) {
-
-                                    int binX = useShortBinX ? binXOffset + dis.readShort() : binXOffset + dis.readInt();
-                                    float counts = useShort ? dis.readShort() : dis.readFloat();
-                                    records.add(new ContactRecord(binX, binY, counts));
+                            if (useShortBinX && useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readShort();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readShort();
+                                    int colCount = dis.readShort();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readShort();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+                            } else if (useShortBinX && !useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readInt();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readInt();
+                                    int colCount = dis.readShort();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readShort();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+            
+                            } else if (!useShortBinX && useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readShort();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readShort();
+                                    int colCount = dis.readInt();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readInt();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+                            } else {
+                                // List-of-rows representation
+                                int rowCount = dis.readInt();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readInt();
+                                    int colCount = dis.readInt();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readInt();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
                                 }
                             }
                             break;
                         case 2:
-
+        
                             int nPts = dis.readInt();
                             int w = dis.readShort();
-
+        
                             for (int i = 0; i < nPts; i++) {
                                 //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
                                 int row = i / w;
