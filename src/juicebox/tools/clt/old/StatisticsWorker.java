@@ -66,7 +66,6 @@ public class StatisticsWorker {
         this.resultsContainer = new StatisticsContainer();
 
         this.danglingJunction = ligationJunction.substring(ligationJunction.length()/2);
-        resultsContainer.initMaps();
     }
 
     public StatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds, String ligationJunction,

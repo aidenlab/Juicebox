@@ -70,12 +70,11 @@ public class StatisticsContainer {
     public int[] oneKBResDangling = new int[2];
     public int[] twoKBResDangling = new int[2];
     public int[] fiveKBResDangling = new int[2];
-
-
+    
     private static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
-
-    public void initMaps(){
-        for(int i=0; i<2; i++){
+    
+    public StatisticsContainer() {
+        for (int i = 0; i < 2; i++) {
             hindIII.add(new HashMap<>());
             mapQ.add(new HashMap<>());
             mapQInter.add(new HashMap<>());
@@ -86,6 +85,7 @@ public class StatisticsContainer {
             leftM.add(new HashMap<>());
         }
     }
+    
     public void add(StatisticsContainer individualContainer, int numberOfMapQValues) {
         unique += individualContainer.unique;
 
