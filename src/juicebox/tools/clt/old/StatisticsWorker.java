@@ -25,6 +25,7 @@
 package juicebox.tools.clt.old;
 
 import juicebox.data.ChromosomeHandler;
+import juicebox.tools.utils.original.AlignmentPair;
 import juicebox.tools.utils.original.AlignmentPairLong;
 import juicebox.tools.utils.original.AsciiPairIterator;
 import juicebox.tools.utils.original.FragmentCalculation;
@@ -92,8 +93,7 @@ public class StatisticsWorker {
             if (mndIndexStart<0) {
                         files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
                         while(files.hasNext()){
-                            AlignmentPairLong pair = (AlignmentPairLong) files.next();
-                            processSingleEntry(pair, "", false);
+                            processSingleEntry(files.next(), "", false);
                         }
             } else {
                 files = new AsciiPairIterator(inFile, chromosomeIndexes, mndIndexStart, localHandler);
@@ -109,19 +109,18 @@ public class StatisticsWorker {
                     }
                 }
             }
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    private boolean processSingleEntry(AlignmentPairLong pair, String blockKey, boolean multithread){
-        int chr1,chr2,pos1,pos2,frag1,frag2,mapq1,mapq2;
-        boolean str1,str2;
-        String seq1,seq2;
+    
+    private boolean processSingleEntry(AlignmentPair pair, String blockKey, boolean multithread) {
+        int chr1, chr2, pos1, pos2, frag1, frag2, mapq1, mapq2;
+        boolean str1, str2;
         chr1 = pair.getChr1();
         chr2 = pair.getChr2();
         String currentBlock = chr1 + "_" + chr2;
-        if(!currentBlock.equals(blockKey)&& multithread){
+        if (!currentBlock.equals(blockKey) && multithread) {
             return true;
         }
         pos1 = pair.getPos1();
@@ -132,8 +131,6 @@ public class StatisticsWorker {
         mapq2 = pair.getMapq2();
         str1 = pair.getStrand1();
         str2 = pair.getStrand2();
-        seq1 = pair.getSeq1();
-        seq2 = pair.getSeq2();
 
         resultsContainer.unique++;
         //don't count as Hi-C contact if fails mapq or intra fragment test
@@ -158,9 +155,14 @@ public class StatisticsWorker {
                 int histDist = bSearch(posDist);
                 boolean isDangling = false;
                 //one part of read pair has unligated end
-                if ((seq1 != null && seq2 != null) && (seq1.startsWith(danglingJunction) || seq2.startsWith(danglingJunction))) {
-                    resultsContainer.dangling[ind]++;
-                    isDangling = true;
+                if (pair instanceof AlignmentPairLong) {
+                    AlignmentPairLong longPair = (AlignmentPairLong) pair;
+                    String seq1 = longPair.getSeq1();
+                    String seq2 = longPair.getSeq2();
+                    if ((seq1 != null && seq2 != null) && (seq1.startsWith(danglingJunction) || seq2.startsWith(danglingJunction))) {
+                        resultsContainer.dangling[ind]++;
+                        isDangling = true;
+                    }
                 }
                 //look at chromosomes
                 if (chr1 == chr2) {
@@ -243,19 +245,24 @@ public class StatisticsWorker {
                         resultsContainer.interDangling[ind]++;
                     }
                 }
-                if ((seq1 != null && seq2 != null) && (mapq1 >= 0 && mapq2 >= 0)) {
-                    int mapqVal = Math.min(mapq1, mapq2);
-                    if (mapqVal <= mapqValThreshold) {
-                        resultsContainer.mapQ.get(ind).put(mapqVal, resultsContainer.mapQ.get(ind).getOrDefault(mapqVal, 0) + 1);
-                        if (chr1 == chr2) {
-                            resultsContainer.mapQIntra.get(ind).put(mapqVal, resultsContainer.mapQIntra.get(ind).getOrDefault(mapqVal, 0) + 1);
-                        } else {
-                            resultsContainer.mapQInter.get(ind).put(mapqVal, resultsContainer.mapQInter.get(ind).getOrDefault(mapqVal, 0) + 1);
+                if (pair instanceof AlignmentPairLong) {
+                    AlignmentPairLong longPair = (AlignmentPairLong) pair;
+                    String seq1 = longPair.getSeq1();
+                    String seq2 = longPair.getSeq2();
+                    if ((seq1 != null && seq2 != null) && (mapq1 >= 0 && mapq2 >= 0)) {
+                        int mapqVal = Math.min(mapq1, mapq2);
+                        if (mapqVal <= mapqValThreshold) {
+                            resultsContainer.mapQ.get(ind).put(mapqVal, resultsContainer.mapQ.get(ind).getOrDefault(mapqVal, 0) + 1);
+                            if (chr1 == chr2) {
+                                resultsContainer.mapQIntra.get(ind).put(mapqVal, resultsContainer.mapQIntra.get(ind).getOrDefault(mapqVal, 0) + 1);
+                            } else {
+                                resultsContainer.mapQInter.get(ind).put(mapqVal, resultsContainer.mapQInter.get(ind).getOrDefault(mapqVal, 0) + 1);
+                            }
                         }
-                    }
-                    //read pair contains ligation junction
-                    if (seq1.contains(ligationJunction) || seq2.contains(ligationJunction)) {
-                        resultsContainer.ligation[ind]++;
+                        //read pair contains ligation junction
+                        if (seq1.contains(ligationJunction) || seq2.contains(ligationJunction)) {
+                            resultsContainer.ligation[ind]++;
+                        }
                     }
                 }
                 //determine distance from nearest HindIII site, add to histogram
@@ -270,22 +277,27 @@ public class StatisticsWorker {
                         resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0) + 1);
                     }
                 }
-                if (isDangling) {
-                    int dist;
-                    if (seq1.startsWith(danglingJunction)) {
-                        dist = distHindIII(str1, chr1, pos1, frag1, true, ind);
-                    } else {
-                        dist = distHindIII(str2, chr2, pos2, frag2, true, ind);
-                    } //$record[13] =~ m/^$danglingJunction/
-                    if (dist == 1) {
-                        if (chr1 == chr2) {
-                            if (posDist < posDistThreshold) {
-                                resultsContainer.trueDanglingIntraSmall[ind]++;
-                            } else {
-                                resultsContainer.trueDanglingIntraLarge[ind]++;
-                            }
+                if (pair instanceof AlignmentPairLong) {
+                    AlignmentPairLong longPair = (AlignmentPairLong) pair;
+                    String seq1 = longPair.getSeq1();
+                    String seq2 = longPair.getSeq2();
+                    if (isDangling) {
+                        int dist;
+                        if (seq1.startsWith(danglingJunction)) {
+                            dist = distHindIII(str1, chr1, pos1, frag1, true, ind);
                         } else {
-                            resultsContainer.trueDanglingInter[ind]++;
+                            dist = distHindIII(str2, chr2, pos2, frag2, true, ind);
+                        } //$record[13] =~ m/^$danglingJunction/
+                        if (dist == 1) {
+                            if (chr1 == chr2) {
+                                if (posDist < posDistThreshold) {
+                                    resultsContainer.trueDanglingIntraSmall[ind]++;
+                                } else {
+                                    resultsContainer.trueDanglingIntraLarge[ind]++;
+                                }
+                            } else {
+                                resultsContainer.trueDanglingInter[ind]++;
+                            }
                         }
                     }
                 }
@@ -318,6 +330,7 @@ public class StatisticsWorker {
             error.printStackTrace();
         }
     }
+    
     private int distHindIII(boolean strand, int chr, int pos, int frag, boolean rep, int index){
         //Find distance to nearest HindIII restriction site
         //find upper index of position in sites array via binary search

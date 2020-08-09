@@ -149,7 +149,7 @@ public class AsciiPairIterator implements PairIterator {
                     return;
                 }
 
-                if (format == null) {
+                if (format == null || format != Format.DCIC) {
                     switch (nTokens) {
                         case 8:
                             format = Format.SHORT;
