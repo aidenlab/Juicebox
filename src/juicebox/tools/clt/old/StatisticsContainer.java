@@ -30,46 +30,46 @@ import java.util.*;
 
 public class StatisticsContainer {
     //Variables for calculating statistics
-    public final List<Map<Integer,Integer>> hindIII = new ArrayList<>();
-    public final List<Map<Integer,Integer>> mapQ = new ArrayList<>();
-    public final List<Map<Integer,Integer>> mapQInter = new ArrayList<>();
-    public final List<Map<Integer,Integer>> mapQIntra = new ArrayList<>();
-    public final List<Map<Integer,Integer>> innerM = new ArrayList<>();
-    public final List<Map<Integer,Integer>> outerM = new ArrayList<>();
-    public final List<Map<Integer,Integer>> rightM = new ArrayList<>();
-    public final List<Map<Integer,Integer>> leftM = new ArrayList<>();
-
-    public int unique = 0;
-    public int[] intraFragment = new int[2];
-    public int[] threePrimeEnd = new int[2];
-    public int[] fivePrimeEnd = new int[2];
-    public int[] dangling = new int[2];
-    public int[] ligation = new int[2];
-    public int[] inner = new int[2];
-    public int[] outer = new int[2];
-    public int[] left = new int[2];
-    public int[] right = new int[2];
-    public int[] intra = new int[2];
-    public int[] inter = new int[2];
-    public int[] small = new int[2];
-    public int[] large = new int[2];
-    public int[] verySmall = new int[2];
-    public int[] verySmallDangling = new int[2];
-    public int[] smallDangling = new int[2];
-    public int[] largeDangling = new int[2];
-    public int[] interDangling = new int[2];
-    public int[] trueDanglingIntraSmall = new int[2];
-    public int[] trueDanglingIntraLarge = new int[2];
-    public int[] trueDanglingInter = new int[2];
-    public int[] totalCurrent = new int[2];
-    public int[] underMapQ = new int[2];
-
-    public int[] oneKBRes = new int[2];
-    public int[] twoKBRes = new int[2];
-    public int[] fiveKBRes = new int[2];
-    public int[] oneKBResDangling = new int[2];
-    public int[] twoKBResDangling = new int[2];
-    public int[] fiveKBResDangling = new int[2];
+    public final List<Map<Integer, Long>> hindIII = new ArrayList<>();
+    public final List<Map<Integer, Long>> mapQ = new ArrayList<>();
+    public final List<Map<Integer, Long>> mapQInter = new ArrayList<>();
+    public final List<Map<Integer, Long>> mapQIntra = new ArrayList<>();
+    public final List<Map<Integer, Long>> innerM = new ArrayList<>();
+    public final List<Map<Integer, Long>> outerM = new ArrayList<>();
+    public final List<Map<Integer, Long>> rightM = new ArrayList<>();
+    public final List<Map<Integer, Long>> leftM = new ArrayList<>();
+    
+    public long unique = 0;
+    public long[] intraFragment = new long[2];
+    public long[] threePrimeEnd = new long[2];
+    public long[] fivePrimeEnd = new long[2];
+    public long[] dangling = new long[2];
+    public long[] ligation = new long[2];
+    public long[] inner = new long[2];
+    public long[] outer = new long[2];
+    public long[] left = new long[2];
+    public long[] right = new long[2];
+    public long[] intra = new long[2];
+    public long[] inter = new long[2];
+    public long[] small = new long[2];
+    public long[] large = new long[2];
+    public long[] verySmall = new long[2];
+    public long[] verySmallDangling = new long[2];
+    public long[] smallDangling = new long[2];
+    public long[] largeDangling = new long[2];
+    public long[] interDangling = new long[2];
+    public long[] trueDanglingIntraSmall = new long[2];
+    public long[] trueDanglingIntraLarge = new long[2];
+    public long[] trueDanglingInter = new long[2];
+    public long[] totalCurrent = new long[2];
+    public long[] underMapQ = new long[2];
+    
+    public long[] oneKBRes = new long[2];
+    public long[] twoKBRes = new long[2];
+    public long[] fiveKBRes = new long[2];
+    public long[] oneKBResDangling = new long[2];
+    public long[] twoKBResDangling = new long[2];
+    public long[] fiveKBResDangling = new long[2];
     
     private static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
     
@@ -91,19 +91,18 @@ public class StatisticsContainer {
 
         for (int j=0; j<numberOfMapQValues; j++) {
             for (int i = 1; i <= 2000; i++) {
-                hindIII.get(j).put(i, hindIII.get(j).getOrDefault(i, 0) + individualContainer.hindIII.get(j).getOrDefault(i, 0));
+                hindIII.get(j).put(i, hindIII.get(j).getOrDefault(i, 0L) + individualContainer.hindIII.get(j).getOrDefault(i, 0L));
             }
             for (int i = 1; i <= 200; i++) {
-                mapQ.get(j).put(i, mapQ.get(j).getOrDefault(i, 0) + individualContainer.mapQ.get(j).getOrDefault(i, 0));
-                mapQInter.get(j).put(i, mapQInter.get(j).getOrDefault(i, 0) + individualContainer.mapQInter.get(j).getOrDefault(i, 0));
-                mapQIntra.get(j).put(i, mapQIntra.get(j).getOrDefault(i, 0) + individualContainer.mapQIntra.get(j).getOrDefault(i, 0));
+                mapQ.get(j).put(i, mapQ.get(j).getOrDefault(i, 0L) + individualContainer.mapQ.get(j).getOrDefault(i, 0L));
+                mapQInter.get(j).put(i, mapQInter.get(j).getOrDefault(i, 0L) + individualContainer.mapQInter.get(j).getOrDefault(i, 0L));
+                mapQIntra.get(j).put(i, mapQIntra.get(j).getOrDefault(i, 0L) + individualContainer.mapQIntra.get(j).getOrDefault(i, 0L));
             }
             for (int i = 1; i <= 100; i++) {
-                innerM.get(j).put(i, innerM.get(j).getOrDefault(i, 0) + individualContainer.innerM.get(j).getOrDefault(i, 0));
-                outerM.get(j).put(i, outerM.get(j).getOrDefault(i, 0) + individualContainer.outerM.get(j).getOrDefault(i, 0));
-                rightM.get(j).put(i, rightM.get(j).getOrDefault(i, 0) + individualContainer.rightM.get(j).getOrDefault(i, 0));
-                leftM.get(j).put(i, leftM.get(j).getOrDefault(i, 0) + individualContainer.leftM.get(j).getOrDefault(i, 0));
-
+                innerM.get(j).put(i, innerM.get(j).getOrDefault(i, 0L) + individualContainer.innerM.get(j).getOrDefault(i, 0L));
+                outerM.get(j).put(i, outerM.get(j).getOrDefault(i, 0L) + individualContainer.outerM.get(j).getOrDefault(i, 0L));
+                rightM.get(j).put(i, rightM.get(j).getOrDefault(i, 0L) + individualContainer.rightM.get(j).getOrDefault(i, 0L));
+                leftM.get(j).put(i, leftM.get(j).getOrDefault(i, 0L) + individualContainer.leftM.get(j).getOrDefault(i, 0L));
             }
         }
 
@@ -139,17 +138,23 @@ public class StatisticsContainer {
             underMapQ[i] += individualContainer.underMapQ[i];
         }
     }
-
-    private String commify(int value) {
+    
+    private String commify(long value) {
         return NumberFormat.getNumberInstance(Locale.US).format(value);
     }
-    private String percentify(int num, int total){ return String.format("%.2f", (float) num * 100 / total) + "%";}
-    private String wholePercentify(int num, int total) { return String.format("%.0f", (float) num * 100 / total) + "%" ;}
-
+    
+    private String percentify(long num, long total) {
+        return String.format("%.2f", num * 100f / total) + "%";
+    }
+    
+    private String wholePercentify(long num, long total) {
+        return String.format("%.0f", num * 100f / total) + "%";
+    }
+    
     public void outputStatsFile(List<String> statsFiles) {
-        for (int i =0; i<statsFiles.size();i++) {
+        for (int i = 0; i < statsFiles.size(); i++) {
             boolean sequencedReadsGiven = false;
-            int reads = 1;
+            long reads = 1L;
             File statFile = new File(statsFiles.get(i));
             //output statistics file for first mapq calculation
             if (statFile.exists()) {
@@ -160,7 +165,7 @@ public class StatisticsContainer {
                         if (statsData.contains("Sequenced")) {
                             sequencedReadsGiven = true;
                             String[] tokens = statsData.split(":");
-                            reads = Integer.parseInt(tokens[1].replaceAll("[, ]", ""));
+                            reads = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
                         }
                         statsData = stats.readLine();
                     }
@@ -255,26 +260,26 @@ public class StatisticsContainer {
                     BufferedWriter hist = new BufferedWriter(new FileWriter(histsFile, false));
                     hist.write("A = [\n");
                     for (int i = 1; i <= 2000; i++) {
-                        int tmp = hindIII.get(j).getOrDefault(i, 0);
+                        long tmp = hindIII.get(j).getOrDefault(i, 0L);
                         hist.write(tmp + " ");
                     }
                     hist.write("\n];\n");
 
                     hist.write("B = [\n");
                     for (int i = 1; i <= 200; i++) {
-                        int tmp = mapQ.get(j).getOrDefault(i, 0);
-                        int tmp2 = mapQIntra.get(j).getOrDefault(i, 0);
-                        int tmp3 = mapQInter.get(j).getOrDefault(i, 0);
+                        long tmp = mapQ.get(j).getOrDefault(i, 0L);
+                        long tmp2 = mapQIntra.get(j).getOrDefault(i, 0L);
+                        long tmp3 = mapQInter.get(j).getOrDefault(i, 0L);
                         hist.write(tmp + " " + tmp2 + " " + tmp3 + "\n");
                     }
                     hist.write("\n];\n");
 
                     hist.write("D = [\n");
                     for (int i = 0; i < bins.length; i++) {
-                        int tmp = innerM.get(j).getOrDefault(i, 0);
-                        int tmp2 = outerM.get(j).getOrDefault(i, 0);
-                        int tmp3 = rightM.get(j).getOrDefault(i, 0);
-                        int tmp4 = leftM.get(j).getOrDefault(i, 0);
+                        long tmp = innerM.get(j).getOrDefault(i, 0L);
+                        long tmp2 = outerM.get(j).getOrDefault(i, 0L);
+                        long tmp3 = rightM.get(j).getOrDefault(i, 0L);
+                        long tmp4 = leftM.get(j).getOrDefault(i, 0L);
                         hist.write(tmp + " " + tmp2 + " " + tmp3 + " " + tmp4 + "\n");
                     }
                     hist.write("\n];");
