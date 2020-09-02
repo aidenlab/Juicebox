@@ -28,6 +28,8 @@ import juicebox.HiC;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.NormalizationType;
 
+import java.io.IOException;
+
 /**
  * @author jrobinso
  *         Date: 12/26/12

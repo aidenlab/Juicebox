@@ -419,6 +419,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private void readFooter(long position) throws IOException {
 
         stream.seek(position);
+        long currentPosition = position;
 
         //Get the size in bytes of the v5 footer, that is the footer up to normalization and normalized expected values
         byte[] buffer;
@@ -432,12 +433,14 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             stream.read(buffer);
             dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
             nBytes = dis.readLong();
+            currentPosition += 8;
             normVectorFilePosition = masterIndexPos + nBytes + 8;  // 8 bytes for the buffer size
         } else {
             buffer = new byte[4];
             stream.read(buffer);
             dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
             nBytes = (long) dis.readInt();
+            currentPosition += 4;
             normVectorFilePosition = masterIndexPos + nBytes + 4;  // 4 bytes for the buffer size
         }
 
@@ -457,12 +460,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         dis = new LittleEndianInputStream(new BufferedInputStream(stream));
 
         int nEntries = dis.readInt();
+        currentPosition += 4;
         //System.err.println(nEntries);
 
         for (int i = 0; i < nEntries; i++) {
             String key = dis.readString();
+            currentPosition += (key.length() + 1);
             long filePosition = dis.readLong();
+            currentPosition += 8;
             int sizeInBytes = dis.readInt();
+            currentPosition += 4;
             masterIndex.put(key, new IndexEntry(filePosition, sizeInBytes));
         }
 
@@ -470,48 +477,93 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         // Expected values from non-normalized matrix
         int nExpectedValues = dis.readInt();
+        currentPosition += 4;
         //System.err.println(nExpectedValues);
 
         for (int i = 0; i < nExpectedValues; i++) {
     
             NormalizationType no = NormalizationHandler.NONE;
             String unitString = dis.readString();
+            currentPosition += (unitString.length() + 1);
             HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
+            currentPosition += 4;
             String key = unitString + "_" + binSize + "_" + no;
             long nValues;
             if (version > 8) {
                 nValues = dis.readLong();
+                currentPosition += 8;
             } else {
                 nValues = dis.readInt();
+                currentPosition += 4;
             }
             //System.err.println(nValues);
 
-            ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
-            //System.out.println(binSize + " " + nValues + " " + stream.position());
-            for (long j = 0; j < nValues; j++) {
-                if (version > 8) {
-                    values.set(j, (double) dis.readFloat());
-                } else {
-                    values.set(j, dis.readDouble());
+            if (binSize >= 500) {
+                ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+                //System.out.println(binSize + " " + nValues + " " + stream.position());
+                for (long j = 0; j < nValues; j++) {
+                    if (version > 8) {
+                        values.set(j, (double) dis.readFloat());
+                        currentPosition += 4;
+                    } else {
+                        values.set(j, dis.readDouble());
+                        currentPosition += 8;
+                    }
                 }
-            }
-            //System.out.println(binSize + " " + stream.position());
-            int nNormalizationFactors = dis.readInt();
-            Map<Integer, Double> normFactors = new LinkedHashMap<>();
-            for (int j = 0; j < nNormalizationFactors; j++) {
-                Integer chrIdx = dis.readInt();
-                Double normFactor ;
-                if (version > 8) {
-                    normFactor = (double) dis.readFloat();
-                } else {
-                    normFactor = dis.readDouble();
+                //System.out.println(binSize + " " + stream.position());
+                int nNormalizationFactors = dis.readInt();
+                currentPosition += 4;
+                Map<Integer, Double> normFactors = new LinkedHashMap<>();
+                for (int j = 0; j < nNormalizationFactors; j++) {
+                    Integer chrIdx = dis.readInt();
+                    currentPosition += 4;
+                    Double normFactor;
+                    if (version > 8) {
+                        normFactor = (double) dis.readFloat();
+                        currentPosition += 4;
+                    } else {
+                        normFactor = dis.readDouble();
+                        currentPosition += 8;
+                    }
+                    normFactors.put(chrIdx, normFactor);
                 }
-                normFactors.put(chrIdx, normFactor);
-            }
-            //System.out.println(binSize + " " + stream.position());
+                //System.out.println(binSize + " " + stream.position());
 
-            expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors));
+                expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, values, normFactors));
+            } else {
+                long skipPosition = currentPosition;
+                long expectedVectorIndexPosition = currentPosition;
+                if (version > 8) {
+                    skipPosition += (nValues*4);
+                } else {
+                    skipPosition += (nValues*8);
+                }
+
+                stream.seek(skipPosition);
+                dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
+                //long skipPosition = stream.position();
+                int nNormalizationFactors = dis.readInt();
+                if (HiCGlobals.guiIsCurrentlyActive) {
+                    System.out.println(currentPosition + " " + skipPosition + " " + nValues + " " + nNormalizationFactors);
+                }
+                currentPosition = skipPosition + 4;
+                Map<Integer, Double> normFactors = new LinkedHashMap<>();
+                for (int j = 0; j < nNormalizationFactors; j++) {
+                    Integer chrIdx = dis.readInt();
+                    currentPosition += 4;
+                    Double normFactor;
+                    if (version > 8) {
+                        normFactor = (double) dis.readFloat();
+                        currentPosition += 4;
+                    } else {
+                        normFactor = dis.readDouble();
+                        currentPosition += 8;
+                    }
+                    normFactors.put(chrIdx, normFactor);
+                }
+                expectedValuesMap.put(key, new ExpectedValueFunctionImpl(no, unit, binSize, nValues, expectedVectorIndexPosition, normFactors, this));
+            }
         }
         dataset.setExpectedValueFunctionMap(expectedValuesMap);
 
@@ -522,11 +574,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             //System.out.println(stream.position());
             //System.out.println(normVectorFilePosition);
             stream.seek(normVectorFilePosition);
+            currentPosition = normVectorFilePosition;
             //dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
             dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
             try {
                 nExpectedValues = dis.readInt();
+                currentPosition += 4;
                 //System.out.println(nExpectedValues);
             } catch (EOFException | HttpResponseException e) {
                 if (HiCGlobals.printVerboseComments) {
@@ -537,43 +591,90 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             for (int i = 0; i < nExpectedValues; i++) {
                 String typeString = dis.readString();
+                currentPosition += (typeString.length() + 1);
                 String unitString = dis.readString();
+                currentPosition += (unitString.length() + 1);
                 HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
+                currentPosition += 4;
                 String key = unitString + "_" + binSize + "_" + typeString;
                 //System.out.println(key);
     
                 long nValues;
                 if (version > 8) {
                     nValues = dis.readLong();
+                    currentPosition += 8;
                     //System.out.println(nValues);
                 } else {
                     nValues = dis.readInt();
+                    currentPosition += 4;
                 }
-                ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
-                for (long j = 0; j < nValues; j++) {
-                    if (version > 8) {
-                        values.set(j, (double) dis.readFloat());
-                    } else {
-                        values.set(j, dis.readDouble());
+                if (binSize >= 500) {
+                    ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
+                    for (long j = 0; j < nValues; j++) {
+                        if (version > 8) {
+                            values.set(j, (double) dis.readFloat());
+                            currentPosition += 4;
+                        } else {
+                            values.set(j, dis.readDouble());
+                            currentPosition += 8;
+                        }
                     }
-                }
-                int nNormalizationFactors = dis.readInt();
-                Map<Integer, Double> normFactors = new LinkedHashMap<>();
-                for (int j = 0; j < nNormalizationFactors; j++) {
-                    Integer chrIdx = dis.readInt();
-                    Double normFactor;
-                    if (version > 8) {
-                        normFactor = (double) dis.readFloat();
-                    } else {
-                        normFactor = dis.readDouble();
+                    int nNormalizationFactors = dis.readInt();
+                    currentPosition += 4;
+                    Map<Integer, Double> normFactors = new LinkedHashMap<>();
+                    for (int j = 0; j < nNormalizationFactors; j++) {
+                        Integer chrIdx = dis.readInt();
+                        currentPosition += 4;
+                        Double normFactor;
+                        if (version > 8) {
+                            normFactor = (double) dis.readFloat();
+                            currentPosition += 4;
+                        } else {
+                            normFactor = dis.readDouble();
+                            currentPosition += 8;
+                        }
+                        normFactors.put(chrIdx, normFactor);
                     }
-                    normFactors.put(chrIdx, normFactor);
-                }
 
-                NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
-                ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, values, normFactors);
-                expectedValuesMap.put(key, df);
+                    NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
+                    ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, values, normFactors);
+                    expectedValuesMap.put(key, df);
+                } else {
+                    long skipPosition = currentPosition;
+                    long expectedVectorIndexPosition = currentPosition;
+                    if (version > 8) {
+                        skipPosition += (nValues * 4);
+                    } else {
+                        skipPosition += (nValues * 8);
+                    }
+
+                    stream.seek(skipPosition);
+                    dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
+                    //long skipPosition = stream.position();
+                    int nNormalizationFactors = dis.readInt();
+                    if (HiCGlobals.guiIsCurrentlyActive) {
+                        System.out.println(currentPosition + " " + skipPosition + " " + nValues + " " + nNormalizationFactors);
+                    }
+                    currentPosition = skipPosition + 4;
+                    Map<Integer, Double> normFactors = new LinkedHashMap<>();
+                    for (int j = 0; j < nNormalizationFactors; j++) {
+                        Integer chrIdx = dis.readInt();
+                        currentPosition += 4;
+                        Double normFactor;
+                        if (version > 8) {
+                            normFactor = (double) dis.readFloat();
+                            currentPosition += 4;
+                        } else {
+                            normFactor = dis.readDouble();
+                            currentPosition += 8;
+                        }
+                        normFactors.put(chrIdx, normFactor);
+                    }
+                    NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(typeString);
+                    ExpectedValueFunction df = new ExpectedValueFunctionImpl(type, unit, binSize, nValues, expectedVectorIndexPosition, normFactors, this);
+                    expectedValuesMap.put(key, df);
+                }
             }
 
             // Normalization vectors (indexed)
@@ -801,6 +902,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         else return new NormalizationVector(type, chrIdx, unit, binSize, values);
     }
 
+    @Override
+    public ListOfDoubleArrays readExpectedVectorPart(long position, long nVals) throws IOException {
+        long size = version > 8 ? nVals * 4 : nVals * 8;
+        LargeIndexEntry idx = new LargeIndexEntry(position, size);
+        List<byte[]> buffer = seekAndFullyReadLargeCompressedBytes(idx);
+        List<ByteArrayInputStream> disList = new ArrayList<>();
+        for (int i = 0; i < buffer.size(); i++) {
+            disList.add(new ByteArrayInputStream(buffer.get(i)));
+        }
+        LittleEndianInputStream dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
+        ListOfDoubleArrays values = new ListOfDoubleArrays(nVals);
+        for (int i = 0; i < nVals; i++) {
+            double val = version > 8 ? dis.readFloat() : dis.readDouble();
+            values.set(i, val);
+        }
+        return values;
+    }
+
     private byte[] seekAndFullyReadCompressedBytes(IndexEntry idx) throws IOException {
 
         boolean currentlyUseMainStream;
@@ -964,32 +1083,64 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     int binYOffset = dis.readInt();
 
                     boolean useShort = dis.readByte() == 0;
-                    boolean useShortBinX, useShortBinY;
+                    boolean useShortBinX = true, useShortBinY = true;
                     if (version > 8) {
                         useShortBinX = dis.readByte() == 0;
                         useShortBinY = dis.readByte() == 0;
-                    } else {
-                        useShortBinX = true;
-                        useShortBinY = true;
                     }
 
                     byte type = dis.readByte();
 
                     switch (type) {
                         case 1:
-                            // List-of-rows representation
-                            int rowCount = useShortBinY ? dis.readShort() : dis.readInt();
+                            if (useShortBinX && useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readShort();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readShort();
+                                    int colCount = dis.readShort();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readShort();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+                            } else if (useShortBinX && !useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readInt();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readInt();
+                                    int colCount = dis.readShort();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readShort();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
 
-                            for (int i = 0; i < rowCount; i++) {
-
-                                int binY = useShortBinY ? binYOffset + dis.readShort() : binYOffset + dis.readInt();
-                                int colCount = useShortBinX ? dis.readShort() : dis.readInt();
-
-                                for (int j = 0; j < colCount; j++) {
-
-                                    int binX = useShortBinX ? binXOffset + dis.readShort() : binXOffset + dis.readInt();
-                                    float counts = useShort ? dis.readShort() : dis.readFloat();
-                                    records.add(new ContactRecord(binX, binY, counts));
+                            } else if (!useShortBinX && useShortBinY) {
+                                // List-of-rows representation
+                                int rowCount = dis.readShort();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readShort();
+                                    int colCount = dis.readInt();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readInt();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+                            } else {
+                                // List-of-rows representation
+                                int rowCount = dis.readInt();
+                                for (int i = 0; i < rowCount; i++) {
+                                    int binY = binYOffset + dis.readInt();
+                                    int colCount = dis.readInt();
+                                    for (int j = 0; j < colCount; j++) {
+                                        int binX = binXOffset + dis.readInt();
+                                        float counts = useShort ? dis.readShort() : dis.readFloat();
+                                        records.add(new ContactRecord(binX, binY, counts));
+                                    }
                                 }
                             }
                             break;

@@ -29,6 +29,7 @@ import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -40,13 +41,23 @@ import java.util.Map;
  */
 public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 
-    private final int binSize;
+    private final DatasetReader reader;
+    private int version = -1;
+
+	private final int binSize;
     private final NormalizationType type;
     private final HiC.Unit unit;
 
     private final Map<Integer, Double> normFactors;
 	
-	private final ListOfDoubleArrays expectedValues;
+	private ListOfDoubleArrays expectedValues;
+	private final long nValues;
+
+	private final long filePosition;
+
+	private long streamBound1 = 0;
+	private long streamBound2 = 0;
+	private final int streamSize = 500000;
 	
 	public ExpectedValueFunctionImpl(NormalizationType type, HiC.Unit unit, int binSize, ListOfDoubleArrays expectedValues, Map<Integer, Double> normFactors) {
 		this.type = type;
@@ -54,6 +65,21 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 		this.binSize = binSize;
 		this.normFactors = normFactors;
 		this.expectedValues = expectedValues;
+		this.nValues = expectedValues.getLength();
+		this.filePosition = 0;
+		this.reader = null;
+	}
+
+	public ExpectedValueFunctionImpl(NormalizationType type, HiC.Unit unit, int binSize, long nValues, long filePosition, Map<Integer, Double> normFactors, DatasetReader reader) {
+		this.type = type;
+		this.unit = unit;
+		this.binSize = binSize;
+		this.normFactors = normFactors;
+		this.expectedValues = null;
+		this.nValues = nValues;
+		this.filePosition = filePosition;
+		this.reader = reader;
+		this.version = reader.getVersion();
 	}
 
     public static String getKey(HiCZoom zoom, NormalizationType normType) {
@@ -73,6 +99,16 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 	 */
 	@Override
 	public ListOfDoubleArrays getExpectedValuesNoNormalization() {
+		if (expectedValues == null || (streamBound1==0 && streamBound2 == 0)) {
+			try {
+				expectedValues = reader.readExpectedVectorPart(filePosition, nValues);
+				streamBound1 = 0;
+				streamBound2 = 0;
+			} catch (IOException e) {
+				System.err.println("Error reading expected vector");
+				e.printStackTrace();
+			}
+		}
 		return expectedValues;
 	}
 	
@@ -85,27 +121,64 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 	 */
 	@Override
 	public double getExpectedValue(int chrIdx, long distance) {
-		
 		double normFactor = 1.0;
+		long streamIndex;
 		if (normFactors != null && normFactors.containsKey(chrIdx)) {
 			normFactor = normFactors.get(chrIdx);
 		}
-		
-		if (expectedValues.getLength() > 0) {
-			if (distance >= expectedValues.getLength()) {
-				return expectedValues.getLastValue() / normFactor;
-			} else {
-				return expectedValues.get(distance) / normFactor;
+		if (expectedValues == null) {
+			streamBound1 = Math.max(0, distance-(streamSize/2));
+			streamBound2 = streamBound1 + streamSize;
+			long position = version > 8? filePosition + (streamBound1*4): filePosition + (streamBound1*8);
+			try {
+				expectedValues = reader.readExpectedVectorPart(position, streamSize);
+			} catch (IOException e) {
+				System.err.println("Error reading expected vector");
+				e.printStackTrace();
 			}
+		}
+
+		if (streamBound1==0 && streamBound2==0) {
+			if (expectedValues.getLength() > 0) {
+				if (distance >= expectedValues.getLength()) {
+					return expectedValues.getLastValue() / normFactor;
+				} else {
+					return expectedValues.get(distance) / normFactor;
+				}
+			} else {
+				System.err.println("Expected values array is empty");
+				return -1;
+			}
+		} else if (distance >= streamBound1 && distance < streamBound2) {
+			streamIndex = distance - streamBound1;
+			return expectedValues.get(streamIndex) / normFactor;
 		} else {
-			System.err.println("Expected values array is empty");
-			return -1;
+			streamBound1 = Math.max(0, distance-(streamSize/2));
+			streamBound2 = streamBound1 + streamSize;
+			long position = version > 8? filePosition + (streamBound1*4): filePosition + (streamBound1*8);
+			try {
+				expectedValues = reader.readExpectedVectorPart(position, streamSize);
+			} catch (IOException e) {
+				System.err.println("Error reading expected vector");
+				e.printStackTrace();
+			}
+			streamIndex = distance - streamBound1;
+			return expectedValues.get(streamIndex) / normFactor;
 		}
 	}
 	
 	@Override
 	public ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx) {
-		
+		if (expectedValues == null || (streamBound1==0 && streamBound2 == 0)) {
+			try {
+				expectedValues = reader.readExpectedVectorPart(filePosition, nValues);
+				streamBound1 = 0;
+				streamBound2 = 0;
+			} catch (IOException e) {
+				System.err.println("Error reading expected vector");
+				e.printStackTrace();
+			}
+		}
 		double normFactor = 1.0;
 		if (normFactors != null && normFactors.containsKey(chrIdx)) {
 			normFactor = normFactors.get(chrIdx);
@@ -123,7 +196,7 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 	
 	@Override
 	public long getLength() {
-		return expectedValues.getLength();
+		return nValues;
 	}
 
     @Override

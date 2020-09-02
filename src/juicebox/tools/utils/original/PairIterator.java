@@ -31,7 +31,7 @@ import java.util.Iterator;
  * @author Jim Robinson
  * @since 9/24/11
  */
-interface PairIterator extends Iterator<AlignmentPair> {
+public interface PairIterator extends Iterator<AlignmentPair> {
     boolean hasNext();
 
     AlignmentPair next();

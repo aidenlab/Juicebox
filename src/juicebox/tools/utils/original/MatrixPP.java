@@ -24,8 +24,11 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
+import juicebox.windowui.HiCZoom;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +53,7 @@ public class MatrixPP {
      * @param fragBinSizes
      * @param chr2Idx             Chromosome 2
      */
-    MatrixPP(int chr1Idx, int chr2Idx, ChromosomeHandler chromosomeHandler, int[] bpBinSizes,
+    public MatrixPP(int chr1Idx, int chr2Idx, ChromosomeHandler chromosomeHandler, int[] bpBinSizes,
              FragmentCalculation fragmentCalculation, int[] fragBinSizes, int countThreshold) {
         this.chr1Idx = chr1Idx;
         this.chr2Idx = chr2Idx;
@@ -169,7 +172,17 @@ public class MatrixPP {
         }
     }
 
-    void parsingComplete() {
+    public void incrementCount(ContactRecord cr, Map<String, ExpectedValueCalculation> expectedValueCalculations, File tmpDir, HiCZoom zoom) throws IOException {
+        for (MatrixZoomDataPP aZoomData : zoomData) {
+            if (aZoomData.isFrag && zoom.getUnit().equals(HiC.Unit.FRAG)) {
+                aZoomData.incrementCount(cr, expectedValueCalculations, tmpDir, zoom);
+            } else if (!aZoomData.isFrag && zoom.getUnit().equals(HiC.Unit.BP)) {
+                aZoomData.incrementCount(cr, expectedValueCalculations, tmpDir, zoom);
+            }
+        }
+    }
+
+    public void parsingComplete() {
         for (MatrixZoomDataPP zd : zoomData) {
             if (zd != null) // fragment level could be null
                 zd.parsingComplete();
@@ -191,7 +204,7 @@ public class MatrixPP {
     /**
      * used by multithreaded code
      */
-    void mergeMatrices(MatrixPP otherMatrix) {
+    public void mergeMatrices(MatrixPP otherMatrix) {
         if (otherMatrix != null) {
             for (MatrixZoomDataPP aZoomData : zoomData) {
                 for (MatrixZoomDataPP bZoomData : otherMatrix.zoomData) {

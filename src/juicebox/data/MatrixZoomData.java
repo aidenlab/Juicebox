@@ -307,7 +307,10 @@ public class MatrixZoomData {
         // because code above assume above diagonal; but we could be below diagonal
         int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
         int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
-        
+
+        if (((binX1 - binY2) > 0 && (binX2 - binY1) < 0) || ((binX2 - binY1) > 0 && (binX1 - binY2) < 0)) {
+            nearerDepth = 0;
+        }
         
         for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
             for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {

@@ -28,6 +28,7 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
+import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
@@ -212,6 +213,102 @@ public class MatrixZoomDataPP {
         }
     }
 
+    /**
+     * Increment the count for the bin represented by the CONTACT RECORD for a given ZOOM
+     */
+    public void  incrementCount(ContactRecord cr, Map<String, ExpectedValueCalculation> expectedValueCalculations,
+                        File tmpDir, HiCZoom recordZoom) throws IOException {
+
+        float score = cr.getCounts();
+        sum += score;
+        // Convert to proper units,  fragments or base-pairs
+
+        if (cr.getBinX() < 0 || cr.getBinY() < 0) return;
+        if (recordZoom.getBinSize() > binSize) return;
+        //if (binSize % recordZoom.getBinSize() > 0) return;
+        float rescale = (float) binSize / (float) recordZoom.getBinSize();
+        float thresholdX;
+        float thresholdY;
+        Random generator = new Random(0);
+        int xBin;
+        int yBin;
+
+        if ( binSize % recordZoom.getBinSize() == 0) {
+            xBin = (int) ((float) cr.getBinX() / rescale);
+            yBin = (int) ((float) cr.getBinY() / rescale);
+        } else {
+            if ((int) ((float) cr.getBinX() / rescale) == (int) ((float) cr.getBinX()+1 / rescale)) {
+                xBin = (int) ((float) cr.getBinX() / rescale);
+            } else {
+                thresholdX = ((int) ((float) cr.getBinX() / rescale) + 1) * rescale - cr.getBinX();
+                if (generator.nextFloat() < thresholdX) {
+                    xBin = (int) ((float) cr.getBinX() / rescale);
+                } else {
+                    xBin = (int) ((float) cr.getBinX() / rescale) + 1;
+                }
+            }
+            if ((int) ((float) cr.getBinY() / rescale) == (int) ((float) cr.getBinY()+1 / rescale)) {
+                yBin = (int) ((float) cr.getBinY() / rescale);
+            } else {
+                thresholdY = ((int) ((float) cr.getBinY() / rescale) + 1) * rescale - cr.getBinY();
+                if (generator.nextFloat() < thresholdY) {
+                    yBin = (int) ((float) cr.getBinY() / rescale);
+                } else {
+                    yBin = (int) ((float) cr.getBinY() / rescale) + 1;
+                }
+            }
+        }
+        int blockNumber;
+
+        // Intra chromosome -- we'll store lower diagonal only
+        if (chr1.equals(chr2)) {
+            int b1 = Math.min(xBin, yBin);
+            int b2 = Math.max(xBin, yBin);
+            xBin = b1;
+            yBin = b2;
+
+            if (b1 != b2) {
+                sum += score;  // <= count for mirror cell.
+            }
+
+            if (expectedValueCalculations != null) {
+                String evKey = (isFrag ? "FRAG_" : "BP_") + binSize;
+                ExpectedValueCalculation ev = expectedValueCalculations.get(evKey);
+                if (ev != null) {
+                    ev.addDistance(chr1.getIndex(), xBin, yBin, score);
+                }
+            }
+
+            //compute intra chromosomal block number (version 9 and up)
+            int depth = log2(1 + Math.abs(xBin - yBin) / Math.sqrt(2) / blockBinCount);
+            int positionAlongDiagonal = ((xBin + yBin) / 2 / blockBinCount);
+            blockNumber = depth * blockColumnCount + positionAlongDiagonal;
+        }
+        else {
+            // compute interchromosomal block number (version 9 and up, first block is zero)
+            int blockCol = xBin / blockBinCount;
+            int blockRow = yBin / blockBinCount;
+            blockNumber = blockColumnCount * blockRow + blockCol;
+        }
+
+
+        BlockPP block = blocks.get(blockNumber);
+        if (block == null) {
+
+            block = new BlockPP(blockNumber);
+            blocks.put(blockNumber, block);
+        }
+        block.incrementCount(xBin, yBin, score);
+
+        // If too many blocks write to tmp directory
+        if (blocks.size() > BLOCK_CAPACITY) {
+            File tmpfile = tmpDir == null ? File.createTempFile("blocks", "bin") : File.createTempFile("blocks", "bin", tmpDir);
+            //System.out.println(chr1.getName() + "-" + chr2.getName() + " Dumping blocks to " + tmpfile.getAbsolutePath());
+            dumpBlocks(tmpfile);
+            tmpFiles.add(tmpfile);
+            tmpfile.deleteOnExit();
+        }
+    }
 
     /**
      * Dump the blocks calculated so far to a temporary file
