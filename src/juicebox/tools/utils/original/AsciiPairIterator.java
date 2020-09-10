@@ -149,7 +149,7 @@ public class AsciiPairIterator implements PairIterator {
                     return;
                 }
 
-                if (format == null) {
+                if (format == null || format != Format.DCIC) {
                     switch (nTokens) {
                         case 8:
                             format = Format.SHORT;
@@ -164,7 +164,7 @@ public class AsciiPairIterator implements PairIterator {
                             format = Format.MEDIUM;
                             break;
                         default:
-                            throw new IOException("Unexpected column count.  Check file format");
+                            throw new IOException("Unexpected column count:" + nTokens + "  Check file format:\n" + nextLine);
                     }
                 }
                 switch (format) {
@@ -259,10 +259,6 @@ public class AsciiPairIterator implements PairIterator {
                             int mapq1 = 1000;
                             int mapq2 = 1000;
 
-                            if (format == Format.LONG) {
-                                mapq1 = Integer.parseInt(tokens[8]);
-                                mapq2 = Integer.parseInt(tokens[11]);
-                            }
                             boolean strand1 = Integer.parseInt(tokens[0]) == 0;
                             boolean strand2 = Integer.parseInt(tokens[4]) == 0;
                             nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);

@@ -262,38 +262,28 @@ public class MatrixZoomData {
         return getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
     }
 
-    public List<Integer> getBlockBoundsFromNumberVersion9Up(int blockNumber) {
+    public int[] getBlockBoundsFromNumberVersion9Up(int blockNumber) {
         int positionAlongDiagonal = blockNumber % blockColumnCount;
         int depth = blockNumber / blockColumnCount;
         int avgPosition1 = positionAlongDiagonal * blockBinCount;
-        int avgPosition2 = (positionAlongDiagonal+1) * blockBinCount;
-        double difference1 = (Math.pow(2,depth)-1)*blockBinCount*Math.sqrt(2);
-        double difference2 = (Math.pow(2,depth+1)-1)*blockBinCount*Math.sqrt(2);
-        int c1 = avgPosition1 + (int) difference1/2 - 1;
-        int c2 = avgPosition2 + (int) difference2/2 + 1;
-        int r1 = avgPosition1 - (int) difference2/2 - 1;
-        int r2 = avgPosition2 - (int) difference1/2 + 1;
-        List<Integer> bounds = new ArrayList<>();
-        bounds.add(c1);
-        bounds.add(c2);
-        bounds.add(r1);
-        bounds.add(r2);
-        return bounds;
+        int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
+        double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
+        double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+        int c1 = avgPosition1 + (int) difference1 / 2 - 1;
+        int c2 = avgPosition2 + (int) difference2 / 2 + 1;
+        int r1 = avgPosition1 - (int) difference2 / 2 - 1;
+        int r2 = avgPosition2 - (int) difference1 / 2 + 1;
+        return new int[]{c1, c2, r1, r2};
     }
-
-    public List<Integer> getBlockBoundsFromNumberVersion8Below(int blockNumber) {
+    
+    public int[] getBlockBoundsFromNumberVersion8Below(int blockNumber) {
         int c = (blockNumber % blockColumnCount);
         int r = blockNumber / blockColumnCount;
         int c1 = c * blockBinCount;
         int c2 = c1 + blockBinCount - 1;
         int r1 = r * blockBinCount;
         int r2 = r1 + blockBinCount - 1;
-        List<Integer> bounds = new ArrayList<>();
-        bounds.add(c1);
-        bounds.add(c2);
-        bounds.add(r1);
-        bounds.add(r2);
-        return bounds;
+        return new int[]{c1, c2, r1, r2};
     }
     
     private List<Block> addNormalizedBlocksToListV9(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
