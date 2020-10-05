@@ -288,21 +288,26 @@ public class MatrixZoomData {
     
     private List<Block> addNormalizedBlocksToListV9(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                     final NormalizationType norm) {
-        
+
         Set<Integer> blocksToLoad = new HashSet<>();
-        
+
         // PAD = positionAlongDiagonal (~projected)
         // Depth is axis perpendicular to diagonal; nearer means closer to diagonal
         int translatedLowerPAD = (binX1 + binY1) / 2 / blockBinCount;
         int translatedHigherPAD = (binX2 + binY2) / 2 / blockBinCount + 1;
         int translatedNearerDepth = log2(1 + Math.abs(binX1 - binY2) / Math.sqrt(2) / blockBinCount);
         int translatedFurtherDepth = log2(1 + Math.abs(binX2 - binY1) / Math.sqrt(2) / blockBinCount);
-        
+
+        int midX = (binX1 + binX2) / 2;
+        int midY = (binY1 + binY2) / 2;
+        int midDepth = log2(1 + Math.abs(midX - midY) / Math.sqrt(2) / blockBinCount);
+
         // because code above assume above diagonal; but we could be below diagonal
         int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
+        nearerDepth = Math.min(nearerDepth, midDepth);
         int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
-        
-        
+
+
         for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
             for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {
                 populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
