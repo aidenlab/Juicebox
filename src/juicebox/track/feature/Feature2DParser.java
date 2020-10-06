@@ -337,8 +337,8 @@ public class Feature2DParser {
                 start2 = Integer.parseInt(tokens[4]);
                 end2 = Integer.parseInt(tokens[5]);
             } catch (Exception e) {
-                String text = "Line " + lineNum + " improperly formatted in <br>" +
-                        path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2";
+                String text = "Line " + lineNum + " improperly formatted in \n" +
+                        path + "\nLine format should start with:  CHR1  X1  X2  CHR2  Y1  Y2";
                 System.err.println(text);
                 if (HiCGlobals.guiIsCurrentlyActive)
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
@@ -347,6 +347,12 @@ public class Feature2DParser {
 
             Color c = tokens.length > 10 ? ColorUtilities.stringToColor(tokens[10].trim()) : Color.black;
             Map<String, String> attrs = parseAttributes(loadAttributes, 11, headers, tokens);
+
+            try {
+                attrs.put("score", "" + Float.parseFloat(tokens[7]));
+            } catch (Exception e) {
+                // ignore
+            }
 
             addToList(chr1Name, chr2Name, handler, nextLine, newList, useFeature2DWithMotif, featureType,
                     start1, end1, start2, end2, c, attrs);

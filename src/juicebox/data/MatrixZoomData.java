@@ -298,13 +298,11 @@ public class MatrixZoomData {
         int translatedNearerDepth = log2(1 + Math.abs(binX1 - binY2) / Math.sqrt(2) / blockBinCount);
         int translatedFurtherDepth = log2(1 + Math.abs(binX2 - binY1) / Math.sqrt(2) / blockBinCount);
 
-        int midX = (binX1 + binX2) / 2;
-        int midY = (binY1 + binY2) / 2;
-        int midDepth = log2(1 + Math.abs(midX - midY) / Math.sqrt(2) / blockBinCount);
-
         // because code above assume above diagonal; but we could be below diagonal
         int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
-        nearerDepth = Math.min(nearerDepth, midDepth);
+        if ((binX1 > binY2 && binX2 < binY1) || (binX2 > binY1 && binX1 < binY2)) {
+            nearerDepth = 0;
+        }
         int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
 
 
@@ -313,7 +311,7 @@ public class MatrixZoomData {
                 populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
             }
         }
-        
+
         actuallyLoadGivenBlocks(blockList, blocksToLoad, norm);
         
         return new ArrayList<>(new HashSet<>(blockList));
