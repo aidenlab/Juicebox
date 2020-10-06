@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,8 +77,8 @@ public class SaveImageDialog extends JFileChooser {
                     @Override
                     public void run() {
                         try {
-                            int w = Integer.valueOf(width.getText());
-                            int h = Integer.valueOf(height.getText());
+                            int w = Integer.parseInt(width.getText());
+                            int h = Integer.parseInt(height.getText());
                             if (HiCGlobals.printVerboseComments) System.out.println("Exporting another figure");
                             if (outputFile.getPath().endsWith(".svg") || outputFile.getPath().endsWith(".SVG")) {
                                 exportAsSVG(outputFile, mainWindow, hic, hiCPanel, w, h);

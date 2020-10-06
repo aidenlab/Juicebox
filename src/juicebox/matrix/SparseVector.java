@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ class SparseVector {
     }
 
     public Double get(Integer idx) {
-        return values.containsKey(idx) ? values.get(idx) : 0.0;
+        return values.getOrDefault(idx, 0.0);
     }
 
     public Collection<Integer> getIndeces() {

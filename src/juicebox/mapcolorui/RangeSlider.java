@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,24 +43,11 @@ class RangeSlider extends JSlider implements Serializable {
     private static final long serialVersionUID = -661825403401718563L;
     private RangeSliderUI rangeSliderUI;
 
-    private boolean colorIsOE = false;
-    private boolean colorIsPreDef = false;
-    private boolean colorIsBlank = false;
-
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
      * and 100.
      */
     public RangeSlider() {
-        initSlider();
-    }
-
-    /**
-     * Constructs a RangeSlider with the specified default minimum and maximum
-     * values.
-     */
-    public RangeSlider(int min, int max) {
-        super(min, max);
         initSlider();
     }
 
@@ -134,21 +121,10 @@ class RangeSlider extends JSlider implements Serializable {
     }
 
     public void setDisplayToOE(boolean colorIsOE) {
-        this.colorIsOE = colorIsOE;
         rangeSliderUI.setDisplayToOE(colorIsOE);
     }
 
-    public void setDisplayToPreDef(boolean colorIsPreDef) {
-        this.colorIsPreDef = colorIsPreDef;
-        rangeSliderUI.setDisplayToPreDef(colorIsPreDef);
-    }
-
-    public String getDisplayColorsString() {
-        return rangeSliderUI.getColorsAsText();
-    }
-
     public void setDisplayToBlank(boolean colorIsBlank) {
-        this.colorIsBlank = colorIsBlank;
         rangeSliderUI.setDisplayToBlank(colorIsBlank);
     }
 }

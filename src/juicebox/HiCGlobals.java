@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
 
 package juicebox;
 
-import juicebox.windowui.MatrixType;
-
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -38,7 +36,9 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.11.09";
+    public static final String versionNum = "1.23.06";
+    // Juicebox title
+    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
     // Changes Data Output Mode
     public static final boolean isRestricted = false;
@@ -54,6 +54,7 @@ public class HiCGlobals {
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
+    public static float PSEUDOCOUNT = 1f;
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;
@@ -61,27 +62,22 @@ public class HiCGlobals {
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
     // min hic file version supported
-    public static final int minVersion = 6; // todo redundant calls to this should be removed
+    public static final int minVersion = 6;
     public static final int bufferSize = 2097152;
 
-    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON};
-    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON,
-            MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
-            MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    // Juicebox title
-    // TODO decide on title displayed in Juicebox
-    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
     public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static int MAX_PEARSON_ZOOM = 500000;
-    public static double hicMapScale = 1; //TODO implement Map scaling with this global variable
+
+    // implement Map scaling with this global variable
+    public static double hicMapScale = 1;
+
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
+    public static boolean allowDynamicBlockIndex = true;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
     public static boolean splitModeEnabled = false;
@@ -97,6 +93,9 @@ public class HiCGlobals {
     public static final boolean isDevAssemblyToolsAllowedPublic = true;
     public static final boolean isDevCustomChromosomesAllowedPublic = true;
     public static final Color diffGrayColor = new Color(238, 238, 238);
+    public static boolean HACK_COLORSCALE = false;
+    public static boolean HACK_COLORSCALE_EQUAL = false;
+    public static boolean HACK_COLORSCALE_LINEAR = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

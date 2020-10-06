@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +30,9 @@ import juicebox.HiCGlobals;
 import juicebox.assembly.Scaffold;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -307,7 +307,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private int cleanUpNumber(String number) {
-        return (int) (Long.valueOf(number.toLowerCase()
+        return (int) (Long.parseLong(number.toLowerCase()
                 .replaceAll(",", "")
                 .replaceAll("m", "000000")
                 .replaceAll("k", "000")) / HiCGlobals.hicMapScale);
@@ -367,8 +367,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void goToScaffoldName(String scafName1, String scafName2) {
-        int location1 = -1;
-        int location2 = -1;
+        long location1 = -1;
+        long location2 = -1;
         String chr1Name = "";
         String chr2Name = "";
         for (Scaffold scaffold : superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds()) {

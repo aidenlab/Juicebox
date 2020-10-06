@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +26,19 @@ package juicebox.tools.clt.old;
 
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
-import juicebox.data.Matrix;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.InMemoryMatrix;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
@@ -162,12 +162,12 @@ public class Pearsons extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         if (args.length != 7 && args.length != 6) {
             printUsageAndExit();
         }
 
-        HiCGlobals.MAX_PEARSON_ZOOM = 500000;
+        //HiCGlobals.MAX_PEARSON_ZOOM = 500000;
         setDatasetAndNorm(args[2], args[1], true);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
@@ -209,15 +209,9 @@ public class Pearsons extends JuiceboxCLT {
     @Override
     public void run() {
         HiCZoom zoom = new HiCZoom(unit, binSize);
-
-        Matrix matrix = dataset.getMatrix(chromosome1, chromosome1);
-        if (matrix == null) {
-            System.err.println("No reads in " + chromosome1);
-            System.exit(21);
-        }
-
-        MatrixZoomData zd = matrix.getZoomData(zoom);
+        MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chromosome1, chromosome1, zoom);
         if (zd == null) {
+            System.err.println("No reads in " + chromosome1);
             System.err.println("Unknown resolution: " + zoom);
             System.err.println("This data set has the following bin sizes (in bp): ");
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {
@@ -229,11 +223,7 @@ public class Pearsons extends JuiceboxCLT {
             }
             System.exit(13);
         }
-        ExpectedValueFunction df = dataset.getExpectedValues(zd.getZoom(), norm);
-        if (df == null) {
-            System.err.println("Pearson's not available at " + chromosome1 + " " + zoom + " " + norm);
-            System.exit(14);
-        }
+        ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zd.getZoom(), norm, chromosome1, true);
 
         BasicMatrix pearsons = zd.getPearsons(df);
         if (pearsons == null) {
@@ -335,5 +325,3 @@ public class Pearsons extends JuiceboxCLT {
         les.writeInt(BLOCK_TILE);
     }
 }
-
-

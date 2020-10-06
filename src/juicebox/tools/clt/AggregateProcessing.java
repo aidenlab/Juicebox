@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,6 @@ package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created for testing multiple CLTs at once
@@ -38,55 +35,55 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
+    
+    
+        String[] strings = new String[]{"pre", //"-c", "1", //"--verbose",
+                "/Users/muhammad/JuiceboxMain/data/test.txt.gz",
+                "/Users/muhammad/Dropbox (Lab at Large)/testV9/test_new9-15.hic",
+                "hg19"};
+    
+        HiCTools.main(strings);
+        /*
+        strings = new String[]{"grind",
+                "-k", "KR", "-r", "25000",// "5000,10000,25000",
+                "--stride", "1500", "-c", "4,5",
+                "--dense-labels", "--distort",
+                "/Users/muhammad/Desktop/local_hic_files/HIC053_30.hic",
+                "null", "2000,12,100",
+                "/Users/muhammad/Desktop/deeplearning/testing/distortion_bank_4_5_debug_version"};
 
+        for (int k = 1; k < 2; k++) {
+            UNIXTools.makeDir("/Users/muhammad/Desktop/test_pre/multi_test_finalscale" + k);
+            strings = new String[]{"pre", "--threads", "" + k, "--mndindex",
+                    "/Users/muhammad/Desktop/test_pre/indices.txt", "--skip-intra-frag", //"-n",
+                    //"/Users/muhammad/JuiceboxAgain/data/test.txt.gz",
+                    "/Users/muhammad/Desktop/test_pre/test.txt",
+                    "/Users/muhammad/Desktop/test_pre/multi_test_finalscale" + k + "/test" + k + ".hic",
+                    "hg19"};
 
-        Long time = System.currentTimeMillis();
-
-        String[] ll51231123 = {"addnorm", "-d", "-F",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/imr90_intra_nofrag_30_vec13.hic",
-                "/Users/muhammad/Documents/GitHub/juicer_tools_unit_testing/randvec/ones_chr_all.vec"};
-
-        //String[] ll51231123 = {"pre", "/Users/muhammad/Desktop/pre_jars/test.txt.gz","/Users/muhammad/Desktop/pre_jars/scaled74.hic","hg19"};
-
-        ll51231123 = new String[]{"addgwnorm", "/Users/muhammad/Desktop/pre_jars/test.hic", "50000"};
-
-        ll51231123 = new String[]{"pre", "--verbose", "/Users/muhammad/Desktop/pre_jars/test.txt.gz",
-                "/Users/muhammad/Desktop/pre_jars/testnew2.hic", "hg19"};
-
-        HiCTools.main(ll51231123);
-
-        //UnitTests.testCustomFastScaling();
-
-    }
-
-    private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
-        List<Integer[]> listPositions = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(seqPath))) {
-            for (String line; (line = br.readLine()) != null; ) {
-                String[] parts = line.split(",");
-                listPositions.add(new Integer[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
-            }
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
+            HiCTools.main(strings);
+            System.gc();
         }
 
+        // load the model
 
-        try {
-            PrintWriter p0 = new PrintWriter(new FileWriter(newPath));
-            for (int i = 0; i < listPositions.size(); i++) {
-                Integer[] pos_xy_1 = listPositions.get(i);
-                for (int j = i; j < listPositions.size(); j++) {
-                    Integer[] pos_xy_2 = listPositions.get(j);
-                    double value = 1. / Math.max(1, Math.sqrt((pos_xy_1[0] - pos_xy_2[0]) ^ 2 + (pos_xy_1[1] - pos_xy_2[1]) ^ 2));
-                    float conv_val = (float) value;
-                    if (!Float.isNaN(conv_val) && conv_val > 0) {
-                        p0.println("0 art " + i + " 0 16 art " + j + " 1 " + conv_val);
-                    }
-                }
-            }
-            p0.close();
-        } catch (IOException ignored) {
-            ignored.printStackTrace();
+        /*
+        String simpleMlp = "/Users/muhammad/Desktop/deeplearning/models/Clean64DistortionDiffHalfLocalizerV0BinCross.h5";
+        MultiLayerNetwork model = KerasModelImport.importKerasSequentialModelAndWeights(simpleMlp);
+
+
+        // make a random sample
+        int inputs = 10;
+        INDArray features = Nd4j.zeros(inputs);
+        for (int i=0; i<inputs; i++) {
+            features.putScalar(new int[]{i}, Math.random() < 0.5 ? 0 : 1);
         }
+// get the prediction
+        //double prediction = model.output(features).getDouble(0);
+
+         */
+
+
+
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 package juicebox.tools.clt.old;
 
 
-import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 
 import java.io.BufferedReader;
@@ -113,7 +113,7 @@ public class LibraryComplexity extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         if (args.length != 2 && args.length != 3 && args.length != 4) {
             System.out.println(getUsage());
             System.exit(0);
@@ -127,9 +127,9 @@ public class LibraryComplexity extends JuiceboxCLT {
 
         } else {
             try {
-                uniqueReadPairs = Integer.valueOf(args[1]);
-                readPairs = Integer.valueOf(args[2]);
-                opticalDups = Integer.valueOf(args[3]);
+                uniqueReadPairs = Integer.parseInt(args[1]);
+                readPairs = Integer.parseInt(args[2]);
+                opticalDups = Integer.parseInt(args[3]);
                 filesNotYetCounted = false;
             } catch (NumberFormatException error) {
                 System.err.println("When called with three arguments, must be integers");

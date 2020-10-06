@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@ package juicebox.data.censoring;
 
 import juicebox.HiC;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.Pair;
 
@@ -54,17 +54,17 @@ public class OneDimTrackCensoring {
         int gx2 = endBin * binSize;
 
         //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getIndex(), gx1, gx2);
+        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getName(), gx1, gx2);
 
         List<HiCDataPoint[]> dataPointArrays = new ArrayList<>();
         for (Pair<MotifAnchor, MotifAnchor> regionPair : axisRegions) {
-
+    
             MotifAnchor originalRegion = regionPair.getFirst();
             MotifAnchor translatedRegion = regionPair.getSecond();
-
-            Chromosome orig = hic.getChromosomeHandler().getChromosomeFromIndex(originalRegion.getChr());
-            HiCDataPoint[] array = dataSource.getData(orig, originalRegion.getX1() / binSize,
-                    originalRegion.getX2() / binSize, gridAxis, scaleFactor, windowFunction);
+    
+            Chromosome orig = hic.getChromosomeHandler().getChromosomeFromName(originalRegion.getChr());
+            HiCDataPoint[] array = dataSource.getData(orig, (int) (originalRegion.getX1() / binSize),
+                    (int) (originalRegion.getX2() / binSize), gridAxis, scaleFactor, windowFunction);
             HiCDataPoint[] translatedArray = OneDimTrackCensoring.translateDataPointArray(zoom.getBinSize(), array, originalRegion, translatedRegion);
             dataPointArrays.add(translatedArray);
         }
@@ -80,19 +80,19 @@ public class OneDimTrackCensoring {
             for (HiCDataPoint pointGen : array) {
                 HiCCoverageDataSource.CoverageDataPoint point = (HiCCoverageDataSource.CoverageDataPoint) pointGen;
                 if (point.genomicStart >= originalRegion.getX1() && point.genomicEnd <= originalRegion.getX2()) {
-                    int newGStart = translatedRegion.getX1() + point.genomicStart - originalRegion.getX1();
-                    int newGEnd = translatedRegion.getX1() + point.genomicEnd - originalRegion.getX1();
-                    int newBinNum = newGStart / binSize;
-                    translatedPoints.add(new HiCCoverageDataSource.CoverageDataPoint(newBinNum, newGStart, newGEnd, point.value));
+                    long newGStart = translatedRegion.getX1() + point.genomicStart - originalRegion.getX1();
+                    long newGEnd = translatedRegion.getX1() + point.genomicEnd - originalRegion.getX1();
+                    long newBinNum = newGStart / binSize;
+                    translatedPoints.add(new HiCCoverageDataSource.CoverageDataPoint((int) newBinNum, newGStart, newGEnd, point.value));
                 }
             }
         } else if (array.length > 0 && array[0] instanceof HiCDataAdapter.DataAccumulator) {
             for (HiCDataPoint pointGen : array) {
                 HiCDataAdapter.DataAccumulator point = (HiCDataAdapter.DataAccumulator) pointGen;
                 if (point.genomicStart >= originalRegion.getX1() && point.genomicEnd <= originalRegion.getX2()) {
-                    int newGStart = translatedRegion.getX1() + point.genomicStart - originalRegion.getX1();
-                    int newGEnd = translatedRegion.getX1() + point.genomicEnd - originalRegion.getX1();
-                    int newBinNum = newGStart / binSize;
+                    long newGStart = translatedRegion.getX1() + point.genomicStart - originalRegion.getX1();
+                    long newGEnd = translatedRegion.getX1() + point.genomicEnd - originalRegion.getX1();
+                    long newBinNum = newGStart / binSize;
                     HiCDataAdapter.DataAccumulator accum = new HiCDataAdapter.DataAccumulator(newBinNum, point.width,
                             newGStart, newGEnd);
                     accum.nPts = point.nPts;

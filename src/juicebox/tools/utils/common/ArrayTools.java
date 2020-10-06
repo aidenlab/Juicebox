@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +91,7 @@ public class ArrayTools {
 
     private static long[] makeReverseCumulativeArray(long[] inputArray) {
         long[] outputArray = new long[inputArray.length];
-        int total = 0;
+        long total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {
             total += inputArray[i];
             outputArray[i] = total;
@@ -236,19 +236,25 @@ public class ArrayTools {
         }
     }
 
-    /**
-     * confirm before calling that both vectors are the same size
-     *
-     * @param vector1
-     * @param vector2
-     * @return
-     */
-    public static double euclideanDistance(double[] vector1, double[] vector2) {
-        double distance = 0;
-        for (int i = 0; i < vector1.length; i++) {
-            double diff = vector1[i] - vector2[i];
-            distance += diff * diff;
+    public static float[] runSlidingAverageOnArray(int radius, float[] values) {
+
+        float[] newValues = new float[values.length];
+        for (int i = 0; i < values.length; i++) {
+            float sum = 0;
+            int numVals = 0;
+            for (int j = Math.max(i - radius, 0); j < Math.min(i + radius, values.length); j++) {
+                if (values[j] > 0) {
+                    sum += values[j];
+                    numVals++;
+                }
+            }
+            if (numVals == 0) {
+                newValues[i] = 0;
+            } else {
+                newValues[i] = sum / numVals;
+            }
+
         }
-        return Math.sqrt(distance);
+        return newValues;
     }
 }

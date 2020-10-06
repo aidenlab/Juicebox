@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.encode.EncodeFileRecord;
-import juicebox.gui.SuperAdapter;
 import org.broad.igv.track.AttributeManager;
 import org.broad.igv.util.ResourceLocator;
 
@@ -37,8 +36,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso
@@ -104,10 +103,16 @@ public class LoadEncodeAction extends AbstractAction {
         try {
             EncodeFileBrowser browser = EncodeFileBrowser.getInstance(genome);
 
-            if (browser == null) {
-                SuperAdapter.showMessageDialog("Encode tracks are not available for " + genome);
-                return;
+            String response = genome;
+            while ((browser == null) && (response != null))  {
+                response = JOptionPane.showInputDialog("Encode tracks are not available for " + response +
+                        " enter another genome or press cancel to exit");
+                if (response != null) {
+                    browser = EncodeFileBrowser.getInstance(response);
+                }
             }
+
+            if (browser == null) return;
 
             browser.setVisible(true);
             if (browser.isCanceled()) return;

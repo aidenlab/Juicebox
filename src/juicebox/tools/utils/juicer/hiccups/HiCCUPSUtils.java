@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,20 +29,17 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.juicer.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DTools;
-import juicebox.track.feature.FeatureFilter;
+import juicebox.track.feature.*;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Utility class for HiCCUPS
@@ -78,6 +75,12 @@ public class HiCCUPSUtils {
     private static final String CENTROID2 = "centroid2";
     private static final String NUMCOLLAPSED = "numCollapsed";
     private static final String POST_PROCESSED = "postprocessed_pixels";
+    private static final String MERGED = "merged_loops.bedpe";
+    private static final String REQUESTED = "_from_requested_loops";
+    private static final String MERGED_REQUESTED = "merged" + REQUESTED + ".bedpe";
+    private static final String FDR_THRESHOLDS = "fdr_thresholds";
+    private static final String ENRICHED_PIXELS = "enriched_pixels";
+    private static final String REQUESTED_LIST = "requested_list";
 
     /**
      * @return a Feature2D peak for a possible peak location from hiccups
@@ -210,9 +213,10 @@ public class HiCCUPSUtils {
         if (normVectorContainer == null) {
             HiCFileTools.triggerNormError(norm);
         } else {
-            double[] normalizationVector = normVectorContainer.getData();
+            double[] normalizationVector = normVectorContainer.getData().getValues().get(0);
             for (Feature2D feature : list) {
-                int index1 = feature.getStart1() / res, index2 = feature.getStart2() / res;
+                int index1 = (int) (feature.getStart1() / res);
+                int index2 = (int) (feature.getStart2() / res);
                 if (nearbyValuesClear(normalizationVector, index1) && nearbyValuesClear(normalizationVector, index2)) {
                     features.add(feature);
                 }
@@ -240,21 +244,21 @@ public class HiCCUPSUtils {
         List<Feature2D> coalesced = new ArrayList<>();
 
         while (!featureLL.isEmpty()) {
-
+    
             // See Feature2D
             Collections.sort(featureLL);
             Collections.reverse(featureLL);
-
+    
             Feature2D pixel = featureLL.pollFirst();
             featureLL.remove(pixel);
             List<Feature2D> pixelList = new ArrayList<>();
             pixelList.add(pixel);
-
-            int pixelListX = pixel.getStart1();
-            int pixelListY = pixel.getStart2();
+    
+            int pixelListX = (int) pixel.getStart1();
+            int pixelListY = (int) pixel.getStart2();
             double r = 0;
             double pixelClusterRadius = originalClusterRadius;
-
+    
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
                 //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
@@ -274,20 +278,20 @@ public class HiCCUPSUtils {
                     }
                     //System.out.println("Radii "+distances);
                     r = Math.round(Collections.max(distances));
-
+            
                     pixelClusterRadius = originalClusterRadius + r;
                 }
             }
-
-            pixel.setEnd1(pixel.getStart1() + resolution);
-            pixel.setEnd2(pixel.getStart2() + resolution);
+    
+            pixel.setEnd1((int) pixel.getStart1() + resolution);
+            pixel.setEnd2((int) pixel.getStart2() + resolution);
             pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
             setPixelColor(pixel);
             coalesced.add(pixel);
-
+    
             featureLL.removeAll(pixelList);
         }
 
@@ -516,17 +520,20 @@ public class HiCCUPSUtils {
 
     public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                             ChromosomeHandler chromosomeHandler, List<HiCCUPSConfiguration> configurations,
-                                            NormalizationType norm, File outputDirectory) {
+                                            NormalizationType norm, File outputDirectory, boolean isRequested, File outputFile) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
             removeLowMapQFeatures(looplists.get(res), res, ds, chromosomeHandler, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
-            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res + ".bedpe"), true, Feature2DList.ListFormat.FINAL);
+            looplists.get(res).exportFeatureList(new File(outputDirectory, getPostprocessedLoopsFileName(res, isRequested)),
+                    true, Feature2DList.ListFormat.FINAL);
         }
 
-        return mergeAllResolutions(looplists);
+        Feature2DList mergedList = mergeAllResolutions(looplists);
+        mergedList.exportFeatureList(outputFile, true, Feature2DList.ListFormat.FINAL);
+        return mergedList;
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
@@ -557,5 +564,45 @@ public class HiCCUPSUtils {
         } else if (HiCGlobals.printVerboseComments) {
             System.out.println("poss err index: " + index + " rcsHist " + rcsHist[index][0]);
         }
+    }
+
+    public static Feature2DList filterOutFeaturelistByEnrichment(List<HiCCUPSConfiguration> configs, String folderPath, float maxEnrich, ChromosomeHandler commonChromosomesHandler) {
+        Feature2DList results = new Feature2DList();
+        for (HiCCUPSConfiguration config : configs) {
+
+            String fname = folderPath + File.separator + getRequestedLoopsFileName(config.getResolution());
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
+            HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
+            results.add(requestedList);
+        }
+        return results;
+    }
+
+    public static String getEnrichedPixelFileName(int resolution) {
+        return ENRICHED_PIXELS + "_" + resolution + ".bedpe";
+    }
+
+    private static String getPostprocessedLoopsFileName(int resolution, boolean isRequested) {
+        if (isRequested) {
+            return POST_PROCESSED + "_" + getRequestedLoopsFileName(resolution);
+        } else {
+            return POST_PROCESSED + "_" + resolution + ".bedpe";
+        }
+    }
+
+    public static String getRequestedLoopsFileName(int resolution) {
+        return REQUESTED_LIST + "_" + resolution + ".bedpe";
+    }
+
+    public static String getMergedLoopsFileName() {
+        return MERGED;
+    }
+
+    public static String getMergedRequestedLoopsFileName() {
+        return MERGED_REQUESTED;
+    }
+
+    public static String getFDRThresholdsFilename(int resolution) {
+        return FDR_THRESHOLDS + "_" + resolution;
     }
 }

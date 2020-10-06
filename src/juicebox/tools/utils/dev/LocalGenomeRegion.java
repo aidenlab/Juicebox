@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,23 +30,39 @@ import java.util.List;
 
 public class LocalGenomeRegion {
 
-    final int initialIndex;
+    private final int initialIndex;
     private List<Neighbor> neighbors = new ArrayList<>();
+    private final int maxNumValsToStore;
 
-    public LocalGenomeRegion(int initialIndex) {
+    public LocalGenomeRegion(int initialIndex, int maxNumValsToStore) {
         this.initialIndex = initialIndex;
+        this.maxNumValsToStore = maxNumValsToStore;
     }
 
-    public void addNeighbor(int y, float counts) {
+    public synchronized void addNeighbor(int y, float counts) {
         neighbors.add(new Neighbor(y, counts));
+        if (neighbors.size() > maxNumValsToStore) {
+            neighbors.sort(Collections.reverseOrder());
+            neighbors.remove(neighbors.size() - 1);
+        }
     }
 
-    public void filterDownValues(int numNeighborsAllowed) {
-        Collections.sort(neighbors, Collections.reverseOrder());
-        neighbors = neighbors.subList(0, Math.min(numNeighborsAllowed, neighbors.size()));
+    public synchronized void filterDownValues(int numNeighborsAllowed) {
+        neighbors.sort(Collections.reverseOrder());
+        if (neighbors.size() > numNeighborsAllowed) {
+            float valueToKeep = neighbors.get(numNeighborsAllowed - 1).value;
+            int willKeepUpTo = neighbors.size();
+            for (int k = numNeighborsAllowed; k < neighbors.size(); k++) {
+                if (neighbors.get(k).value < valueToKeep) {
+                    willKeepUpTo = k;
+                    break;
+                }
+            }
+            neighbors = neighbors.subList(0, willKeepUpTo);
+        }
     }
 
-    public boolean notConnectedWith(int index) {
+    public synchronized boolean notConnectedWith(int index) {
         for (Neighbor neighbor : neighbors) {
             if (neighbor.index == index) {
                 return false;
@@ -55,9 +71,9 @@ public class LocalGenomeRegion {
         return true;
     }
 
-    public int getOutlierContacts(boolean isBadUpstream, int cliqueSize) {
-
-        Collections.sort(neighbors, Collections.reverseOrder());
+    public synchronized int getOutlierContacts(boolean isBadUpstream, int cliqueSize) {
+    
+        neighbors.sort(Collections.reverseOrder());
 
         for (Neighbor neighbor : neighbors) {
             if (Math.abs(neighbor.index - initialIndex) > cliqueSize) {
@@ -76,20 +92,20 @@ public class LocalGenomeRegion {
         return -1;
     }
 
-
     @Override
     public String toString() {
-        String nei = "";
+        StringBuilder nei = new StringBuilder();
+        neighbors.sort(Collections.reverseOrder());
         for (Neighbor neighbor : neighbors) {
-            nei += neighbor.index + "-" + neighbor.value + "__";
+            nei.append(neighbor.index).append("-").append(neighbor.value).append("__");
         }
 
         return initialIndex + " - " + nei;
     }
 
     private class Neighbor implements Comparable<Neighbor> {
-        int index;
-        Float value;
+        final Integer index;
+        final Float value;
 
         Neighbor(int index, float value) {
             this.index = index;
@@ -98,7 +114,11 @@ public class LocalGenomeRegion {
 
         @Override
         public int compareTo(Neighbor o) {
-            return value.compareTo(o.value);
+            int compareVal = value.compareTo(o.value);
+            if (compareVal == 0) {
+                return index.compareTo(o.index);
+            }
+            return compareVal;
         }
     }
 }

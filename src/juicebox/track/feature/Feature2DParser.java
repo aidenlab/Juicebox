@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.util.ParsingUtils;
 
@@ -256,9 +256,9 @@ public class Feature2DParser {
             // Convention is chr1 is lowest "index". Swap if necessary
             if (useFeature2DWithMotif) {
                 if (chr1.getIndex() <= chr2.getIndex()) {
-                    newList.add(chr1.getIndex(), chr2.getIndex(), new Feature2DWithMotif(featureType, chr1Name, chr1.getIndex(), start1, end1, chr2Name, chr2.getIndex(), start2, end2, c, attrs));
+                    newList.add(chr1.getIndex(), chr2.getIndex(), new Feature2DWithMotif(featureType, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs));
                 } else {
-                    newList.add(chr2.getIndex(), chr1.getIndex(), new Feature2DWithMotif(featureType, chr2Name, chr2.getIndex(), start2, end2, chr1Name, chr1.getIndex(), start1, end1, c, attrs));
+                    newList.add(chr2.getIndex(), chr1.getIndex(), new Feature2DWithMotif(featureType, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs));
                 }
             } else {
                 if (chr1.getIndex() <= chr2.getIndex()) {

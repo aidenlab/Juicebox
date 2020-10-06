@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,63 @@
 
 package juicebox;
 
-import juicebox.data.ChromosomeHandler;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
-
-import java.io.*;
-
 /**
  * TODO These should probably be deleted, but keeping them until respective author decides/refactors
  * Created by muhammadsaadshamim on 8/3/15.
  */
 class Unused {
+/*
+    private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
+        List<Integer[]> listPositions = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(seqPath))) {
+            for (String line; (line = br.readLine()) != null; ) {
+                String[] parts = line.split(",");
+                listPositions.add(new Integer[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+            }
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
+
+
+        try {
+            PrintWriter p0 = new PrintWriter(new FileWriter(newPath));
+            for (int i = 0; i < listPositions.size(); i++) {
+                Integer[] pos_xy_1 = listPositions.get(i);
+                for (int j = i; j < listPositions.size(); j++) {
+                    Integer[] pos_xy_2 = listPositions.get(j);
+                    double value = 1. / Math.max(1, Math.sqrt((pos_xy_1[0] - pos_xy_2[0]) ^ 2 + (pos_xy_1[1] - pos_xy_2[1]) ^ 2));
+                    float conv_val = (float) value;
+                    if (!Float.isNaN(conv_val) && conv_val > 0) {
+                        p0.println("0 art " + i + " 0 16 art " + j + " 1 " + conv_val);
+                    }
+                }
+            }
+            p0.close();
+        } catch (IOException ignored) {
+            ignored.printStackTrace();
+        }
+    }
+
+            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
+            while (iter.hasNext()) {
+                ContactRecord cr = iter.next();
+                final int x = cr.getBinX();
+                final int y = cr.getBinY();
+                final float counts = cr.getCounts();
+
+                if(!indexToRegion.containsKey(x)){
+                    indexToRegion.put(x, new LocalGenomeRegion(x));
+                }
+
+                if(!indexToRegion.containsKey(y)){
+                    indexToRegion.put(y, new LocalGenomeRegion(y));
+                }
+
+                if(x != y){
+                    indexToRegion.get(x).addNeighbor(y, counts);
+                    indexToRegion.get(y).addNeighbor(x, counts);
+                }
+            }
 
     private void loadNormalizationVector(File file, HiC hic) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)), HiCGlobals.bufferSize);
@@ -69,6 +115,6 @@ class Unused {
 
             //hic.getDataset().putCustomNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
         }
-
     }
+    */
 }

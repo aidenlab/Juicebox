@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -37,9 +38,9 @@ import java.util.List;
  *         Time: 9:30 PM
  */
 public class CombinedExpectedValueFunction implements ExpectedValueFunction {
-
-    private final List<ExpectedValueFunction> densityFunctions;
-    private double[] expectedValues = null;
+	
+	private final List<ExpectedValueFunction> densityFunctions;
+	private ListOfDoubleArrays expectedValuesNoNormalization = null;
 
     public CombinedExpectedValueFunction(ExpectedValueFunction densityFunction) {
         this.densityFunctions = new ArrayList<>();
@@ -50,38 +51,54 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
         // TODO -- verify same unit, binsize, type, denisty array size
         densityFunctions.add(densityFunction);
     }
-
-    @Override
-    public double getExpectedValue(int chrIdx, int distance) {
-        double sum = 0;
-        for (ExpectedValueFunction df : densityFunctions) {
-            sum += df.getExpectedValue(chrIdx, distance);
+	
+	@Override
+	public double getExpectedValue(int chrIdx, long distance) {
+		double sum = 0;
+		for (ExpectedValueFunction df : densityFunctions) {
+			sum += df.getExpectedValue(chrIdx, distance);
+		}
+		return sum;
+	}
+	
+	@Override
+	public ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx) {
+		
+		if (expectedValuesNoNormalization.getLength() > 0) {
+			ListOfDoubleArrays normedExpectedValues = new ListOfDoubleArrays(expectedValuesNoNormalization.getLength());
+			
+			for (long i = 0; i < normedExpectedValues.getLength(); i++) {
+				for (ExpectedValueFunction df : densityFunctions) {
+					normedExpectedValues.addTo(i, df.getExpectedValue(chrIdx, i));
+				}
+			}
+			
+			return normedExpectedValues;
+		} else {
+			System.err.println("Expected values array is empty");
+            return null;
         }
-        return sum;
     }
-
-    @Override
-    public double[] getExpectedValues() {
-        if (expectedValues != null) return expectedValues;
-        int length = 0;
-        for (ExpectedValueFunction df : densityFunctions) { // Removed cast to ExpectedValueFunctionImpl; change back if errors
-            length = Math.max(length, df.getExpectedValues().length);
-        }
-        expectedValues = new double[length];
-        for (ExpectedValueFunction df : densityFunctions) {
-
-            double[] current = df.getExpectedValues();
-            for (int i = 0; i < current.length; i++) {
-                expectedValues[i] += current[i];
-            }
-        }
-        return expectedValues;
+	
+	@Override
+	public ListOfDoubleArrays getExpectedValuesNoNormalization() {
+		if (expectedValuesNoNormalization != null) return expectedValuesNoNormalization;
+		long length = 0;
+		for (ExpectedValueFunction df : densityFunctions) { // Removed cast to ExpectedValueFunctionImpl; change back if errors
+			length = Math.max(length, df.getExpectedValuesNoNormalization().getLength());
+		}
+		expectedValuesNoNormalization = new ListOfDoubleArrays(length);
+		for (ExpectedValueFunction df : densityFunctions) {
+			
+			expectedValuesNoNormalization.addValuesFrom(df.getExpectedValuesNoNormalization());
+		}
+        return expectedValuesNoNormalization;
     }
-
-    @Override
-    public int getLength() {
-        return densityFunctions.get(0).getLength();
-    }
+	
+	@Override
+	public long getLength() {
+		return densityFunctions.get(0).getLength();
+	}
 
     @Override
     public NormalizationType getNormalizationType() {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.PearsonColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -44,8 +45,8 @@ import juicebox.track.feature.*;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -142,7 +143,7 @@ public class SuperAdapter {
 
     public void resetControlMap() {
         hic.setControlDataset(null);
-        MatrixType[] options = HiCGlobals.enabledMatrixTypesNoControl;
+        MatrixType[] options = MatrixType.enabledMatrixTypesNoControl;
         mainViewPanel.setSelectedDisplayOption(options, false);
         currentlyLoadedControlFiles = null;
         controlTitle = null;
@@ -165,12 +166,16 @@ public class SuperAdapter {
         if (pearsonColorScale != null) new PearsonColorScaleEditor(this, pearsonColorScale);
     }
 
+    public void launchSetPseudoCountEditor() {
+        new PseudoCountEditor(this);
+    }
+
     public void restoreLocation(String loc) {
         hic.restoreLocation(loc);
     }
 
     public LoadEncodeAction getEncodeAction() {
-        if (layersPanel == null){
+        if (layersPanel == null) {
             layersPanel = new LayersPanel(this);
             setLayersPanelVisible(false);
         }
@@ -260,16 +265,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    /*
-    public void setShowLoops(boolean showLoops) {
-        hic.setShowLoops(showLoops);
-    }
-
-    public void addVisibleLoops(CustomAnnotationHandler handler) {
-        handler.addVisibleLoops(hic);
-    }
-    */
-
     public String getDescription(String item) {
         return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
                 hic.getDefaultLocationDescription());
@@ -328,37 +323,38 @@ public class SuperAdapter {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
         } else if (ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
-            initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
+            initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
         } else {
             mainViewPanel.getResolutionSlider().setEnabled(true);
 
-            HiC.Unit currentUnit = hic.getZoom().getUnit();
+            // todo this is throwing null pointer exceptions
+            initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
 
-            List<HiCZoom> zooms = (currentUnit == HiC.Unit.BP ? hic.getDataset().getBpZooms() :
-                    hic.getDataset().getFragZooms());
-
-
+            // If this is the initial load hic.currentZoom will be null
+            if (hic.getZoom() != null) {
+                HiC.Unit currentUnit = hic.getZoom().getUnit();
+                List<HiCZoom> zooms = (currentUnit == HiC.Unit.BP ? hic.getDataset().getBpZooms() :
+                        hic.getDataset().getFragZooms());
 //            Find right zoom level
-
-            int pixels = mainViewPanel.getHeatmapPanel().getMinimumDimension();
-            int len;
-            if (currentUnit == HiC.Unit.BP) {
-                len = (Math.max(hic.getXContext().getChrLength(), hic.getYContext().getChrLength()));
-            } else {
-                len = Math.max(hic.getDataset().getFragmentCounts().get(hic.getXContext().getChromosome().getName()),
-                        hic.getDataset().getFragmentCounts().get(hic.getYContext().getChromosome().getName()));
-            }
-
-            int maxNBins = pixels / HiCGlobals.BIN_PIXEL_WIDTH;
-            int bp_bin = len / maxNBins;
-            initialZoom = zooms.get(zooms.size() - 1);
-            for (int z = 1; z < zooms.size(); z++) {
-                if (zooms.get(z).getBinSize() < bp_bin) {
-                    initialZoom = zooms.get(z - 1);
-                    break;
+                int pixels = mainViewPanel.getHeatmapPanel().getMinimumDimension();
+				long len;
+                if (currentUnit == HiC.Unit.BP) {
+                    len = (Math.max(hic.getXContext().getChrLength(), hic.getYContext().getChrLength()));
+                } else {
+                    len = Math.max(hic.getDataset().getFragmentCounts().get(hic.getXContext().getChromosome().getName()),
+                            hic.getDataset().getFragmentCounts().get(hic.getYContext().getChromosome().getName()));
+                }
+	
+				int maxNBins = pixels / HiCGlobals.BIN_PIXEL_WIDTH;
+				long bp_bin = len / maxNBins;
+                initialZoom = zooms.get(zooms.size() - 1);
+                for (int z = 1; z < zooms.size(); z++) {
+                    if (zooms.get(z).getBinSize() < bp_bin) {
+                        initialZoom = zooms.get(z - 1);
+                        break;
+                    }
                 }
             }
-
         }
         hic.unsafeActuallySetZoomAndLocation(hic.getXContext().getChromosome().toString(), hic.getYContext().getChromosome().toString(),
                 initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true, isResolutionLocked() ? 1 : 0, true);
@@ -441,7 +437,7 @@ public class SuperAdapter {
             MatrixType[] options;
             if (control) {
                 hic.setControlDataset(dataset);
-                options = HiCGlobals.enabledMatrixTypesWithControl;
+                options = MatrixType.enabledMatrixTypesWithControl;
                 mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
                         dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
@@ -454,9 +450,9 @@ public class SuperAdapter {
                         dataset.getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
-                    options = HiCGlobals.enabledMatrixTypesWithControl;
+                    options = MatrixType.enabledMatrixTypesWithControl;
                 } else {
-                    options = HiCGlobals.enabledMatrixTypesNoControl;
+                    options = MatrixType.enabledMatrixTypesNoControl;
                 }
 
                 hic.resetContexts();
@@ -464,7 +460,7 @@ public class SuperAdapter {
                 mainViewPanel.getMenuBar().getRecentLocationMenu().setEnabled(true);
                 mainWindow.getContentPane().invalidate();
                 mainWindow.repaint();
-                mainViewPanel.resetResolutionSlider();
+                mainViewPanel.resetResolutionSlider(hic.getDefaultUnit());
                 mainViewPanel.unsafeRefreshChromosomes(SuperAdapter.this);
 
             }
@@ -505,7 +501,7 @@ public class SuperAdapter {
 
         getHeatmapPanel().disableAssemblyEditing();
         resetAnnotationLayers();
-        HiCGlobals.hicMapScale = (double) 1;
+        HiCGlobals.hicMapScale = 1;
 //        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
@@ -522,8 +518,7 @@ public class SuperAdapter {
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);
-        }
-        finally {
+        } finally {
             mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
         }
     }
@@ -575,7 +570,7 @@ public class SuperAdapter {
             return false;
         }
 
-        mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
+        mainViewPanel.getColorRangePanel().handleNewFileLoading(option);
 
         if (MatrixType.isVSTypeDisplay(option)) {
             if (hic.getMatrix().isNotIntra()) {
@@ -593,12 +588,12 @@ public class SuperAdapter {
 
             } else {
                 try {
-                    if (hic.isPearsonsNotAvailable(false)) {
+                    if (hic.isPearsonsNotAvailableForFile(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }
-                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailableForFile(true)) {
                         JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
@@ -763,8 +758,8 @@ public class SuperAdapter {
         mainViewPanel.updateRatioColorSlider(hic, max, val);
     }
 
-    public void updateColorSlider(int min, double low, double high, double max) {
-        mainViewPanel.updateColorSlider(hic, min, low, high, max);
+    public void updateColorSlider(double low, double high) {
+        mainViewPanel.updateColorSlider(hic, low, high, high * 2);
     }
 
     public void unsafeSetSelectedChromosomes(Chromosome xC, Chromosome yC) {
@@ -995,7 +990,6 @@ public class SuperAdapter {
 
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
-
         updateChrHandlerAndMVP(custom);
     }
 
@@ -1058,7 +1052,7 @@ public class SuperAdapter {
         }
     }
 
-    public void safeLaunchImportNormalizations() {
+    public void safeLaunchImportNormalizations(boolean isControl) {
 
         final File[] files = FileDialogUtils.chooseMultiple("Choose custom normalization file(s)",
                 LoadDialog.LAST_LOADED_HIC_FILE_PATH, null);
@@ -1068,14 +1062,50 @@ public class SuperAdapter {
                 if (files != null && files.length > 0) {
                     LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
 
-                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, false);
-                    mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
-                            hic.getDataset().getVersion() >= HiCGlobals.minVersion);
+
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, isControl);
+
+                    boolean versionStatus = hic.getDataset().getVersion() >= HiCGlobals.minVersion;
+                    if (isControl) {
+                        versionStatus = hic.getControlDataset().getVersion() >= HiCGlobals.minVersion;
+                    }
+
+                    mainViewPanel.setEnabledForNormalization(isControl, hic.getNormalizationOptions(isControl), versionStatus);
                     repaint();
                 }
             }
         };
         mainWindow.executeLongRunningTask(runnable, "safe add custom norms");
 
+    }
+
+    public void createGenomewideChromosomeFromChromDotSizes() {
+        Chromosome custom = hic.getChromosomeHandler().addGenomeWideChromosome();
+        updateChrHandlerAndMVP(custom);
+    }
+
+    public static int getNewResolutionGUI() {
+        int newResolution = -1;
+        String newSize = MessageUtils.showInputDialog("Specify a new resolution", "");
+        try {
+            newResolution = Integer.parseInt(newSize);
+        } catch (Exception e) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                SuperAdapter.showMessageDialog("Invalid resolution given (not integer): " + newSize);
+            } else {
+                MessageUtils.showMessage("Invalid resolution given (not integer): " + newSize);
+            }
+        }
+        return newResolution;
+    }
+
+    public void safeLaunchCreateNewResolution() {
+        int newResolution = getNewResolutionGUI();
+        if (newResolution > 0) {
+            hic.createNewDynamicResolutions(newResolution);
+            refresh();
+            getMainViewPanel().getResolutionSlider().reset();
+
+        }
     }
 }

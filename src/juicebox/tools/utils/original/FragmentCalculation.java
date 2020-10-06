@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,14 +37,14 @@ import java.util.regex.Pattern;
  *         Date: 8/26/12
  */
 public class FragmentCalculation {
-
-    private Map<String, int[]> sitesMap = null;
+    
+    private final Map<String, int[]> sitesMap;
 
     private FragmentCalculation(Map<String, int[]> sitesMap) {
         this.sitesMap = sitesMap;
     }
 
-    private static FragmentCalculation readFragments(InputStream is) throws IOException {
+    private static FragmentCalculation readFragments(InputStream is, ChromosomeHandler handler) throws IOException {
         Pattern pattern = Pattern.compile("\\s");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         String nextLine;
@@ -59,7 +59,7 @@ public class FragmentCalculation {
                     sites[i - 1] = Integer.parseInt(tokens[i]);
                 }
 
-                sitesMap.put(ChromosomeHandler.cleanUpName(key), sites);
+                sitesMap.put(handler.cleanUpName(key), sites);
             } else {
                 System.out.println("Skipping line: " + nextLine);
             }
@@ -68,12 +68,12 @@ public class FragmentCalculation {
         return new FragmentCalculation(sitesMap);
     }
 
-    public static FragmentCalculation readFragments(String filename) throws IOException {
+    public static FragmentCalculation readFragments(String filename, ChromosomeHandler handler) throws IOException {
         InputStream is = null;
         try {
             File file = new File(filename);
             is = new FileInputStream(file);
-            return readFragments(is);
+            return readFragments(is, handler);
         } catch (Exception e) {
             System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
             return null;
@@ -83,7 +83,6 @@ public class FragmentCalculation {
                 is.close();
             }
         }
-
     }
 
     /**

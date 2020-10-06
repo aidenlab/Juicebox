@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,10 @@ package juicebox.tools.utils.common;
 
 import juicebox.HiC;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,8 +43,8 @@ import java.util.Map;
  */
 
 class HiCFileUtils {
-
-    private Dataset dataset;
+	
+	private final Dataset dataset;
 
     private HiCFileUtils(String hicfile) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(hicfile);
@@ -64,14 +64,15 @@ class HiCFileUtils {
         String label = "Normalization vector: type = " + normType.getLabel() + " chr = " + chrName +
                 " resolution = " + binSize + " " + unit;
         System.out.println(label);
-        double[] data = nv.getData();
         /*
         for(int i=0; i<data.length; i++) {
             System.out.println(data[i]);
         }
         */
-        for (double datum : data) {
-            System.out.println(datum);
+        for (double[] array : nv.getData().getValues()) {
+            for (double datum : array) {
+                System.out.println(datum);
+            }
         }
     }
 
@@ -89,18 +90,19 @@ class HiCFileUtils {
                 for (Map.Entry<Integer, Double> nf : ev.getNormFactors().entrySet()) {
                     System.out.println(nf.getKey() + "\t" + nf.getValue());
                 }
-
+    
                 System.out.println("Expected values: " + label);
-                double[] values = ev.getExpectedValues();
                 /*
                 for (int i = 0; i < values.length; i++) {
                     System.out.println(values[i]);
                 }
                 */
-                for (double datum : values) {
-                    System.out.println(datum);
+                for (double[] values : ev.getExpectedValuesNoNormalization().getValues()) {
+                    for (double datum : values) {
+                        System.out.println(datum);
+                    }
                 }
-
+    
                 System.out.println("End expected values: " + label);
                 System.out.println();
             }

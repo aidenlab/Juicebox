@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.mapcolorui;
 import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
@@ -326,6 +327,15 @@ public class Feature2DHandler {
 
     public Feature2DList getFeatureList() {
         return loopList;
+    }
+
+    public List<Feature2D> getContainedFeatures(Chromosome chrom, int rectULX, int rectULY, int rectLRX, int rectLRY, int resolution) {
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
+                rectULX * resolution,
+                rectULY * resolution,
+                rectLRX * resolution,
+                rectLRY * resolution);
+        return getContainedFeatures(chrom.getIndex(), chrom.getIndex(), currentWindow);
     }
 
     public class resultContainer {

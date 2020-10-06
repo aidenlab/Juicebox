@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -296,7 +296,7 @@ public class QCDialog extends JDialog {
 
 
         if (df != null) {
-            double[] expected = df.getExpectedValues();
+            double[] expected = df.getExpectedValuesNoNormalization().getValues().get(0);
             final XYSeriesCollection collection = new XYSeriesCollection();
             final XYSeries expectedValues = new XYSeries("Expected");
             for (int i = 0; i < expected.length; i++) {

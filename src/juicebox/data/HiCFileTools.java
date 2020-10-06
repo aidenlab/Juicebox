@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,13 @@
 package juicebox.data;
 
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.dev.drink.ExtractingOEDataUtils;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
 import java.util.*;
@@ -50,7 +49,7 @@ public class HiCFileTools {
             if (files.size() == 1) {
                 if (allowPrinting)
                     System.out.println("Reading file: " + files.get(0));
-                String magicString = DatasetReaderV2.getMagicString(files.get(0));
+                String magicString = DatasetReaderFactory.getMagicString(files.get(0));
                 if (magicString.equals("HIC")) {
                     reader = new DatasetReaderV2(files.get(0));
                 } else {
@@ -85,7 +84,7 @@ public class HiCFileTools {
             if (files.size() == 1) {
                 if (allowPrinting)
                     System.out.println("Reading file: " + files.get(0));
-                String magicString = DatasetReaderV2.getMagicString(files.get(0));
+                String magicString = DatasetReaderFactory.getMagicString(files.get(0));
                 if (magicString.equals("HIC")) {
                     reader = new DatasetReaderV2(files.get(0));
                 } else {
@@ -168,7 +167,7 @@ public class HiCFileTools {
             }
 
             // "pseudo-chromosome" All taken care of by by chromosome handler
-            return new ChromosomeHandler(chromosomes);
+            return new ChromosomeHandler(chromosomes, idOrFile, false);
         } finally {
             if (is != null) {
                 try {
@@ -179,82 +178,6 @@ public class HiCFileTools {
             }
         }
     }
-
-    /**
-     * Load the list of chromosomes based on given genome id or file
-     *
-     * @param idOrFile string
-     * @return list of chromosomes
-     */
-    public static List<Chromosome> loadCentromeres(String idOrFile) {
-
-        InputStream is = null;
-
-        try {
-            // Note: to get this to work, had to edit Intellij settings
-            // so that "?*.sizes" are considered sources to be copied to class path
-            is = ChromosomeSizes.class.getResourceAsStream(idOrFile + ".chrom.sizes");
-
-            if (is == null) {
-                // Not an ID,  see if its a file
-                File file = new File(idOrFile);
-
-                try {
-                    if (file.exists()) {
-                        is = new FileInputStream(file);
-                    } else {
-                        System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(36);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            List<Chromosome> chromosomes = new ArrayList<>();
-            chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
-
-            Pattern pattern = Pattern.compile("\t");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-            String nextLine;
-            long genomeLength = 0;
-            int idx = 1;
-
-            try {
-                while ((nextLine = reader.readLine()) != null) {
-                    String[] tokens = pattern.split(nextLine);
-                    if (tokens.length == 2) {
-                        String name = tokens[0];
-                        int length = Integer.parseInt(tokens[1]);
-                        genomeLength += length;
-                        chromosomes.add(idx, new Chromosome(idx, name, length));
-                        idx++;
-                    } else {
-                        System.out.println("Skipping " + nextLine);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-
-
-            return chromosomes;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
-
 
     /**
      * Given an array of possible resolutions, returns the actual resolutions available in the dataset
@@ -322,7 +245,7 @@ public class HiCFileTools {
      * @param handler as Chromosome objects
      * @return the specified Chromosomes corresponding to the given strings
      */
-    public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
+    public static ChromosomeHandler stringToChromosomes(List<String> chromosomesSpecified,
                                                         ChromosomeHandler handler) {
         List<Chromosome> chromosomes = new ArrayList<>();
         chromosomes.add(0, null);
@@ -340,7 +263,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new ChromosomeHandler(chromosomes);
+        return new ChromosomeHandler(chromosomes, handler.getGenomeID(), false);
     }
 
     /**
@@ -369,60 +292,77 @@ public class HiCFileTools {
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
-                                                       NormalizationType norm) throws IOException {
-        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm);
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, normalizationType, fillUnderDiagonal);
     }
 
-
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binYStart, int numRows, int numCols,
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        return extractLocalBoundedRegion(zd, binXStart, binXStart + numRows, binYStart, binYStart + numCols, numRows, numCols, normalizationType, fillUnderDiagonal);
+    }
+    
     /**
      * Extracts matrix from hic file for a specified region.
      * By default, only the top right part of the matrix is returned if the matrix is on the diagonal.
      *
      * @return section of the matrix
      */
-    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                       int binYStart, int binYEnd, int numRows, int numCols,
-                                                       NormalizationType normalizationType) throws IOException {
-
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, long binXStart, long binXEnd,
+                                                       long binYStart, long binYEnd, int numRows, int numCols,
+                                                       NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType);
-
+        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
+        
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-
+        
         if (blocks.size() > 0) {
             for (Block b : blocks) {
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-
-                        int relativeX = rec.getBinX() - binXStart;
-                        int relativeY = rec.getBinY() - binYStart;
-
+    
+                        // only called for small regions - should not exceed int
+                        int relativeX = (int) (rec.getBinX() - binXStart);
+                        int relativeY = (int) (rec.getBinY() - binYStart);
+    
                         if (relativeX >= 0 && relativeX < numRows) {
                             if (relativeY >= 0 && relativeY < numCols) {
                                 data.addToEntry(relativeX, relativeY, rec.getCounts());
+                            }
+                        }
+    
+                        if (fillUnderDiagonal) {
+                            relativeX = (int) (rec.getBinY() - binXStart);
+                            relativeY = (int) (rec.getBinX() - binYStart);
+        
+                            if (relativeX >= 0 && relativeX < numRows) {
+                                if (relativeY >= 0 && relativeY < numCols) {
+                                    data.addToEntry(relativeX, relativeY, rec.getCounts());
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        // ~force cleanup
+        // force cleanup
         blocks = null;
-
+        //System.gc();
+        
         return data;
     }
-
-    public static List<Block> getAllRegionBlocks(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                 int binYStart, int binYEnd,
-                                                 NormalizationType normalizationType) throws IOException {
-
-        List<Block> blocks = new ArrayList<>();
-
+    
+    public static List<Block> getAllRegionBlocks(MatrixZoomData zd, long binXStart, long binXEnd,
+                                                 long binYStart, long binYEnd,
+                                                 NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+        
+        List<Block> blocks = Collections.synchronizedList(new ArrayList<>());
+        
         int numDataReadingErrors = 0;
-
+        
         try {
-            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
+            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false, fillUnderDiagonal));
         } catch (Exception e) {
             triggerNormError(normalizationType);
             if (HiCGlobals.printVerboseComments) {
@@ -441,14 +381,14 @@ public class HiCFileTools {
 
         return blocks;
     }
-
-    public static double[] extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
+    
+    public static ListOfDoubleArrays extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
         ExpectedValueFunction expectedValueFunction = ds.getExpectedValues(zoom, normalization);
-        int n = expectedValueFunction.getLength();
-
-        double[] expectedVector = new double[n];
-        for (int i = 0; i < n; i++) {
-            expectedVector[i] = expectedValueFunction.getExpectedValue(index, i);
+        long n = expectedValueFunction.getLength();
+        
+        ListOfDoubleArrays expectedVector = new ListOfDoubleArrays(n);
+        for (long i = 0; i < n; i++) {
+            expectedVector.set(i, expectedValueFunction.getExpectedValue(index, i));
         }
         return expectedVector;
     }
@@ -496,26 +436,13 @@ public class HiCFileTools {
                 .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
     }
 
-    public static RealMatrix getRealMatrixForChromosome(Dataset ds, Chromosome chromosome, int resolution, NormalizationType norm, double logThreshold) throws IOException {
-        // skip these matrices
-        Matrix matrix = ds.getMatrix(chromosome, chromosome);
-        if (matrix == null) return null;
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, HiCZoom zoom) {
+        Matrix matrix = ds.getMatrix(chrom1, chrom2);
+        if (matrix == null || zoom == null) return null;
+        return matrix.getZoomData(zoom);
+    }
 
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-        final MatrixZoomData zd = matrix.getZoomData(zoom);
-        if (zd == null) return null;
-
-        ExpectedValueFunction df = ds.getExpectedValues(zd.getZoom(), norm);
-        if (df == null) {
-            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + norm);
-            System.exit(14);
-        }
-
-        int maxBin = chromosome.getLength() / resolution + 1;
-        int maxSize = maxBin;
-
-        return ExtractingOEDataUtils.extractLocalThresholdedLogOEBoundedRegion(zd, 0, maxBin,
-                0, maxBin, maxSize, maxSize, norm, true, df, chromosome.getIndex(), logThreshold);
-
+    public static MatrixZoomData getMatrixZoomData(Dataset ds, Chromosome chrom1, Chromosome chrom2, int resolution) {
+        return getMatrixZoomData(ds, chrom1, chrom2, ds.getZoomForBPResolution(resolution));
     }
 }

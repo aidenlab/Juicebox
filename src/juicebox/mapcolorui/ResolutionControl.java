@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +61,7 @@ public class ResolutionControl extends JPanel {
     private final HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
-    private JSlider resolutionSlider;
+    private final JSlider resolutionSlider;
     private int lastValue = 0;
 
     {
@@ -221,21 +221,21 @@ public class ResolutionControl extends JPanel {
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
 
-                if (hic.isInPearsonsMode() && hic.isPearsonsNotAvailable(zoom)) {
+                if (hic.isInPearsonsMode() && hic.isPearsonsNotAvailableAtSpecificZoom(false, zoom)) {
                     JOptionPane.showMessageDialog(getParent(), "Pearson's matrix is not available at this resolution");
                     setZoom(pearsonZoom);
                     return;
                 }
 
                 if (hic.getXContext() != null) {
-
+    
                     double scaledXWidth = heatmapPanel.getWidth() / hic.getScaleFactor();
                     double scaledYHeight = heatmapPanel.getHeight() / hic.getScaleFactor();
                     double centerBinX = hic.getXContext().getBinOrigin() + scaledXWidth / 2;
                     double centerBinY = hic.getYContext().getBinOrigin() + scaledYHeight / 2;
-                    int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
-                    int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
-
+                    long xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
+                    long yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
+    
                     // this to center zooming when there is lots of whitespace in the margins
                     try {
                         if (scaledXWidth > hic.getZd().getXGridAxis().getBinCount()) {
@@ -243,7 +243,7 @@ public class ResolutionControl extends JPanel {
                         }
                     } catch (Exception ignored) {
                     }
-
+    
                     try {
                         if (scaledYHeight > hic.getZd().getYGridAxis().getBinCount()) {
                             yGenome = hic.getYContext().getChrLength() / 2;

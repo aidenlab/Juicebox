@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import java.awt.*;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by dudcha on 10/10/17.
@@ -57,7 +58,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     private final String signedScaffoldIdAttributeKey = "Signed scaffold #";
     private final String scaffoldNameAttributeKey = "Scaffold name";
     // formality
-    private final int chrIndex = 1;
+    private final Integer chrIndex = 1;
     //invariant properties
     public String name;
     private final Color defaultColor = new Color(0, 255, 0);
@@ -262,7 +263,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
             return true;
         }
         Scaffold o = (Scaffold) obj;
-        if (new Integer(chrIndex).equals(o.chrIndex)) {
+        if (chrIndex.equals(o.chrIndex)) {
 
             if (length == o.length) {
                 return currentStart == o.currentStart;
@@ -278,7 +279,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
     @Override
     public int hashCode() {
-        return scale(currentStart + 3 * length); // I have no idea why I am doing this
+		return Objects.hash(currentStart, length, HiCGlobals.hicMapScale);
     }
 
     @Override

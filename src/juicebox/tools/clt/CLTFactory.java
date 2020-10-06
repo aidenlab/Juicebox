@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
 import juicebox.tools.dev.APAvsDistance;
-import juicebox.tools.dev.Drink;
+import juicebox.tools.dev.CompareVectors;
 import juicebox.tools.dev.GeneFinder;
-import juicebox.tools.dev.Shuffle;
 import juicebox.tools.utils.Benchmark;
+
 
 /**
  * Factory for command line tools to call different functions
@@ -79,11 +79,12 @@ public class CLTFactory {
     public static JuiceboxCLT getCLTCommand(String cmd) {
 
         cmd = cmd.toLowerCase();
-
         if (cmd.equals("pre")) {
             return new PreProcessing();
         } else if (cmd.equals("dump")) {
             return new Dump();
+        } else if (cmd.equals("compare-vectors")) {
+            return new CompareVectors();
         } else if (cmd.equals("validate")) {
             return new ValidateFile();
         } else if (cmd.equals("addGWNorm".toLowerCase())) {
@@ -104,16 +105,14 @@ public class CLTFactory {
             return new BPToFragment();
         } else if (cmd.equals("calcKR".toLowerCase())) {
             return new CalcKR();
+        } else if (cmd.equals("calcMatrixSum".toLowerCase())) {
+            return new CalcMatrixSum();
         } else if (cmd.equals("fragmentToBed".toLowerCase())) {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
-        } else if (cmd.equals("shuffle")) {
-            return new Shuffle();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
-        } else if (cmd.equals("drink")) {
-            return new Drink();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -136,7 +135,10 @@ public class CLTFactory {
             return new LibraryComplexity();
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
+        } else if (cmd.equals("statistics")) {
+            return new Statistics();
         }
+
 
         return null;
     }

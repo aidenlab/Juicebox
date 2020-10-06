@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,25 +25,77 @@
 
 package juicebox.windowui;
 
-
 public enum MatrixType {
     OBSERVED("Observed"),
     EXPECTED("Expected"),
     OE("Observed/Expected"),
+    OEV2("Log(Observed/Expected)"),
+    OEP1("(Observed+1)/(Expected+1)"),
+    OEP1V2("Log((Observed+1)/(Expected+1))"),
+    OME("Observed-Expected"),
     PEARSON("Observed Pearson"),
+    LOG("Log(Observed+1)"),
+    LOGEO("Log(Observed+1)/Log(Expected+1)"),
+    METALOGEO("(Log(Observed+1)+1)/(Log(Expected+1)+1)"),
+    EXPLOGEO("e^(Log(Observed+1)/Log(Expected+1))"),
+    EXPLOGEOINV("e^(Log(Expected+1)/Log(Observed+1))"),
     NORM2("Observed Norm^2"),
     CONTROL("Control"),
-    OECTRL("Control/Expected"),
+    OECTRL("Control/ExpectedC"),
+    OECTRLV2("Log(Control/ExpectedC)"),
+    OECTRLP1("(Control+1)/(ExpectedC+1)"),
+    OECTRLP1V2("Log((Control+1)/(ExpectedC+1))"),
+    CME("Control-ExpectedC"),
     PEARSONCTRL("Control Pearson"),
+    LOGC("Log(Control+1)"),
+    LOGCEO("Log(Control+1)/Log(ExpectedC+1)"),
     NORM2CTRL("Control Norm^2"),
-    RATIO("Observed/Control"),
+    RATIO("Observed/Control * (AvgC/AvgO)"),
+    RATIOV2("Log(Observed/Control * (AvgC/AvgO))"),
+    RATIOP1("(Observed+1)/(Control+1) * (AvgC+1)/(AvgO+1)"),
+    RATIOP1V2("Log((Observed+1)/(Control+1) * (AvgC+1)/(AvgO+1))"),
+    RATIO0("Observed/Control * (ExpC0/Exp0)"),
+    RATIO0V2("Log(Observed/Control * (ExpC0/Exp0))"),
+    RATIO0P1("(Observed+1)/(Control+1) * (ExpC0+1)/(Exp0+1)"),
+    RATIO0P1V2("Log((Observed+1)/(Control+1) * (ExpC0+1)/(Exp0+1))"),
     VS("Observed vs Control"),
-    OEVS("Observed/Expected vs Control/Expected"),
+    OEVS("Observed/Expected vs Control/ExpectedC"),
+    OEVSV2("Log(Observed/Expected) vs Log(Control/ExpectedC)"),
+    OEVSP1("(Observed+1)/(Expected+1) vs (Control+1)/(ExpectedC+1)"),
+    OEVSP1V2("Log((Observed+1)/(Expected+1)) vs Log((Control+1)/(ExpectedC+1))"),
+    OERATIO("(Observed/Expected) / (Control/ExpectedC)"),
+    OERATIOV2("Log((Observed/Expected) / (Control/ExpectedC))"),
+    OERATIOP1("((Observed+1)/(Expected+1)) / ((Control+1)/(ExpectedC+1))"),
+    OERATIOP1V2("Log(((Observed+1)/(Expected+1)) / ((Control+1)/(ExpectedC+1)))"),
+    OERATIOMINUS("(Observed/Expected) - (Control/ExpectedC)"),
+    OERATIOMINUSP1("(Observed+1)/(Expected+1) - (Control+1)/(ExpectedC+1)"),
+    OCMEVS("Observed-Expected vs Control-Expected"),
     PEARSONVS("Observed Pearson vs Control Pearson"),
+    LOGVS("Log(Observed/AvgO+1) vs Log(Control/AvgC+1)"),
+    LOGEOVS("Log(Observed+1)/Log(Expected+1) vs Log(Control+1)/Log(ExpectedC+1)"),
+    LOGRATIO("Log(Observed/AvgO+1)/Log(Control/AvgC+1)"),
+    LOGRATIOV2("Log(Log(Observed/AvgO+1)/Log(Control/AvgC+1))"),
+    LOGEORATIO("(Log(Observed+1)/Log(Expected+1)) / (Log(Control+1)/Log(ExpectedC+1))"),
+    LOGEORATIOV2("Log((Log(Observed+1)/Log(Expected+1)) / (Log(Control+1)/Log(ExpectedC+1)))"),
     DIFF("Observed-Control"),
     NORM("Norm"),
     EIGENVECTOR("Eigenvector"),
     NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
+
+    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
+            OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON, LOG, LOGEO,
+            CONTROL, OECTRL, OECTRLV2, OECTRLP1, OECTRLP1V2, CME, PEARSONCTRL, LOGC, LOGCEO,
+            VS, RATIO, RATIOV2, RATIOP1, RATIOP1V2, RATIO0, RATIO0V2, RATIO0P1, RATIO0P1V2,
+            OERATIO, OERATIOV2, OERATIOP1, OERATIOP1V2, OERATIOMINUS, OERATIOMINUSP1,
+            OEVS, OEVSV2, OEVSP1, OEVSP1V2, OCMEVS, PEARSONVS, DIFF,
+            LOGVS, LOGEOVS, LOGRATIO, LOGRATIOV2, LOGEORATIO, LOGEORATIOV2,
+            METALOGEO, EXPLOGEO, EXPLOGEOINV
+    };
+
+    public static final MatrixType[] enabledMatrixTypesNoControl =
+            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON, LOG, LOGEO, METALOGEO, EXPLOGEO,
+                    EXPLOGEOINV};
+
     private final String value;
 
     MatrixType(String value) {
@@ -74,52 +126,43 @@ public enum MatrixType {
 
     /**
      * @param option
-     * @return true is the option is generally available all maps or resolutions
-     */
-    public static boolean isSimpleType(MatrixType option) {
-        return isSimpleObservedOrControlType(option) || option == EXPECTED || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
-    }
-
-    /**
-     * @param option
-     * @return true is the option is generally available for maps, but does not use expected vector
-     */
-    public static boolean isSimpleObservedOrControlType(MatrixType option) {
-        return option == OBSERVED || option == CONTROL || option == VS;
-    }
-
-    /**
-     * @param option
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
-        return isComparisonType(option) || isSimpleObservedOrControlType(option) || option == NORM2 || option == NORM2CTRL || option == NORM2OBSVSCTRL;
+        return !isPearsonType(option);
     }
-
-
 
     /**
      * @param option
      * @return true if the option should allowed in genome-wide view
      */
     public static boolean isValidGenomeWideOption(MatrixType option) {
-        return option == OBSERVED || isSimpleControlType(option);
+        return !option.toString().toLowerCase().contains("expected");
     }
 
     /**
      * @param option
-     * @return true if the option requires control map bu not expected vector
+     * @return true if the option requires control map but not expected vector
      */
     public static boolean isSimpleControlType(MatrixType option) {
-        return option == CONTROL || option == VS || option == DIFF || option == RATIO;
+        return option.toString().toLowerCase().contains("control") && !option.toString().toLowerCase().contains("expected");
     }
+
 
     /**
      * @param option
      * @return true if the option involves comparison/divis (but not pearsons)
      */
-    public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS;
+    public static boolean isOEColorScaleType(MatrixType option) {
+        return option == OEV2 || option == OEP1V2 || option == RATIOV2 || option == RATIOP1V2 || option == RATIO0V2
+                || option == RATIO0P1V2 || option == OECTRLV2 || option == OECTRLP1V2
+                || option == OEVSV2 || option == OEVSP1V2 || option == OERATIOV2 || option == OERATIOP1V2
+                || option == LOGRATIOV2 || option == LOGEORATIOV2
+                || isSubtactType(option);
+    }
+
+    public static boolean isSubtactType(MatrixType option) {
+        return option.toString().toLowerCase().contains("-");
     }
 
     /**
@@ -127,7 +170,7 @@ public enum MatrixType {
      * @return true if the option only works for intrachromosomal, not interchromosomal (genomewide may still be allowed)
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return isPearsonType(option) || option == VS || option == DIFF || option == OEVS; //|| option == OE
+        return isPearsonType(option) || isVSTypeDisplay(option);
     }
 
     /**
@@ -135,7 +178,7 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || isPearsonType(option) || isControlExpectedUsedType(option);
+        return option.toString().toLowerCase().contains("expected");
     }
 
     /**
@@ -143,7 +186,7 @@ public enum MatrixType {
      * @return true if the option uses pearson's
      */
     public static boolean isPearsonType(MatrixType option) {
-        return option == PEARSON || isControlPearsonType(option);
+        return option.toString().toLowerCase().contains("pearson");
     }
 
     /**
@@ -163,15 +206,11 @@ public enum MatrixType {
     }
 
     public static boolean isVSTypeDisplay(MatrixType option) {
-        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS;
+        return option.toString().toLowerCase().contains("vs");
     }
 
     public static boolean isControlPearsonType(MatrixType option) {
-        return option == PEARSONVS || option == PEARSONCTRL;
-    }
-
-    private static boolean isControlExpectedUsedType(MatrixType option) {
-        return option == OECTRL || option == OEVS;
+        return option.toString().toLowerCase().contains("control") && option.toString().toLowerCase().contains("pearson");
     }
 
     public String toString() {

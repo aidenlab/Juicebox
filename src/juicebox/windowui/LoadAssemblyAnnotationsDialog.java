@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -343,7 +343,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
 
                 //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
-                superAdapter.getMainMenuBar().enableAssemblyMenuOptions();
+                superAdapter.getMainMenuBar().setEnableAssemblyMenuOptions(true);
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT
@@ -454,14 +454,10 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                 tree.getLastSelectedPathComponent();
-
+    
         if (node == null) return;
-
-        if (node.isLeaf()) {
-            openAssemblyButton.setEnabled(true);
-        } else {
-            openAssemblyButton.setEnabled(false);
-        }
+    
+        openAssemblyButton.setEnabled(node.isLeaf());
     }
 
     private void collapseAll(JTree tree) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ class RandomUtils {
      * @param fileNames
      * @param outputFile
      */
-    public static void mergeLoopLists(String genomeID, String[] fileNames, File outputFile) {
+    public static void intersectLoopLists(String genomeID, String[] fileNames, File outputFile) {
 
         ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 

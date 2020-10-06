@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -972,15 +972,11 @@ public class ResourceTree {
             if (doesNotHaveSelectedChildren(treeNode)) {
                 resource.setSelected(false);
             } else {
-
+    
                 // If node has selected children and has disabled descendants we
                 // must not unselect
-                if (hasLockedDescendants(treeNode)) {
-                    resource.setSelected(true);
-                } else {
-                    // No disabled descendants so we can uncheck at will
-                    resource.setSelected(false);
-                }
+                // No disabled descendants so we can uncheck at will
+                resource.setSelected(hasLockedDescendants(treeNode));
             }
         }
 

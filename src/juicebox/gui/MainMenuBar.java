@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,7 @@ import java.io.IOException;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class MainMenuBar extends JMenuBar {
+
   private static final long serialVersionUID = 2342324643L;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
@@ -63,9 +64,12 @@ public class MainMenuBar extends JMenuBar {
   private static JMenuItem importMapAsFile;
   private static JMenuItem slideShow;
   private static JMenuItem showStats, showControlStats;
+  private static JMenuItem renameGenome;
   //private static JMenu annotationsMenu;
   private static JMenu viewMenu;
+  private static JMenu bookmarksMenu;
   private static JMenu assemblyMenu;
+  private static JMenu devMenu;
   private static JMenuItem exportAssembly;
   private static JMenuItem resetAssembly;
   private static JMenuItem exitAssembly;
@@ -268,7 +272,7 @@ public class MainMenuBar extends JMenuBar {
     });
     fileMenu.add(exit);
 
-    JMenu bookmarksMenu = new JMenu("Bookmarks");
+    bookmarksMenu = new JMenu("Bookmarks");
     //---- Save location ----
     saveLocationList = new JMenuItem("Save Current Location");
     saveLocationList.addActionListener(new ActionListener() {
@@ -309,7 +313,7 @@ public class MainMenuBar extends JMenuBar {
     });
 
     saveStateForReload.setEnabled(false);
-    bookmarksMenu.add(saveStateForReload);
+    //bookmarksMenu.add(saveStateForReload);
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
@@ -325,6 +329,7 @@ public class MainMenuBar extends JMenuBar {
     recentLocationMenu.setMnemonic('S');
     recentLocationMenu.setEnabled(false);
     bookmarksMenu.add(recentLocationMenu);
+    bookmarksMenu.setEnabled(false);
 
     //---Export States----
     exportSavedStateMenuItem = new JMenuItem();
@@ -352,7 +357,7 @@ public class MainMenuBar extends JMenuBar {
       }
     };
 
-    bookmarksMenu.add(previousStates);
+    //bookmarksMenu.add(previousStates);
 
     //---Import States----
     importMapAsFile = new JMenuItem();
@@ -378,9 +383,10 @@ public class MainMenuBar extends JMenuBar {
     });
     //bookmarksMenu.add(slideShow);
 
-    bookmarksMenu.addSeparator();
-    bookmarksMenu.add(exportSavedStateMenuItem);
-    bookmarksMenu.add(importMapAsFile);
+    // todo replace with a save state URL
+    //bookmarksMenu.addSeparator();
+    //bookmarksMenu.add(exportSavedStateMenuItem);
+    //bookmarksMenu.add(importMapAsFile);
 
     //---View Menu-----
     viewMenu = new JMenu("View");
@@ -388,11 +394,7 @@ public class MainMenuBar extends JMenuBar {
     layersItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (layersItem.isSelected()) {
-          superAdapter.setLayersPanelVisible(true);
-        } else {
-          superAdapter.setLayersPanelVisible(false);
-        }
+        superAdapter.setLayersPanelVisible(layersItem.isSelected());
 
       }
     });
@@ -436,7 +438,16 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.createCustomChromosomesFromBED();
       }
     });
+
+    JMenuItem addGWChromosome = new JMenuItem("Make Genomewide Chromosome");
+    addGWChromosome.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.createGenomewideChromosomeFromChromDotSizes();
+      }
+    });
+
     if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
+      //viewMenu.add(addGWChromosome);
       viewMenu.add(addCustomChromosome);
     }
 
@@ -500,17 +511,37 @@ public class MainMenuBar extends JMenuBar {
     });
     viewMenu.add(saveToSVG);
 
-    final JMenu devMenu = new JMenu("Dev");
+    devMenu = new JMenu("Dev");
+    devMenu.setEnabled(false);
 
-    final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
-    addCustomNorms.addActionListener(new ActionListener() {
+    final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
+    addCustomNormsObs.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        superAdapter.safeLaunchImportNormalizations();
+        superAdapter.safeLaunchImportNormalizations(false);
       }
     });
+
+    final JMenuItem addCustomNormsCtrl = new JMenuItem("Add Custom Norms to Control...");
+    addCustomNormsCtrl.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchImportNormalizations(true);
+      }
+    });
+
+    final JMenuItem addResolutionToDatasets = new JMenuItem("Add Custom Resolution...");
+    addResolutionToDatasets.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchCreateNewResolution();
+      }
+    });
+
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-      devMenu.add(addCustomNorms);
+      devMenu.add(addCustomNormsObs);
+      devMenu.add(addCustomNormsCtrl);
+      devMenu.add(addResolutionToDatasets);
     }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
@@ -521,9 +552,39 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.getHeatmapPanel().repaint();
       }
     });
+    final JCheckBoxMenuItem hackLinearColorScale = new JCheckBoxMenuItem("Hack linear color scale");
+    hackLinearColorScale.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE_LINEAR = !HiCGlobals.HACK_COLORSCALE_LINEAR;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
+    final JCheckBoxMenuItem hackColorScale = new JCheckBoxMenuItem("Hack color scale");
+    hackColorScale.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE = !HiCGlobals.HACK_COLORSCALE;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
+    final JCheckBoxMenuItem hackColorScaleEqual = new JCheckBoxMenuItem("Hack color scale equally");
+    hackColorScaleEqual.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE_EQUAL = !HiCGlobals.HACK_COLORSCALE_EQUAL;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
     displayTiles.setSelected(HiCGlobals.displayTiles);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(displayTiles);
+      devMenu.add(hackColorScaleEqual);
+      devMenu.add(hackColorScale);
+      devMenu.add(hackLinearColorScale);
     }
 
     final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Recolor 1D Annotations in Assembly Mode");
@@ -561,6 +622,21 @@ public class MainMenuBar extends JMenuBar {
     }
 
 
+        renameGenome = new JMenuItem("Rename genome...");
+        renameGenome.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String curr_genome = superAdapter.getHiC().getDataset().getGenomeId();
+                String response = JOptionPane.showInputDialog("Current genome is " + curr_genome +
+                        "\nEnter another genome name or press cancel to exit");
+                if (response != null) {
+                    superAdapter.getHiC().getDataset().setGenomeId(response);
+                }
+            }
+        });
+        renameGenome.setEnabled(false);
+        fileMenu.add(renameGenome);
+    fileMenu.addSeparator();
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
     editPearsonsColorItem.addActionListener(new ActionListener() {
@@ -570,6 +646,15 @@ public class MainMenuBar extends JMenuBar {
       }
     });
     devMenu.add(editPearsonsColorItem);
+
+    JMenuItem editPseudoCounts = new JMenuItem("Change Pseudocount");
+    editPseudoCounts.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.launchSetPseudoCountEditor();
+      }
+    });
+    devMenu.add(editPseudoCounts);
 
     JMenuItem mapSubset = new JMenuItem("Select Map Subset...");
     mapSubset.addActionListener(new ActionListener() {
@@ -698,21 +783,20 @@ public class MainMenuBar extends JMenuBar {
                     // Rescale resolution slider labels
                     superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-                    // Rescale axis tick labels
-                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
-                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+                  // Rescale axis tick labels
+                  superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                  superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale and redraw assembly annotations
-                    if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().resetState();
-                    }
-
-      
+                  // Rescale and redraw assembly annotations
+                  if (superAdapter.getAssemblyStateTracker() != null) {
+                    superAdapter.getAssemblyStateTracker().resetState();
+                  }
 
 
-        } catch (NumberFormatException t) {
-          JOptionPane.showMessageDialog(null, "Value must be an integer!");
-        }
+                } catch (NumberFormatException t) {
+                  JOptionPane.showMessageDialog(null, "Value must be an integer!");
+                }
+
       }
     });
 
@@ -734,11 +818,9 @@ public class MainMenuBar extends JMenuBar {
     setScale.setEnabled(true);
     assemblyMenu.add(setScale);
     assemblyMenu.add(exitAssembly);
-//        assemblyMenu.add(enableAssembly);
-
-
+    // assemblyMenu.add(enableAssembly);
     add(fileMenu);
-    //add(annotationsMenu);
+    // add(annotationsMenu);
     add(viewMenu);
     add(bookmarksMenu);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
@@ -747,27 +829,29 @@ public class MainMenuBar extends JMenuBar {
     add(devMenu);
   }
 
-  public RecentMenu getRecentLocationMenu() {
+    public RecentMenu getRecentLocationMenu() {
     return recentLocationMenu;
   }
 
   public void setEnableForAllElements(boolean status) {
     //annotationsMenu.setEnabled(status);
     viewMenu.setEnabled(status);
+    bookmarksMenu.setEnabled(status);
     assemblyMenu.setEnabled(status);
     saveLocationList.setEnabled(status);
     saveStateForReload.setEnabled(status);
     saveLocationList.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
-  public void enableAssemblyMenuOptions() {
-    resetAssembly.setEnabled(true);
-    exportAssembly.setEnabled(true);
-    enableAssembly.setEnabled(true);
-    setScale.setEnabled(true);
-    importModifiedAssembly.setEnabled(true);
-    exitAssembly.setEnabled(true);
-
+  public void setEnableAssemblyMenuOptions(boolean status) {
+    resetAssembly.setEnabled(status);
+    exportAssembly.setEnabled(status);
+    enableAssembly.setEnabled(status);
+    setScale.setEnabled(status);
+    importModifiedAssembly.setEnabled(status);
+    exitAssembly.setEnabled(status);
+    devMenu.setEnabled(status);
   }
 
   public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {

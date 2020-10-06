@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.windowui.LoadDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.util.ResourceLocator;
 
@@ -200,12 +201,12 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
                 @SuppressWarnings("unchecked")
-                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
+                Enumeration<TreeNode> en = top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
                     String[] searchStrings = fTextField.getText().split(",");
                     colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
-                        DefaultMutableTreeNode leaf = en.nextElement();
+                        TreeNode leaf = en.nextElement();
                         String str = leaf.toString();
                         for (String term : searchStrings) {
                             if (str.contains(term)) {
@@ -331,14 +332,15 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         }
     }
 
-    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
+    private void expandToWantedNode(TreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
-            TreePath path = new TreePath(dNode.getPath());
+            TreePath path = new TreePath(LoadDialog.getPathToRoot(dNode, 0));
             tree.scrollPathToVisible(path);
             tree.setSelectionPath(path);
         }
     }
+
 
     //Overriding in order to change text color
     private void colorSearchStrings(final String[] parts) {
@@ -419,14 +421,10 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                 tree.getLastSelectedPathComponent();
-
+    
         if (node == null) return;
-
-        if (node.isLeaf()) {
-            openButton.setEnabled(true);
-        } else {
-            openButton.setEnabled(false);
-        }
+    
+        openButton.setEnabled(node.isLeaf());
     }
 
     private void collapseAll(JTree tree) {

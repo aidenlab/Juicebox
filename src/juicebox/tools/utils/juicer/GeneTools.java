@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.GenomeWideList;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -77,7 +77,7 @@ public class GeneTools {
             if (values.length == 4 || values.length == 16) {  // 16 is refGene official format
 
                 // transcript start; for 4 column format, just position-1
-                int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                int txStart = (values.length == 4) ? Integer.parseInt(values[3].trim()) - 1 : Integer.parseInt(values[4].trim());
                 // transcript end; for 4 column format, just position+1
                 //int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
                 String name = values[1].trim();
@@ -110,11 +110,11 @@ public class GeneTools {
                     if (chr != null) {
                         int chrIndex = chr.getIndex();
                         // transcript start; for 4 column format, just position-1
-                        int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                        int txStart = (values.length == 4) ? Integer.parseInt(values[3].trim()) - 1 : Integer.parseInt(values[4].trim());
                         // transcript end; for 4 column format, just position+1
-                        int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
+                        int txEnd = (values.length == 4) ? Integer.parseInt(values[3].trim()) + 1 : Integer.parseInt(values[5].trim());
                         String name = (values.length==4) ? values[1].trim() : values[12].trim();
-                        MotifAnchor gene = new MotifAnchor(chrIndex, txStart, txEnd, name);
+                        MotifAnchor gene = new MotifAnchor(chr.getName(), txStart, txEnd, name);
                         genes.add(gene);
                     }
                 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@ package juicebox.data;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.track.feature.Feature2DList;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import java.io.File;
 import java.util.*;
@@ -40,32 +40,57 @@ import java.util.*;
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
-    private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
+    private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
+    public final static int CUSTOM_CHROMOSOME_BUFFER = 10; // todo make to smallest value of resolution
+    private static final String CHR_ALL = "All";
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
-    private int[] chromosomeBoundaries;
-    private Chromosome[] chromosomesArray;
-    private Chromosome[] chromosomeArrayWithoutAllByAll;
-    private Chromosome[] chromosomeArrayAutosomesOnly;
+    private final List<Chromosome> cleanedChromosomes;
+    private final String genomeID;
+    private final int[] chromosomeBoundaries;
+    private final Chromosome[] chromosomesArray;
+    private final Chromosome[] chromosomeArrayWithoutAllByAll;
+    private final Chromosome[] chromosomeArrayAutosomesOnly;
 
-    public ChromosomeHandler(List<Chromosome> chromosomes) {
-
-        // set the global chromosome list
-        long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
-        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-
-        initializeCleanedChromosomesList(chromosomes);
-        initializeInternalVariables();
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID) {
+        this(chromosomes, genomeID, inferID, true);
     }
 
-    public static String cleanUpName(String name) {
-        if (name.equals("assembly")) {
-            return "assembly";
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID, boolean createAllChr) {
+
+        if (inferID) {
+            String inferGenomeId = inferGenomeId();
+            // if cannot find matching genomeID, set based on file
+            if (inferGenomeId != null) {
+                this.genomeID = inferGenomeId;
+            } else {
+                this.genomeID = genomeID;
+            }
+        } else {
+            this.genomeID = genomeID;
         }
-        if (name.equals("pseudoassembly")) {
-            return "pseudoassembly";
+
+
+        // set the global chromosome list
+        if (createAllChr) {
+            long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
+            chromosomes.set(0, new Chromosome(0, cleanUpName(CHR_ALL), (int) (genomeLength / 1000)));
         }
-        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+
+        cleanedChromosomes = initializeCleanedChromosomesList(chromosomes);
+        Pair<int[], List<Chromosome[]>> outputs = initializeInternalVariables();
+        chromosomeBoundaries = outputs.getFirst();
+        chromosomesArray = outputs.getSecond().get(0);
+        chromosomeArrayWithoutAllByAll = outputs.getSecond().get(1);
+        chromosomeArrayAutosomesOnly = outputs.getSecond().get(2);
+    }
+
+    public static boolean isAllByAll(String name) {
+        return name.toLowerCase().contains("all");
+    }
+
+    public static void sort(List<Chromosome> indices) {
+        indices.sort(new ChromosomeComparator());
     }
 
     /**
@@ -91,8 +116,44 @@ public class ChromosomeHandler {
         return isAllByAll(chromosome.getName());
     }
 
-    public static boolean isAllByAll(String name) {
-        return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    public String cleanUpName(String name) {
+        if (name.equalsIgnoreCase("assembly")) {
+            return "assembly";
+        }
+        if (name.equalsIgnoreCase("pseudoassembly")) {
+            return "pseudoassembly";
+        }
+        if (genomeID.equalsIgnoreCase("hg19") || genomeID.equalsIgnoreCase("hg38")) {
+            return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+        }
+        return name;
+    }
+
+    private GenomeWideList<MotifAnchor> generateChromDotSizesBedFile() {
+        GenomeWideList<MotifAnchor> chromDotSizes = new GenomeWideList<>(this);
+
+        for (Chromosome c : getChromosomeArray()) {
+            if (isAllByAll(c) || isGenomeWide(c)) continue;
+            MotifAnchor chromAnchor = new MotifAnchor(c.getName(), 0, (int) c.getLength(), c.getName()); // not implemented or called
+            List<MotifAnchor> anchors = new ArrayList<>();
+            anchors.add(chromAnchor);
+            chromDotSizes.setFeatures("" + c.getIndex(), anchors);
+        }
+
+        return chromDotSizes;
+    }
+
+    private boolean isGenomeWide(Chromosome chromosome) {
+        return isGenomeWide(chromosome.getName());
+    }
+
+    private boolean isGenomeWide(String name) {
+        return cleanUpName(name).equalsIgnoreCase(GENOMEWIDE_CHR);
+    }
+
+    public Chromosome addGenomeWideChromosome() {
+        GenomeWideList<MotifAnchor> chromDotSizes = generateChromDotSizesBedFile();
+        return addCustomChromosome(chromDotSizes, cleanUpName(GENOMEWIDE_CHR));
     }
 
     public Chromosome generateAssemblyChromosome() {
@@ -129,6 +190,19 @@ public class ChromosomeHandler {
         return addCustomChromosome(featureAnchors, cleanedUpName);
     }
 
+    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
+        final int[] customGenomeLength = new int[]{0};
+        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor c : featureList) {
+                    if (c != null) customGenomeLength[0] += c.getWidth() + CUSTOM_CHROMOSOME_BUFFER;
+                }
+            }
+        });
+        return customGenomeLength[0];
+    }
+
     private Chromosome addCustomChromosome(GenomeWideList<MotifAnchor> regionsInCustomChromosome, String cleanedUpName) {
         int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
         int newIndex = cleanedChromosomes.size();
@@ -139,16 +213,17 @@ public class ChromosomeHandler {
         return newChr;
     }
 
-    private void initializeCleanedChromosomesList(List<Chromosome> chromosomes) {
-        cleanedChromosomes.clear();
+    private List<Chromosome> initializeCleanedChromosomesList(List<Chromosome> chromosomes) {
+        List<Chromosome> cleanedChromosomes = new ArrayList<>();
         for (Chromosome c : chromosomes) {
             String cleanName = cleanUpName(c.getName());
             Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
             cleanedChromosomes.add(cleanChromosome);
         }
+        return cleanedChromosomes;
     }
 
-    private void initializeInternalVariables() {
+    private Pair<int[], List<Chromosome[]>> initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
@@ -158,7 +233,7 @@ public class ChromosomeHandler {
         }
 
         // for all-by-all view
-        chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
+        int[] chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
         long bound = 0;
         for (int i = 1; i < cleanedChromosomes.size(); i++) {
             Chromosome c = cleanedChromosomes.get(i);
@@ -166,24 +241,33 @@ public class ChromosomeHandler {
             chromosomeBoundaries[i - 1] = (int) bound;
         }
 
-        chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
+        Chromosome[] chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
 
         // array without all by all
-        chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
+        Chromosome[] chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
         System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
 
 
         // array without X and Y
         List<Chromosome> autosomes = new ArrayList<>();
         for (Chromosome chr : chromosomeArrayWithoutAllByAll) {
-            if (chr.getName().toLowerCase().contains("x") || chr.getName().toLowerCase().contains("y")) continue;
+            if (chr.getName().toLowerCase().contains("x") || chr.getName().toLowerCase().contains("y") || chr.getName().toLowerCase().contains("m"))
+                continue;
             autosomes.add(chr);
         }
 
-        chromosomeArrayAutosomesOnly = new Chromosome[autosomes.size()];
+        Chromosome[] chromosomeArrayAutosomesOnly = new Chromosome[autosomes.size()];
         for (int i = 0; i < autosomes.size(); i++) {
             chromosomeArrayAutosomesOnly[i] = autosomes.get(i);
         }
+
+        List<Chromosome[]> outputs = new ArrayList<>();
+        outputs.add(chromosomesArray);
+        outputs.add(chromosomeArrayWithoutAllByAll);
+        outputs.add(chromosomeArrayAutosomesOnly);
+
+
+        return new Pair<>(chromosomeBoundaries, outputs);
     }
 
     private long getTotalLengthOfAllChromosomes(List<Chromosome> chromosomes) {
@@ -194,17 +278,17 @@ public class ChromosomeHandler {
         return genomeLength;
     }
 
-    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
-        final int[] customGenomeLength = new int[]{0};
-        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
-            @Override
-            public void process(String chr, List<MotifAnchor> featureList) {
-                for (MotifAnchor c : featureList) {
-                    if (c != null) customGenomeLength[0] += c.getWidth();
-                }
-            }
-        });
-        return customGenomeLength[0];
+    public String getGenomeID() {
+        return genomeID;
+    }
+
+    static class ChromosomeComparator implements Comparator<Chromosome> {
+        @Override
+        public int compare(Chromosome a, Chromosome b) {
+            Integer aIndx = a.getIndex();
+            Integer bIndx = b.getIndex();
+            return aIndx.compareTo(bIndx);
+        }
     }
 
     public boolean isCustomChromosome(Chromosome chromosome) {
@@ -244,7 +328,17 @@ public class ChromosomeHandler {
         if (intersection.isEmpty()) {
             return null;
         }
-        else return new ChromosomeHandler(new ArrayList<>(intersection));
+
+        List<Chromosome> newSetOfChrs = new ArrayList<>();
+        long genomeLength = getTotalLengthOfAllChromosomes(cleanedChromosomes);
+        newSetOfChrs.add(new Chromosome(0, CHR_ALL, (int) (genomeLength / 1000)));
+        for (Chromosome chromosome : cleanedChromosomes) {
+            if (!isAllByAll(chromosome) && intersection.contains(chromosome)) {
+                newSetOfChrs.add(chromosome);
+            }
+        }
+
+        return new ChromosomeHandler(newSetOfChrs, genomeID, false);
     }
 
     public Chromosome[] getAutosomalChromosomesArray() {
@@ -259,14 +353,16 @@ public class ChromosomeHandler {
         return customChromosomeRegions.get(index);
     }
 
-    public String getGenomeId() {
-        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38","aedAeg1", "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2", "felCat8", "galGal4", "hg18",  "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4", "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
+    public String inferGenomeId() {
+        List<String> chrom_sizes = Arrays.asList("hg19", "hg38", "b37", "hg18", "mm10", "mm9", "GRCm38", "aedAeg1",
+                "anasPlat1", "assembly", "bTaurus3", "calJac3", "canFam3", "capHir1", "dm3", "dMel", "EBV", "equCab2",
+                "felCat8", "galGal4", "hg18", "loxAfr3", "macMul1", "macMulBaylor", "oryCun2", "oryLat2", "panTro4",
+                "Pf3D7", "ratNor5", "ratNor6", "sacCer3", "sCerS288c", "spretus", "susScr3", "TAIR10");
 
-
-        for (String id:chrom_sizes)  {
+        for (String id : chrom_sizes) {
             ChromosomeHandler handler = HiCFileTools.loadChromosomes(id);
-            for (Chromosome chr:handler.cleanedChromosomes) {
-                for (Chromosome chr2:this.cleanedChromosomes) {
+            for (Chromosome chr : handler.cleanedChromosomes) {
+                for (Chromosome chr2 : this.cleanedChromosomes) {
                     if (!chr.getName().equalsIgnoreCase("ALL") &&
                             chr.getName().equals(chr2.getName()) &&
                             chr.getLength() == chr2.getLength()) {
@@ -298,4 +394,88 @@ public class ChromosomeHandler {
         }
         return subsetArray;
     }
+
+    public Pair<Chromosome[], Chromosome[]> splitAutosomesIntoHalves() {
+
+        int n = chromosomeArrayAutosomesOnly.length;
+        int autosomesLength = 0;
+        for (Chromosome chrom : chromosomeArrayAutosomesOnly) {
+            autosomesLength += chrom.getLength();
+        }
+        int halfLength = autosomesLength / 2;
+
+        // default assume chromosomes ordered with biggest first
+        // so for human, assuming first 8 chroms
+        int firstBatchUpToChr = n / 3 + 1;
+        long prevLength = 0;
+
+        for (int i = 0; i < n / 2; i++) {
+            long newLength = prevLength + chromosomeArrayAutosomesOnly[i].getLength();
+            if (prevLength <= halfLength && newLength >= halfLength) {
+                // midpoint found
+                if (Math.abs(prevLength - halfLength) < Math.abs(newLength - halfLength)) {
+                    firstBatchUpToChr = i - 1;
+                } else {
+                    firstBatchUpToChr = i;
+                }
+                break;
+            }
+            prevLength = newLength;
+        }
+        System.out.println("Splitting chromosomes; " +
+                chromosomeArrayAutosomesOnly[0].getName() + " to " + chromosomeArrayAutosomesOnly[firstBatchUpToChr].getName() + " and " +
+                chromosomeArrayAutosomesOnly[firstBatchUpToChr + 1].getName() + " to " + chromosomeArrayAutosomesOnly[n - 1].getName());
+
+        Chromosome[] rowsChromosomes = new Chromosome[firstBatchUpToChr];
+        Chromosome[] colsChromosomes = new Chromosome[n - firstBatchUpToChr];
+        for (int i = 0; i < n; i++) {
+            if (i < firstBatchUpToChr) {
+                rowsChromosomes[i] = chromosomeArrayAutosomesOnly[i];
+            } else {
+                colsChromosomes[i - firstBatchUpToChr] = chromosomeArrayAutosomesOnly[i];
+            }
+        }
+        return new Pair<>(rowsChromosomes, colsChromosomes);
+    }
+
+
+    public Pair<Chromosome[], Chromosome[]> splitAutosomesAndSkipByTwos() {
+        int n = chromosomeArrayAutosomesOnly.length;
+
+        List<Chromosome> part1 = new ArrayList<>();
+        List<Chromosome> part2 = new ArrayList<>();
+
+        part1.add(chromosomeArrayAutosomesOnly[0]);
+        int i = 1;
+        int counterOffset = 0;
+        boolean addToFirstOne = false;
+
+        while (i < n) {
+
+            if (addToFirstOne) {
+                part1.add(chromosomeArrayAutosomesOnly[i]);
+            } else {
+                part2.add(chromosomeArrayAutosomesOnly[i]);
+            }
+
+            counterOffset++;
+            i++;
+
+            if (counterOffset == 2) {
+                addToFirstOne = !addToFirstOne;
+                counterOffset = 0;
+            }
+        }
+
+        return new Pair<>(chromosomeListToArray(part1), chromosomeListToArray(part2));
+    }
+
+    private Chromosome[] chromosomeListToArray(List<Chromosome> chromosomes) {
+        Chromosome[] array = new Chromosome[chromosomes.size()];
+        for (int i = 0; i < chromosomes.size(); i++) {
+            array[i] = chromosomes.get(i);
+        }
+        return array;
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,12 +54,14 @@ public class JColorRangePanel extends JPanel {
     private static JLabel colorRangeLabel;
     private static JButton plusButton, minusButton;
     private double colorRangeScaleFactor = 1;
+    private final HeatmapPanel heatmapPanel;
 
-    public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel, boolean activatePreDef) {
+    public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel) {
         super();
         setLayout(new BorderLayout());
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
+        this.heatmapPanel = heatmapPanel;
 
         colorRangeSlider = new RangeSlider();
 
@@ -67,7 +69,7 @@ public class JColorRangePanel extends JPanel {
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {
                 super.mouseEntered(mouseEvent);
-                colorRangeSliderUpdateToolTip(superAdapter.getHiC());
+                colorRangeSliderUpdateToolTip(superAdapter.getHiC().getDisplayOption());
             }
         });
         colorRangeSlider.setEnabled(false);
@@ -121,10 +123,8 @@ public class JColorRangePanel extends JPanel {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
                         colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption());
                 setColorRangeSliderVisible(false, superAdapter);
-                if (superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
-                    // TODO succeeded
-                } else {
-                    // TODO failed
+                if (!superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
+                    System.err.println("error 2984");
                 }
                 rangeDialog.setVisible(true);
             }
@@ -161,7 +161,7 @@ public class JColorRangePanel extends JPanel {
                 }
 
                 heatmapPanel.setNewDisplayRange(hic.getDisplayOption(), min, max, key);
-                colorRangeSliderUpdateToolTip(hic);
+                colorRangeSliderUpdateToolTip(hic.getDisplayOption());
             }
         });
         sliderPanel.add(colorRangeSlider);
@@ -174,14 +174,16 @@ public class JColorRangePanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
                 HiC hic = superAdapter.getHiC();
+                double newMax = (colorRangeSlider.getMaximum() / colorRangeScaleFactor) * 2;
+                double newHigh = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
+                double newLow = colorRangeSlider.getLowerValue() / colorRangeScaleFactor;
 
-                if (MatrixType.isComparisonType(hic.getDisplayOption())) {
-                    colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
-                    colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
+                if (MatrixType.isOEColorScaleType(hic.getDisplayOption())) {
+                    updateRatioColorSlider(hic, newMax, newHigh);
+                } else {
+                    updateColorSlider(hic, newLow, newHigh, newMax);
                 }
-                colorRangeSliderUpdateToolTip(hic);
             }
         });
 
@@ -192,15 +194,15 @@ public class JColorRangePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 //Set limit to maximum range:
                 HiC hic = superAdapter.getHiC();
-                int newMax = colorRangeSlider.getMaximum() / 2;
-                if (newMax > 0) {
-                    colorRangeSlider.setMaximum(newMax);
-                    if (MatrixType.isComparisonType(hic.getDisplayOption())) {
-                        colorRangeSlider.setMinimum(-newMax);
-                        colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
-                    }
+                double newMax = (colorRangeSlider.getMaximum() / colorRangeScaleFactor) / 2;
+                double newHigh = Math.min(newMax, colorRangeSlider.getUpperValue() / colorRangeScaleFactor);
+                double newLow = Math.min(newMax - 1, colorRangeSlider.getLowerValue() / colorRangeScaleFactor);
+
+                if (MatrixType.isOEColorScaleType(hic.getDisplayOption())) {
+                    updateRatioColorSlider(hic, newMax, newHigh);
+                } else {
+                    updateColorSlider(hic, newLow, newHigh, newMax);
                 }
-                colorRangeSliderUpdateToolTip(hic);
             }
         });
 
@@ -236,39 +238,38 @@ public class JColorRangePanel extends JPanel {
         //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
-        if (max == 0) {
-            max = 1;
+    public void updateColorSlider(HiC hic, double lower, double upper, double max) {
+        if (max < 1) {
+            max = 5;
         } // map going into zero state?
-        double scaleFactor = 100.0 / max;
-        updateColorSlider(hic, min, lower, upper, max, scaleFactor);
-    }
+        if (upper == 0) {
+            upper = 1;
+        }
+        if (upper == lower) {
+            lower = upper - 1;
+        }
 
-    private void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
-
-        colorRangeScaleFactor = scaleFactor;
+        colorRangeScaleFactor = 100.0 / max;
 
         colorRangeSlider.setPaintTicks(true);
-        //colorRangeSlider.setSnapToTicks(true);
         colorRangeSlider.setPaintLabels(true);
 
-        int iMin = (int) (colorRangeScaleFactor * min);
         int iMax = (int) (colorRangeScaleFactor * max);
         int lValue = (int) (colorRangeScaleFactor * lower);
         int uValue = (int) (colorRangeScaleFactor * upper);
 
-        colorRangeSlider.setMinimum(iMin);
+        colorRangeSlider.setMinimum(0);
+        colorRangeSlider.setMaximum(iMax);
         colorRangeSlider.setLowerValue(lValue);
         colorRangeSlider.setUpperValue(uValue);
-        colorRangeSlider.setMaximum(iMax);
 
         Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
         Font f = FontManager.getFont(8);
 
-        final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
+        final JLabel minTickLabel = new JLabel(String.valueOf(0));
         minTickLabel.setFont(f);
         final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
         maxTickLabel.setFont(f);
@@ -277,19 +278,27 @@ public class JColorRangePanel extends JPanel {
         final JLabel UpTickLabel = new JLabel(String.valueOf((int) upper));
         UpTickLabel.setFont(f);
 
-        labelTable.put(iMin, minTickLabel);
+        labelTable.put(0, minTickLabel);
         labelTable.put(iMax, maxTickLabel);
         labelTable.put(lValue, LoTickLabel);
         labelTable.put(uValue, UpTickLabel);
 
-
         colorRangeSlider.setLabelTable(labelTable);
-        colorRangeSliderUpdateToolTip(hic);
+
+        String key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption(), hic.getObsNormalizationType(), hic.getControlNormalizationType());
+        heatmapPanel.setNewDisplayRange(hic.getDisplayOption(), lower, upper, key);
+        colorRangeSliderUpdateToolTip(hic.getDisplayOption());
     }
 
     public void updateRatioColorSlider(HiC hic, double max, double val) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
+        if (max < 1) {
+            max = 5;
+        } // map going into zero state?
+        if (val == 0) {
+            val = 1;
+        }
 
         colorRangeScaleFactor = 100.0 / (2 * max);
 
@@ -302,9 +311,9 @@ public class JColorRangePanel extends JPanel {
         int uValue = (int) (colorRangeScaleFactor * val);
 
         colorRangeSlider.setMinimum(iMin);
+        colorRangeSlider.setMaximum(iMax);
         colorRangeSlider.setLowerValue(lValue);
         colorRangeSlider.setUpperValue(uValue);
-        colorRangeSlider.setMaximum(iMax);
 
         Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
@@ -324,9 +333,11 @@ public class JColorRangePanel extends JPanel {
         labelTable.put(lValue, LoTickLabel);
         labelTable.put(uValue, UpTickLabel);
 
-
         colorRangeSlider.setLabelTable(labelTable);
-        colorRangeSliderUpdateToolTip(hic);
+
+        String key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption(), hic.getObsNormalizationType(), hic.getControlNormalizationType());
+        heatmapPanel.setNewDisplayRange(hic.getDisplayOption(), -val, val, key);
+        colorRangeSliderUpdateToolTip(hic.getDisplayOption());
     }
 
     public String getColorRangeValues() {
@@ -335,7 +346,6 @@ public class JColorRangePanel extends JPanel {
         int lowValue = colorRangeSlider.getLowerValue();
         int upValue = colorRangeSlider.getUpperValue();
         int iMax = colorRangeSlider.getMaximum();
-        //double dScaleFactor = colorRangeScaleFactor;
 
         return iMin + "$$" + lowValue + "$$" + upValue + "$$" + iMax;// + "$$" + dScaleFactor;
 
@@ -345,53 +355,40 @@ public class JColorRangePanel extends JPanel {
         return colorRangeScaleFactor;
     }
 
-    private void colorRangeSliderUpdateToolTip(HiC hic) {
+    private void colorRangeSliderUpdateToolTip(MatrixType displayOption) {
+        int iMin = colorRangeSlider.getMinimum();
+        int lValue = colorRangeSlider.getLowerValue();
+        int uValue = colorRangeSlider.getUpperValue();
+        int iMax = colorRangeSlider.getMaximum();
 
-        if (MatrixType.isColorScaleType(hic.getDisplayOption())) {
+        colorRangeSlider.setToolTipText("<html>Range: " + (int) (iMin / colorRangeScaleFactor) + " " + (int) (iMax / colorRangeScaleFactor) +
+                "<br>Showing: " + (int) (lValue / colorRangeScaleFactor) + " - " + (int) (uValue / colorRangeScaleFactor) + "</html>");
 
-            int iMin = colorRangeSlider.getMinimum();
-            int lValue = colorRangeSlider.getLowerValue();
-            int uValue = colorRangeSlider.getUpperValue();
-            int iMax = colorRangeSlider.getMaximum();
+        Font f = FontManager.getFont(8);
 
-            /*
-            colorRangeSlider.setToolTipText("<html>Range: " + (int) (iMin / colorRangeScaleFactor) + " "
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
-                    + (int) (iMax / colorRangeScaleFactor) + "<br>Showing: " +
-                    (int) (lValue / colorRangeScaleFactor) + " "
-                    + (int) (uValue / colorRangeScaleFactor)
-                    + "</html>");
-            */
-
-            Font f = FontManager.getFont(8);
-
-            Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
-
-
-            if (MatrixType.isComparisonType(hic.getDisplayOption())) {
-                colorRangeSlider.setToolTipText("Log Enrichment Values");
-            } else {
-                colorRangeSlider.setToolTipText("Observed Counts");
-            }
-
-            final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
-            minTickLabel.setFont(f);
-            final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
-            LoTickLabel.setFont(f);
-            final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
-            UpTickLabel.setFont(f);
-            final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
-            maxTickLabel.setFont(f);
-
-            labelTable.put(iMin, minTickLabel);
-            labelTable.put(lValue, LoTickLabel);
-            labelTable.put(uValue, UpTickLabel);
-            labelTable.put(iMax, maxTickLabel);
-
-            colorRangeSlider.setLabelTable(labelTable);
-
+        if (MatrixType.isOEColorScaleType(displayOption)) {
+            colorRangeSlider.setToolTipText("Log Enrichment Values");
+        } else {
+            colorRangeSlider.setToolTipText("Observed Counts");
         }
 
+        final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
+        minTickLabel.setFont(f);
+        final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
+        LoTickLabel.setFont(f);
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
+        UpTickLabel.setFont(f);
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
+        maxTickLabel.setFont(f);
+
+        labelTable.put(iMin, minTickLabel);
+        labelTable.put(lValue, LoTickLabel);
+        labelTable.put(uValue, UpTickLabel);
+        labelTable.put(iMax, maxTickLabel);
+
+        colorRangeSlider.setLabelTable(labelTable);
     }
 
     public void setElementsVisible(boolean val, SuperAdapter superAdapter) {
@@ -401,11 +398,10 @@ public class JColorRangePanel extends JPanel {
         minusButton.setEnabled(val);
     }
 
-    public void handleNewFileLoading(MatrixType option, boolean activatePreDef) {
+    public void handleNewFileLoading(MatrixType option) {
         boolean isColorScaleType = MatrixType.isColorScaleType(option);
-        colorRangeSlider.setEnabled(isColorScaleType || activatePreDef);
-        colorRangeSlider.setDisplayToOE(MatrixType.isComparisonType(option));
-        colorRangeSlider.setDisplayToPreDef(activatePreDef);
+        colorRangeSlider.setEnabled(isColorScaleType);
+        colorRangeSlider.setDisplayToOE(MatrixType.isOEColorScaleType(option));
         plusButton.setEnabled(isColorScaleType);
         minusButton.setEnabled(isColorScaleType);
     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -156,12 +156,12 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
                 @SuppressWarnings("unchecked")
-                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
+                Enumeration<TreeNode> en = top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
                     String[] searchStrings = fTextField.getText().split(",");
                     colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
-                        DefaultMutableTreeNode leaf = en.nextElement();
+                        TreeNode leaf = en.nextElement();
                         String str = leaf.toString();
                         for (String term : searchStrings) {
                             if (str.contains(term)) {
@@ -207,10 +207,25 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         return button30;
     }
 
-    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
+    public static TreeNode[] getPathToRoot(TreeNode aNode, int depth) {
+        TreeNode[] retNodes;
+        if (aNode == null) {
+            if (depth == 0)
+                return null;
+            else
+                retNodes = new TreeNode[depth];
+        } else {
+            depth++;
+            retNodes = getPathToRoot(aNode.getParent(), depth);
+            retNodes[retNodes.length - depth] = aNode;
+        }
+        return retNodes;
+    }
+
+    private void expandToWantedNode(TreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
-            TreePath path = new TreePath(dNode.getPath());
+            TreePath path = new TreePath(getPathToRoot(dNode, 0));
             tree.scrollPathToVisible(path);
             tree.setSelectionPath(path);
         }
@@ -297,12 +312,9 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         if (node.isLeaf()) {
             openButton.setEnabled(true);
-
-            if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")) {    // maternal paternal
-                openButton30.setEnabled(false);
-            } else {
-                openButton30.setEnabled(true);
-            }
+    
+            // maternal paternal
+            openButton30.setEnabled(!((ItemInfo) node.getUserObject()).itemName.contains("aternal"));
         } else {
             openButton.setEnabled(false);
             openButton30.setEnabled(false);

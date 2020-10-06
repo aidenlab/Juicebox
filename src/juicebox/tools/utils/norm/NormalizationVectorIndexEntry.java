@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,10 @@ class NormalizationVectorIndexEntry {
     final int chrIdx;
     final String unit;
     final int resolution;
-    final int sizeInBytes;
+    final long sizeInBytes;
     long position;
 
-    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
+    NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, long sizeInBytes) {
         this.type = type;
         this.chrIdx = chrIdx;
         this.unit = unit;

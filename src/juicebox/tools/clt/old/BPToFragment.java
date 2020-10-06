@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,14 @@
 package juicebox.tools.clt.old;
 
 import htsjdk.samtools.util.Locatable;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.FragmentCalculation;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -56,15 +55,15 @@ public class BPToFragment extends JuiceboxCLT {
             String nextLine;
             while ((nextLine = fragmentReader.readLine()) != null) {
                 //String[] tokens = pattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+                String[] tokens = splitToList(nextLine);
 
                 // A hack, could use IGV's genome alias definitions
-                String chr = getChrAlias(tokens.get(0));
+                String chr = getChrAlias(tokens[0]);
 
-                int[] sites = new int[tokens.size()];
+                int[] sites = new int[tokens.length];
                 sites[0] = 0;  // Convenient convention
-                for (int i = 1; i < tokens.size(); i++) {
-                    sites[i] = Integer.parseInt(tokens.get(i)) - 1;
+                for (int i = 1; i < tokens.length; i++) {
+                    sites[i] = Integer.parseInt(tokens[i]) - 1;
                 }
                 fragmentMap.put(chr, sites);
             }
@@ -128,11 +127,11 @@ public class BPToFragment extends JuiceboxCLT {
                 BedLikeFeature feature = new BedLikeFeature(nextLine);
 
                 //String[] tokens = Globals.whitespacePattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+                String[] tokens = splitToList(nextLine);
 
-                String chr = tokens.get(0);
-                int start = Integer.parseInt(tokens.get(1));
-                int end = Integer.parseInt(tokens.get(2));
+                String chr = tokens[0];
+                int start = Integer.parseInt(tokens[1]);
+                int end = Integer.parseInt(tokens[2]);
 
                 int[] sites = fragmentMap.get(feature.getContig());
                 if (sites == null) continue;
@@ -141,8 +140,8 @@ public class BPToFragment extends JuiceboxCLT {
                 int lastSite = FragmentCalculation.binarySearch(sites, feature.getEnd());
 
                 bedWriter.print(chr + "\t" + start + "\t" + end + "\t" + firstSite + "\t" + lastSite);
-                for (int i = 3; i < tokens.size(); i++) {
-                    bedWriter.print("\t" + tokens.get(i));
+                for (int i = 3; i < tokens.length; i++) {
+                    bedWriter.print("\t" + tokens.length);
                 }
                 bedWriter.println();
 
@@ -165,7 +164,7 @@ public class BPToFragment extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
         if (args.length != 4) {
             printUsageAndExit();
@@ -196,12 +195,12 @@ public class BPToFragment extends JuiceboxCLT {
         BedLikeFeature(String line) {
             this.line = line;
             //String[] tokens = Globals.whitespacePattern.split(line);
-            List<String> tokens = MY_SPLITTER.splitToList(line);
+            String[] tokens = splitToList(line);
 
-            this.chr = tokens.get(0);
-            this.start = Integer.parseInt(tokens.get(1));
-            this.end = Integer.parseInt(tokens.get(2));
-            if (tokens.size() > 3) {
+            this.chr = tokens[0];
+            this.start = Integer.parseInt(tokens[1]);
+            this.end = Integer.parseInt(tokens[2]);
+            if (tokens.length > 3) {
                 this.name = name; // TODO - is this supposed to be this.name = tokens[x]? otherwise a redundant line
             }
 

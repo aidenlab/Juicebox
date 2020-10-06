@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="npy">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/npy.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

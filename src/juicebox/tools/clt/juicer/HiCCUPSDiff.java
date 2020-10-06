@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -145,6 +145,12 @@ public class HiCCUPSDiff extends JuicerCLT {
             if (!new File(fname).exists()) processed = false;
         }
 
+        boolean restrictSearchRegions = false;
+        if (juicerParser.restrictSearchRegionsOptions()) {
+            restrictSearchRegions = true;
+            System.out.println("WARNING - You are restricting the regions the HiCCUPS will explore.");
+        }
+
         if (processed) {
             System.out.println("Using already created differential lists in " + outputDirectory + File.separator +
                     "file1 and " + outputDirectory + File.separator + "file2");
@@ -179,9 +185,9 @@ public class HiCCUPSDiff extends JuicerCLT {
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
             hiccups1.initializeDirectly(ds1, outputDirectory + File.separator + "file1", args[4],
-                    norm1, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
+                    norm1, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, restrictSearchRegions);
             hiccups2.initializeDirectly(ds2, outputDirectory + File.separator + "file2", args[3],
-                    norm2, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion);
+                    norm2, matrixSize, commonChromosomesHandler, configs, thresholds, usingCPUVersion, restrictSearchRegions);
         }
     }
 
@@ -193,35 +199,21 @@ public class HiCCUPSDiff extends JuicerCLT {
             hiccups2.run();
         }
 
-        // for every feature in second loop list, see if there's a reasonably close one in first list
+        // for every feature in second loop list, see if there's a reasonably close one in first list (and vice versa)
         Feature2DList conservedLoopList2 = Feature2DTools.extractReproducibleCentroids(looplist1, looplist2, 50000, 0.2);
-        // for every feature in first loop list, see if there's a reasonably close one in second list
         Feature2DList conservedLoopList1 = Feature2DTools.extractReproducibleCentroids(looplist2, looplist1, 50000, 0.2);
 
-        // get the differences - loops that appear only in looplist1
+        // get the differences - loops that appear only in the respective loop list
         Feature2DList diff1 = Feature2DTools.compareLists(conservedLoopList1, looplist1, false);
-        // get the differences - loops that appear only in looplist2
         Feature2DList diff2 = Feature2DTools.compareLists(conservedLoopList2, looplist2, false);
 
-        // load all the loops resulting from running HiCCUPs on the first HiC file with the second loop list
+        // load all the loops resulting from running HiCCUPs on the first HiC file with the second loop list (and vice versa)
         // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
-        Feature2DList results1 = new Feature2DList();
-        for (HiCCUPSConfiguration config : configs) {
-            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
-            HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
-            results1.add(requestedList);
-        }
+        Feature2DList results1 = HiCCUPSUtils.filterOutFeaturelistByEnrichment(configs, outputDirectory + File.separator + "file1",
+                maxEnrich, commonChromosomesHandler);
+        Feature2DList results2 = HiCCUPSUtils.filterOutFeaturelistByEnrichment(configs, outputDirectory + File.separator + "file2",
+                maxEnrich, commonChromosomesHandler);
 
-        // load all the loops resulting from running HiCCUPs on the second HiC file with the first loop list
-        // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
-        Feature2DList results2 = new Feature2DList();
-        for (HiCCUPSConfiguration config : configs) {
-            String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
-            HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
-            results2.add(requestedList);
-        }
         // differential loop list 1 is loops that appeared in list1 that are not enriched in Hi-C file 2
         Feature2DList differentialList1 = Feature2DList.getIntersection(diff1, results2);
         // differential loop list 2 is loops that appeared in list2 that are not enriched in Hi-C file 1

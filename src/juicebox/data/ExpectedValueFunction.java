@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.windowui.NormalizationType;
 
 /**
@@ -33,16 +34,18 @@ import juicebox.windowui.NormalizationType;
  *         Time: 9:30 PM
  */
 public interface ExpectedValueFunction {
-
-    double getExpectedValue(int chrIdx, int distance);
-
-    int getLength();
-
-    NormalizationType getNormalizationType();
-
-    HiC.Unit getUnit();
-
-    int getBinSize();
-
-    double[] getExpectedValues();
+	
+	double getExpectedValue(int chrIdx, long distance);
+	
+	long getLength();
+	
+	NormalizationType getNormalizationType();
+	
+	HiC.Unit getUnit();
+	
+	int getBinSize();
+	
+	ListOfDoubleArrays getExpectedValuesNoNormalization();
+	
+	ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx);
 }

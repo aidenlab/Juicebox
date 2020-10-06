@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import org.apache.commons.math.linear.RealMatrix;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,13 +79,14 @@ public class ArrowheadScoreList {
         return scoredList;
     }
 
-    private int[] scaleAndTranslateIndices(int[] indices, int resolution, int limStart) {
-        int[] transformedIndices = new int[indices.length];
-        for (int i = 0; i < indices.length; i++) {
-            transformedIndices[i] = indices[i] / resolution - limStart;
-        }
-        return transformedIndices;
-    }
+    private int[] scaleAndTranslateIndices(long[] indices, int resolution, int limStart) {
+		int[] transformedIndices = new int[indices.length];
+		for (int i = 0; i < indices.length; i++) {
+			// casting should be ok for Arrowhead
+			transformedIndices[i] = (int) (indices[i] / resolution - limStart);
+		}
+		return transformedIndices;
+	}
 
     private void setActiveListElements(int limStart, int limEnd) {
         for (ArrowheadScore score : arrowheadScores) {

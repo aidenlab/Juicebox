@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import juicebox.track.feature.Feature2D;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Wrapper for arrowhead blockbuster results
@@ -120,7 +121,7 @@ public class HighScore implements Comparable<HighScore> {
 
     @Override
     public int hashCode() {
-        return 7 * (i + j) * (int) Math.floor(score + uVarScore + lVarScore + upSign + loSign);
+		return Objects.hash(i, j, score, uVarScore, lVarScore, upSign, loSign);
     }
 
     @Override

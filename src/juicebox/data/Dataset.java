@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,14 @@ package juicebox.data;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.dev.Private;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
 
@@ -59,8 +60,7 @@ public class Dataset {
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
     String genomeId;
     String restrictionEnzyme = null;
-    List<HiCZoom> bpZooms;
-    List<HiCZoom> fragZooms;
+    List<HiCZoom> bpZooms, dynamicZooms, fragZooms;
     private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
@@ -93,7 +93,7 @@ public class Dataset {
                 //    m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
                 //} else
                 if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
-                    System.err.println("Index key is " + key);
+                    if (HiCGlobals.printVerboseComments) System.out.println("Custom Chromosome Index key is " + key);
                     m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
                 } else if (HiCGlobals.isAssemblyMatCheck) {
                     m = Matrix.createAssemblyChromosomeMatrix(chromosomeHandler, matrices, reader);
@@ -110,6 +110,25 @@ public class Dataset {
         }
 
         return m;
+    }
+
+    public void addDynamicResolution(int newRes) {
+
+        int highRes = -1;
+        for (int potentialRes : bpZoomResolutions) {
+            if (potentialRes < newRes && potentialRes > highRes && newRes % potentialRes == 0) {
+                highRes = potentialRes;
+            }
+        }
+        if (highRes < 0) {
+            System.err.println("No suitable higher resolution found");
+            return;
+        }
+
+        for (Matrix matrix : matrices.values()) {
+            matrix.createDynamicResolutionMZD(new Pair<>(newRes, highRes), true);
+        }
+        dynamicZooms.add(new HiCZoom(HiC.Unit.BP, newRes));
     }
 
 
@@ -240,22 +259,41 @@ public class Dataset {
     }
 
     public int getNumberZooms(HiC.Unit unit) {
-        return unit == HiC.Unit.BP ? bpZooms.size() : fragZooms.size();
+        return unit == HiC.Unit.BP ? bpZooms.size() + dynamicZooms.size() : fragZooms.size();
     }
 
-
+    // todo deprecate
     public HiCZoom getZoom(HiC.Unit unit, int index) {
         return unit == HiC.Unit.BP ? bpZooms.get(index) : fragZooms.get(index);
     }
 
     public HiCZoom getZoomForBPResolution(Integer resolution) {
-        return getZoom(HiC.Unit.BP, bpZoomResolutions.indexOf(resolution));
+        for (HiCZoom zoom : bpZooms) {
+            if (zoom.getBinSize() == resolution) {
+                return zoom;
+            }
+        }
+        for (HiCZoom zoom : dynamicZooms) {
+            if (zoom.getBinSize() == resolution) {
+                return zoom;
+            }
+        }
+        return null;
     }
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
         if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
         String key = ExpectedValueFunctionImpl.getKey(zoom, type);
         return expectedValueFunctionMap.get(key);
+    }
+
+    public ExpectedValueFunction getExpectedValuesOrExit(HiCZoom zoom, NormalizationType type, Chromosome chromosome, boolean isIntra) {
+        ExpectedValueFunction df = getExpectedValues(zoom, type);
+        if (isIntra && df == null) {
+            System.err.println("O/E data not available at " + chromosome.getName() + " " + zoom + " " + type);
+            System.exit(14);
+        }
+        return df;
     }
 
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
@@ -611,12 +649,12 @@ public class Dataset {
             String value = statsMap.get("Five prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Three prime");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
         } else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
@@ -629,22 +667,22 @@ public class Dataset {
             String value = statsMap.get("Left");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num1 = Math.round(Float.valueOf(value));
+            int num1 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Inner");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num2 = Math.round(Float.valueOf(value));
+            int num2 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Outer");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num3 = Math.round(Float.valueOf(value));
+            int num3 = Math.round(Float.parseFloat(value));
 
             value = statsMap.get("Right");
             value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
-            int num4 = Math.round(Float.valueOf(value));
+            int num4 = Math.round(Float.parseFloat(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
         } else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
             newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
@@ -750,7 +788,10 @@ public class Dataset {
     }
 
     public List<HiCZoom> getBpZooms() {
-        return bpZooms;
+        List<HiCZoom> zooms = new ArrayList<>(bpZooms);
+        zooms.addAll(dynamicZooms);
+        zooms.sort(Collections.reverseOrder());
+        return zooms;
     }
 
     public void setBpZooms(int[] bpBinSizes) {
@@ -761,6 +802,7 @@ public class Dataset {
         for (int bpBinSize : bpZoomResolutions) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
+        dynamicZooms = new ArrayList<>();
     }
 
     public List<HiCZoom> getFragZooms() {
@@ -789,21 +831,21 @@ public class Dataset {
     public void setFragmentCounts(Map<String, Integer> map) {
         fragmentCounts = map;
     }
-
+    
     /**
      * Return the "next" zoom level, relative to the current one, in the direction indicated
      *
-     * @param zoom - current zoom level
-     * @param b    -- direction, true == increasing resolution, false decreasing
+     * @param zoom               - current zoom level
+     * @param useIncreasingOrder -- direction, true == increasing resolution, false decreasing
      * @return Next zoom level
      */
 
-    public HiCZoom getNextZoom(HiCZoom zoom, boolean b) {
+    public HiCZoom getNextZoom(HiCZoom zoom, boolean useIncreasingOrder) {
         final HiC.Unit currentUnit = zoom.getUnit();
-        List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? bpZooms : fragZooms;
+        List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? getBpZooms() : fragZooms;
 
         // TODO MSS - is there a reason not to just rewrite this using indexOf? cleaner?
-        if (b) {
+        if (useIncreasingOrder) {
             for (int i = 0; i < zoomList.size() - 1; i++) {
                 if (zoom.equals(zoomList.get(i))) return zoomList.get(i + 1);
             }
@@ -867,6 +909,23 @@ public class Dataset {
         return normalizationVectorCache.get(key);
     }
 
+    public NormalizationVector getPartNormalizationVector(int chrIdx, HiCZoom zoom, NormalizationType type, int bound1, int bound2) {
+        String key = NormalizationVector.getKey(type, chrIdx, zoom.getUnit().toString(), zoom.getBinSize());
+        NormalizationVector nv;
+
+        if (type.equals(NormalizationHandler.NONE)) {
+            return null;
+        } else {
+            try {
+                nv = reader.readNormalizationVectorPart(type, chrIdx, zoom.getUnit(), zoom.getBinSize(), bound1, bound2);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        return nv;
+    }
+
     public void addNormalizationVectorDirectlyToRAM(NormalizationVector normalizationVector) {
         normalizationsVectorsOnlySavedInRAMCache.put(normalizationVector.getKey(), normalizationVector);
     }
@@ -926,6 +985,7 @@ public class Dataset {
     public List<HiCZoom> getAllPossibleResolutions() {
         List<HiCZoom> resolutions = new ArrayList<>();
         resolutions.addAll(bpZooms);
+        resolutions.addAll(dynamicZooms);
         resolutions.addAll(fragZooms);
         return resolutions;
     }

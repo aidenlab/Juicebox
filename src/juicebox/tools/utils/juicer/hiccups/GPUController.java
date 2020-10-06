@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,10 @@ import jcuda.utils.KernelLauncher;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.juicer.HiCCUPS;
+import juicebox.tools.clt.juicer.HiCCUPSRegionHandler;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -101,19 +103,19 @@ public class GPUController {
         return cuFileText;
     }
 
-    public GPUOutputContainer process(HiCCUPSRegionContainer regionContainer, int matrixSize,
+    public GPUOutputContainer process(HiCCUPSRegionHandler regionHandler, HiCCUPSRegionContainer regionContainer, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
-                                      NormalizationType normalizationType)
+                                      NormalizationType normalizationType, HiCZoom zoom)
             throws NegativeArraySizeException, IOException {
 
-        MatrixZoomData zd = regionContainer.getZd();
-        double[] normalizationVector = regionContainer.getNormalizationVector();
-        double[] expectedVector = regionContainer.getExpectedVector();
+        MatrixZoomData zd = regionHandler.getZoomData(regionContainer, zoom);
+        double[] normalizationVector = regionHandler.getNormalizationVector(regionContainer, zoom);
+        double[] expectedVector = regionHandler.getExpectedVector(regionContainer, zoom);
         int[] rowBounds = regionContainer.getRowBounds();
         int[] columnBounds = regionContainer.getColumnBounds();
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
-                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
+                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType, false);
 
 
         float[] observedVals = Floats.toArray(Doubles.asList(MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData)));
@@ -305,7 +307,7 @@ public class GPUController {
                 int diagDist = Math.abs(t_row + diff - t_col);
                 int maxIndex = msize - buffer_width;
 
-                wsize = Math.min(wsize, (Math.abs(t_row + diff - t_col) - 1) / 2);
+                wsize = Math.min(wsize, (diagDist - 1) / 2);
                 if (wsize <= pwidth) {
                     wsize = pwidth + 1;
                 }
@@ -348,13 +350,14 @@ public class GPUController {
                                 if (!Double.isNaN(c[i][j])) {
                                     if (i + diff - j < 0) {
                                         Evalue_bl += c[i][j];
-                                        Edistvalue_bl += d[Math.abs(i + diff - j)];
+                                        int distVal = Math.abs(i + diff - j);
+                                        Edistvalue_bl += d[distVal];
                                         if (i >= t_row + 1) {
                                             if (i < t_row + pwidth + 1) {
                                                 if (j >= t_col - pwidth) {
                                                     if (j < t_col) {
                                                         Evalue_bl -= c[i][j];
-                                                        Edistvalue_bl -= d[Math.abs(i + diff - j)];
+                                                        Edistvalue_bl -= d[distVal];
                                                     }
                                                 }
                                             }
@@ -367,7 +370,7 @@ public class GPUController {
                         if (wsize >= buffer_width) {
                             break;
                         }
-                        if (2 * wsize >= Math.abs(t_row + diff - t_col)) {
+                        if (2 * wsize >= diagDist) {
                             break;
                         }
                     }

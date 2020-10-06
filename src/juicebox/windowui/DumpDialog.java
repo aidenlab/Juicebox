@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,8 +83,10 @@ public class DumpDialog extends JFileChooser {
                         NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : nv.getData()) {
-                            pw.println(element);
+                        for (double[] array : nv.getData().getValues()) {
+                            for (double element : array) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }
@@ -99,18 +101,20 @@ public class DumpDialog extends JFileChooser {
                     }
 
                     if (box.getSelectedItem().equals("Expected vector")) {
-                        int length = df.getLength();
+                        long length = df.getLength();
                         int c = zd.getChr1Idx();
                         PrintWriter pw = new PrintWriter(getSelectedFile());
-                        for (int i = 0; i < length; i++) {
+                        for (long i = 0; i < length; i++) {
                             pw.println((float) df.getExpectedValue(c, i));
                         }
                         pw.flush();
                     } else {
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : df.getExpectedValues()) {
-                            pw.println(element);
+                        for (double[] values : df.getExpectedValuesNoNormalization().getValues()) {
+                            for (double element : values) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }

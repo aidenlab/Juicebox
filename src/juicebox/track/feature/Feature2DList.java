@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,15 @@ package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -52,6 +54,37 @@ public class Feature2DList {
     private final Map<String, List<Feature2D>> featureList = new HashMap<>();
 
     private Map<String, String> defaultAttributes = new HashMap<>();
+
+    public void parallelizedProcessLists(FeatureFunction featureFunction) {
+        List<String> keys = new ArrayList<>(featureList.keySet());
+        Collections.sort(keys);
+        ExecutorService executor = Executors.newFixedThreadPool(keys.size());
+        for (String key : keys) {
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    featureFunction.process(key, featureList.get(key));
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+    }
+
+    /**
+     * pass interface implementing a filter for features
+     *
+     * @param filter
+     */
+    public synchronized void filterLists(FeatureFilter filter) {
+        List<String> keys = new ArrayList<>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            featureList.put(key, filter.filter(key, featureList.get(key)));
+        }
+    }
 
     public Feature2DList() {
     }
@@ -260,7 +293,11 @@ public class Feature2DList {
     public boolean exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
-            return exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
+            if (exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat)) {
+                System.out.println(getNumTotalFeatures() + " features written to file: " + outputFile.getAbsolutePath());
+            } else {
+                System.err.println("Error features not written to file: " + outputFile.getAbsolutePath());
+            }
         }
         return false;
     }
@@ -507,18 +544,7 @@ public class Feature2DList {
         return featureList.get(key);
     }
 
-    /**
-     * pass interface implementing a filter for features
-     *
-     * @param filter
-     */
-    public void filterLists(FeatureFilter filter) {
-        List<String> keys = new ArrayList<>(featureList.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            featureList.put(key, filter.filter(key, featureList.get(key)));
-        }
-    }
+    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 
     /**
      * pass interface implementing a process for all features
@@ -628,7 +654,4 @@ public class Feature2DList {
         }
         return features.toString();
     }
-
-
-    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 }
