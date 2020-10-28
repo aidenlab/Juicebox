@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -653,7 +653,7 @@ public class MainMenuBar extends JMenuBar {
     exitAssembly.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+        int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "warning", JOptionPane.YES_NO_OPTION);
         if (option == 0) {
           superAdapter.exitAssemblyMode();
         }
