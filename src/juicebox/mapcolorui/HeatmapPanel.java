@@ -106,10 +106,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
    */
   private boolean showFeatureHighlight = true;
   private Feature2D highlightedFeature = null;
+  private List<Feature2D> highlightedFeatures = new ArrayList<>();
   private Feature2D debrisFeature = null;
   private Feature2D tempSelectedGroup = null;
   private List<Feature2D> selectedFeatures = null;
-  private List<Feature2D> lastSelectedFeatures = null;
+  private List<Integer> selectedSuperscaffolds = new ArrayList<>();
   private Feature2DGuiContainer currentFeature = null;
   private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
   private boolean changedSize = false;
@@ -534,8 +535,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
           }
 
+          //FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
+          //    highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
           FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
-              highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+                  highlightedFeatures, showFeatureHighlight, this.getWidth(), this.getHeight());
 
         }
         g2.dispose();
@@ -911,9 +914,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     mi85Highlight.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        highlightedFeature = currentFeature.getFeature2D();
-        addHighlightedFeature(highlightedFeature);
-
+        //highlightedFeature = currentFeature.getFeature2D();
+        highlightedFeatures.clear();
+        highlightedFeatures.add(currentFeature.getFeature2D());
+        addHighlightedFeatures(highlightedFeatures);
       }
     });
 
@@ -1025,12 +1029,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.addSeparator();
         menu.add(mi9_h);
         menu.add(mi9_v);
-          menu.add(mi9_c);
+        menu.add(mi9_c);
       }
 
       boolean menuSeparatorNotAdded = true;
 
-      if (highlightedFeature != null) {
+//      if (highlightedFeature != null) {
+//        menu.addSeparator();
+//        menuSeparatorNotAdded = false;
+//        mi86Toggle.setSelected(showFeatureHighlight);
+//        menu.add(mi86Toggle);
+//      }
+
+      if (highlightedFeatures != null && highlightedFeatures.size() != 0) {
         menu.addSeparator();
         menuSeparatorNotAdded = false;
         mi86Toggle.setSelected(showFeatureHighlight);
@@ -1043,8 +1054,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
           menu.addSeparator();
         }
 
-        if (highlightedFeature != null) {
-          if (currentFeature.getFeature2D() != highlightedFeature) {
+//        if (highlightedFeature != null) {
+//          if (currentFeature.getFeature2D() != highlightedFeature) {
+//            configureFeatureMenu.add(mi85Highlight);
+//            menu.add(mi87Remove);
+//          } else {
+//            configureFeatureMenu.add(mi87Remove);
+//          }
+//        } else {
+//          configureFeatureMenu.add(mi85Highlight);
+//        }
+
+        if (highlightedFeatures != null && highlightedFeatures.size() != 0) {
+          if (!highlightedFeatures.contains(currentFeature.getFeature2D())) {
             configureFeatureMenu.add(mi85Highlight);
             menu.add(mi87Remove);
           } else {
@@ -1056,9 +1078,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
         menu.add(configureFeatureMenu);
-      } else if (highlightedFeature != null) {
+//      } else if (highlightedFeature != null) {
+//        menu.add(mi87Remove);
+//      }
+
+      } else if (highlightedFeatures != null && highlightedFeatures.size() != 0) {
         menu.add(mi87Remove);
       }
+
 
       //menu.add(mi9);
     }
@@ -1086,19 +1113,34 @@ public class HeatmapPanel extends JComponent implements Serializable {
   }
 
   private void addHighlightedFeature(Feature2D feature2D) {
-    highlightedFeature = feature2D;
+    List<Feature2D> feature2DList = new ArrayList<>();
+    feature2DList.add(feature2D);
+    addHighlightedFeatures(feature2DList);
+//    highlightedFeature = feature2D;
+//    featureOptionMenuEnabled = false;
+//    showFeatureHighlight = true;
+//    hic.setShowFeatureHighlight(showFeatureHighlight);
+//    hic.setHighlightedFeature(highlightedFeature);
+//    superAdapter.repaintTrackPanels();
+//    repaint();
+  }
+
+  private void addHighlightedFeatures(List<Feature2D> feature2DList) {
+    highlightedFeatures = feature2DList;
     featureOptionMenuEnabled = false;
     showFeatureHighlight = true;
     hic.setShowFeatureHighlight(showFeatureHighlight);
-    hic.setHighlightedFeature(highlightedFeature);
+    hic.setHighlightedFeatures(highlightedFeatures);
     superAdapter.repaintTrackPanels();
     repaint();
   }
 
   private void removeHighlightedFeature() {
     featureOptionMenuEnabled = false;
-    highlightedFeature = null;
-    hic.setHighlightedFeature(highlightedFeature);
+//    highlightedFeature = null;
+    highlightedFeatures.clear();
+//    hic.setHighlightedFeature(highlightedFeature);
+    hic.setHighlightedFeatures(highlightedFeatures);
     superAdapter.repaintTrackPanels();
     repaint();
   }
@@ -1137,66 +1179,79 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
 //        menu.add(miRepeatSelection);
 
+    if (HiCGlobals.phasing) {
+      final JMenuItem phaseMergeItems = new JMenuItem("Merge phased blocks");
+      phaseMergeItems.setEnabled(selectedSuperscaffolds != null && selectedSuperscaffolds.size() > 1);
+      phaseMergeItems.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          AssemblyOperationExecutor.phaseMerge(superAdapter, selectedSuperscaffolds);
+          // Cleanup
+          removeSelection();
+        }
+      });
+      menu.add(phaseMergeItems);
+    } else {
 
-    final JMenuItem miMoveToTop = new JMenuItem("Move to top");
-    miMoveToTop.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-    miMoveToTop.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AssemblyOperationExecutor.moveSelection(superAdapter,
-                selectedFeatures,
-                null);
-        removeSelection();
-      }
-    });
-    menu.add(miMoveToTop);
+      final JMenuItem miMoveToTop = new JMenuItem("Move to top");
+      miMoveToTop.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+      miMoveToTop.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          AssemblyOperationExecutor.moveSelection(superAdapter,
+                  selectedFeatures,
+                  null);
+          removeSelection();
+        }
+      });
+      menu.add(miMoveToTop);
 
-    final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
-    miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-    miMoveToDebris.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        moveSelectionToEnd();
-      }
-    });
-    menu.add(miMoveToDebris);
+      final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
+      miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+      miMoveToDebris.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          moveSelectionToEnd();
+        }
+      });
+      menu.add(miMoveToDebris);
 
-    final JMenuItem miMoveToDebrisAndDisperse = new JMenuItem("Move to debris and add boundaries");
-    miMoveToDebrisAndDisperse.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-    miMoveToDebrisAndDisperse.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        moveSelectionToEndAndDisperse();
-      }
-    });
-    menu.add(miMoveToDebrisAndDisperse);
+      final JMenuItem miMoveToDebrisAndDisperse = new JMenuItem("Move to debris and add boundaries");
+      miMoveToDebrisAndDisperse.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+      miMoveToDebrisAndDisperse.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          moveSelectionToEndAndDisperse();
+        }
+      });
+      menu.add(miMoveToDebrisAndDisperse);
 
-    final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
-    groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
-    groupItems.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
+      final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
+      groupItems.setEnabled(selectedFeatures != null && selectedFeatures.size() > 1);
+      groupItems.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
 
-        // Cleanup
-        removeSelection();
-      }
-    });
-    menu.add(groupItems);
+          // Cleanup
+          removeSelection();
+        }
+      });
+      menu.add(groupItems);
 
-    final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
-    splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-    splitItems.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
+      final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
+      splitItems.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+      splitItems.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
 
-        // Cleanup
-        removeSelection();
-      }
-    });
-    menu.add(splitItems);
-
+          // Cleanup
+          removeSelection();
+        }
+      });
+      menu.add(splitItems);
+    }
     final JMenuItem miUndo = new JMenuItem("Undo");
     miUndo.addActionListener(new ActionListener() {
       @Override
@@ -1315,6 +1370,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
   }
 
   public void removeSelection() {
+
+    selectedSuperscaffolds.clear();
+
     updateSelectedFeatures(false);
     if (selectedFeatures != null) {
       selectedFeatures.clear();
@@ -2018,7 +2076,44 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
           } else hic.broadcastLocation();
         }
+        if (e.isShiftDown() && HiCGlobals.phasing) {
 
+          //superscaffold selection handling in the phasing case
+
+          Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
+          if (newSelectedSuperscaffold == null) {
+            removeSelection();
+          } else {
+            int tentativeSuperscaffoldId = Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1;
+            int altTentativeSuperscaffoldId;
+            if (tentativeSuperscaffoldId % 2 == 0) {
+              altTentativeSuperscaffoldId = tentativeSuperscaffoldId + 1;
+            } else {
+              altTentativeSuperscaffoldId = tentativeSuperscaffoldId - 1;
+            }
+
+            if (selectedSuperscaffolds.contains(tentativeSuperscaffoldId)) {
+              selectedSuperscaffolds.remove(new Integer(tentativeSuperscaffoldId));
+              highlightedFeatures.remove(newSelectedSuperscaffold.getFeature2D());
+            } else if (selectedSuperscaffolds.contains(altTentativeSuperscaffoldId)) {
+              return;
+            } else {
+              selectedSuperscaffolds.add(tentativeSuperscaffoldId);
+              highlightedFeatures.add(newSelectedSuperscaffold.getFeature2D());
+            }
+
+            addHighlightedFeatures(highlightedFeatures);
+
+            superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+            superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+            superAdapter.getMainViewPanel().toggleToolTipUpdates(highlightedFeatures.isEmpty());
+
+            currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
+
+            restoreDefaultVariables();
+          }
+          return;
+        }
         if (activelyEditingAssembly && HiCGlobals.splitModeEnabled && currentPromptedAssemblyAction == PromptedAssemblyAction.CUT) {
           // disable long click: it seems that no one is using it anyway. But let's keep it commented around for now..
 //                    holdTime = (endTime - startTime) / Math.pow(10, 6);
@@ -2420,7 +2515,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
           int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
           int bottomRightCornerY = (int) ((lastGenomicBin - binOriginY) * scaleFactor);
 
-          if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+          if (selectedFeatures != null && !selectedFeatures.isEmpty() && !HiCGlobals.phasing) {
             if (mousePoint.getX() - topLeftCornerX >= 0 &&
                 mousePoint.getX() - topLeftCornerX <= minDist &&
                 mousePoint.getY() - topLeftCornerY >= 0 &&
