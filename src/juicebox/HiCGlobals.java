@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,16 +56,12 @@ public class HiCGlobals {
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
-    // for state saving
-    public static File stateFile;
-    public static File xmlSavedStatesFile;
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
     // min hic file version supported
     public static final int minVersion = 6;
     public static final int bufferSize = 2097152;
-
     public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
             MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON};
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
@@ -73,14 +69,18 @@ public class HiCGlobals {
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static Color HIC_MAP_COLOR = Color.RED;
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
+    public static final boolean isDevAssemblyToolsAllowedPublic = true;
+    public static final boolean isDevCustomChromosomesAllowedPublic = true;
+    public static final Color diffGrayColor = new Color(238, 238, 238);
+    // for state saving
+    public static File stateFile;
+    public static File xmlSavedStatesFile;
+    public static Color HIC_MAP_COLOR = Color.RED;
     public static int MAX_PEARSON_ZOOM = 500000;
-
     // implement Map scaling with this global variable
     public static double hicMapScale = 1;
-
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
@@ -91,14 +91,10 @@ public class HiCGlobals {
     public static boolean displayTiles = false;
     public static boolean isDarkulaModeEnabled = false;
     public static boolean isAssemblyMatCheck = false;
-
-
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
-    public static final boolean isDevAssemblyToolsAllowedPublic = true;
-    public static final boolean isDevCustomChromosomesAllowedPublic = true;
-    public static final Color diffGrayColor = new Color(238, 238, 238);
+    public static boolean phasing = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
