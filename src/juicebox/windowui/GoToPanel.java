@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
+import juicebox.track.HiCTrack;
 import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
@@ -317,7 +318,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         String genomeID = hic.getDataset().getGenomeId();
         // Currently only human and mouse, not worrying about small differences in location between genomes
         if (genomeID.equals("b37")) genomeID = "hg19";
-        if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
+        //if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) { //don't understand the genomeID check
+        if (geneLocationHashMap == null || this.genomeID == null) {
             initializeGeneHashMap(genomeID);
         } else {
             extractGeneLocation();
@@ -335,9 +337,17 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             };
             superAdapter.executeLongRunningTask(runnable, "Initialize Gene Hash Map");
         } else {
-            SuperAdapter.showMessageDialog("Cannot find genes for " + genomeID);
-            positionChrTop.setBackground(Color.yellow);
-            geneLocationHashMap = null;
+            for (HiCTrack track : hic.getLoadedTracks()) {
+                if (track.getName().contains("refGene")) {
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            unsafeInitializeGeneHashMap(track.getLocator().getPath());
+                        }
+                    };
+                    superAdapter.executeLongRunningTask(runnable, "Initialize Gene Hash Map");
+                }
+            }
         }
     }
 
@@ -362,7 +372,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
         }
-        if (geneLocationHashMap != null) this.genomeID = genomeID;
+        if (geneLocationHashMap != null) this.genomeID = genomeID; //why was this needed?
         extractGeneLocation();
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Created by muhammadsaadshamim on 10/26/15.
@@ -342,6 +343,54 @@ public class MotifAnchorParser {
             } finally {
                 if (fos != null) {
                     fos.close();
+                }
+            }
+        }
+    }
+
+
+    public static String uncompressFromGzip(String compressedFile, String decompressedFile) throws IOException {
+
+        InputStream fileIn = null;
+        GZIPInputStream gZIPInputStream = null;
+        FileOutputStream fileOutputStream = null;
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        File outputFile = new File(tempDir, decompressedFile);
+
+
+        try {
+
+            byte[] buffer = new byte[HiCGlobals.bufferSize];
+
+
+            fileIn = new FileInputStream(compressedFile);
+            gZIPInputStream = new GZIPInputStream(fileIn);
+            fileOutputStream = new FileOutputStream(outputFile);
+
+            int bytes_read;
+
+            while ((bytes_read = gZIPInputStream.read(buffer)) > 0) {
+
+                fileOutputStream.write(buffer, 0, bytes_read);
+            }
+
+            gZIPInputStream.close();
+            fileOutputStream.close();
+
+            System.out.println("The file was decompressed successfully!");
+            return outputFile.getAbsolutePath();
+        } finally {
+            try {
+                if (fileIn != null) {
+                    fileIn.close();
+                }
+                if (gZIPInputStream != null) {
+                    gZIPInputStream.close();
+                }
+            } finally {
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
                 }
             }
         }
