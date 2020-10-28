@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import java.util.*;
  */
 public class ChromosomeHandler {
     private static final String GENOMEWIDE_CHR = "GENOMEWIDE";
+    public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
     private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
@@ -48,7 +49,6 @@ public class ChromosomeHandler {
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
     private Chromosome[] chromosomeArrayAutosomesOnly;
-    public static int CUSTOM_CHROMOSOME_BUFFER = 5000;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -61,13 +61,14 @@ public class ChromosomeHandler {
     }
 
     public static String cleanUpName(String name) {
-        if (name.equalsIgnoreCase("assembly")) {
-            return "assembly";
-        }
-        if (name.equalsIgnoreCase("pseudoassembly")) {
-            return "pseudoassembly";
-        }
-        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+        return name;
+//        if (name.equalsIgnoreCase("assembly")) {
+//            return "assembly";
+//        }
+//        if (name.equalsIgnoreCase("pseudoassembly")) {
+//            return "pseudoassembly";
+//        }
+//        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
     }
 
     public static void sort(List<Chromosome> indices) {
@@ -240,15 +241,6 @@ public class ChromosomeHandler {
         return genomeLength;
     }
 
-    static class ChromosomeComparator implements Comparator<Chromosome> {
-        @Override
-        public int compare(Chromosome a, Chromosome b) {
-            Integer aIndx = a.getIndex();
-            Integer bIndx = b.getIndex();
-            return aIndx.compareTo(bIndx);
-        }
-    }
-
     public boolean isCustomChromosome(Chromosome chromosome) {
         return isCustomChromosome(chromosome.getIndex());
     }
@@ -349,5 +341,14 @@ public class ChromosomeHandler {
             subsetArray[i] = subset.get(i);
         }
         return subsetArray;
+    }
+
+    static class ChromosomeComparator implements Comparator<Chromosome> {
+        @Override
+        public int compare(Chromosome a, Chromosome b) {
+            Integer aIndx = a.getIndex();
+            Integer bIndx = b.getIndex();
+            return aIndx.compareTo(bIndx);
+        }
     }
 }
