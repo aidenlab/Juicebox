@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.assembly;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 
@@ -61,7 +62,10 @@ public class AssemblyOperationExecutor {
         if (upstreamFeature2D != null && downstreamFeature2D != null) {
             AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
             assemblyScaffoldHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
-            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+            if (HiCGlobals.phasing) {
+                performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
+            } else
+                performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
         }
     }
 
@@ -78,6 +82,14 @@ public class AssemblyOperationExecutor {
             AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
             assemblyScaffoldHandler.multiSplit(selectedFeatures);
             performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
+        }
+    }
+
+    public static void phaseMerge(SuperAdapter superAdapter, List<Integer> selectedFeatures) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.phaseMerge(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
         }
     }
 

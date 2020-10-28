@@ -62,6 +62,9 @@ public class AssemblyFileImporter {
         this.superAdapter = superAdapter;
     }
 
+    public AssemblyFileImporter() {
+    }
+
     public void importAssembly() {
         listOfScaffolds = new ArrayList<>();
         listOfSuperscaffolds = new ArrayList<>();

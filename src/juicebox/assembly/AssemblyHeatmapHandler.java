@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -98,10 +98,10 @@ public class AssemblyHeatmapHandler {
             if (!aggregateScaffold.getInvertedVsInitial()) {
                 currentFirstNucleotide = (aggregateScaffold.getCurrentStart() + originalFirstNucleotide - aggregateScaffold.getOriginalStart());
             } else {
-                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 1 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
+                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 2 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
             }
 
-            return (int) (currentFirstNucleotide / (HiCGlobals.hicMapScale * binSize) - 1);
+            return (int) ((currentFirstNucleotide - 1) / (HiCGlobals.hicMapScale * binSize));
         }
         return -1;
     }
