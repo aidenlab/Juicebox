@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileExporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
+import juicebox.assembly.PsfFileExporter;
 
 import javax.swing.*;
 import java.io.File;
@@ -63,8 +64,13 @@ public class SaveAssemblyDialog extends JFileChooser {
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
-                assemblyFileExporter.exportAssemblyFile();
+                if (HiCGlobals.phasing) {
+                    PsfFileExporter psfFileExporter = new PsfFileExporter(assemblyScaffoldHandler, outputPath);
+                    psfFileExporter.exportPsfFile();
+                } else {
+                    AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
+                    assemblyFileExporter.exportAssemblyFile();
+                }
             }
         }
     }
