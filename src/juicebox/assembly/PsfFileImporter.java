@@ -56,16 +56,10 @@ public class PsfFileImporter extends AssemblyFileImporter {
 
     @Override
     public void importAssembly() {
-        super.importAssembly();
         importPsf();
     }
 
     public void importPsf() {
-        try {
-            rawFileData = readFile(psfFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         listOfScaffolds = new ArrayList<>();
         listOfSuperscaffolds = new ArrayList<>();
@@ -76,8 +70,8 @@ public class PsfFileImporter extends AssemblyFileImporter {
             }
             if (!modified)
                 setInitialState();
-//            else
-//                setModifiedInitialState();
+            else
+                setModifiedInitialState();
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
@@ -116,8 +110,8 @@ public class PsfFileImporter extends AssemblyFileImporter {
                             superscaffold.add(2 * id - 1);
                             altSuperscaffold.add(2 * id);
                         } else {
-                            altSuperscaffold.add(2 * id - 1);
-                            superscaffold.add(2 * id);
+                            altSuperscaffold.add(-2 * id - 1);
+                            superscaffold.add(-2 * id);
                         }
                     }
                     listOfSuperscaffolds.add(superscaffold);
@@ -149,43 +143,14 @@ public class PsfFileImporter extends AssemblyFileImporter {
 
     private void setModifiedInitialState() {
         List<Scaffold> originalScaffolds = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyScaffoldHandler().getListOfScaffolds();
-        long modifiedShift = 0;
-        int originalScaffoldIterator = 0;
-        Scaffold originalScaffold = originalScaffolds.get(originalScaffoldIterator);
-        long containingStart = originalScaffold.getOriginalStart();
-        long containingEnd = originalScaffold.getOriginalEnd();
-        for (Scaffold modifiedScaffold : listOfScaffolds) {
-
-            modifiedScaffold.setOriginallyInverted(originalScaffold.getOriginallyInverted());
-            if (!modifiedScaffold.getOriginallyInverted()) {
-                modifiedScaffold.setOriginalStart(containingStart);
-                containingStart += modifiedScaffold.getLength();
-            } else {
-                modifiedScaffold.setOriginalStart(containingEnd - modifiedScaffold.getLength());
-                containingEnd -= modifiedScaffold.getLength();
-            }
-            // trace movement along the original feature
-            modifiedShift += modifiedScaffold.getLength();
-            // check if need to switch to next original feature
-            if (modifiedShift == originalScaffold.getLength()) {
-                if (originalScaffoldIterator == originalScaffolds.size() - 1) {
-                    if (modifiedScaffold != listOfScaffolds.get(listOfScaffolds.size() - 1)) {
-                        System.err.println("Modified assembly incompatible with the original one.");
-                    }
-                    break;
-                }
-                originalScaffoldIterator++;
-                originalScaffold = originalScaffolds.get(originalScaffoldIterator);
-                containingStart = originalScaffold.getOriginalStart();
-                containingEnd = originalScaffold.getOriginalEnd();
-                modifiedShift = 0;
-            }
+        for (int i = 0; i < listOfScaffolds.size(); i++) {
+            listOfScaffolds.get(i).setOriginallyInverted(false);
+            listOfScaffolds.get(i).setOriginalStart(originalScaffolds.get(i).getOriginalStart());
         }
-        //TODO: more safeguards e.g. by name
     }
 
 
-    private List<String> readFile(String filePath) throws IOException {
+    List<String> readFile(String filePath) throws IOException {
         List<String> fileData = new ArrayList<>();
 
         File file = new File(filePath);

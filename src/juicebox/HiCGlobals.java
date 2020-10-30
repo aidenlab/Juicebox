@@ -95,6 +95,7 @@ public class HiCGlobals {
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
     public static boolean phasing = false;
+    public static boolean noSortInPhasing = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

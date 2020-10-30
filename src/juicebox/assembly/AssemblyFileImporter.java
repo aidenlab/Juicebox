@@ -297,7 +297,7 @@ public class AssemblyFileImporter {
     }
 
 
-    private List<String> readFile(String filePath) throws IOException {
+    List<String> readFile(String filePath) throws IOException {
         List<String> fileData = new ArrayList<>();
 
         File file = new File(filePath);

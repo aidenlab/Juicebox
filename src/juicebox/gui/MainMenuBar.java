@@ -516,6 +516,19 @@ public class MainMenuBar extends JMenuBar {
     devMenu = new JMenu("Dev");
     devMenu.setEnabled(false);
 
+    final JCheckBoxMenuItem skipSortInPhase = new JCheckBoxMenuItem("Skip variant sorting in phase mode");
+    skipSortInPhase.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.noSortInPhasing = !HiCGlobals.noSortInPhasing;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+    skipSortInPhase.setSelected(HiCGlobals.noSortInPhasing);
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(skipSortInPhase);
+    }
+
     final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
     addCustomNorms.addActionListener(new ActionListener() {
       @Override

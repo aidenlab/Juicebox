@@ -202,7 +202,7 @@ public class AssemblyScaffoldHandler {
         superscaffoldFeature2DHandler = new Feature2DHandler(superscaffoldFeature2DList);
         AssemblyHeatmapHandler.setListOfOSortedAggregateScaffolds(listOfAggregateScaffolds);
         // aggregate list is already sorted, no need to sort again
-
+        System.out.println("update assembly: " + listOfAggregateScaffolds.size());
     }
 
     private Feature2D populateSuperscaffoldFeature2D(long start, long end, int i) {
@@ -665,14 +665,16 @@ public class AssemblyScaffoldHandler {
             }
         }
         idListToMerge.addAll(altIdListToMerge);
-//        Collections.sort(idListToMerge);
+        Collections.sort(idListToMerge);
 
         boolean altGoesFirst = false;
         if (altIdListToMerge.contains(new Integer(idListToMerge.get(0)))) {
             altGoesFirst = true;
         }
 
-        Collections.sort(newSuperscaffold);
+        if (!HiCGlobals.noSortInPhasing)
+            Collections.sort(newSuperscaffold);
+
         for (int i : newSuperscaffold) {
             if (i % 2 == 0)
                 newAltSuperscaffold.add(i - 1);
