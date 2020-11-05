@@ -66,6 +66,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option ligationOption = addStringOption("ligation");
 
     // ints
+    private final Option blockCapacityOption = addIntegerOption("block-capacity");
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
     private final Option mapqOption = addIntegerOption('q', "mapq");
     private final Option genomeWideOption = addIntegerOption('w', "genomewide");
@@ -196,13 +197,21 @@ public class CommandLineParser extends CmdLineParser {
         return opt == null ? 0 : ((Number) opt).intValue();
     }
 
+    public int getBlockCapacityOption() {
+        return optionToInt(blockCapacityOption);
+    }
+
     public int getCountThresholdOption() {
         return optionToInt(countThresholdOption);
     }
 
-    public int getMapqThresholdOption() { return optionToInt(mapqOption); }
+    public int getMapqThresholdOption() {
+        return optionToInt(mapqOption);
+    }
 
-    public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
+    public int getGenomeWideOption() {
+        return optionToInt(genomeWideOption);
+    }
 
     protected long optionToLong(Option option) {
         Object opt = getOptionValue(option);
