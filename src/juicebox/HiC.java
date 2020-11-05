@@ -403,7 +403,16 @@ public class HiC {
     }
 
     public Matrix getMatrix() {
-        if (dataset == null || xContext == null || yContext == null) return null;
+        if (dataset == null) {
+            System.err.println("Dataset is null");
+            return null;
+        } else if (xContext == null) {
+            System.err.println("xContext is null");
+            return null;
+        } else if (yContext == null) {
+            System.err.println("yContext is null");
+            return null;
+        }
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
 
     }
