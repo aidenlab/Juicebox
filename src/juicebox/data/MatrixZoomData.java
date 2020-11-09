@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -289,8 +289,8 @@ public class MatrixZoomData {
         }
 
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no, chr1, chr2);
-        System.out.println("I am block size: " + blockList.size());
-        System.out.println("I am first block: " + blockList.get(0).getNumber());
+//        System.out.println("I am block size: " + blockList.size());
+//        System.out.println("I am first block: " + blockList.get(0).getNumber());
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
@@ -303,6 +303,7 @@ public class MatrixZoomData {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
+
         long actualBinSize = binSize;
         if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
@@ -316,7 +317,16 @@ public class MatrixZoomData {
         int x1pos, x2pos, y1pos, y2pos;
 
         for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+
+            if (HiCGlobals.phasing && xScaffold.getLength() < (actualBinSize / 2) * HiCGlobals.hicMapScale) {
+                continue;
+            }
+
             for (Scaffold yScaffold : yAxisAggregateScaffolds) {
+
+                if (HiCGlobals.phasing && yScaffold.getLength() < (actualBinSize / 2) * HiCGlobals.hicMapScale) {
+                    continue;
+                }
 
                 x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
