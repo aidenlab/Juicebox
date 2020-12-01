@@ -30,6 +30,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.tools.utils.original.MatrixZoomDataPP;
 import juicebox.tools.utils.original.MultithreadedPreprocessor;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
@@ -122,6 +123,10 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
         preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
         preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
+        int blockCapacity = parser.getBlockCapacityOption();
+        if (blockCapacity > 10) {
+            MatrixZoomDataPP.BLOCK_CAPACITY = blockCapacity;
+        }
 
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();

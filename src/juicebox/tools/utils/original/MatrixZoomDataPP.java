@@ -56,7 +56,7 @@ public class MatrixZoomDataPP {
     private double cellCount = 0;
     private double percent5;
     private double percent95;
-    public static int BLOCK_CAPACITY = 1000000;
+    public static int BLOCK_CAPACITY = 1000;
 
     /**
      * Representation of MatrixZoomData used for preprocessing
