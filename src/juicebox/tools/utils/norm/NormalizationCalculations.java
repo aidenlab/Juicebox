@@ -67,7 +67,10 @@ public class NormalizationCalculations {
         }
 
         long count = zd.getNumberOfContactRecords();
-        if (count * 1000 < Runtime.getRuntime().maxMemory()) {
+        // todo where did the 1000 come from?
+        // each contact record is 12 bytes; if longs/doubles, then 24 bytes
+        // at worst, we probably double this?
+        if (count * 48 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
             this.contactRecords = zd.getContactRecordList();
