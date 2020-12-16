@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.tools.utils.norm.final2;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
-import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
 
@@ -79,7 +78,7 @@ public class FinalScale {
         
         int l = 0;
         for (long p = 0; p < k; p++) {
-            if (Double.isNaN(zTargetVector.get(p))) continue;
+            if (Float.isNaN(zTargetVector.get(p))) continue;
             if (zTargetVector.get(p) > 0) {
                 zz[l++] = zTargetVector.get(p);
             }
@@ -153,7 +152,7 @@ public class FinalScale {
         
         //	find the "bad" rows and exclude them
         for (long p = 0; p < k; p++) {
-            if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Double.isNaN(zTargetVector.get(p))) {
+            if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Float.isNaN(zTargetVector.get(p))) {
                 bad.set(p, 1);
                 zTargetVector.set(p, 1.0f);
             }
@@ -289,7 +288,7 @@ public class FinalScale {
                         }
                     }
                     for (long p = 0; p < k; p++) {
-                        if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Double.isNaN(zTargetVector.get(p))) {
+                        if ((numNonZero.get(p) < low && zTargetVector.get(p) > 0) || Float.isNaN(zTargetVector.get(p))) {
                             bad.set(p, 1);
                             bad1.set(p, 1);
                             one.set(p, 0);

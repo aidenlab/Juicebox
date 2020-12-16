@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -223,33 +223,30 @@ public class MainMenuBar extends JMenuBar {
         JPanel textPanel = new JPanel(new GridLayout(0, 1));
         textPanel.add(new JLabel("<html><center>" +
                 "<h3 style=\"margin-bottom:30px;\" class=\"header\">" +
-                "Juicebox: Visualization software for Hi-C data" +
-                "</h3>" +
+                "Juicebox with Assembly Tools</h3>" +
                 "</center>" +
                 "<p>" +
-                "Juicebox is the Aiden Lab's software for visualizing data<br>" +
-                "from proximity ligation experiments, such as Hi-C.<br>" +
-                "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
-                "and Erez Aiden. Ongoing development work is carried<br>" +
-                "out by " +
-                "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
-                "and Marie Hoeger.<br><br>" +
+                "Juicebox is the Aiden Lab's software for visualizing data from proximity ligation experiments, " +
+                "such as Hi-C. Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden.<br><br>" +
+                "Ongoing development work is carried out by Muhammad S. Shamim, Neva Durand, Olga Dudchenko, " +
+                "Suhas Rao, and other members of the Aiden Lab.<br><br>" +
                 "Current version: " + HiCGlobals.versionNum + "<br>" +
-                "Copyright © 2014. Broad Institute and Aiden Lab" +
+                "Copyright © 2014-2021. Broad Institute and Aiden Lab" +
                 "<br><br>" +
                 "" +
-                "If you use Juicebox in your research, please cite:<br><br>" +
+                "If you use Juicebox or Assembly Tools in your research, please cite:<br><br>" +
                 "" +
-                "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S.<br>Shamim, " +
-                "Ido Machol, Jill P. Mesirov, Eric S. Lander, and<br>Erez Lieberman Aiden.<br>" +
-                " \"Juicebox provides a visualization system for Hi-C<br>contact maps " +
-                "with unlimited zoom.\" <em>Cell Systems</em><br>July 2016.</strong>" +
+                "<strong>Neva C. Durand*, James T. Robinson*, et al. " +
+                "\"Juicebox provides a visualization system for Hi-C contact maps " +
+                "with unlimited zoom.\" <em>Cell Systems</em> 2016.</strong>" +
                 "<br><br>" +
-                "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
-                "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-                "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
-                "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                "<strong>Olga Dudchenko, et al. " +
+                "\"The Juicebox Assembly Tools module facilitates de novo assembly of " +
+                "mammalian genomes with chromosome-length scaffolds for under $1000.\" " +
+                "<em>Biorxiv</em> 2018.</strong>" +
+                "<br><br>" +
+                "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, et al. \"A 3D Map of the Human Genome at Kilobase " +
+                "Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 2014.</strong><br>" +
                 "* contributed equally" +
                 "</p></html>"));
 
@@ -394,11 +391,7 @@ public class MainMenuBar extends JMenuBar {
     layersItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (layersItem.isSelected()) {
-          superAdapter.setLayersPanelVisible(true);
-        } else {
-          superAdapter.setLayersPanelVisible(false);
-        }
+        superAdapter.setLayersPanelVisible(layersItem.isSelected());
 
       }
     });

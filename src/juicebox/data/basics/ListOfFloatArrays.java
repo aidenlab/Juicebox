@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ public class ListOfFloatArrays {
 
     private final long DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
     private final long overallLength;
-    private List<float[]> internalList = new ArrayList<>();
+    private final List<float[]> internalList = new ArrayList<>();
 
     public ListOfFloatArrays(long length) {
         this.overallLength = length;
@@ -187,7 +187,7 @@ public class ListOfFloatArrays {
         ListOfDoubleArrays newList = new ListOfDoubleArrays(overallLength);
         for (int j = 0; j < internalList.size(); j++) {
             for (int k = 0; k < internalList.get(j).length; k++) {
-                newList.getValues().get(j)[k] = (double) internalList.get(j)[k];
+                newList.getValues().get(j)[k] = internalList.get(j)[k];
             }
         }
         return newList;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     private final Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
     private final Map<MatrixZoomData, Map<RegionPair, LRUCache<String, Block>>> allBlockCaches = new HashMap<>();
     private final CustomMZDRegionHandler rTreeHandler = new CustomMZDRegionHandler();
-    private ChromosomeHandler handler;
+    private final ChromosomeHandler handler;
 
     public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                 HiCZoom zoom, DatasetReader reader) {

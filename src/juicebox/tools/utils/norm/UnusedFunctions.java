@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.DatasetReaderV2;
-import juicebox.tools.utils.original.IndexEntry;
 import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;

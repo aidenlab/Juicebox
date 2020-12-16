@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -126,9 +126,13 @@ public class MatrixZoomData {
         } else if (zoom.getUnit() == HiC.Unit.BP) {
             this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr1Sites);
             this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr2Sites);
-        } else {
+        } else if (zoom.getUnit() == HiC.Unit.FRAG) {
             this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr1Sites, chr1.getLength());
             this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr2Sites, chr2.getLength());
+        } else {
+            System.err.println("Requested " + zoom.getUnit() + " unit; error encountered");
+            this.xGridAxis = null;
+            this.yGridAxis = null;
         }
 
         pearsonsMap = new HashMap<>();
@@ -258,66 +262,55 @@ public class MatrixZoomData {
         return getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
     }
 
-    public List<Integer> getBlockBoundsFromNumberVersion9Up(int blockNumber) {
+    public int[] getBlockBoundsFromNumberVersion9Up(int blockNumber) {
         int positionAlongDiagonal = blockNumber % blockColumnCount;
         int depth = blockNumber / blockColumnCount;
         int avgPosition1 = positionAlongDiagonal * blockBinCount;
-        int avgPosition2 = (positionAlongDiagonal+1) * blockBinCount;
-        double difference1 = (Math.pow(2,depth)-1)*blockBinCount*Math.sqrt(2);
-        double difference2 = (Math.pow(2,depth+1)-1)*blockBinCount*Math.sqrt(2);
-        int c1 = avgPosition1 + (int) difference1/2 - 1;
-        int c2 = avgPosition2 + (int) difference2/2 + 1;
-        int r1 = avgPosition1 - (int) difference2/2 - 1;
-        int r2 = avgPosition2 - (int) difference1/2 + 1;
-        List<Integer> bounds = new ArrayList<>();
-        bounds.add(c1);
-        bounds.add(c2);
-        bounds.add(r1);
-        bounds.add(r2);
-        return bounds;
+        int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
+        double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
+        double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+        int c1 = avgPosition1 + (int) difference1 / 2 - 1;
+        int c2 = avgPosition2 + (int) difference2 / 2 + 1;
+        int r1 = avgPosition1 - (int) difference2 / 2 - 1;
+        int r2 = avgPosition2 - (int) difference1 / 2 + 1;
+        return new int[]{c1, c2, r1, r2};
     }
-
-    public List<Integer> getBlockBoundsFromNumberVersion8Below(int blockNumber) {
+    
+    public int[] getBlockBoundsFromNumberVersion8Below(int blockNumber) {
         int c = (blockNumber % blockColumnCount);
         int r = blockNumber / blockColumnCount;
         int c1 = c * blockBinCount;
         int c2 = c1 + blockBinCount - 1;
         int r1 = r * blockBinCount;
         int r2 = r1 + blockBinCount - 1;
-        List<Integer> bounds = new ArrayList<>();
-        bounds.add(c1);
-        bounds.add(c2);
-        bounds.add(r1);
-        bounds.add(r2);
-        return bounds;
+        return new int[]{c1, c2, r1, r2};
     }
     
     private List<Block> addNormalizedBlocksToListV9(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                     final NormalizationType norm) {
-        
+
         Set<Integer> blocksToLoad = new HashSet<>();
-        
+
         // PAD = positionAlongDiagonal (~projected)
         // Depth is axis perpendicular to diagonal; nearer means closer to diagonal
         int translatedLowerPAD = (binX1 + binY1) / 2 / blockBinCount;
         int translatedHigherPAD = (binX2 + binY2) / 2 / blockBinCount + 1;
         int translatedNearerDepth = log2(1 + Math.abs(binX1 - binY2) / Math.sqrt(2) / blockBinCount);
         int translatedFurtherDepth = log2(1 + Math.abs(binX2 - binY1) / Math.sqrt(2) / blockBinCount);
-        
+
         // because code above assume above diagonal; but we could be below diagonal
         int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
-        int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
-
-        if (((binX1 - binY2) > 0 && (binX2 - binY1) < 0) || ((binX2 - binY1) > 0 && (binX1 - binY2) < 0)) {
+        if ((binX1 > binY2 && binX2 < binY1) || (binX2 > binY1 && binX1 < binY2)) {
             nearerDepth = 0;
         }
+        int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
         
         for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
             for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {
                 populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
             }
         }
-        
+
         actuallyLoadGivenBlocks(blockList, blocksToLoad, norm);
         
         return new ArrayList<>(new HashSet<>(blockList));

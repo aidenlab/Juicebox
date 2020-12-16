@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,8 +63,10 @@ public class CommandLineParser extends CmdLineParser {
     private final Option expectedVectorOption = addStringOption('e', "expected-vector-file");
     protected final Option normalizationTypeOption = addStringOption('k', "normalization");
     private final Option mndIndexOption = addStringOption('i', "mndindex");
+    private final Option ligationOption = addStringOption("ligation");
 
     // ints
+    private final Option blockCapacityOption = addIntegerOption("block-capacity");
     private final Option countThresholdOption = addIntegerOption('m', "min-count");
     private final Option mapqOption = addIntegerOption('q', "mapq");
     private final Option genomeWideOption = addIntegerOption('w', "genomewide");
@@ -76,6 +78,8 @@ public class CommandLineParser extends CmdLineParser {
     private final Option resolutionOption = addStringOption('r', "resolutions");
     private final Option randomizePositionMapsOption = addStringOption("frag-site-maps");
 
+    //set of ints
+    private final Option multipleMapQOption = addStringOption("mapqs");
 
     //filter optrectionalion based on diity
     private final Option hicFileScalingOption = addDoubleOption('z', "scale");
@@ -162,6 +166,8 @@ public class CommandLineParser extends CmdLineParser {
 
     public String getMndIndexOption() { return optionToString(mndIndexOption);}
 
+    public String getLigationOption() { return optionToString(ligationOption);}
+
     public Alignment getAlignmentOption() {
         int alignmentInt = optionToInt(alignmentFilterOption);
 
@@ -191,13 +197,21 @@ public class CommandLineParser extends CmdLineParser {
         return opt == null ? 0 : ((Number) opt).intValue();
     }
 
+    public int getBlockCapacityOption() {
+        return optionToInt(blockCapacityOption);
+    }
+
     public int getCountThresholdOption() {
         return optionToInt(countThresholdOption);
     }
 
-    public int getMapqThresholdOption() { return optionToInt(mapqOption); }
+    public int getMapqThresholdOption() {
+        return optionToInt(mapqOption);
+    }
 
-    public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
+    public int getGenomeWideOption() {
+        return optionToInt(genomeWideOption);
+    }
 
     protected long optionToLong(Option option) {
         Object opt = getOptionValue(option);
@@ -250,6 +264,24 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public Set<String> getRandomizePositionMaps() {return optionToStringSet(randomizePositionMapsOption);}
+
+    /**
+     * Int Set flags
+     */
+    protected List<Integer> optionToIntList(Option option) {
+        Object opt = getOptionValue(option);
+        if(opt == null){
+            return null;
+        }
+        String[] temp = opt.toString().split(",");
+        List<Integer> options = new ArrayList<>();
+        for(String s : temp){
+            options.add(Integer.parseInt(s));
+        }
+        return options;
+    }
+
+    public List<Integer> getMultipleMapQOptions() {return optionToIntList(multipleMapQOption);}
 
     public List<NormalizationType> getAllNormalizationTypesOption() {
         NormalizationHandler normalizationHandler = new NormalizationHandler();

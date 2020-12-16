@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,8 @@ import java.util.Map;
  */
 
 class HiCFileUtils {
-
-    private Dataset dataset;
+	
+	private final Dataset dataset;
 
     private HiCFileUtils(String hicfile) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(hicfile);

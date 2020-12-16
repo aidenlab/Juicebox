@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,22 +38,22 @@ import java.util.Map;
  * @since 9/24/11
  */
 public class RandomAccessAsciiPairIterator implements PairIterator {
-
-    /**
-     * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
-     * in perm space, which is rather limited and can cause us to run out of memory.
-     */
-    private final Map<String, String> stringInternPool = new HashMap<>();
-    // Map of name -> index
-    private Map<String, Integer> chromosomeOrdinals;
-    private AlignmentPair nextPair = null;
+	
+	/**
+	 * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
+	 * in perm space, which is rather limited and can cause us to run out of memory.
+	 */
+	private final Map<String, String> stringInternPool = new HashMap<>();
+	// Map of name -> index
+	private final Map<String, Integer> chromosomeOrdinals;
+	private AlignmentPair nextPair = null;
     private RandomAccessFile reader;
     private Format format = null;
     private int dcicFragIndex1 = -1;
     private int dcicFragIndex2 = -1;
     private int dcicMapqIndex1 = -1;
-    private int dcicMapqIndex2 = -1;
-    private ChromosomeHandler handler;
+	private int dcicMapqIndex2 = -1;
+	private final ChromosomeHandler handler;
     //CharMatcher.anyOf(";,.")
 
     public RandomAccessAsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, Long mndIndexPosition, ChromosomeHandler handler) throws IOException {

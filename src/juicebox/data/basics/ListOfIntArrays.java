@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ public class ListOfIntArrays {
 	
 	private final int DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
 	private final long overallLength;
-	private List<int[]> internalList = new ArrayList<>();
+	private final List<int[]> internalList = new ArrayList<>();
 	
 	public ListOfIntArrays(long length) {
 		this.overallLength = length;

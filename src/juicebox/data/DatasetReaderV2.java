@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
-import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.IndexEntry;
 import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.HiCZoom;
@@ -69,7 +68,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private Dataset dataset = null;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
-    private Map<String, BlockIndex> blockIndexMap;
+    private final Map<String, BlockIndex> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
     private boolean activeStatus = true;
@@ -499,6 +498,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
             //System.err.println(nValues);
 
+
             if (binSize >= 500) {
                 ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                 //System.out.println(binSize + " " + nValues + " " + stream.position());
@@ -510,6 +510,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                         values.set(j, dis.readDouble());
                         currentPosition += 8;
                     }
+
                 }
                 //System.out.println(binSize + " " + stream.position());
                 int nNormalizationFactors = dis.readInt();
@@ -609,6 +610,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     nValues = dis.readInt();
                     currentPosition += 4;
                 }
+
                 if (binSize >= 500) {
                     ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                     for (long j = 0; j < nValues; j++) {
@@ -986,13 +988,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             long[] timeDiffThings = new long[4];
             timeDiffThings[0] = System.currentTimeMillis();
-            List<Integer> bounds;
+            
+            /*
+            int[] bounds;
             if (version > 8 && zd.getChr1Idx() == zd.getChr2Idx()) {
                 bounds = zd.getBlockBoundsFromNumberVersion9Up(blockNumber);
             }
             else {
                 bounds = zd.getBlockBoundsFromNumberVersion8Below(blockNumber);
             }
+             */
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
     
@@ -1081,7 +1086,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                     int binXOffset = dis.readInt();
                     int binYOffset = dis.readInt();
-
+    
                     boolean useShort = dis.readByte() == 0;
                     boolean useShortBinX = true, useShortBinY = true;
                     if (version > 8) {
@@ -1117,7 +1122,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                                         records.add(new ContactRecord(binX, binY, counts));
                                     }
                                 }
-
                             } else if (!useShortBinX && useShortBinY) {
                                 // List-of-rows representation
                                 int rowCount = dis.readShort();
@@ -1145,10 +1149,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                             }
                             break;
                         case 2:
-
+        
                             int nPts = dis.readInt();
                             int w = dis.readShort();
-
+        
                             for (int i = 0; i < nPts; i++) {
                                 //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
                                 int row = i / w;

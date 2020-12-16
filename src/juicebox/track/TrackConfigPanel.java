@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,9 +43,9 @@ import java.awt.event.FocusEvent;
 public class TrackConfigPanel extends JPanel {
 
     private static final long serialVersionUID = -178029293180119209L;
-    private final HiCTrack track;
-    private boolean canceled = false;
-    private ColorChooserPanel posColorChooser;
+	private final HiCTrack track;
+	private final boolean canceled = false;
+	private ColorChooserPanel posColorChooser;
     private ColorChooserPanel altColorChooser;
     private JCheckBox logScaleCB;
     private JTextField minYField;

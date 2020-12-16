@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,14 +36,14 @@ public /**
  * Class for iterating over the contact records
  */
 class ContactRecordIterator implements Iterator<ContactRecord> {
-
+    
     private final List<Integer> blockNumbers;
     private int blockIdx;
     private Iterator<ContactRecord> currentBlockIterator;
-    private DatasetReader reader;
-    private MatrixZoomData zd;
-    private LRUCache<String, Block> blockCache;
-
+    private final DatasetReader reader;
+    private final MatrixZoomData zd;
+    private final LRUCache<String, Block> blockCache;
+    
     /**
      * Initializes the iterator
      */

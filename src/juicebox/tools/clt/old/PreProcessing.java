@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.tools.utils.original.MatrixZoomDataPP;
 import juicebox.tools.utils.original.MultithreadedPreprocessor;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
@@ -47,9 +48,9 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
     private boolean noNorm = false;
     private boolean noFragNorm = false;
-    private int genomeWide;
-    private List<NormalizationType> normalizationTypes = new ArrayList<>();
-    protected static int numCPUThreads = 1;
+	private int genomeWide;
+	private final List<NormalizationType> normalizationTypes = new ArrayList<>();
+	protected static int numCPUThreads = 1;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -122,6 +123,10 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
         preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
         preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
+        int blockCapacity = parser.getBlockCapacityOption();
+        if (blockCapacity > 10) {
+            MatrixZoomDataPP.BLOCK_CAPACITY = blockCapacity;
+        }
 
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();

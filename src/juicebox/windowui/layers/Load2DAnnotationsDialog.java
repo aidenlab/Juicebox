@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -421,14 +421,10 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                 tree.getLastSelectedPathComponent();
-
+    
         if (node == null) return;
-
-        if (node.isLeaf()) {
-            openButton.setEnabled(true);
-        } else {
-            openButton.setEnabled(false);
-        }
+    
+        openButton.setEnabled(node.isLeaf());
     }
 
     private void collapseAll(JTree tree) {

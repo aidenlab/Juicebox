@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -403,7 +403,16 @@ public class HiC {
     }
 
     public Matrix getMatrix() {
-        if (dataset == null || xContext == null || yContext == null) return null;
+        if (dataset == null) {
+            System.err.println("Dataset is null");
+            return null;
+        } else if (xContext == null) {
+            System.err.println("xContext is null");
+            return null;
+        } else if (yContext == null) {
+            System.err.println("yContext is null");
+            return null;
+        }
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
 
     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ public class MatrixZoomDataPP {
     private double cellCount = 0;
     private double percent5;
     private double percent95;
-    public static int BLOCK_CAPACITY = 1000000;
+    public static int BLOCK_CAPACITY = 1000;
 
     /**
      * Representation of MatrixZoomData used for preprocessing
