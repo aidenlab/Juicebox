@@ -101,8 +101,8 @@ public class CLTFactory {
             return new BigWig();
         } else if (cmd.equals("binToPairs".toLowerCase())) {
             return new BinToPairs();
-        } else if (cmd.equals("booleanBalance".toLowerCase())) {
-            return new BooleanBalancing();
+        //} else if (cmd.equals("booleanBalance".toLowerCase())) {
+        //    return new BooleanBalancing();
         } else if (cmd.equals("bpToFrag".toLowerCase())) {
             return new BPToFragment();
         } else if (cmd.equals("calcKR".toLowerCase())) {

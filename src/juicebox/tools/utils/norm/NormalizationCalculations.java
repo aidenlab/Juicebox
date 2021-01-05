@@ -25,7 +25,7 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.ContactRecord;
-import juicebox.data.LinkedContactRecord;
+//import juicebox.data.LinkedContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
@@ -567,7 +567,7 @@ public class NormalizationCalculations {
         return ZeroScale.mmbaScaleToVector(contactRecords, tempTargetVector);
     }
 
-    public List<List<ContactRecord>> booleanBalancing() {
+    /*public List<List<ContactRecord>> booleanBalancing() {
         ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
         Map<Float,Map<Long,Integer>> rowsumIndices = new HashMap<>();
         Map<Long, List<LinkedContactRecord>> rows = new HashMap<>();
@@ -805,7 +805,7 @@ public class NormalizationCalculations {
 
         return contactRecords;
 
-    }
+    }*/
 
     public int getRandomWithExclusion(Random rnd, int end, List<Integer> exclude) {
         int random = 0;

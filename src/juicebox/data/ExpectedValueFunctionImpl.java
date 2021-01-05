@@ -99,7 +99,7 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 	 */
 	@Override
 	public ListOfDoubleArrays getExpectedValuesNoNormalization() {
-		if (expectedValues == null || (streamBound1==0 && streamBound2 == 0)) {
+		if (expectedValues == null && (streamBound1==0 && streamBound2 == 0)) {
 			try {
 				expectedValues = reader.readExpectedVectorPart(filePosition, nValues);
 				streamBound1 = 0;
@@ -169,7 +169,7 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 	
 	@Override
 	public ListOfDoubleArrays getExpectedValuesWithNormalization(int chrIdx) {
-		if (expectedValues == null || (streamBound1==0 && streamBound2 == 0)) {
+		if (expectedValues == null && (streamBound1==0 && streamBound2 == 0)) {
 			try {
 				expectedValues = reader.readExpectedVectorPart(filePosition, nValues);
 				streamBound1 = 0;
