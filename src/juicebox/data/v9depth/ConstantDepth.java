@@ -22,43 +22,17 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.data.v9depth;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
+public class ConstantDepth extends V9Depth {
 
-
-public class AddGWNorm extends JuiceboxCLT {
-
-    private String file;
-    private int genomeWideResolution = -100;
-
-    public AddGWNorm() {
-        super("addGWNorm <input_HiC_file> <min resolution>");
+    public ConstantDepth(int base, int blockBinCount) {
+        super(blockBinCount);
+        this.BASE = Math.abs(base);
     }
 
     @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.parseInt(args[2]);
-        } catch (NumberFormatException error) {
-            printUsageAndExit();
-        }
-    }
-
-    @Override
-    public void run() {
-        try {
-            System.err.println("Please use AddNorm to handle the addition of genomewide normalizations");
-            //GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected int logBase(double v) {
+        return (int) Math.abs(v / BASE);
     }
 }

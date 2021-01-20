@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public abstract class HiCDataAdapter implements HiCDataSource {
 
-  private static final double log2 = Math.log(2);
+  private final double log2 = Math.log(2);
   private final HiC hic;
 
   private LoadedDataInterval loadedDataInterval;

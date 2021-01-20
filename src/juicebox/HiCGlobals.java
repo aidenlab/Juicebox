@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "1.23.06";
+    public static final String versionNum = "2.00.01";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -63,6 +63,7 @@ public class HiCGlobals {
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
     // min hic file version supported
     public static final int minVersion = 6;
+    public static final int writingVersion = 9;
     public static final int bufferSize = 2097152;
 
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
@@ -101,6 +102,13 @@ public class HiCGlobals {
         if (version < minVersion) {
             throw new RuntimeException("This file is version " + version +
                     ". Only versions " + minVersion + " and greater are supported at this time.");
+        }
+    }
+
+    public static void verifySupportedHiCFileWritingVersion(int version) throws RuntimeException {
+        if (version < writingVersion) {
+            throw new RuntimeException("This file is version " + version +
+                    ". Only versions " + writingVersion + " and greater can be edited using this jar.");
         }
     }
 

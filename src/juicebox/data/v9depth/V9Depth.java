@@ -22,43 +22,30 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.data.v9depth;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
+public abstract class V9Depth {
+    protected final int blockBinCount;
+    protected double BASE;
 
-
-public class AddGWNorm extends JuiceboxCLT {
-
-    private String file;
-    private int genomeWideResolution = -100;
-
-    public AddGWNorm() {
-        super("addGWNorm <input_HiC_file> <min resolution>");
+    V9Depth(int blockBinCount) {
+        this.blockBinCount = blockBinCount;
     }
 
-    @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            printUsageAndExit();
+    public static V9Depth setDepthMethod(int depthBase, int blockBinCount) {
+        if (depthBase > 1) {
+            return new LogDepth(depthBase, blockBinCount);
+        } else if (depthBase < 0) {
+            return new ConstantDepth(-depthBase, blockBinCount);
         }
-        file = args[1];
 
-        try {
-            genomeWideResolution = Integer.parseInt(args[2]);
-        } catch (NumberFormatException error) {
-            printUsageAndExit();
-        }
+        System.err.println("No valid depth specified. Using Log(2)");
+        return new LogDepth(2, blockBinCount);
     }
 
-    @Override
-    public void run() {
-        try {
-            System.err.println("Please use AddNorm to handle the addition of genomewide normalizations");
-            //GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public int getDepth(int val1, int val2) {
+        return logBase(Math.abs(val1 - val2) / Math.sqrt(2) / blockBinCount);
     }
+
+    protected abstract int logBase(double value);
 }

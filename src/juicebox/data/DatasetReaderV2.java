@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -291,6 +291,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return dataset.getNormalizationVector(chr1Idx, zoom, normalizationType);
     }
 
+    @Override
+    public int getDepthBase() {
+        return dataset.getDepthBase();
+    }
+
     private Pair<MatrixZoomData, Long> readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
                                                           long filePointer) throws IOException {
         stream.seek(filePointer);
@@ -438,7 +443,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             buffer = new byte[4];
             stream.read(buffer);
             dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
-            nBytes = (long) dis.readInt();
+            nBytes = dis.readInt();
             currentPosition += 4;
             normVectorFilePosition = masterIndexPos + nBytes + 4;  // 4 bytes for the buffer size
         }
@@ -504,7 +509,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 //System.out.println(binSize + " " + nValues + " " + stream.position());
                 for (long j = 0; j < nValues; j++) {
                     if (version > 8) {
-                        values.set(j, (double) dis.readFloat());
+                        values.set(j, dis.readFloat());
                         currentPosition += 4;
                     } else {
                         values.set(j, dis.readDouble());
@@ -579,8 +584,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             //dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
             dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
+            int nNormExpectedValueVectors;
             try {
-                nExpectedValues = dis.readInt();
+                nNormExpectedValueVectors = dis.readInt();
                 currentPosition += 4;
                 //System.out.println(nExpectedValues);
             } catch (EOFException | HttpResponseException e) {
@@ -590,7 +596,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 return;
             }
 
-            for (int i = 0; i < nExpectedValues; i++) {
+            for (int i = 0; i < nNormExpectedValueVectors; i++) {
                 String typeString = dis.readString();
                 currentPosition += (typeString.length() + 1);
                 String unitString = dis.readString();
@@ -615,7 +621,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     ListOfDoubleArrays values = new ListOfDoubleArrays(nValues);
                     for (long j = 0; j < nValues; j++) {
                         if (version > 8) {
-                            values.set(j, (double) dis.readFloat());
+                            values.set(j, dis.readFloat());
                             currentPosition += 4;
                         } else {
                             values.set(j, dis.readDouble());
@@ -680,11 +686,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
 
             // Normalization vectors (indexed)
+            System.out.println("NVI " + currentPosition);
 
-            nEntries = dis.readInt();
+            int nNormVectors = dis.readInt();
             //System.out.println(nEntries);
-            normVectorIndex = new HashMap<>(nEntries * 2);
-            for (int i = 0; i < nEntries; i++) {
+            normVectorIndex = new HashMap<>(nNormVectors * 2);
+            for (int i = 0; i < nNormVectors; i++) {
 
                 NormalizationType type = dataset.getNormalizationHandler().getNormTypeFromString(dis.readString());
                 int chrIdx = dis.readInt();

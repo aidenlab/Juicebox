@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
 
 package juicebox.track;
 
-import org.broad.igv.Globals;
-
 /**
  * @author jrobinso
  *         Date: 9/14/12
@@ -37,6 +35,7 @@ public class HiCFragmentAxis implements HiCGridAxis {
     private final int igvZoom;
     private final int[] sites;
     private final long chrLength;
+    private final double log2 = Math.log(2.0D);
     
     
     /**
@@ -51,7 +50,7 @@ public class HiCFragmentAxis implements HiCGridAxis {
         
         // Compute an approximate igv zoom level
         double averageBinSizeInBP = ((double) this.chrLength) / (sites.length + 1) * binSize;
-        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / Globals.log2);
+        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / log2);
     }
     
     

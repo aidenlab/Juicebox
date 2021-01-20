@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.v9depth.V9Depth;
 import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.tdf.BufferedByteWriter;
@@ -58,6 +59,7 @@ public class MatrixZoomDataPP {
     private double percent5;
     private double percent95;
     public static int BLOCK_CAPACITY = 1000;
+    private final V9Depth v9Depth;
 
     /**
      * Representation of MatrixZoomData used for preprocessing
@@ -69,7 +71,7 @@ public class MatrixZoomDataPP {
      * @param zoom             integer zoom (resolution) level index.  TODO Is this needed?
      */
     MatrixZoomDataPP(Chromosome chr1, Chromosome chr2, int binSize, int blockColumnCount, int zoom, boolean isFrag,
-                     FragmentCalculation fragmentCalculation, int countThreshold) {
+                     FragmentCalculation fragmentCalculation, int countThreshold, int v9BaseDepth) {
         this.tmpFiles = new ArrayList<>();
         this.blockNumbers = new HashSet<>(BLOCK_CAPACITY);
         this.countThreshold = countThreshold;
@@ -90,6 +92,7 @@ public class MatrixZoomDataPP {
 
         blockBinCount = nBinsX / blockColumnCount + 1;
         blocks = new LinkedHashMap<>(blockColumnCount);
+        v9Depth = V9Depth.setDepthMethod(v9BaseDepth, blockBinCount);
     }
 
     HiC.Unit getUnit() {
@@ -139,10 +142,6 @@ public class MatrixZoomDataPP {
         return blockColumnCount;
     }
 
-    private static int log2(double v) {
-        return (int) (Math.log(v) / Math.log(2));
-    }
-
     Map<Integer, BlockPP> getBlocks() {
         return blocks;
     }
@@ -183,7 +182,7 @@ public class MatrixZoomDataPP {
             }
 
             //compute intra chromosomal block number (version 9 and up)
-            int depth = log2(1 + Math.abs(xBin - yBin) / Math.sqrt(2) / blockBinCount);
+            int depth = v9Depth.getDepth(xBin, yBin);
             int positionAlongDiagonal = ((xBin + yBin) / 2 / blockBinCount);
             blockNumber = depth * blockColumnCount + positionAlongDiagonal;
         }
@@ -280,7 +279,7 @@ public class MatrixZoomDataPP {
             }
 
             //compute intra chromosomal block number (version 9 and up)
-            int depth = log2(1 + Math.abs(xBin - yBin) / Math.sqrt(2) / blockBinCount);
+            int depth = v9Depth.getDepth(xBin, yBin);
             int positionAlongDiagonal = ((xBin + yBin) / 2 / blockBinCount);
             blockNumber = depth * blockColumnCount + positionAlongDiagonal;
         }
