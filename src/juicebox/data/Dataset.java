@@ -245,7 +245,7 @@ public class Dataset {
     public void setAttributes(Map<String, String> map) {
         this.attributes = map;
         try {
-            v9DepthBase = Integer.parseInt(attributes.get("v9-depth-base"));
+            v9DepthBase = Integer.parseInt(attributes.get(Preprocessor.V9_DEPTH_BASE));
         } catch (Exception e) {
             v9DepthBase = 0;
         }

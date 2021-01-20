@@ -52,6 +52,7 @@ public class Preprocessor {
     
     protected static final int VERSION = 9;
     protected static final int BLOCK_SIZE = 1000;
+    public static final String V9_DEPTH_BASE = "v9-depth-base";
     protected int v9DepthBase = 2;
     public static final String HIC_FILE_SCALING = "hicFileScalingFactor";
     public static final String STATISTICS = "statistics";
@@ -130,7 +131,9 @@ public class Preprocessor {
     }
 
     public void setV9DepthBase(int v9DepthBase) {
-        this.v9DepthBase = v9DepthBase;
+        if (v9DepthBase > 1 || v9DepthBase < 0) {
+            this.v9DepthBase = v9DepthBase;
+        }
     }
 
     public void setMapqThreshold(int mapqThreshold) {
@@ -484,6 +487,7 @@ public class Preprocessor {
         if (stats != null) nAttributes += 1;
         if (graphs != null) nAttributes += 1;
         if (hicFileScaling != null) nAttributes += 1;
+        if (v9DepthBase != 2) nAttributes += 1;
     
         los.writeInt(nAttributes);
         los.writeString(SOFTWARE);
@@ -499,6 +503,10 @@ public class Preprocessor {
         if (hicFileScaling != null) {
             los.writeString(HIC_FILE_SCALING);
             los.writeString(hicFileScaling.toString());
+        }
+        if (v9DepthBase != 2) {
+            los.writeString(V9_DEPTH_BASE);
+            los.writeString("" + v9DepthBase);
         }
 
 
