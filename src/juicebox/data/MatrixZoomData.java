@@ -503,7 +503,7 @@ public class MatrixZoomData {
                                          final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
-        ExecutorService service = Executors.newFixedThreadPool(200);
+        ExecutorService service = HiCGlobals.newFixedThreadPool();
 
         final int binSize = getBinSize();
         final int chr1Index = chr1.getIndex();

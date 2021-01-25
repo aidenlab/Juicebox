@@ -515,10 +515,8 @@ public class MatrixZoomDataPP {
             binYMax = Math.max(binYMax, point.y);
         }
 
-
         buffer.putInt(binXOffset);
         buffer.putInt(binYOffset);
-
 
         // Sort keys in row-major order
         List<Point> keys = new ArrayList<>(records.keySet());

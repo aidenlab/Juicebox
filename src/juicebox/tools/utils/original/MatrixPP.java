@@ -36,10 +36,12 @@ import java.util.Map;
 
 public class MatrixPP {
 
+    private static final int INTRA_CUTOFF = 500;
+    private static final int INTER_CUTOFF = 5000;
+    private final int MAX_SQRT = (int) Math.sqrt(Integer.MAX_VALUE);
     private final int chr1Idx;
     private final int chr2Idx;
     private final MatrixZoomDataPP[] zoomData;
-
 
     /**
      * Constructor for creating a matrix and initializing zoomed data at predefined resolution scales.  This
@@ -78,9 +80,9 @@ public class MatrixPP {
             int nBins = (int) (len / binSize + 1);   // Size of chrom in bins
             int nColumns;
             if (chrom1.equals(chrom2)) {
-                nColumns = getNumColumnsFromNumBinsIntra(nBins, binSize);
+                nColumns = getNumColumnsFromNumBins(nBins, binSize, INTRA_CUTOFF);
             } else {
-                nColumns = getNumColumnsFromNumBinsInter(nBins, binSize);
+                nColumns = getNumColumnsFromNumBins(nBins, binSize, INTER_CUTOFF);
             }
             zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold, v9DepthBase);
             zoom++;
@@ -97,45 +99,21 @@ public class MatrixPP {
             for (int idx = bpBinSizes.length; idx < nResolutions; idx++) {
                 int binSize = fragBinSizes[zoom];
                 int nBins = nFragBins1 / binSize + 1;
-                int nColumns = getNumColumnsFromNumBins(nBins);
+                int nColumns = getNumColumnsFromNumBins(nBins, binSize, 0);
                 zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, true, fragmentCalculation, countThreshold, v9DepthBase);
                 zoom++;
             }
         }
     }
 
-    private int getNumColumnsFromNumBins(int nBins) {
+    private int getNumColumnsFromNumBins(int nBins, int binSize, int cutoff) {
         int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
-        if (nColumns > Math.sqrt(Integer.MAX_VALUE)) {
-            nColumns = (int) Math.sqrt(Integer.MAX_VALUE) - 1;
-        }
-        return nColumns;
-    }
-
-    private int getNumColumnsFromNumBinsIntra(int nBins, int binSize) {
-        int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
-        if (binSize < 500) {
+        if (binSize < cutoff) {
             long numerator = (long) nBins * binSize;
-            long denominator = (long) Preprocessor.BLOCK_SIZE * 500;
+            long denominator = (long) Preprocessor.BLOCK_SIZE * cutoff;
             nColumns = (int) (numerator / denominator) + 1;
         }
-        if (nColumns > Math.sqrt(Integer.MAX_VALUE)) {
-            nColumns = (int) Math.sqrt(Integer.MAX_VALUE) - 1;
-        }
-        return nColumns;
-    }
-
-    private int getNumColumnsFromNumBinsInter(int nBins, int binSize) {
-        int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
-        if (binSize < 5000) {
-            long numerator = (long) nBins * binSize;
-            long denominator = (long) Preprocessor.BLOCK_SIZE * 5000;
-            nColumns = (int) (numerator / denominator) + 1;
-        }
-        if (nColumns > Math.sqrt(Integer.MAX_VALUE)) {
-            nColumns = (int) Math.sqrt(Integer.MAX_VALUE) - 1;
-        }
-        return nColumns;
+        return Math.min(nColumns, MAX_SQRT - 1);
     }
 
     /**

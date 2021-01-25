@@ -28,6 +28,8 @@ import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Muhammad Shamim
@@ -36,7 +38,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.00.02";
+    public static final String versionNum = "2.00.04";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -146,6 +148,26 @@ public class HiCGlobals {
         if (isBold)
             return new Font("Arial", Font.BOLD, size);
         return new Font("Arial", Font.PLAIN, size);
+    }
+
+    public static int getIdealThreadCount() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        long mTotalMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        int mAvailableProcessors = runtime.availableProcessors();
+
+        long mTotalFreeMemory = freeMemory + (maxMemory - mTotalMemory);
+        int mRtnValue = (int) (mTotalFreeMemory / 4200000000l);
+
+        int mNoOfThreads = mAvailableProcessors - 1;
+        if (mNoOfThreads < mRtnValue) mRtnValue = mNoOfThreads;
+
+        return mRtnValue;
+    }
+
+    public static ExecutorService newFixedThreadPool() {
+        return Executors.newFixedThreadPool(getIdealThreadCount());
     }
 
     public enum menuType {MAP, LOCATION, STATE}

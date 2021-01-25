@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
 public class CustomNormVectorFileHandler extends NormVectorUpdater {
@@ -137,7 +136,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             }
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        ExecutorService executor = HiCGlobals.newFixedThreadPool();
         for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
             final Map<String, NormalizationVector> normVectorsByChrAndZoom = normalizationVectorMap.get(customNormType);
             final Set<String> keySet = new HashSet<>(normVectorsByChrAndZoom.keySet());
@@ -284,7 +283,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     nextLine = vectorReader.readLine();
                     // List<Double> data = new ArrayList<Double>();
                     while (nextLine != null && !(nextLine.startsWith("vector"))) {
-                        if (nextLine.toLowerCase().equals("nan") || nextLine.equals(".")) {
+                        if (nextLine.equalsIgnoreCase("nan") || nextLine.equals(".")) {
                             data.set(i, Double.NaN);
                         } else {
                             data.set(i, Double.parseDouble(nextLine));

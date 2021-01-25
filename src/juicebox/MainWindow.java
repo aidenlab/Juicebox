@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ public class MainWindow extends JFrame {
     public static Cursor groupNECursor;
     public static Cursor groupSWCursor;
     private static MainWindow theInstance;
-    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
+    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
     private final HiC hic; // The "model" object containing the state for this instance.
 
     private MainWindow() {
