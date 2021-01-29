@@ -151,19 +151,7 @@ public class HiCGlobals {
     }
 
     public static int getIdealThreadCount() {
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemory = runtime.maxMemory();
-        long mTotalMemory = runtime.totalMemory();
-        long freeMemory = runtime.freeMemory();
-        int mAvailableProcessors = runtime.availableProcessors();
-
-        long mTotalFreeMemory = freeMemory + (maxMemory - mTotalMemory);
-        int mRtnValue = (int) (mTotalFreeMemory / 4200000000l);
-
-        int mNoOfThreads = mAvailableProcessors - 1;
-        if (mNoOfThreads < mRtnValue) mRtnValue = mNoOfThreads;
-
-        return mRtnValue;
+        return Math.max(1, Runtime.getRuntime().availableProcessors());
     }
 
     public static ExecutorService newFixedThreadPool() {
