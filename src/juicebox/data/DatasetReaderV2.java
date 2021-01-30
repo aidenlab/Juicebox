@@ -72,6 +72,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private final Map<String, BlockIndex> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
+    private long nviHeaderPosition;
     private boolean activeStatus = true;
     private final AtomicBoolean useMainStream = new AtomicBoolean();
     public static double[] globalTimeDiffThings = new double[5];
@@ -105,11 +106,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             // will set genomeId below
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
-    
+
             if (version > 8) {
                 // read NVI todo
-                dis.readLong();
-                dis.readLong();
+                nviHeaderPosition = position;
+                long nvi = dis.readLong();
+                long nviSize = dis.readLong();
+                System.err.println(nvi + " " + nviSize);
                 position += 16;
             }
     
@@ -418,6 +421,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     @Override
     public int getVersion() {
         return version;
+    }
+
+    public long getNviHeaderPosition() {
+        return nviHeaderPosition;
     }
 
     private void readFooter(long position) throws IOException {

@@ -169,14 +169,15 @@ public class NormVectorUpdater {
                                        List<BufferedByteWriter> normVectorBuffers, String message) throws IOException {
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
+        long nviHeaderPosition = reader.getNviHeaderPosition();
+
         reader.close();
-        System.out.println();
         if (useCalcNotFunc) {
             update(path, version, filePosition, expectedValueCalculations, normVectorIndices,
-                    normVectorBuffers);
+                    normVectorBuffers, nviHeaderPosition);
         } else {
             update(path, version, filePosition, expectedValueFunctionMap, normVectorIndices,
-                    normVectorBuffers);
+                    normVectorBuffers, nviHeaderPosition);
         }
 
         System.out.println(message);
@@ -184,7 +185,7 @@ public class NormVectorUpdater {
 
 
     private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
-                               List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers) throws IOException {
+                               List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
 
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);
@@ -192,19 +193,19 @@ public class NormVectorUpdater {
             expectedBuffers.add(new BufferedByteWriter());
             writeExpectedValues(expectedBuffers, expectedValueCalculations);
             writeExpectedToBuffer(raf, expectedBuffers, filePosition);
-            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers);
+            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers, nviHeaderPosition);
         }
     }
 
     static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                       List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers) throws IOException {
+                       List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
             handleVersionSix(raf, version);
             List<BufferedByteWriter> expectedBuffers = new ArrayList<>();
             expectedBuffers.add(new BufferedByteWriter());
             writeExpectedValues(expectedBuffers, expectedValueFunctionMap);
             writeExpectedToBuffer(raf, expectedBuffers, filePosition);
-            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers);
+            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers, nviHeaderPosition);
         }
     }
 
@@ -307,11 +308,23 @@ public class NormVectorUpdater {
         }
     }
 
-    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers) throws IOException {
+    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
         // Get the size of the index in bytes, to compute an offset for the actual entries.
         BufferedByteWriter buffer = new BufferedByteWriter();
         writeNormIndex(buffer, normVectorIndex);
         long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
+        long size = buffer.bytesWritten();
+        long NVI =  normVectorStartPosition - size;
+        // write NVI, size
+        raf.getChannel().position(nviHeaderPosition);
+
+        BufferedByteWriter headerbuffer = new BufferedByteWriter();
+        headerbuffer.putLong(NVI);
+        headerbuffer.putLong(size);
+        raf.write(headerbuffer.getBytes());
+
+        // reset pointer to where we were
+        raf.getChannel().position(NVI);
 
         // Update index entries
         for (NormalizationVectorIndexEntry entry : normVectorIndex) {
@@ -322,7 +335,6 @@ public class NormVectorUpdater {
         buffer = new BufferedByteWriter();
         writeNormIndex(buffer, normVectorIndex);
         raf.write(buffer.getBytes());
-
         // Finally the norm vectors
         for (int i=0; i<normVectorBuffers.size(); i+=1) {
             raf.write(normVectorBuffers.get(i).getBytes());

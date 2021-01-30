@@ -107,10 +107,11 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
+        long nviHeaderPosition = reader.getNviHeaderPosition();
         reader.close();
         System.out.println();
         NormalizationVectorUpdater.update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
-                normVectorBuffers);
+                normVectorBuffers, nviHeaderPosition);
         System.out.println("Finished normalization");
     }
 
