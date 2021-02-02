@@ -54,16 +54,6 @@ public class TileManager {
         NormalizationType observedNormalizationType = hic.getObsNormalizationType();
         NormalizationType controlNormalizationType = hic.getControlNormalizationType();
 
-        //In case of change to map settings, get map color limits and update slider:
-        //TODO: || might not catch all changed at once, if more then one parameter changed...
-        if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
-            //In case render is called as a result of zoom change event, check if
-            //We need to update slider with map range:
-            String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
-            renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
-            //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
-        }
-
         // tile numbers
         int tLeft = (int) (binOriginX / imageTileWidth);
         int tRight = (int) Math.ceil(bRight / imageTileWidth);
@@ -159,6 +149,17 @@ public class TileManager {
                 }
             }
         }
+
+        //In case of change to map settings, get map color limits and update slider:
+        //TODO: || might not catch all changed at once, if more then one parameter changed...
+        if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
+            //In case render is called as a result of zoom change event, check if
+            //We need to update slider with map range:
+            String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
+            renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
+            //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
+        }
+
         return allTilesNull;
     }
 
