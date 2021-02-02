@@ -39,8 +39,10 @@ import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 
 /**
  * @author jrobinso
@@ -62,21 +64,12 @@ public class HeatmapRenderer {
         return zd.getColorScaleKey(displayOption, obsNorm, ctrlNorm);
     }
 
-    public boolean render(int originX,
-                          int originY,
-                          int width,
-                          int height,
-                          final MatrixZoomData zd,
-                          final MatrixZoomData controlZD,
+    public boolean render(int originX, int originY, int width, int height,
+                          final MatrixZoomData zd, final MatrixZoomData controlZD,
                           final MatrixType displayOption,
-                          final NormalizationType observedNormalizationType,
-                          final NormalizationType controlNormalizationType,
-                          final ExpectedValueFunction df,
-                          final ExpectedValueFunction controlDF,
-                          Graphics2D g,
-                          boolean isImportant) {
-
-
+                          final NormalizationType observedNormalizationType, final NormalizationType controlNormalizationType,
+                          final ExpectedValueFunction df, final ExpectedValueFunction controlDF,
+                          Graphics2D g, boolean isImportant) {
         g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
@@ -106,12 +99,8 @@ public class HeatmapRenderer {
         String key = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
         String controlKey = zd.getColorScaleKey(displayOption, observedNormalizationType, controlNormalizationType);
 
-
-        float pseudocountObs;
-        float pseudocountCtrl;
-
-        pseudocountObs = PSEUDOCOUNT;
-        pseudocountCtrl = PSEUDOCOUNT;
+        float pseudocountObs = PSEUDOCOUNT;
+        float pseudocountCtrl = PSEUDOCOUNT;
 
         switch (displayOption) {
             case NORM2: {
@@ -194,79 +183,18 @@ public class HeatmapRenderer {
             case LOGCEO: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
-                float averageCount = (float) controlZD.getAverageCount();
-
                 ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                if (sameChr) {
-                    if (controlDF != null) {
-                        for (Block b : ctrlBlocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : ctrlBlocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-
-                                float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
+                renderLogObservedBaseExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD, cs,
+                        sameChr, originX, originY, width, height);
                 break;
             }
             case VS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (blocks == null && ctrlBlocks == null) return false;
-
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
                 float averageCount = (float) zd.getAverageCount();
                 float ctrlAverageCount = (float) controlZD.getAverageCount();
@@ -329,12 +257,8 @@ public class HeatmapRenderer {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (blocks == null && ctrlBlocks == null) return false;
-
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
                 float averageCount = (float) zd.getAverageCount();
                 float ctrlAverageCount = (float) controlZD.getAverageCount();
@@ -397,13 +321,7 @@ public class HeatmapRenderer {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (blocks == null && ctrlBlocks == null) return false;
                 if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-
-                ColorScale cs;
-                if (blocks.isEmpty()) {
-                    cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                } else {
-                    cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-                }
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
                 renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
                         zd, controlZD, cs, sameChr, originX, originY, width, height, 0, 0);
@@ -430,14 +348,9 @@ public class HeatmapRenderer {
             case LOGEOVS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
-
                 if (blocks == null && ctrlBlocks == null) return false;
-
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
                 if (zd != null && blocks != null && df != null) {
                     for (Block b : blocks) {
@@ -493,14 +406,9 @@ public class HeatmapRenderer {
             case OCMEVS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
-
                 if (blocks == null && ctrlBlocks == null) return false;
-
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
                 if (zd != null && blocks != null && df != null) {
                     for (Block b : blocks) {
@@ -731,139 +639,12 @@ public class HeatmapRenderer {
                 break;
             }
             case LOGEO: {
-
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 if (blocks == null || zd == null) return false;
-
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-                float averageCount = (float) zd.getAverageCount();
 
-                if (sameChr) {
-                    if (df != null) {
-                        for (Block b : blocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) df.getExpectedValue(chr1, dist);
-
-                                    float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : blocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-                                float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                break;
-            }
-            case METALOGEO: {
-
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
-                if (blocks == null || zd == null) return false;
-
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-                float averageCount = (float) zd.getAverageCount();
-
-                if (sameChr) {
-                    if (df != null) {
-                        for (Block b : blocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) df.getExpectedValue(chr1, dist);
-
-                                    float score = (float) ((Math.log(rec.getCounts() + 1) + 1) / (Math.log(expected + 1) + 1));
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : blocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-                                float score = (float) ((Math.log(rec.getCounts() + 1) + 1) / (Math.log(expected + 1) + 1));
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
-
+                renderLogObservedBaseExpectedMap(g, chr1, blocks, df, zd,
+                        cs, sameChr, originX, originY, width, height);
                 break;
             }
             case EXPLOGEO: {
@@ -916,75 +697,6 @@ public class HeatmapRenderer {
                             float expected = (averageCount > 0 ? averageCount : 1);
                             for (ContactRecord rec : recs) {
                                 float score = (float) Math.exp((Math.log(rec.getCounts() + 1) / Math.log(expected + 1)));
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                break;
-            }
-            case EXPLOGEOINV: {
-
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
-                if (blocks == null || zd == null) return false;
-
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-                float averageCount = (float) zd.getAverageCount();
-                final double scalar = Math.log(10);
-
-                if (sameChr) {
-                    if (df != null) {
-                        for (Block b : blocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) df.getExpectedValue(chr1, dist);
-
-                                    float score = (float) Math.exp(Math.log(expected + 1) / (Math.log(rec.getCounts() + 1)));
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : blocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-                                float score = (float) Math.exp(Math.log(expected + 1) / (Math.log(rec.getCounts() + 1)));
                                 if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                                 Color color = cs.getColor(score);
@@ -1958,6 +1670,78 @@ public class HeatmapRenderer {
             }
         }
         return true;
+    }
+
+    private ColorScale getColorScale(String key, MatrixType displayOption, boolean isWholeGenome, List<Block> blocks, List<Block> ctrlBlocks, float v) {
+        if (blocks.isEmpty()) {
+            return getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+        } else {
+            return getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+        }
+    }
+
+    private void renderLogObservedBaseExpectedMap(Graphics2D g, int chrom, List<Block> blocks, ExpectedValueFunction df,
+                                                  MatrixZoomData zd, ColorScale cs, boolean sameChr,
+                                                  int originX, int originY, int width, int height) {
+        if (sameChr) {
+            if (df != null) {
+                for (Block b : blocks) {
+                    Collection<ContactRecord> recs = b.getContactRecords();
+                    if (recs != null) {
+                        for (ContactRecord rec : recs) {
+                            int binX = rec.getBinX();
+                            int binY = rec.getBinY();
+                            int dist = Math.abs(binX - binY);
+                            float expected = (float) df.getExpectedValue(chrom, dist);
+
+                            float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
+                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                            Color color = cs.getColor(score);
+                            g.setColor(color);
+
+                            int px = binX - originX;
+                            int py = binY - originY;
+                            if (px > -1 && py > -1 && px <= width && py <= height) {
+                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                            }
+
+                            if (binX != binY) {
+                                px = binY - originX;
+                                py = binX - originY;
+                                if (px > -1 && py > -1 && px <= width && py <= height) {
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            float averageCount = (float) zd.getAverageCount();
+            float expected = (averageCount > 0 ? averageCount : 1);
+
+            for (Block b : blocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+                        float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                        Color color = cs.getColor(score);
+                        g.setColor(color);
+
+                        int binX = rec.getBinX();
+                        int binY = rec.getBinY();
+                        int px = binX - originX;
+                        int py = binY - originY;
+                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void renderObservedOverExpectedVSMap(Graphics2D g, int chrom, List<Block> blocks, List<Block> ctrlBlocks,
