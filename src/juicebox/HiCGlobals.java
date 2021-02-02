@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.01.10";
+    public static final String versionNum = "2.01.11";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -50,13 +50,13 @@ public class HiCGlobals {
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final Color DARKULA_RULER_LINE_COLOR = new Color(200, 200, 250, 100);
 
-    public static final int BIN_PIXEL_WIDTH = 1;
+
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
-    public static float PSEUDOCOUNT = 1f;
+
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;
@@ -88,9 +88,6 @@ public class HiCGlobals {
     public static boolean displayTiles = false;
     public static boolean isDarkulaModeEnabled = false;
     public static boolean isAssemblyMatCheck = false;
-
-
-    // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
     public static final boolean isDevAssemblyToolsAllowedPublic = true;

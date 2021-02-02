@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
-import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.MatrixType;
@@ -47,70 +46,16 @@ import java.util.*;
  * @author jrobinso
  * @since Aug 11, 2010
  */
-class HeatmapRenderer {
+public class HeatmapRenderer {
 
     private final PearsonColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
-    private final PreDefColorScale preDefColorScale;
+    private static final int PIXEL_WIDTH = 1;
+    public static float PSEUDOCOUNT = 1f;
 
     public HeatmapRenderer() {
-
         pearsonColorScale = new PearsonColorScale();
-
-        preDefColorScale = new PreDefColorScale("Template",
-                new Color[]{
-                        new Color(18, 129, 242),
-                        new Color(113, 153, 89),
-                        new Color(117, 170, 101),
-                        new Color(149, 190, 113),
-                        new Color(178, 214, 117),
-                        new Color(202, 226, 149),
-                        new Color(222, 238, 161),
-                        new Color(242, 238, 161),
-                        new Color(238, 222, 153),
-                        new Color(242, 206, 133),
-                        new Color(234, 182, 129),
-                        new Color(218, 157, 121),
-                        new Color(194, 141, 125),
-                        new Color(214, 157, 145),
-                        new Color(226, 174, 165),
-                        new Color(222, 186, 182),
-                        new Color(238, 198, 210),
-                        new Color(255, 206, 226),
-                        new Color(250, 218, 234),
-                        new Color(255, 222, 230),
-                        new Color(255, 230, 242),
-                        new Color(255, 242, 255),
-                        new Color(255, 0, 0)
-                },
-                // elevation
-                new int[]{
-                        -1,
-                        0,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18,
-                        19,
-                        20,
-                        100
-                }
-        );
     }
 
     public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption, NormalizationType obsNorm, NormalizationType ctrlNorm) {
@@ -165,43 +110,18 @@ class HeatmapRenderer {
         float pseudocountObs;
         float pseudocountCtrl;
 
-        // todo simple syntax to allow switching
-        try {
-            pseudocountObs = (float) zd.getAverageCount();
-        } catch (Exception e) {
-            pseudocountObs = HiCGlobals.PSEUDOCOUNT;
-        }
-
-        try {
-            pseudocountCtrl = (float) controlZD.getAverageCount();
-        } catch (Exception e) {
-            pseudocountCtrl = HiCGlobals.PSEUDOCOUNT;
-        }
-
-        pseudocountObs = HiCGlobals.PSEUDOCOUNT;
-        pseudocountCtrl = HiCGlobals.PSEUDOCOUNT;
+        pseudocountObs = PSEUDOCOUNT;
+        pseudocountCtrl = PSEUDOCOUNT;
 
         switch (displayOption) {
             case NORM2: {
-                BasicMatrix bm = zd.getNormSquared(observedNormalizationType);
-                double percentile = isWholeGenome ? 99 : 95;
-                float max = computePercentile(bm, percentile);
-
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
-
-                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
-
+                renderNorm2(g, zd, isWholeGenome, observedNormalizationType, key, displayOption,
+                        originX, originY, width, height);
                 break;
             }
             case NORM2CTRL: {
-                BasicMatrix bm = controlZD.getNormSquared(controlNormalizationType);
-                double percentile = isWholeGenome ? 99 : 95;
-                float max = computePercentile(bm, percentile);
-
-                ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, null, max);
-
-                renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
-
+                renderNorm2(g, controlZD, isWholeGenome, controlNormalizationType, controlKey, displayOption,
+                        originX, originY, width, height);
                 break;
             }
             case NORM2OBSVSCTRL: {
@@ -209,27 +129,13 @@ class HeatmapRenderer {
                     System.err.println("Control DF is NULL");
                     return false;
                 }
-
-                BasicMatrix bm1 = zd.getNormSquared(observedNormalizationType);
-                BasicMatrix bm2 = controlZD.getNormSquared(controlNormalizationType);
-
-                double percentile = isWholeGenome ? 99 : 95;
-                float max = computePercentile(bm1, percentile) + computePercentile(bm2, percentile);
-
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
-
-                renderDenseMatrix(bm1, bm2, originX, originY, width, height, null, key, g, cs);
+                renderNorm2VS(g, zd, controlZD, isWholeGenome, observedNormalizationType,
+                        controlNormalizationType, key, controlKey, displayOption,
+                        originX, originY, width, height);
                 break;
             }
             case PEARSON: {
-                BasicMatrix bm = zd.getPearsons(df);
-
-                if (pearsonColorScale.doesNotContainKey(key)) {
-                    pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
-                }
-
-                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
-
+                renderPearsons(g, zd, df, key, originX, originY, width, height);
                 break;
             }
             case PEARSONCTRL: {
@@ -237,14 +143,7 @@ class HeatmapRenderer {
                     System.err.println("Control DF is NULL");
                     return false;
                 }
-
-                BasicMatrix bm = controlZD.getPearsons(controlDF);
-
-                if (pearsonColorScale.doesNotContainKey(controlKey)) {
-                    pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
-                }
-                renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
-
+                renderPearsons(g, controlZD, controlDF, controlKey, originX, originY, width, height);
                 break;
             }
             case PEARSONVS: {
@@ -253,223 +152,43 @@ class HeatmapRenderer {
                     System.err.println("Control DF is NULL");
                     return false;
                 }
-
-                BasicMatrix bm1 = zd.getPearsons(df);
-                BasicMatrix bm2 = controlZD.getPearsons(controlDF);
-
-                if (pearsonColorScale.doesNotContainKey(key)) {
-                    float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
-                    float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
-                    pearsonColorScale.setMinMax(key, min, max);
-                }
-
-                renderDenseMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g, null);
+                renderPearsonsVS(g, zd, controlZD, df, controlDF, key, controlKey, originX, originY, width, height);
                 break;
             }
             case CONTROL: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
-
                 ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                for (Block b : ctrlBlocks) {
-                    Collection<ContactRecord> recs = b.getContactRecords();
-                    if (recs != null) {
-                        for (ContactRecord rec : recs) {
-                            float score = rec.getCounts();
-                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
-                            int binX = rec.getBinX();
-                            int binY = rec.getBinY();
-                            int px = binX - originX;
-                            int py = binY - originY;
-
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                            }
-
-                            if (sameChr && binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
+                renderSimpleMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
                 break;
             }
             case LOGC: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
-
                 ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                for (Block b : ctrlBlocks) {
-                    Collection<ContactRecord> recs = b.getContactRecords();
-                    if (recs != null) {
-                        for (ContactRecord rec : recs) {
-                            float score = (float) Math.log(1 + rec.getCounts());
-                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
-                            int binX = rec.getBinX();
-                            int binY = rec.getBinY();
-                            int px = binX - originX;
-                            int py = binY - originY;
-
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                            }
-
-                            if (sameChr && binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
+                renderSimpleLogMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
                 break;
             }
             case OECTRLV2:
             case OECTRL: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
-                float averageCount = (float) controlZD.getAverageCount();
-
                 ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                if (sameChr) {
-                    if (controlDF != null) {
-                        for (Block b : ctrlBlocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = rec.getCounts() / expected;
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : ctrlBlocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-                                float score = rec.getCounts() / expected;
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
-
-
+                renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
+                        cs, sameChr, originX, originY, width, height, 0);
                 break;
             }
             case OECTRLP1V2:
             case OECTRLP1: {
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
                 if (controlZD == null || ctrlBlocks == null) return false;
-                float averageCount = (float) controlZD.getAverageCount();
-
                 ColorScale cs = getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                if (sameChr) {
-                    if (controlDF != null) {
-                        for (Block b : ctrlBlocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                                    float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-
-                                    int px = binX - originX;
-                                    int py = binY - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                    }
-
-                                    if (binX != binY) {
-                                        px = binY - originX;
-                                        py = binX - originY;
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (Block b : ctrlBlocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            float expected = (averageCount > 0 ? averageCount : 1);
-                            for (ContactRecord rec : recs) {
-                                float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                Color color = cs.getColor(score);
-                                g.setColor(color);
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
-                }
+                renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
+                        cs, sameChr, originX, originY, width, height, pseudocountCtrl);
                 break;
             }
             case LOGCEO: {
@@ -498,14 +217,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -530,7 +249,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -572,7 +291,7 @@ class HeatmapRenderer {
                                 g.setColor(color);
 
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -597,7 +316,7 @@ class HeatmapRenderer {
                                     int px = (binY - originX);
                                     int py = (binX - originY);
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -639,7 +358,7 @@ class HeatmapRenderer {
                                 g.setColor(color);
 
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -663,7 +382,7 @@ class HeatmapRenderer {
                                     int px = (binY - originX);
                                     int py = (binX - originY);
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -676,134 +395,36 @@ class HeatmapRenderer {
             case OEVS: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
-
                 if (blocks == null && ctrlBlocks == null) return false;
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
 
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
-
-                if (zd != null && blocks != null && df != null) {
-                    for (Block b : blocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            for (ContactRecord rec : recs) {
-
-                                float score = rec.getCounts();
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) df.getExpectedValue(chr1, dist);
-                                    score = rec.getCounts() / expected;
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
+                ColorScale cs;
+                if (blocks.isEmpty()) {
+                    cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+                } else {
+                    cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
                 }
-                if (sameChr && controlZD != null && ctrlBlocks != null && controlDF != null) {
-                    for (Block b : ctrlBlocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            for (ContactRecord rec : recs) {
 
-                                float score = rec.getCounts();
-                                if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-
-                                if (binX != binY) {
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) controlDF.getExpectedValue(chr1, dist);
-                                    score = rec.getCounts() / expected;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-                                    int px = binY - originX;
-                                    int py = binX - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                        zd, controlZD, cs, sameChr, originX, originY, width, height, 0, 0);
                 break;
             }
             case OEVSP1V2:
             case OEVSP1: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant, false);
-
                 if (blocks == null && ctrlBlocks == null) return false;
+                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
 
-                List<Block> comboBlocks = new ArrayList<>();
-                if (blocks != null) comboBlocks.addAll(blocks);
-                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
-                if (comboBlocks.isEmpty()) return false;
-                ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks, 1f);
-
-                if (zd != null && blocks != null && df != null) {
-                    for (Block b : blocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            for (ContactRecord rec : recs) {
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
-                                int px = binX - originX;
-                                int py = binY - originY;
-
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) df.getExpectedValue(chr1, dist);
-                                    float score = (rec.getCounts() + pseudocountObs) / (expected + pseudocountObs);
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                }
-                            }
-                        }
-                    }
+                ColorScale cs;
+                if (blocks.isEmpty()) {
+                    cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+                } else {
+                    cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
                 }
-                if (sameChr && controlZD != null && ctrlBlocks != null && controlDF != null) {
-                    for (Block b : ctrlBlocks) {
-                        Collection<ContactRecord> recs = b.getContactRecords();
-                        if (recs != null) {
-                            for (ContactRecord rec : recs) {
-                                int binX = rec.getBinX();
-                                int binY = rec.getBinY();
 
-                                if (binX != binY) {
-                                    int dist = Math.abs(binX - binY);
-                                    float expected = (float) controlDF.getExpectedValue(chr1, dist);
-                                    float score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
-                                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                                    Color color = cs.getColor(score);
-                                    g.setColor(color);
-                                    int px = binY - originX;
-                                    int py = binX - originY;
-                                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                        zd, controlZD, cs, sameChr, originX, originY, width, height, pseudocountObs, pseudocountCtrl);
                 break;
             }
             case LOGEOVS: {
@@ -835,7 +456,7 @@ class HeatmapRenderer {
                                     if (Float.isNaN(score) || Float.isInfinite(score)) continue;
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -860,7 +481,7 @@ class HeatmapRenderer {
                                     int px = binY - originX;
                                     int py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -901,7 +522,7 @@ class HeatmapRenderer {
                                     score = rec.getCounts() - expected;
                                     Color color = cs.getColor(score);
                                     g.setColor(color);
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -929,7 +550,7 @@ class HeatmapRenderer {
                                     int px = binY - originX;
                                     int py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -954,7 +575,7 @@ class HeatmapRenderer {
                                 float expected = (float) df.getExpectedValue(chr1, dist);
                                 Color color = cs.getColor(expected);
                                 g.setColor(color);
-                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                             }
                         }
                     }
@@ -965,7 +586,7 @@ class HeatmapRenderer {
                     g.setColor(color);
                     for (int px = 0; px <= width; px++) {
                         for (int py = 0; py <= height; py++) {
-                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                         }
                     }
                 }
@@ -1000,14 +621,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1031,7 +652,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1069,14 +690,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1100,7 +721,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1137,14 +758,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1168,7 +789,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1205,14 +826,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1236,7 +857,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1274,14 +895,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1305,7 +926,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1343,14 +964,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1374,7 +995,7 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -1436,14 +1057,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1484,7 +1105,7 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -1546,14 +1167,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1594,7 +1215,7 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -1656,14 +1277,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1704,7 +1325,7 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -1765,14 +1386,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1813,7 +1434,7 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -1875,14 +1496,14 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
 
                                     if (binX != binY) {
                                         px = binY - originX;
                                         py = binX - originY;
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                         }
                                     }
                                 }
@@ -1923,7 +1544,7 @@ class HeatmapRenderer {
                                     int px = binX - originX;
                                     int py = binY - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -1977,14 +1598,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2037,14 +1658,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2097,14 +1718,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2155,14 +1776,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2213,14 +1834,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2273,14 +1894,14 @@ class HeatmapRenderer {
                                 int px = binX - originX;
                                 int py = binY - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && binX != binY) {
                                     px = binY - originX;
                                     py = binX - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
-                                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                     }
                                 }
                             }
@@ -2310,14 +1931,14 @@ class HeatmapRenderer {
                             int px = binX - originX;
                             int py = binY - originY;
                             if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                             }
 
                             if (sameChr && binX != binY) {
                                 px = binY - originX;
                                 py = binX - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
@@ -2329,41 +1950,254 @@ class HeatmapRenderer {
             default: {
                 List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant, false);
                 if (blocks == null) return false;
-
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
+                renderSimpleMap(g, blocks, cs, width, height, sameChr, originX, originY);
+
+                break;
+            }
+        }
+        return true;
+    }
+
+    private void renderObservedOverExpectedVSMap(Graphics2D g, int chrom, List<Block> blocks, List<Block> ctrlBlocks,
+                                                 ExpectedValueFunction df, ExpectedValueFunction controlDF,
+                                                 MatrixZoomData zd, MatrixZoomData controlZD, ColorScale cs,
+                                                 boolean sameChr, int originX, int originY, int width, int height,
+                                                 float pseudocountObs, float pseudocountCtrl) {
+        if (zd != null && blocks != null && df != null) {
+            for (Block b : blocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+
+                        float score = rec.getCounts();
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                        int binX = rec.getBinX();
+                        int binY = rec.getBinY();
+                        int px = binX - originX;
+                        int py = binY - originY;
+
+                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                            int dist = Math.abs(binX - binY);
+                            float expected = (float) df.getExpectedValue(chrom, dist);
+                            score = (rec.getCounts() + pseudocountObs) / (expected + pseudocountObs);
+                            Color color = cs.getColor(score);
+                            g.setColor(color);
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                        }
+                    }
+                }
+            }
+        }
+        if (sameChr && controlZD != null && ctrlBlocks != null && controlDF != null) {
+            for (Block b : ctrlBlocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+
+                        float score = rec.getCounts();
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                        int binX = rec.getBinX();
+                        int binY = rec.getBinY();
+
+                        if (binX != binY) {
+                            int dist = Math.abs(binX - binY);
+                            float expected = (float) controlDF.getExpectedValue(chrom, dist);
+                            score = (rec.getCounts() + pseudocountCtrl) / (expected + pseudocountCtrl);
+
+                            Color color = cs.getColor(score);
+                            g.setColor(color);
+                            int px = binY - originX;
+                            int py = binX - originY;
+                            if (px > -1 && py > -1 && px <= width && py <= height) {
+                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void renderObservedOverExpectedMap(Graphics2D g, int chrom, List<Block> blocks, ExpectedValueFunction df,
+                                               MatrixZoomData zd, ColorScale cs, boolean sameChr,
+                                               int originX, int originY, int width, int height, float pseudocount) {
+        if (sameChr) {
+            if (df != null) {
                 for (Block b : blocks) {
                     Collection<ContactRecord> recs = b.getContactRecords();
                     if (recs != null) {
                         for (ContactRecord rec : recs) {
-                            float score = rec.getCounts();
+                            int binX = rec.getBinX();
+                            int binY = rec.getBinY();
+                            int dist = Math.abs(binX - binY);
+                            float expected = (float) df.getExpectedValue(chrom, dist);
+
+                            float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
                             if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int binX = rec.getBinX();
-                            int binY = rec.getBinY();
                             int px = binX - originX;
                             int py = binY - originY;
                             if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                             }
 
-                            if (sameChr && binX != binY) {
+                            if (binX != binY) {
                                 px = binY - originX;
                                 py = binX - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                                 }
                             }
                         }
                     }
                 }
-                break;
+            }
+        } else {
+            float averageCount = (float) zd.getAverageCount();
+            float expected = (averageCount > 0 ? averageCount : 1);
+
+            for (Block b : blocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+                        float score = (rec.getCounts() + pseudocount) / (expected + pseudocount);
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                        Color color = cs.getColor(score);
+                        g.setColor(color);
+
+                        int binX = rec.getBinX();
+                        int binY = rec.getBinY();
+                        int px = binX - originX;
+                        int py = binY - originY;
+                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                        }
+                    }
+                }
             }
         }
-        return true;
+    }
+
+    private void renderSimpleMap(Graphics2D g, List<Block> blocks, ColorScale cs,
+                                 int width, int height, boolean sameChr, int originX, int originY) {
+        for (Block b : blocks) {
+            Collection<ContactRecord> recs = b.getContactRecords();
+            if (recs != null) {
+                for (ContactRecord rec : recs) {
+                    float score = rec.getCounts();
+                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                    int binX = rec.getBinX();
+                    int binY = rec.getBinY();
+                    int px = binX - originX;
+                    int py = binY - originY;
+
+                    Color color = cs.getColor(score);
+                    g.setColor(color);
+
+                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                    }
+
+                    if (sameChr && binX != binY) {
+                        px = binY - originX;
+                        py = binX - originY;
+                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void renderSimpleLogMap(Graphics2D g, List<Block> blocks, ColorScale cs,
+                                    int width, int height, boolean sameChr, int originX, int originY) {
+        for (Block b : blocks) {
+            Collection<ContactRecord> recs = b.getContactRecords();
+            if (recs != null) {
+                for (ContactRecord rec : recs) {
+                    float score = (float) Math.log(1 + rec.getCounts());
+                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+
+                    int binX = rec.getBinX();
+                    int binY = rec.getBinY();
+                    int px = binX - originX;
+                    int py = binY - originY;
+
+                    Color color = cs.getColor(score);
+                    g.setColor(color);
+
+                    if (px > -1 && py > -1 && px <= width && py <= height) {
+                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                    }
+
+                    if (sameChr && binX != binY) {
+                        px = binY - originX;
+                        py = binX - originY;
+                        if (px > -1 && py > -1 && px <= width && py <= height) {
+                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void renderPearsonsVS(Graphics2D g, MatrixZoomData zd, MatrixZoomData controlZD,
+                                  ExpectedValueFunction df, ExpectedValueFunction controlDF,
+                                  String key, String controlKey, int originX, int originY,
+                                  int width, int height) {
+        BasicMatrix bm1 = zd.getPearsons(df);
+        BasicMatrix bm2 = controlZD.getPearsons(controlDF);
+        if (pearsonColorScale.doesNotContainKey(key)) {
+            float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
+            float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
+            pearsonColorScale.setMinMax(key, min, max);
+        }
+        renderDenseMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g, null);
+    }
+
+    private void renderPearsons(Graphics2D g, MatrixZoomData zd, ExpectedValueFunction df,
+                                String key, int originX, int originY, int width, int height) {
+        BasicMatrix bm = zd.getPearsons(df);
+        if (pearsonColorScale.doesNotContainKey(key)) {
+            pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
+        }
+        renderDenseMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g, null);
+    }
+
+    private void renderNorm2VS(Graphics2D g, MatrixZoomData zd, MatrixZoomData controlZD,
+                               boolean isWholeGenome, NormalizationType observedNormalizationType,
+                               NormalizationType controlNormalizationType, String key, String controlKey,
+                               MatrixType displayOption, int originX, int originY, int width, int height) {
+        BasicMatrix bm1 = zd.getNormSquared(observedNormalizationType);
+        BasicMatrix bm2 = controlZD.getNormSquared(controlNormalizationType);
+
+        double percentile = isWholeGenome ? 99 : 95;
+        float max = computePercentile(bm1, percentile) + computePercentile(bm2, percentile);
+
+        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+
+        renderDenseMatrix(bm1, bm2, originX, originY, width, height, null, key, g, cs);
+    }
+
+    private void renderNorm2(Graphics2D g, MatrixZoomData zd, boolean isWholeGenome,
+                             NormalizationType normType, String key, MatrixType displayOption,
+                             int originX, int originY, int width, int height) {
+        BasicMatrix bm = zd.getNormSquared(normType);
+        double percentile = isWholeGenome ? 99 : 95;
+        float max = computePercentile(bm, percentile);
+        ColorScale cs = getColorScale(key, displayOption, isWholeGenome, null, max);
+        renderDenseMatrix(bm, null, originX, originY, width, height, null, key, g, cs);
     }
 
     private List<Block> getTheBlocks(MatrixZoomData zd, int x, int y, int maxX, int maxY, NormalizationType normType, boolean isImportant, boolean fillUnderDiag) {
@@ -2437,9 +2271,8 @@ class HeatmapRenderer {
             for (Block b : blocks) {
                 for (ContactRecord rec : b.getContactRecords()) {
                     // Filter diagonal
-                    if (Math.abs(rec.getBinX() - rec.getBinY()) > 1) {
-                        float val = rec.getCounts();  // view with average multiplied
-                        dal.add(val);
+                    if (rec.getBinX() != rec.getBinY()) {
+                        dal.add(rec.getCounts());
                     }
                 }
             }
@@ -2487,7 +2320,7 @@ class HeatmapRenderer {
                 g.setColor(color);
 
                 //noinspection SuspiciousNameCombination
-                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                 // Assuming same chromosome
                 if (col != row) {
                     if (bm2 != null) {
@@ -2496,11 +2329,11 @@ class HeatmapRenderer {
                         px = row - originX;
                         py = col - originY;
                         g.setColor(controlColor);
-                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                     } else {
                         px = row - originX;
                         py = col - originY;
-                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_WIDTH);
                     }
                 }
             }
@@ -2524,20 +2357,6 @@ class HeatmapRenderer {
     public void reset() {
         observedColorScaleMap.clear();
         ratioColorScaleMap.clear();
-    }
-
-    private void updatePreDefColors() {
-        int arrSize = MainViewPanel.preDefMapColorGradient.size();
-
-        //ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
-        //Integer[] arrTmp = new Integer[arrSize];//set.toArray(new Integer[arrSize]);
-        final int[] arrScores = new int[arrSize];
-
-        for (int idx = 0; idx < arrSize; idx++) {
-            arrScores[idx] = idx;
-        }
-
-        preDefColorScale.updateColors(MainViewPanel.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
     }
 
     public void setNewDisplayRange(MatrixType displayOption, double min, double max, String key) {

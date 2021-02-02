@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -337,16 +337,16 @@ public class SuperAdapter {
                         hic.getDataset().getFragZooms());
 //            Find right zoom level
                 int pixels = mainViewPanel.getHeatmapPanel().getMinimumDimension();
-				long len;
+                long len;
                 if (currentUnit == HiC.Unit.BP) {
                     len = (Math.max(hic.getXContext().getChrLength(), hic.getYContext().getChrLength()));
                 } else {
                     len = Math.max(hic.getDataset().getFragmentCounts().get(hic.getXContext().getChromosome().getName()),
                             hic.getDataset().getFragmentCounts().get(hic.getYContext().getChromosome().getName()));
                 }
-	
-				int maxNBins = pixels / HiCGlobals.BIN_PIXEL_WIDTH;
-				long bp_bin = len / maxNBins;
+
+                int maxNBins = pixels;
+                long bp_bin = len / maxNBins;
                 initialZoom = zooms.get(zooms.size() - 1);
                 for (int z = 1; z < zooms.size(); z++) {
                     if (zooms.get(z).getBinSize() < bp_bin) {

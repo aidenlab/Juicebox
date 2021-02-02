@@ -24,7 +24,7 @@
 
 package juicebox.gui;
 
-import juicebox.HiCGlobals;
+import juicebox.mapcolorui.HeatmapRenderer;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -45,7 +45,7 @@ public class PseudoCountEditor extends JDialog {
 
         JLabel labelPseudocount = new JLabel("Pseudocount");
         // todo error if called when pearson not loaded yet
-        final JTextField textPseudocount = new JTextField("" + HiCGlobals.PSEUDOCOUNT);
+        final JTextField textPseudocount = new JTextField("" + HeatmapRenderer.PSEUDOCOUNT);
 
         JPanel box = new JPanel();
         box.setLayout(new GridLayout(0, 2));
@@ -56,7 +56,7 @@ public class PseudoCountEditor extends JDialog {
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HiCGlobals.PSEUDOCOUNT = Float.parseFloat(textPseudocount.getText());
+                HeatmapRenderer.PSEUDOCOUNT = Float.parseFloat(textPseudocount.getText());
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }
@@ -65,7 +65,7 @@ public class PseudoCountEditor extends JDialog {
         resetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HiCGlobals.PSEUDOCOUNT = 1f;
+                HeatmapRenderer.PSEUDOCOUNT = 1f;
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }
