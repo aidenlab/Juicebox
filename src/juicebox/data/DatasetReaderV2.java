@@ -620,7 +620,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
                     //long skipPosition = stream.position();
                     int nNormalizationFactors = dis.readInt();
-                    if (HiCGlobals.guiIsCurrentlyActive) {
+                    if (HiCGlobals.guiIsCurrentlyActive && HiCGlobals.printVerboseComments) {
                         System.out.println(currentPosition + " " + skipPosition + " " + nValues + " " + nNormalizationFactors);
                     }
                     currentPosition = skipPosition + 4;

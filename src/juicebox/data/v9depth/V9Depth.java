@@ -39,7 +39,7 @@ public abstract class V9Depth {
             return new ConstantDepth(-depthBase, blockBinCount);
         }
 
-        System.err.println("No valid depth specified. Using Log(2)");
+        // Default
         return new LogDepth(2, blockBinCount);
     }
 
