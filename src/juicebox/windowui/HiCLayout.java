@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,84 +30,21 @@ import java.awt.*;
 /**
  * Layout manager for HiC panels, based loosely on BorderLayout
  */
-public class HiCLayout implements LayoutManager2,
-        java.io.Serializable {
+public class HiCLayout implements LayoutManager2 {
     public static final String NORTH_WEST = "Northwest";
-    private static final long serialVersionUID = 8260394496861063124L;
     private static final String NORTH = "North";
     private static final String SOUTH = "South";
     private static final String EAST = "East";
     private static final String WEST = "West";
     private static final String CENTER = "Center";
-    private int hgap;
-    private int vgap;
+    private final int hgap = 0;
+    private final int vgap = 0;
     private Component north;
     private Component west;
     private Component east;
     private Component south;
     private Component center;
     private Component northwest;
-
-
-    /**
-     * Constructs a new border layout with
-     * no gaps between components.
-     */
-    public HiCLayout() {
-        this(0, 0);
-    }
-
-    /**
-     * Constructs a border layout with the specified gaps
-     * between components.
-     * The horizontal gap is specified by <code>hgap</code>
-     * and the vertical gap is specified by <code>vgap</code>.
-     *
-     * @param hgap the horizontal gap.
-     * @param vgap the vertical gap.
-     */
-    private HiCLayout(int hgap, int vgap) {
-        this.hgap = hgap;
-        this.vgap = vgap;
-    }
-
-    /**
-     * Returns the horizontal gap between components.
-     *
-     * @since JDK1.1
-     */
-    public int getHgap() {
-        return hgap;
-    }
-
-    /**
-     * Sets the horizontal gap between components.
-     *
-     * @param hgap the horizontal gap between components
-     * @since JDK1.1
-     */
-    public void setHgap(int hgap) {
-        this.hgap = hgap;
-    }
-
-    /**
-     * Returns the vertical gap between components.
-     *
-     * @since JDK1.1
-     */
-    public int getVgap() {
-        return vgap;
-    }
-
-    /**
-     * Sets the vertical gap between components.
-     *
-     * @param vgap the vertical gap between components
-     * @since JDK1.1
-     */
-    public void setVgap(int vgap) {
-        this.vgap = vgap;
-    }
 
     /**
      * Adds the specified component to the layout, using the specified
@@ -132,17 +69,13 @@ public class HiCLayout implements LayoutManager2,
     public void addLayoutComponent(Component comp, Object constraints) {
         synchronized (comp.getTreeLock()) {
             if ((constraints == null) || (constraints instanceof String)) {
-                addLayoutComponent((String) constraints, comp); //TODO is deprecated
+                addLayoutComponent((String) constraints, comp);
             } else {
                 throw new IllegalArgumentException("cannot add to layout: constraint must be a string (or null)");
             }
         }
     }
 
-    /**
-     * @deprecated replaced by <code>addLayoutComponent(Component, Object)</code>.
-     */
-    @Deprecated
     public void addLayoutComponent(String name, Component comp) {
         synchronized (comp.getTreeLock()) {
             /* Special case:  treat null the same as "Center". */

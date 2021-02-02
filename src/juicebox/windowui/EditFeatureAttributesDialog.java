@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ import java.util.HashMap;
 
 /* 1.4 example used by DialogDemo.java. */
 public class EditFeatureAttributesDialog extends JDialog implements ActionListener, PropertyChangeListener {
-    private static final long serialVersionUID = 3432096869822002860L;
+
     private final String defaultNewAttributeName = "<Attribute Name>";
     private final String defaultNewAttributeValue = "<Attribute Value>";
     private final HashMap<String, JTextField> textFields;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,6 @@ import java.io.IOException;
  */
 public class MainMenuBar extends JMenuBar {
 
-  private static final long serialVersionUID = 2342324643L;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
   private static final String recentMapEntityNode = "hicMapRecent";
@@ -149,8 +148,6 @@ public class MainMenuBar extends JMenuBar {
 
     recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-      private static final long serialVersionUID = 4202L;
-
       public void onSelectPosition(String mapPath) {
           String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
@@ -161,8 +158,6 @@ public class MainMenuBar extends JMenuBar {
     fileMenu.add(recentMapMenu);
 
     recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
-
-      private static final long serialVersionUID = 42012L;
 
       public void onSelectPosition(String mapPath) {
           String[] temp = encodeSafeDelimeterSplit(mapPath);
@@ -314,8 +309,6 @@ public class MainMenuBar extends JMenuBar {
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
-      private static final long serialVersionUID = 4204L;
-
       public void onSelectPosition(String mapPath) {
           String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
@@ -340,8 +333,6 @@ public class MainMenuBar extends JMenuBar {
 
     // restore recent saved states
     previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
-
-      private static final long serialVersionUID = 4205L;
 
       public void onSelectPosition(String mapPath) {
         superAdapter.launchLoadStateFromXML(mapPath);

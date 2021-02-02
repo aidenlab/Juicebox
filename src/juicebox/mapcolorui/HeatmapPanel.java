@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,15 +67,9 @@ import static java.awt.Toolkit.getDefaultToolkit;
  * @author jrobinso
  * @since Aug 2, 2010
  */
-public class HeatmapPanel extends JComponent implements Serializable {
+public class HeatmapPanel extends JComponent {
   //    public static final int clickDelay1 = (Integer) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
-  public static final int clickDelay = 500;
-  private static final long serialVersionUID = -8017012290342597941L;
-  // used for finding nearby features
-  private static final int NUM_NEIGHBORS = 7;
-  /**
-   * Image tile width in pixels
-   */
+
   private static final int imageTileWidth = 500;
   private final int RESIZE_SNAP = 5;
   private final NumberFormat formatter = NumberFormat.getInstance();

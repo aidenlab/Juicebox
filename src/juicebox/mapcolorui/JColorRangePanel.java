@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,6 @@ import java.util.Map;
  */
 public class JColorRangePanel extends JPanel {
 
-    private static final long serialVersionUID = -1656738668931765037L;
     private static RangeSlider colorRangeSlider;
     private static JLabel colorRangeLabel;
     private static JButton plusButton, minusButton;

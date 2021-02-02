@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.mapcolorui;
 
 import javax.swing.*;
-import java.io.Serializable;
 
 /**
  * An extension of JSlider to select a range of values using two thumb controls.
@@ -38,9 +37,8 @@ import java.io.Serializable;
  *
  * @author Ernest Yu, Jim Robinson, Muhammad S Shamim
  */
-class RangeSlider extends JSlider implements Serializable {
+class RangeSlider extends JSlider {
 
-    private static final long serialVersionUID = -661825403401718563L;
     private RangeSliderUI rangeSliderUI;
 
     /**

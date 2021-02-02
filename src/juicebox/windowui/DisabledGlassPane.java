@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,6 @@ import java.awt.event.MouseMotionAdapter;
  */
 public class DisabledGlassPane extends JComponent implements KeyListener {
 
-    private static final long serialVersionUID = 5393484427189897719L;
     private final JLabel message = new JLabel();
 
     public DisabledGlassPane(int cursor) {

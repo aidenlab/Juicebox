@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,6 @@ import java.nio.channels.FileChannel;
  */
 public class ImportStateFileDialog extends JFileChooser {
 
-    private static final long serialVersionUID = -1038991737399792883L;
     private final File originalStates = new File("OriginalSavedStates.xml");
 
     public ImportStateFileDialog(File currentStates, MainWindow mainWindow) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -783,7 +783,6 @@ public class ResourceTree {
     static class ResourceEditor extends AbstractCellEditor
             implements TreeCellEditor {
 
-        private static final long serialVersionUID = -5631405993171929756L;
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
 

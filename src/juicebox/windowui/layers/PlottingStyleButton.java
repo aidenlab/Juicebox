@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ import java.io.IOException;
 
 public class PlottingStyleButton extends JButton {
 
-    private static final long serialVersionUID = 123823723L;
     private final ImageIcon iconActive1, iconTransition1, iconInactive1,
             iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3;
 

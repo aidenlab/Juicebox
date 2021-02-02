@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,6 @@ import java.awt.event.ActionListener;
  * Created by muhammadsaadshamim on 1/25/17.
  */
 public class PearsonColorScaleEditor extends JDialog {
-
-    private static final long serialVersionUID = 81248513331738L;
 
     public PearsonColorScaleEditor(final SuperAdapter superAdapter, final PearsonColorScale pearsonColorScale) {
         super(superAdapter.getMainWindow());

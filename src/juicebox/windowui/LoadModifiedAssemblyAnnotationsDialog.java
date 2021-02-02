@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,6 @@ import java.util.Map;
 
 public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
-    private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;
@@ -316,28 +315,6 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             tree.scrollPathToVisible(path);
             tree.setSelectionPath(path);
         }
-    }
-
-    //Overriding in order to change text color
-    private void colorSearchStrings(final String[] parts) {
-        tree.setCellRenderer(new DefaultTreeCellRenderer() {
-
-            private static final long serialVersionUID = 4231L;
-
-
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
-                                                          boolean leaf, int row, boolean hasFocus) {
-                String text = value.toString();
-                for (int i = 0; i < Math.min(parts.length, searchHighlightColors.length); i++) {
-                    text = text.replaceAll(parts[i], "<font color=\"" + searchHighlightColors[i] + "\">" + parts[i] + "</font>");
-                }
-                String html = "<html>" + text + "</html>";
-
-                return super.getTreeCellRendererComponent(
-                        tree, html, sel, expanded, leaf, row, hasFocus);
-            }
-        });
     }
 
     private boolean createNodes(DefaultMutableTreeNode top, HiC hic) {
