@@ -49,6 +49,7 @@ import java.util.Map;
  */
 public class JColorRangePanel extends JPanel {
 
+    private static final long serialVersionUID = -1656738668931765037L;
     private static RangeSlider colorRangeSlider;
     private static JLabel colorRangeLabel;
     private static JButton plusButton, minusButton;

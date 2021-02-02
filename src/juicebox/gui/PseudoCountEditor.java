@@ -34,6 +34,8 @@ import java.awt.event.ActionListener;
 
 public class PseudoCountEditor extends JDialog {
 
+    private static final long serialVersionUID = 81124851331738L;
+
     public PseudoCountEditor(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow());
 

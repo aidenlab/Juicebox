@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
+import juicebox.mapcolorui.ColorScaleHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -47,6 +48,7 @@ import java.io.IOException;
  */
 public class MainMenuBar extends JMenuBar {
 
+  private static final long serialVersionUID = 2342324643L;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
   private static final String recentMapEntityNode = "hicMapRecent";
@@ -148,8 +150,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
+      private static final long serialVersionUID = 4202L;
+
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
       }
     };
@@ -159,8 +163,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
+      private static final long serialVersionUID = 42012L;
+
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
       }
     };
@@ -195,16 +201,14 @@ public class MainMenuBar extends JMenuBar {
 
 
     // TODO: make this an export of the data on screen instead of a GUI for CLT
-    if (!HiCGlobals.isRestricted) {
-      JMenuItem dump = new JMenuItem("Export Data...");
-      dump.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          superAdapter.exportDataLauncher();
-        }
-      });
-      fileMenu.add(dump);
-    }
+    JMenuItem dump = new JMenuItem("Export Data...");
+    dump.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        superAdapter.exportDataLauncher();
+      }
+    });
+    fileMenu.add(dump);
 
     JMenuItem creditsMenu = new JMenuItem();
     creditsMenu.setText("About");
@@ -309,8 +313,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
+      private static final long serialVersionUID = 4204L;
+
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
         superAdapter.setNormalizationDisplayState();
 
@@ -333,6 +339,8 @@ public class MainMenuBar extends JMenuBar {
 
     // restore recent saved states
     previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
+
+      private static final long serialVersionUID = 4205L;
 
       public void onSelectPosition(String mapPath) {
         superAdapter.launchLoadStateFromXML(mapPath);
@@ -393,13 +401,13 @@ public class MainMenuBar extends JMenuBar {
     colorItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
+        JColorChooser colorChooser = new JColorChooser(ColorScaleHandler.HIC_MAP_COLOR);
         JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
                 true, colorChooser, null, null);
         dialog.setVisible(true);
         Color color = colorChooser.getColor();
         if (color != null) {
-          HiCGlobals.HIC_MAP_COLOR = color;
+          ColorScaleHandler.HIC_MAP_COLOR = color;
           superAdapter.getMainViewPanel().resetAllColors();
           superAdapter.refresh();
         }

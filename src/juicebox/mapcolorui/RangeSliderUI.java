@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -244,8 +244,8 @@ class RangeSliderUI extends BasicSliderUI {
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
             } else {
                 Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, HiCGlobals.HIC_MAP_COLOR});
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, HiCGlobals.HIC_MAP_COLOR, rightSide);
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, ColorScaleHandler.HIC_MAP_COLOR});
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, ColorScaleHandler.HIC_MAP_COLOR, rightSide);
             }
 
 

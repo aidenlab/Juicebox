@@ -61,6 +61,7 @@ import java.util.Map;
 
 public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
+    private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;

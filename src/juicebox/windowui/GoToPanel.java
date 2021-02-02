@@ -52,7 +52,7 @@ import java.util.Map;
  * Created by nchernia on 4/2/15.
  */
 public class GoToPanel extends JPanel implements ActionListener, FocusListener {
-
+    private static final long serialVersionUID = -6639157254305571236L;
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;

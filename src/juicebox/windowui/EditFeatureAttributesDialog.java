@@ -44,7 +44,7 @@ import java.util.HashMap;
 
 /* 1.4 example used by DialogDemo.java. */
 public class EditFeatureAttributesDialog extends JDialog implements ActionListener, PropertyChangeListener {
-
+    private static final long serialVersionUID = 3432096869822002860L;
     private final String defaultNewAttributeName = "<Attribute Name>";
     private final String defaultNewAttributeValue = "<Attribute Value>";
     private final HashMap<String, JTextField> textFields;

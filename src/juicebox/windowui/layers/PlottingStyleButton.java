@@ -33,6 +33,7 @@ import java.io.IOException;
 
 public class PlottingStyleButton extends JButton {
 
+    private static final long serialVersionUID = 123823723L;
     private final ImageIcon iconActive1, iconTransition1, iconInactive1,
             iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3;
 

@@ -42,14 +42,9 @@ public class HiCGlobals {
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
-    // Changes Data Output Mode
-    public static final boolean isRestricted = false;
-    // Enable black border
-    public static final boolean isBlackBorderActivated = false;
     // MainWindow variables
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final Color DARKULA_RULER_LINE_COLOR = new Color(200, 200, 250, 100);
-
 
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
@@ -60,6 +55,7 @@ public class HiCGlobals {
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;
+
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
@@ -69,9 +65,7 @@ public class HiCGlobals {
     public static final int bufferSize = 2097152;
 
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static Color HIC_MAP_COLOR = Color.RED;
-    public static final Color HIGHLIGHT_COLOR = Color.BLACK;
-    public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
+
     public static int MAX_PEARSON_ZOOM = 500000;
 
     // implement Map scaling with this global variable

@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.Feature2D;
 import org.broad.igv.util.Pair;
 
@@ -51,6 +52,7 @@ import java.util.List;
  */
 public class TrackPanel extends JPanel {
 
+    private static final long serialVersionUID = -1195744055137430563L;
     //private MouseAdapter mouseAdapter;
     private final HiC hic;
     private final Orientation orientation;
@@ -307,7 +309,7 @@ public class TrackPanel extends JPanel {
         try {
             Feature2D highlight = hic.getHighlightedFeature();
             if (highlight != null) {
-                g.setColor(HiCGlobals.HIGHLIGHT_COLOR);
+                g.setColor(FeatureRenderer.HIGHLIGHT_COLOR);
                 MatrixZoomData zd = hic.getZd();
                 HiCGridAxis xAxis = zd.getXGridAxis();
                 HiCGridAxis yAxis = zd.getYGridAxis();

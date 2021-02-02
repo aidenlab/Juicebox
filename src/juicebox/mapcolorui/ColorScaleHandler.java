@@ -44,6 +44,7 @@ public class ColorScaleHandler {
     private final PearsonColorScale pearsonColorScale = new PearsonColorScale();
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
+    public static Color HIC_MAP_COLOR = Color.RED;
 
     public PearsonColorScale getPearsonColorScale() {
         return pearsonColorScale;
@@ -84,9 +85,9 @@ public class ColorScaleHandler {
             ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
                 if (HiCGlobals.isDarkulaModeEnabled) {
-                    observedColorScale = new ContinuousColorScale(min, max, Color.black, HiCGlobals.HIC_MAP_COLOR);
+                    observedColorScale = new ContinuousColorScale(min, max, Color.black, HIC_MAP_COLOR);
                 } else {
-                    observedColorScale = new ContinuousColorScale(min, max, Color.white, HiCGlobals.HIC_MAP_COLOR);
+                    observedColorScale = new ContinuousColorScale(min, max, Color.white, HIC_MAP_COLOR);
                 }
                 observedColorScaleMap.put(key, observedColorScale);
             }
@@ -125,9 +126,9 @@ public class ColorScaleHandler {
 
                 //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                 if (HiCGlobals.isDarkulaModeEnabled) {
-                    observedColorScale = new ContinuousColorScale(0, max, Color.black, HiCGlobals.HIC_MAP_COLOR);
+                    observedColorScale = new ContinuousColorScale(0, max, Color.black, HIC_MAP_COLOR);
                 } else {
-                    observedColorScale = new ContinuousColorScale(0, max, Color.white, HiCGlobals.HIC_MAP_COLOR);
+                    observedColorScale = new ContinuousColorScale(0, max, Color.white, HIC_MAP_COLOR);
                 }
                 observedColorScaleMap.put(key, observedColorScale);
                 //mainWindow.updateColorSlider(0, 2 * max, max);

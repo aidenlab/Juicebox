@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -164,8 +164,8 @@ public class Feature2D implements Comparable<Feature2D> {
 	
 	public Color getColor() {
 		if (isSelected) {
-			return HiCGlobals.SELECT_FEATURE_COLOR;
-		} else {
+            return Color.DARK_GRAY;
+        } else {
 			return color;
 		}
 	}
@@ -180,7 +180,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Color getTranslucentColor() {
         if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
+            return Color.DARK_GRAY;
         } else {
             return translucentColor;
         }

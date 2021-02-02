@@ -68,6 +68,7 @@ import static java.awt.Toolkit.getDefaultToolkit;
  */
 public class HeatmapPanel extends JComponent {
     //    public static final int clickDelay1 = (Integer) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
+    private static final long serialVersionUID = -8017012290342597941L;
 
 
     private final int RESIZE_SNAP = 5;

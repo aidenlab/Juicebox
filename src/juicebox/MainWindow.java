@@ -55,6 +55,7 @@ import java.util.concurrent.Future;
 
 public class MainWindow extends JFrame {
 
+    private static final long serialVersionUID = -3654174199024388185L;
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
