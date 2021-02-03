@@ -47,7 +47,7 @@ public class PseudoCountEditor extends JDialog {
 
         JLabel labelPseudocount = new JLabel("Pseudocount");
         // todo error if called when pearson not loaded yet
-        final JTextField textPseudocount = new JTextField("" + HeatmapRenderer.PSEUDOCOUNT);
+        final JTextField textPseudocount = new JTextField("" + HeatmapRenderer.PSEUDO_COUNT);
 
         JPanel box = new JPanel();
         box.setLayout(new GridLayout(0, 2));
@@ -58,7 +58,7 @@ public class PseudoCountEditor extends JDialog {
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HeatmapRenderer.PSEUDOCOUNT = Float.parseFloat(textPseudocount.getText());
+                HeatmapRenderer.PSEUDO_COUNT = Float.parseFloat(textPseudocount.getText());
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }
@@ -67,7 +67,7 @@ public class PseudoCountEditor extends JDialog {
         resetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HeatmapRenderer.PSEUDOCOUNT = 1f;
+                HeatmapRenderer.PSEUDO_COUNT = 1f;
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }

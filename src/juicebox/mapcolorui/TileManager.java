@@ -39,13 +39,13 @@ import java.awt.image.BufferedImage;
 public class TileManager {
     private static final int imageTileWidth = 500;
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
-    private final HeatmapRenderer renderer;
+    private final ColorScaleHandler colorScaleHandler;
 
-    public TileManager(HeatmapRenderer renderer) {
-        this.renderer = renderer;
+    public TileManager(ColorScaleHandler colorScaleHandler) {
+        this.colorScaleHandler = colorScaleHandler;
     }
 
-    public boolean renderHiCTiles(Graphics g, double binOriginX, double binOriginY, double bRight, double bBottom,
+    public boolean renderHiCTiles(HeatmapRenderer renderer, double binOriginX, double binOriginY, double bRight, double bBottom,
                                   MatrixZoomData zd, MatrixZoomData controlZd,
                                   double scaleFactor, Rectangle bounds, HiC hic, JComponent parent, SuperAdapter superAdapter) {
 
@@ -119,7 +119,7 @@ public class TileManager {
                         if (xDest0 < xDest1 && yDest0 < yDest1 && xSrc0 < xSrc1 && ySrc0 < ySrc1) {
                             // basically ensure that we're not trying to plot empty space
                             // also for some reason we have negative indices sometimes??
-                            g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                            renderer.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
                         }
                     } catch (Exception e) {
 
@@ -129,7 +129,7 @@ public class TileManager {
                                 System.out.println("svg plotting for\n" + xDest0 + "_" + yDest0 + "_" + xDest1 + "_" +
                                         yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1);
                             }
-                            bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn,
+                            bypassTileAndDirectlyDrawOnGraphics(renderer, zd, tileRow, tileColumn,
                                     displayOption, observedNormalizationType, controlNormalizationType,
                                     xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, hic);
                             //processedExportRegions.add(newKey);
@@ -143,7 +143,7 @@ public class TileManager {
                     //TODO ******** UNCOMMENT *******
                     //Uncomment to draw tile grid (for debugging)
                     if (HiCGlobals.displayTiles) {
-                        g.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
+                        renderer.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
                     }
 
                 }
@@ -156,7 +156,7 @@ public class TileManager {
             //In case render is called as a result of zoom change event, check if
             //We need to update slider with map range:
             String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
-            renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
+            colorScaleHandler.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
             //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
         }
 
@@ -200,8 +200,8 @@ public class TileManager {
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
 
+            HeatmapRenderer renderer = new HeatmapRenderer(g2D, colorScaleHandler);
             //System.out.println("tx "+tileColumn+" ty "+tileRow+" bx "+bx0+" by "+by0);
-
             if (!renderer.render(bx0,
                     by0,
                     imageWidth,
@@ -213,7 +213,7 @@ public class TileManager {
                     ctrlNormalizationType,
                     hic.getExpectedValues(),
                     hic.getExpectedControlValues(),
-                    g2D, true)) {
+                    true)) {
                 return null;
             }
 
@@ -224,7 +224,7 @@ public class TileManager {
         return tile;
     }
 
-    private void bypassTileAndDirectlyDrawOnGraphics(Graphics2D g, MatrixZoomData zd, int tileRow, int tileColumn,
+    private void bypassTileAndDirectlyDrawOnGraphics(HeatmapRenderer renderer, MatrixZoomData zd, int tileRow, int tileColumn,
                                                      MatrixType displayOption, NormalizationType observedNormalizationType,
                                                      NormalizationType controlNormalizationType,
                                                      int xDest0, int yDest0, int xDest1, int yDest1, int xSrc0,
@@ -241,7 +241,7 @@ public class TileManager {
         final int by0 = tileRow * imageTileWidth;
 
         // set new origins
-        g.translate(xDest0, yDest0);
+        renderer.translate(xDest0, yDest0);
 
         // scale drawing appropriately
         double widthDest = xDest1 - xDest0;
@@ -250,7 +250,7 @@ public class TileManager {
         int heightSrc = ySrc1 - ySrc0;
         double horizontalScaling = widthDest / widthSrc;
         double verticalScaling = heightDest / heightSrc;
-        g.scale(horizontalScaling, verticalScaling);
+        renderer.scale(horizontalScaling, verticalScaling);
 
         final int bx0Offset = bx0 + xSrc0;
         final int by0Offset = by0 + ySrc0;
@@ -266,10 +266,10 @@ public class TileManager {
                 controlNormalizationType,
                 hic.getExpectedValues(),
                 hic.getExpectedControlValues(),
-                g, false);
+                false);
 
-        g.scale(1, 1);
-        g.translate(0, 0);
+        renderer.scale(1, 1);
+        renderer.translate(0, 0);
     }
 
     public void clearTileCache() {

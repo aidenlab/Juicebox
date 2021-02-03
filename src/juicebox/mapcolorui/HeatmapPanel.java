@@ -61,8 +61,8 @@ public class HeatmapPanel extends JComponent {
     private final MainWindow mainWindow;
     private final HiC hic;
     private final SuperAdapter superAdapter;
-    private final HeatmapRenderer renderer = new HeatmapRenderer();
-    private final TileManager tileManager = new TileManager(renderer);
+    private final ColorScaleHandler colorScaleHandler = new ColorScaleHandler();
+    private final TileManager tileManager = new TileManager(colorScaleHandler);
     private final HeatmapMouseHandler mouseHandler;
     private boolean showGridLines = true;
     private final HeatmapClickListener clickListener;
@@ -72,7 +72,7 @@ public class HeatmapPanel extends JComponent {
         this.mainWindow = superAdapter.getMainWindow();
         this.superAdapter = superAdapter;
         this.hic = superAdapter.getHiC();
-        superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
+        superAdapter.setPearsonColorScale(colorScaleHandler.getPearsonColorScale());
         mouseHandler = new HeatmapMouseHandler(hic, superAdapter, this);
         clickListener = new HeatmapClickListener(this);
         addMouseMotionListener(mouseHandler);
@@ -94,8 +94,9 @@ public class HeatmapPanel extends JComponent {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    protected void paintComponent(Graphics g1) {
+        Graphics2D g = (Graphics2D) g1;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         Rectangle clipBounds = g.getClipBounds();
         g.clearRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
@@ -147,7 +148,8 @@ public class HeatmapPanel extends JComponent {
         double bBottom = binOriginY + (screenHeight / scaleFactor);
 
 
-        boolean allTilesNull = tileManager.renderHiCTiles(g, binOriginX, binOriginY, bRight, bBottom, zd, controlZd,
+        HeatmapRenderer renderer = new HeatmapRenderer(g, colorScaleHandler);
+        boolean allTilesNull = tileManager.renderHiCTiles(renderer, binOriginX, binOriginY, bRight, bBottom, zd, controlZd,
                 scaleFactor, this.getBounds(), hic, this, superAdapter);
 
         boolean isWholeGenome = ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome()) &&
@@ -378,6 +380,7 @@ public class HeatmapPanel extends JComponent {
             g.fillRect(0, 0, wh, wh);
         }
 
+        HeatmapRenderer renderer = new HeatmapRenderer(g, colorScaleHandler);
         boolean success = renderer.render(0,
                 0,
                 maxBinCountX,
@@ -389,7 +392,7 @@ public class HeatmapPanel extends JComponent {
                 controlNormalizationType,
                 hic.getExpectedValues(),
                 hic.getExpectedControlValues(),
-                g, false);
+                false);
 
         if (!success) return null;
 
@@ -494,12 +497,12 @@ public class HeatmapPanel extends JComponent {
     }
 
     public void reset() {
-        renderer.reset();
+        colorScaleHandler.reset();
         clearTileCache();
     }
 
     public void setNewDisplayRange(MatrixType displayOption, double min, double max, String key) {
-        renderer.setNewDisplayRange(displayOption, min, max, key);
+        colorScaleHandler.setNewDisplayRange(displayOption, min, max, key);
         clearTileCache();
         repaint();
     }
