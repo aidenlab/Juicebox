@@ -1108,4 +1108,12 @@ public class SuperAdapter {
 
         }
     }
+
+    public void clearEditsAndUpdateLayers() {
+        getEditLayer().clearAnnotations();
+        if (getActiveLayerHandler() != getMainLayer()) {
+            setActiveLayerHandler(getMainLayer());
+            getLayersPanel().updateBothLayersPanels(this);
+        }
+    }
 }
