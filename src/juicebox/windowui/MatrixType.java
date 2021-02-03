@@ -47,6 +47,7 @@ public enum MatrixType {
     PEARSONCTRL("Control Pearson"),
     LOGC("Log[Control+1]"),
     LOGCEO("Log[Control+1]/Log[ExpectedC+1]"),
+    EXPLOGCEO("e^(Log[Control+1]/Log[ExpectedC+1])"),
     NORM2CTRL("Control Norm^2"),
     RATIO("Observed/Control * (AvgC/AvgO)"),
     RATIOV2("Log[Observed/Control * (AvgC/AvgO)]"),
@@ -87,7 +88,7 @@ public enum MatrixType {
             OERATIO, OERATIOV2, OERATIOP1, OERATIOP1V2, OERATIOMINUS, OERATIOMINUSP1,
             OEVS, OEVSV2, OEVSP1, OEVSP1V2, OCMEVS, PEARSONVS, DIFF,
             LOGVS, LOGEOVS, LOGRATIO, LOGRATIOV2, LOGEORATIO, LOGEORATIOV2,
-            EXPLOGEO
+            EXPLOGEO, EXPLOGCEO
     };
 
     public static final MatrixType[] enabledMatrixTypesNoControl =
