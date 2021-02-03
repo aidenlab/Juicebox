@@ -93,394 +93,305 @@ public class HeatmapRenderer {
         float pseudocountObs = PSEUDOCOUNT;
         float pseudocountCtrl = PSEUDOCOUNT;
 
-        switch (displayOption) {
-            case NORM2: {
-                renderNorm2(g, zd, isWholeGenome, observedNormalizationType, key, displayOption,
-                        originX, originY, width, height);
-                break;
+        if (displayOption == MatrixType.NORM2) {
+            renderNorm2(g, zd, isWholeGenome, observedNormalizationType, key, displayOption,
+                    originX, originY, width, height);
+        } else if (displayOption == MatrixType.NORM2CTRL) {
+            renderNorm2(g, controlZD, isWholeGenome, controlNormalizationType, controlKey, displayOption,
+                    originX, originY, width, height);
+        } else if (displayOption == MatrixType.NORM2OBSVSCTRL) {
+            if (controlDF == null) {
+                System.err.println("Control DF is NULL");
+                return false;
             }
-            case NORM2CTRL: {
-                renderNorm2(g, controlZD, isWholeGenome, controlNormalizationType, controlKey, displayOption,
-                        originX, originY, width, height);
-                break;
+            renderNorm2VS(g, zd, controlZD, isWholeGenome, observedNormalizationType,
+                    controlNormalizationType, key, displayOption,
+                    originX, originY, width, height);
+        } else if (displayOption == MatrixType.PEARSON) {
+            renderPearsons(g, zd, df, key, originX, originY, width, height);
+        } else if (displayOption == MatrixType.PEARSONCTRL) {
+            if (controlDF == null) {
+                System.err.println("Control DF is NULL");
+                return false;
             }
-            case NORM2OBSVSCTRL: {
-                if (controlDF == null) {
-                    System.err.println("Control DF is NULL");
-                    return false;
-                }
-                renderNorm2VS(g, zd, controlZD, isWholeGenome, observedNormalizationType,
-                        controlNormalizationType, key, controlKey, displayOption,
-                        originX, originY, width, height);
-                break;
+            renderPearsons(g, controlZD, controlDF, controlKey, originX, originY, width, height);
+        } else if (displayOption == MatrixType.PEARSONVS) {
+
+            if (controlDF == null) {
+                System.err.println("Control DF is NULL");
+                return false;
             }
-            case PEARSON: {
-                renderPearsons(g, zd, df, key, originX, originY, width, height);
-                break;
+            renderPearsonsVS(g, zd, controlZD, df, controlDF, key, originX, originY, width, height);
+        } else if (displayOption == MatrixType.CONTROL) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+
+            renderSimpleMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
+        } else if (displayOption == MatrixType.LOGC) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+
+            renderSimpleLogMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
+        } else if (displayOption == MatrixType.OECTRLV2 || displayOption == MatrixType.OECTRL) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+
+            renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
+                    cs, sameChr, originX, originY, width, height, 0);
+        } else if (displayOption == MatrixType.OECTRLP1V2 || displayOption == MatrixType.OECTRLP1) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+
+            renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
+                    cs, sameChr, originX, originY, width, height, pseudocountCtrl);
+        } else if (displayOption == MatrixType.LOGCEO) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+
+            renderLogObservedBaseExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD, cs,
+                    sameChr, originX, originY, width, height);
+        } else if (displayOption == MatrixType.VS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+
+            renderSimpleVSMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
+        } else if (displayOption == MatrixType.LOGVS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+
+            renderSimpleLogVSMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
+        } else if (displayOption == MatrixType.OEVSV2 || displayOption == MatrixType.OEVS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+
+            renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                    zd, controlZD, cs, sameChr, originX, originY, width, height, 0, 0);
+        } else if (displayOption == MatrixType.OEVSP1V2 || displayOption == MatrixType.OEVSP1) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+
+            ColorScale cs;
+            if (blocks.isEmpty()) {
+                cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            } else {
+                cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
             }
-            case PEARSONCTRL: {
-                if (controlDF == null) {
-                    System.err.println("Control DF is NULL");
-                    return false;
-                }
-                renderPearsons(g, controlZD, controlDF, controlKey, originX, originY, width, height);
-                break;
-            }
-            case PEARSONVS: {
 
-                if (controlDF == null) {
-                    System.err.println("Control DF is NULL");
-                    return false;
-                }
-                renderPearsonsVS(g, zd, controlZD, df, controlDF, key, controlKey, originX, originY, width, height);
-                break;
-            }
-            case CONTROL: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (controlZD == null || ctrlBlocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                    zd, controlZD, cs, sameChr, originX, originY, width, height, pseudocountObs, pseudocountCtrl);
+        } else if (displayOption == MatrixType.LOGEOVS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
-                renderSimpleMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
-                break;
-            }
-            case LOGC: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (controlZD == null || ctrlBlocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            renderLogObsOverExpVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                    zd, controlZD, cs, sameChr, originX, originY, width, height);
 
-                renderSimpleLogMap(g, ctrlBlocks, cs, width, height, sameChr, originX, originY);
-                break;
-            }
-            case OECTRLV2:
-            case OECTRL: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (controlZD == null || ctrlBlocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+        } else if (displayOption == MatrixType.OCMEVS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null && ctrlBlocks == null) return false;
+            if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
 
-                renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
-                        cs, sameChr, originX, originY, width, height, 0);
-                break;
-            }
-            case OECTRLP1V2:
-            case OECTRLP1: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (controlZD == null || ctrlBlocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            renderLogObsMinusExpVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
+                    zd, controlZD, cs, sameChr, originX, originY, width, height);
 
-                renderObservedOverExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD,
-                        cs, sameChr, originX, originY, width, height, pseudocountCtrl);
-                break;
-            }
-            case LOGCEO: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (controlZD == null || ctrlBlocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+        } else if (displayOption == MatrixType.EXPECTED) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderLogObservedBaseExpectedMap(g, chr1, ctrlBlocks, controlDF, controlZD, cs,
-                        sameChr, originX, originY, width, height);
-                break;
-            }
-            case VS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+            renderExpectedMap(g, zd, df, sameChr, cs, originX, originY, width, height, chr1);
+        } else if (displayOption == MatrixType.OEV2 || displayOption == MatrixType.OE) {
 
-                renderSimpleVSMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
-                break;
-            }
-            case LOGVS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderSimpleLogVSMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
-                break;
-            }
-            case OEVSV2:
-            case OEVS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+            renderObservedOverExpectedMap(g, chr1, blocks, df, zd,
+                    cs, sameChr, originX, originY, width, height, 0);
 
-                renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
-                        zd, controlZD, cs, sameChr, originX, originY, width, height, 0, 0);
-                break;
-            }
-            case OEVSP1V2:
-            case OEVSP1: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
+        } else if (displayOption == MatrixType.OEP1V2 || displayOption == MatrixType.OEP1) {
 
-                ColorScale cs;
-                if (blocks.isEmpty()) {
-                    cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                } else {
-                    cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-                }
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
 
-                renderObservedOverExpectedVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
-                        zd, controlZD, cs, sameChr, originX, originY, width, height, pseudocountObs, pseudocountCtrl);
-                break;
-            }
-            case LOGEOVS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderLogObsOverExpVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
-                        zd, controlZD, cs, sameChr, originX, originY, width, height);
+            renderObservedOverExpectedMap(g, chr1, blocks, df, zd,
+                    cs, sameChr, originX, originY, width, height, pseudocountObs);
+        } else if (displayOption == MatrixType.LOGEO) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                break;
-            }
-            case OCMEVS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null && ctrlBlocks == null) return false;
-                if (blocks.isEmpty() && ctrlBlocks.isEmpty()) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, ctrlBlocks, 1f);
+            renderLogObservedBaseExpectedMap(g, chr1, blocks, df, zd,
+                    cs, sameChr, originX, originY, width, height);
+        } else if (displayOption == MatrixType.EXPLOGEO) {
 
-                renderLogObsMinusExpVSMap(g, chr1, blocks, ctrlBlocks, df, controlDF,
-                        zd, controlZD, cs, sameChr, originX, originY, width, height);
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
 
-                break;
-            }
-            case EXPECTED: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderExpectedMap(g, zd, df, sameChr, cs, originX, originY, width, height, chr1);
-                break;
-            }
-            case OEV2:
-            case OE: {
+            renderNewBaseEMap(g, chr1, blocks, df, zd,
+                    cs, sameChr, originX, originY, width, height);
 
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null || zd == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+        } else if (displayOption == MatrixType.EXPLOGCEO) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (ctrlBlocks == null || controlZD == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            renderNewBaseEMap(g, chr1, ctrlBlocks, controlDF, controlZD,
+                    cs, sameChr, originX, originY, width, height);
 
-                renderObservedOverExpectedMap(g, chr1, blocks, df, zd,
-                        cs, sameChr, originX, originY, width, height, 0);
+        } else if (displayOption == MatrixType.OERATIOV2 || displayOption == MatrixType.OERATIO) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null) return false;
+            if (controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
 
-                break;
-            }
-            case OEP1V2:
-            case OEP1: {
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null || zd == null) return false;
+            renderOERatioMap(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, originX, originY,
+                    width, height, 0, 0, cs, sameChr, controlNormalizationType, chr1);
 
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+        } else if (displayOption == MatrixType.OERATIOP1V2 || displayOption == MatrixType.OERATIOP1) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null) return false;
+            if (controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
 
-                renderObservedOverExpectedMap(g, chr1, blocks, df, zd,
-                        cs, sameChr, originX, originY, width, height, pseudocountObs);
-                break;
-            }
-            case LOGEO: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null || zd == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderLogObservedBaseExpectedMap(g, chr1, blocks, df, zd,
-                        cs, sameChr, originX, originY, width, height);
-                break;
-            }
-            case EXPLOGEO: {
+            renderOERatioMap(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, originX, originY,
+                    width, height, pseudocountObs, pseudocountCtrl, cs, sameChr, controlNormalizationType, chr1);
 
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null || zd == null) return false;
+        } else if (displayOption == MatrixType.LOGEORATIOV2 || displayOption == MatrixType.LOGEORATIO) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderLogRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
+                    originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.OERATIOMINUS) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
 
-                renderNewBaseEMap(g, chr1, blocks, df, zd,
-                        cs, sameChr, originX, originY, width, height);
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                break;
-            }
-            case EXPLOGCEO: {
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (ctrlBlocks == null || controlZD == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
-                renderNewBaseEMap(g, chr1, ctrlBlocks, controlDF, controlZD,
-                        cs, sameChr, originX, originY, width, height);
+            renderOERatioMinus(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, chr1,
+                    0, 0, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
 
-                break;
-            }
-            case OERATIOV2:
-            case OERATIO: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null) return false;
-                if (zd == null || controlZD == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
+        } else if (displayOption == MatrixType.OERATIOMINUSP1) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderOERatioMinus(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, chr1,
+                    pseudocountObs, pseudocountCtrl, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.RATIOV2 || displayOption == MatrixType.RATIO) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderOERatioMap(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, originX, originY,
-                        width, height, 0, 0, cs, sameChr, controlNormalizationType, chr1);
+            renderRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
+                    0, 0, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.RATIOP1V2 || displayOption == MatrixType.RATIOP1) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                break;
-            }
-            case OERATIOP1V2:
-            case OERATIOP1: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null) return false;
-                if (zd == null || controlZD == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
+            renderRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
+                    pseudocountObs, pseudocountCtrl, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.LOGRATIOV2 || displayOption == MatrixType.LOGRATIO) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderLogRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
+                    originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.RATIO0V2 || displayOption == MatrixType.RATIO0) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                renderOERatioMap(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, originX, originY,
-                        width, height, pseudocountObs, pseudocountCtrl, cs, sameChr, controlNormalizationType, chr1);
+            renderRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
+                    0, 0, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.RATIO0P1V2 || displayOption == MatrixType.RATIO0P1) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            if (sameChr && (df == null || controlDF == null)) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                break;
-            }
-            case LOGEORATIOV2:
-            case LOGEORATIO: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
+                    pseudocountObs, pseudocountCtrl, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.DIFF) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
 
-                renderLogRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
-                        originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case OERATIOMINUS: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderDiffMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.LOG) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
 
-                renderOERatioMinus(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, chr1,
-                        0, 0, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-                break;
+            renderSimpleLogMap(g, blocks, cs, width, height, sameChr, originX, originY);
+        } else if (displayOption == MatrixType.OBSERVED) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
 
-            }
-            case OERATIOMINUSP1: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderSimpleMap(g, blocks, cs, width, height, sameChr, originX, originY);
 
-                renderOERatioMinus(g, blocks, ctrlBlocks, zd, controlZD, df, controlDF, chr1,
-                        pseudocountObs, pseudocountCtrl, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-
-            }
-            case RATIOV2:
-            case RATIO: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
-                        0, 0, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case RATIOP1V2:
-            case RATIOP1: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
-                        pseudocountObs, pseudocountCtrl, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case LOGRATIOV2:
-            case LOGRATIO: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderLogRatioWithAvgMap(g, blocks, ctrlBlocks, zd, controlZD,
-                        originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case RATIO0V2:
-            case RATIO0: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
-                        0, 0, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-
-                break;
-            }
-            case RATIO0P1V2:
-            case RATIO0P1: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || zd == null || controlZD == null) return false;
-                if (sameChr && (df == null || controlDF == null)) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderRatioWithExpMap(g, blocks, ctrlBlocks, zd, controlZD, chr1, df, controlDF,
-                        pseudocountObs, pseudocountCtrl, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case DIFF: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
-                if (blocks == null || ctrlBlocks == null || controlZD == null || zd == null) return false;
-
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderDiffMap(g, blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height,
-                        cs, sameChr, controlNormalizationType);
-                break;
-            }
-            case LOG: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null) return false;
-
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderSimpleLogMap(g, blocks, cs, width, height, sameChr, originX, originY);
-
-                break;
-            }
-            case OBSERVED:
-            default: {
-                List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
-                if (blocks == null) return false;
-                ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
-
-                renderSimpleMap(g, blocks, cs, width, height, sameChr, originX, originY);
-
-                break;
-            }
+        } else {
+            System.err.println("Invalid display option: " + displayOption);
+            return false;
         }
         return true;
     }
@@ -505,13 +416,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     for (ContactRecord rec : recs) {
                         ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
@@ -526,25 +431,9 @@ public class HeatmapRenderer {
                             float obsExpected = (float) df.getExpectedValue(chr1, dist);
                             float ctrlExpected = (float) controlDF.getExpectedValue(chr1, dist);
 
-                            float score = (float) ((Math.log(num + 1) / Math.log(obsExpected + 1)) / (Math.log(den + 1) / Math.log(ctrlExpected + 1)));
-                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+                            if (ratioPainting2(g, cs, num, den, obsExpected, ctrlExpected)) continue;
 
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -554,13 +443,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     float obsExpected = (averageCount > 0 ? averageCount : 1);
                     float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
@@ -574,22 +457,23 @@ public class HeatmapRenderer {
                             int binX = rec.getBinX();
                             int binY = rec.getBinY();
 
-                            float score = (float) ((Math.log(num + 1) / Math.log(obsExpected + 1)) / (Math.log(den + 1) / Math.log(ctrlExpected + 1)));
-                            if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+                            if (ratioPainting2(g, cs, num, den, obsExpected, ctrlExpected)) continue;
 
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
             }
         }
+    }
+
+    private boolean ratioPainting2(Graphics2D g, ColorScale cs, float num, float den, float obsExpected, float ctrlExpected) {
+        float score = (float) ((Math.log(num + 1) / Math.log(obsExpected + 1)) / (Math.log(den + 1) / Math.log(ctrlExpected + 1)));
+        if (Float.isNaN(score) || Float.isInfinite(score)) return true;
+
+        Color color = cs.getColor(score);
+        g.setColor(color);
+        return false;
     }
 
     private void renderLogRatioWithAvgMap(Graphics2D g, List<Block> blocks, List<Block> ctrlBlocks,
@@ -607,13 +491,7 @@ public class HeatmapRenderer {
         for (Block b : blocks) {
             Collection<ContactRecord> recs = b.getContactRecords();
 
-            Map<String, ContactRecord> controlRecords = new HashMap<>();
-            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-            if (cb != null) {
-                for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                }
-            }
+            Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
             if (recs != null) {
                 for (ContactRecord rec : recs) {
@@ -621,27 +499,7 @@ public class HeatmapRenderer {
                     if (ctrlRecord != null) {
                         float num = (float) Math.log(rec.getCounts() / averageCount + 1);
                         float den = (float) Math.log(ctrlRecord.getCounts() / ctrlAverageCount + 1);
-                        float score = num / den;
-                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                        Color color = cs.getColor(score);
-                        g.setColor(color);
-
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-
-                        if (sameChr && binX != binY) {
-                            px = binY - originX;
-                            py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        ratioPainting(g, originX, originY, width, height, cs, sameChr, rec, num, den);
                     }
                 }
             }
@@ -664,13 +522,7 @@ public class HeatmapRenderer {
         for (Block b : blocks) {
             Collection<ContactRecord> recs = b.getContactRecords();
 
-            Map<String, ContactRecord> controlRecords = new HashMap<>();
-            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-            if (cb != null) {
-                for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                }
-            }
+            Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
             if (recs != null) {
                 for (ContactRecord rec : recs) {
@@ -681,24 +533,7 @@ public class HeatmapRenderer {
                         float score = (num - den) * averageAcrossMapAndControl;
                         if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
-                        Color color = cs.getColor(score);
-                        g.setColor(color);
-
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-
-                        if (sameChr && binX != binY) {
-                            px = binY - originX;
-                            py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        intraPainting2(g, originX, originY, width, height, cs, sameChr, rec, score);
                     }
                 }
             }
@@ -720,13 +555,7 @@ public class HeatmapRenderer {
         for (Block b : blocks) {
             Collection<ContactRecord> recs = b.getContactRecords();
 
-            Map<String, ContactRecord> controlRecords = new HashMap<>();
-            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-            if (cb != null) {
-                for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                }
-            }
+            Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
             if (recs != null) {
                 for (ContactRecord rec : recs) {
@@ -734,31 +563,29 @@ public class HeatmapRenderer {
                     if (ctrlRecord != null) {
                         float num = (float) ((rec.getCounts() + pseudocountObs) / (df.getExpectedValue(chr1, 0) + pseudocountObs));
                         float den = (float) ((ctrlRecord.getCounts() + pseudocountCtrl) / (controlDF.getExpectedValue(chr1, 0) + pseudocountCtrl));
-                        float score = num / den;
-                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                        Color color = cs.getColor(score);
-                        g.setColor(color);
-
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-
-                        if (sameChr && binX != binY) {
-                            px = binY - originX;
-                            py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        ratioPainting(g, originX, originY, width, height, cs, sameChr, rec, num, den);
                     }
                 }
             }
         }
+    }
+
+    private void ratioPainting(Graphics2D g, int originX, int originY, int width, int height, ColorScale cs, boolean sameChr, ContactRecord rec, float num, float den) {
+        float score = num / den;
+        if (Float.isNaN(score) || Float.isInfinite(score)) return;
+
+        intraPainting2(g, originX, originY, width, height, cs, sameChr, rec, score);
+    }
+
+    private void intraPainting2(Graphics2D g, int originX, int originY, int width, int height, ColorScale cs, boolean sameChr, ContactRecord rec, float score) {
+        Color color = cs.getColor(score);
+        g.setColor(color);
+
+        int binX = rec.getBinX();
+        int binY = rec.getBinY();
+        aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
+
+        belowDiagonalPainting(g, width, height, sameChr, originX, originY, binX, binY);
     }
 
     private void renderRatioWithAvgMap(Graphics2D g, List<Block> blocks, List<Block> ctrlBlocks,
@@ -777,13 +604,7 @@ public class HeatmapRenderer {
         for (Block b : blocks) {
             Collection<ContactRecord> recs = b.getContactRecords();
 
-            Map<String, ContactRecord> controlRecords = new HashMap<>();
-            Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-            if (cb != null) {
-                for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                    controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                }
-            }
+            Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
             if (recs != null) {
                 for (ContactRecord rec : recs) {
@@ -791,27 +612,7 @@ public class HeatmapRenderer {
                     if (ctrlRecord != null) {
                         float num = (rec.getCounts() + pseudocountObs) / (averageCount + pseudocountObs);
                         float den = (ctrlRecord.getCounts() + pseudocountCtrl) / (ctrlAverageCount + pseudocountCtrl);
-                        float score = num / den;
-                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                        Color color = cs.getColor(score);
-                        g.setColor(color);
-
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-
-                        if (sameChr && binX != binY) {
-                            px = binY - originX;
-                            py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        ratioPainting(g, originX, originY, width, height, cs, sameChr, rec, num, den);
                     }
                 }
             }
@@ -837,13 +638,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     for (ContactRecord rec : recs) {
                         ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
@@ -864,19 +659,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -886,13 +669,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     float obsExpected = (averageCount > 0 ? averageCount : 1);
                     float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
@@ -914,16 +691,23 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
             }
         }
+    }
+
+    private Map<String, ContactRecord> linkRecords(MatrixZoomData zd, NormalizationType controlNormalizationType, Map<String, Block> controlBlocks, Block b) {
+        Map<String, ContactRecord> controlRecords = new HashMap<>();
+        Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
+        if (cb != null) {
+            for (ContactRecord ctrlRec : cb.getContactRecords()) {
+                controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
+            }
+        }
+        return controlRecords;
     }
 
     private void renderOERatioMap(Graphics2D g, List<Block> blocks, List<Block> ctrlBlocks,
@@ -942,13 +726,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     for (ContactRecord rec : recs) {
                         ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
@@ -969,19 +747,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -998,13 +764,7 @@ public class HeatmapRenderer {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
 
-                    Map<String, ContactRecord> controlRecords = new HashMap<>();
-                    Block cb = controlBlocks.get(zd.getNormLessBlockKey(b));
-                    if (cb != null) {
-                        for (ContactRecord ctrlRec : cb.getContactRecords()) {
-                            controlRecords.put(ctrlRec.getKey(controlNormalizationType), ctrlRec);
-                        }
-                    }
+                    Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
                     for (ContactRecord rec : recs) {
                         ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
@@ -1021,11 +781,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -1052,19 +808,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -1083,13 +827,7 @@ public class HeatmapRenderer {
                         Color color = cs.getColor(score);
                         g.setColor(color);
 
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
+                        interPainting(g, originX, originY, width, height, rec);
                     }
                 }
             }
@@ -1176,11 +914,7 @@ public class HeatmapRenderer {
 
                             Color color = cs.getColor(score);
                             g.setColor(color);
-                            int px = binY - originX;
-                            int py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binY, binX);
                         }
                     }
                 }
@@ -1231,11 +965,7 @@ public class HeatmapRenderer {
 
                             Color color = cs.getColor(score);
                             g.setColor(color);
-                            int px = binY - originX;
-                            int py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binY, binX);
                         }
                     }
                 }
@@ -1287,17 +1017,21 @@ public class HeatmapRenderer {
                         int binX = rec.getBinX();
                         int binY = rec.getBinY();
 
-                        if (binX != binY) {
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-                            int px = (binY - originX);
-                            int py = (binX - originY);
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        belowDiagonalPainting2(g, originX, originY, width, height, cs, score, binX, binY);
                     }
                 }
+            }
+        }
+    }
+
+    private void belowDiagonalPainting2(Graphics2D g, int originX, int originY, int width, int height, ColorScale cs, float score, int binX, int binY) {
+        if (binX != binY) {
+            Color color = cs.getColor(score);
+            g.setColor(color);
+            int px = (binY - originX);
+            int py = (binX - originY);
+            if (px > -1 && py > -1 && px <= width && py <= height) {
+                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
             }
         }
     }
@@ -1347,15 +1081,7 @@ public class HeatmapRenderer {
                         int binX = rec.getBinX();
                         int binY = rec.getBinY();
 
-                        if (binX != binY) {
-                            Color color = cs.getColor(score);
-                            g.setColor(color);
-                            int px = (binY - originX);
-                            int py = (binX - originY);
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-                        }
+                        belowDiagonalPainting2(g, originX, originY, width, height, cs, score, binX, binY);
                     }
                 }
             }
@@ -1382,19 +1108,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -1413,13 +1127,7 @@ public class HeatmapRenderer {
                         Color color = cs.getColor(score);
                         g.setColor(color);
 
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
+                        interPainting(g, originX, originY, width, height, rec);
                     }
                 }
             }
@@ -1476,11 +1184,7 @@ public class HeatmapRenderer {
 
                             Color color = cs.getColor(score);
                             g.setColor(color);
-                            int px = binY - originX;
-                            int py = binX - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
+                            aboveDiagonalPainting(g, originX, originY, width, height, binY, binX);
                         }
                     }
                 }
@@ -1508,19 +1212,7 @@ public class HeatmapRenderer {
                             Color color = cs.getColor(score);
                             g.setColor(color);
 
-                            int px = binX - originX;
-                            int py = binY - originY;
-                            if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                            }
-
-                            if (binX != binY) {
-                                px = binY - originX;
-                                py = binX - originY;
-                                if (px > -1 && py > -1 && px <= width && py <= height) {
-                                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                                }
-                            }
+                            intraPainting(g, originX, originY, width, height, binX, binY);
                         }
                     }
                 }
@@ -1539,16 +1231,38 @@ public class HeatmapRenderer {
                         Color color = cs.getColor(score);
                         g.setColor(color);
 
-                        int binX = rec.getBinX();
-                        int binY = rec.getBinY();
-                        int px = binX - originX;
-                        int py = binY - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
+                        interPainting(g, originX, originY, width, height, rec);
                     }
                 }
             }
+        }
+    }
+
+    private void interPainting(Graphics2D g, int originX, int originY, int width, int height, ContactRecord rec) {
+        int binX = rec.getBinX();
+        int binY = rec.getBinY();
+        aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
+    }
+
+    private void intraPainting(Graphics2D g, int originX, int originY, int width, int height, int binX, int binY) {
+        aboveDiagonalPainting(g, originX, originY, width, height, binX, binY);
+        int px;
+        int py;
+
+        if (binX != binY) {
+            px = binY - originX;
+            py = binX - originY;
+            if (px > -1 && py > -1 && px <= width && py <= height) {
+                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
+            }
+        }
+    }
+
+    private void aboveDiagonalPainting(Graphics2D g, int originX, int originY, int width, int height, int binX, int binY) {
+        int px = binX - originX;
+        int py = binY - originY;
+        if (px > -1 && py > -1 && px <= width && py <= height) {
+            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
         }
     }
 
@@ -1559,27 +1273,7 @@ public class HeatmapRenderer {
             if (recs != null) {
                 for (ContactRecord rec : recs) {
                     float score = rec.getCounts();
-                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                    int binX = rec.getBinX();
-                    int binY = rec.getBinY();
-                    int px = binX - originX;
-                    int py = binY - originY;
-
-                    Color color = cs.getColor(score);
-                    g.setColor(color);
-
-                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                    }
-
-                    if (sameChr && binX != binY) {
-                        px = binY - originX;
-                        py = binX - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-                    }
+                    simpleColoring(g, cs, width, height, sameChr, originX, originY, rec, score);
                 }
             }
         }
@@ -1592,35 +1286,45 @@ public class HeatmapRenderer {
             if (recs != null) {
                 for (ContactRecord rec : recs) {
                     float score = (float) Math.log(1 + rec.getCounts());
-                    if (Float.isNaN(score) || Float.isInfinite(score)) continue;
-
-                    int binX = rec.getBinX();
-                    int binY = rec.getBinY();
-                    int px = binX - originX;
-                    int py = binY - originY;
-
-                    Color color = cs.getColor(score);
-                    g.setColor(color);
-
-                    if (px > -1 && py > -1 && px <= width && py <= height) {
-                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                    }
-
-                    if (sameChr && binX != binY) {
-                        px = binY - originX;
-                        py = binX - originY;
-                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
-                        }
-                    }
+                    simpleColoring(g, cs, width, height, sameChr, originX, originY, rec, score);
                 }
+            }
+        }
+    }
+
+    private void simpleColoring(Graphics2D g, ColorScale cs, int width, int height, boolean sameChr, int originX, int originY, ContactRecord rec, float score) {
+        if (Float.isNaN(score) || Float.isInfinite(score)) return;
+
+        int binX = rec.getBinX();
+        int binY = rec.getBinY();
+        int px = binX - originX;
+        int py = binY - originY;
+
+        Color color = cs.getColor(score);
+        g.setColor(color);
+
+        if (px > -1 && py > -1 && px <= width && py <= height) {
+            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
+        }
+
+        belowDiagonalPainting(g, width, height, sameChr, originX, originY, binX, binY);
+    }
+
+    private void belowDiagonalPainting(Graphics2D g, int width, int height, boolean sameChr, int originX, int originY, int binX, int binY) {
+        int px;
+        int py;
+        if (sameChr && binX != binY) {
+            px = binY - originX;
+            py = binX - originY;
+            if (px > -1 && py > -1 && px <= width && py <= height) {
+                g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
             }
         }
     }
 
     private void renderPearsonsVS(Graphics2D g, MatrixZoomData zd, MatrixZoomData controlZD,
                                   ExpectedValueFunction df, ExpectedValueFunction controlDF,
-                                  String key, String controlKey, int originX, int originY,
+                                  String key, int originX, int originY,
                                   int width, int height) {
         BasicMatrix bm1 = zd.getPearsons(df);
         BasicMatrix bm2 = controlZD.getPearsons(controlDF);
@@ -1645,7 +1349,7 @@ public class HeatmapRenderer {
 
     private void renderNorm2VS(Graphics2D g, MatrixZoomData zd, MatrixZoomData controlZD,
                                boolean isWholeGenome, NormalizationType observedNormalizationType,
-                               NormalizationType controlNormalizationType, String key, String controlKey,
+                               NormalizationType controlNormalizationType, String key,
                                MatrixType displayOption, int originX, int originY, int width, int height) {
         BasicMatrix bm1 = zd.getNormSquared(observedNormalizationType);
         BasicMatrix bm2 = controlZD.getNormSquared(controlNormalizationType);
@@ -1717,12 +1421,11 @@ public class HeatmapRenderer {
                         px = row - originX;
                         py = col - originY;
                         g.setColor(controlColor);
-                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
                     } else {
                         px = row - originX;
                         py = col - originY;
-                        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
                     }
+                    g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
                 }
             }
         }
