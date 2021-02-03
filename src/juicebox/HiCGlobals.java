@@ -27,7 +27,6 @@ package juicebox;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,7 +37,7 @@ import java.util.concurrent.Executors;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.01.14";
+    public static final String versionNum = "2.01.15";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -103,36 +102,6 @@ public class HiCGlobals {
             throw new RuntimeException("This file is version " + version +
                     ". Only versions " + writingVersion + " and greater can be edited using this jar.");
         }
-    }
-
-    public static List<Color> createNewPreDefMapColorGradient() {
-        List<Color> colors = new ArrayList<>();
-        colors.add(new Color(255, 242, 255));
-        colors.add(new Color(255, 242, 255));
-        colors.add(new Color(255, 230, 242));
-        colors.add(new Color(255, 222, 230));
-        colors.add(new Color(250, 218, 234));
-        colors.add(new Color(255, 206, 226));
-        colors.add(new Color(238, 198, 210));
-        colors.add(new Color(222, 186, 182));
-        colors.add(new Color(226, 174, 165));
-        colors.add(new Color(214, 157, 145));
-        colors.add(new Color(194, 141, 125));
-        colors.add(new Color(218, 157, 121));
-        colors.add(new Color(234, 182, 129));
-        colors.add(new Color(242, 206, 133));
-        colors.add(new Color(238, 222, 153));
-        colors.add(new Color(242, 238, 161));
-        colors.add(new Color(222, 238, 161));
-        colors.add(new Color(202, 226, 149));
-        colors.add(new Color(178, 214, 117));
-        colors.add(new Color(149, 190, 113));
-        colors.add(new Color(117, 170, 101));
-        colors.add(new Color(113, 153, 89));
-        colors.add(new Color(18, 129, 242));
-        colors.add(new Color(255, 0, 0));
-        colors.add(new Color(0, 0, 0));
-        return colors;
     }
 
     public static Font font(int size, boolean isBold) {

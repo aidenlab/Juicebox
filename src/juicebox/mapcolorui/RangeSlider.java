@@ -39,6 +39,7 @@ import javax.swing.*;
  */
 class RangeSlider extends JSlider {
 
+    private static final long serialVersionUID = -1656738668931765037L;
     private RangeSliderUI rangeSliderUI;
 
     /**

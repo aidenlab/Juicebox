@@ -38,6 +38,8 @@ import java.awt.event.ActionListener;
  */
 public class PearsonColorScaleEditor extends JDialog {
 
+    private static final long serialVersionUID = 81248513331738L;
+
     public PearsonColorScaleEditor(final SuperAdapter superAdapter, final PearsonColorScale pearsonColorScale) {
         super(superAdapter.getMainWindow());
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,16 +48,12 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class MainViewPanel {
 
-    public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
-    public static final List<Float> preDefMapColorFractions = new ArrayList<>();
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();

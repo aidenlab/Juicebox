@@ -41,7 +41,8 @@ import java.text.ParseException;
  * @author Jim Robinson
  */
 class ColorRangeDialog extends JDialog {
-    
+
+    private static final long serialVersionUID = -2570891809264626823L;
     private final DecimalFormat df2;
     private final JTextField minimumField = new JTextField();
     private final JTextField maximumField = new JTextField();
