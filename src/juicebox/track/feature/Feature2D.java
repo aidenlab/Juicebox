@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -65,7 +65,6 @@ public class Feature2D implements Comparable<Feature2D> {
 	private boolean isSelected = false;
 	private Feature2D reflection = null;
 	private Color color, translucentColor;
-	private boolean test = false;
 	
 	public Feature2D(FeatureType featureType, String chr1, long start1, long end1, String chr2, long start2, long end2, Color c,
 					 Map<String, String> attributes) {
@@ -164,8 +163,8 @@ public class Feature2D implements Comparable<Feature2D> {
 	
 	public Color getColor() {
 		if (isSelected) {
-			return HiCGlobals.SELECT_FEATURE_COLOR;
-		} else {
+            return Color.DARK_GRAY;
+        } else {
 			return color;
 		}
 	}
@@ -180,7 +179,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Color getTranslucentColor() {
         if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
+            return Color.DARK_GRAY;
         } else {
             return translucentColor;
         }
@@ -482,10 +481,6 @@ public class Feature2D implements Comparable<Feature2D> {
     @Override
     public int hashCode() {
 		return Objects.hash(chr1, end1, start1, chr2, end2, start2);
-    }
-
-    public void doTest() {
-        test = true;
     }
 
     public void clearAttributes() {

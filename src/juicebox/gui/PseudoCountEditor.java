@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 package juicebox.gui;
 
-import juicebox.HiCGlobals;
+import juicebox.mapcolorui.HeatmapRenderer;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -47,7 +47,7 @@ public class PseudoCountEditor extends JDialog {
 
         JLabel labelPseudocount = new JLabel("Pseudocount");
         // todo error if called when pearson not loaded yet
-        final JTextField textPseudocount = new JTextField("" + HiCGlobals.PSEUDOCOUNT);
+        final JTextField textPseudocount = new JTextField("" + HeatmapRenderer.PSEUDO_COUNT);
 
         JPanel box = new JPanel();
         box.setLayout(new GridLayout(0, 2));
@@ -58,7 +58,7 @@ public class PseudoCountEditor extends JDialog {
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HiCGlobals.PSEUDOCOUNT = Float.parseFloat(textPseudocount.getText());
+                HeatmapRenderer.PSEUDO_COUNT = Float.parseFloat(textPseudocount.getText());
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }
@@ -67,7 +67,7 @@ public class PseudoCountEditor extends JDialog {
         resetButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HiCGlobals.PSEUDOCOUNT = 1f;
+                HeatmapRenderer.PSEUDO_COUNT = 1f;
                 superAdapter.refresh();
                 PseudoCountEditor.this.dispose();
             }

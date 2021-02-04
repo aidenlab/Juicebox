@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,8 @@ import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.v9depth.LogDepth;
+import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.RealMatrixWrapper;
@@ -82,6 +84,7 @@ public class MatrixZoomData {
     private double averageCount = -1;
     private List<List<ContactRecord>> localCacheOfRecords = null;
     private long numberOfContactRecords = 0;
+    private final V9Depth v9Depth;
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -103,6 +106,11 @@ public class MatrixZoomData {
         this.isIntra = chr1.getIndex() == chr2.getIndex();
         this.reader = reader;
         this.blockBinCount = blockBinCount;
+        if (reader.getVersion() > 8) {
+            v9Depth = V9Depth.setDepthMethod(reader.getDepthBase(), blockBinCount);
+        } else {
+            v9Depth = new LogDepth(2, blockBinCount);
+        }
         this.blockColumnCount = blockColumnCount;
 
         long correctedBinCount = blockBinCount;
@@ -205,10 +213,6 @@ public class MatrixZoomData {
         return getKey() + "_" + tileRow + "_" + tileColumn + "_ " + displayOption;
     }
     
-    private static int log2(double v) {
-        return (int) (Math.log(v) / Math.log(2));
-    }
-    
     /**
      * Return the blocks of normalized, observed values overlapping the rectangular region specified.
      * The units are "bins"
@@ -236,11 +240,45 @@ public class MatrixZoomData {
             }
         }
     }
-    
+
+    /**
+     * // for reference
+     * public int getBlockNumberVersion9(int binI, int binJ) {
+     * //int numberOfBlocksOnDiagonal = numberOfBinsInThisIntraMatrixAtResolution / blockSizeInBinCount + 1;
+     * // assuming number of blocks on diagonal is blockClolumnSize
+     * int depth = v9Depth.getDepth(binI, binJ);
+     * int positionAlongDiagonal = ((binI + binJ) / 2 / blockBinCount);
+     * return getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
+     * }
+     * <p>
+     * public int[] getBlockBoundsFromNumberVersion9Up(int blockNumber) {
+     * int positionAlongDiagonal = blockNumber % blockColumnCount;
+     * int depth = blockNumber / blockColumnCount;
+     * int avgPosition1 = positionAlongDiagonal * blockBinCount;
+     * int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
+     * double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
+     * double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+     * int c1 = avgPosition1 + (int) difference1 / 2 - 1;
+     * int c2 = avgPosition2 + (int) difference2 / 2 + 1;
+     * int r1 = avgPosition1 - (int) difference2 / 2 - 1;
+     * int r2 = avgPosition2 - (int) difference1 / 2 + 1;
+     * return new int[]{c1, c2, r1, r2};
+     * }
+     * <p>
+     * public int[] getBlockBoundsFromNumberVersion8Below(int blockNumber) {
+     * int c = (blockNumber % blockColumnCount);
+     * int r = blockNumber / blockColumnCount;
+     * int c1 = c * blockBinCount;
+     * int c2 = c1 + blockBinCount - 1;
+     * int r1 = r * blockBinCount;
+     * int r2 = r1 + blockBinCount - 1;
+     * return new int[]{c1, c2, r1, r2};
+     * }
+     */
     public int getBlockNumberVersion9FromPADAndDepth(int positionAlongDiagonal, int depth) {
         return depth * blockColumnCount + positionAlongDiagonal;
     }
-    
+
     private void populateBlocksToLoadV9(int positionAlongDiagonal, int depth, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
         int blockNumber = getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
         String key = getBlockKey(blockNumber, no);
@@ -252,40 +290,7 @@ public class MatrixZoomData {
             blocksToLoad.add(blockNumber);
         }
     }
-    
-    // for reference
-    public int getBlockNumberVersion9(int binI, int binJ) {
-        //int numberOfBlocksOnDiagonal = numberOfBinsInThisIntraMatrixAtResolution / blockSizeInBinCount + 1;
-        // assuming number of blocks on diagonal is blockClolumnSize
-        int depth = log2(1 + Math.abs(binI - binJ) / Math.sqrt(2) / blockBinCount);
-        int positionAlongDiagonal = ((binI + binJ) / 2 / blockBinCount);
-        return getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
-    }
 
-    public int[] getBlockBoundsFromNumberVersion9Up(int blockNumber) {
-        int positionAlongDiagonal = blockNumber % blockColumnCount;
-        int depth = blockNumber / blockColumnCount;
-        int avgPosition1 = positionAlongDiagonal * blockBinCount;
-        int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
-        double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
-        double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
-        int c1 = avgPosition1 + (int) difference1 / 2 - 1;
-        int c2 = avgPosition2 + (int) difference2 / 2 + 1;
-        int r1 = avgPosition1 - (int) difference2 / 2 - 1;
-        int r2 = avgPosition2 - (int) difference1 / 2 + 1;
-        return new int[]{c1, c2, r1, r2};
-    }
-    
-    public int[] getBlockBoundsFromNumberVersion8Below(int blockNumber) {
-        int c = (blockNumber % blockColumnCount);
-        int r = blockNumber / blockColumnCount;
-        int c1 = c * blockBinCount;
-        int c2 = c1 + blockBinCount - 1;
-        int r1 = r * blockBinCount;
-        int r2 = r1 + blockBinCount - 1;
-        return new int[]{c1, c2, r1, r2};
-    }
-    
     private List<Block> addNormalizedBlocksToListV9(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                     final NormalizationType norm) {
 
@@ -295,8 +300,8 @@ public class MatrixZoomData {
         // Depth is axis perpendicular to diagonal; nearer means closer to diagonal
         int translatedLowerPAD = (binX1 + binY1) / 2 / blockBinCount;
         int translatedHigherPAD = (binX2 + binY2) / 2 / blockBinCount + 1;
-        int translatedNearerDepth = log2(1 + Math.abs(binX1 - binY2) / Math.sqrt(2) / blockBinCount);
-        int translatedFurtherDepth = log2(1 + Math.abs(binX2 - binY1) / Math.sqrt(2) / blockBinCount);
+        int translatedNearerDepth = v9Depth.getDepth(binX1, binY2);
+        int translatedFurtherDepth = v9Depth.getDepth(binX2, binY1);
 
         // because code above assume above diagonal; but we could be below diagonal
         int nearerDepth = Math.min(translatedNearerDepth, translatedFurtherDepth);
@@ -304,7 +309,6 @@ public class MatrixZoomData {
             nearerDepth = 0;
         }
         int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
-
 
         for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
             for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {
@@ -503,7 +507,7 @@ public class MatrixZoomData {
                                          final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
-        ExecutorService service = Executors.newFixedThreadPool(200);
+        ExecutorService service = HiCGlobals.newFixedThreadPool();
 
         final int binSize = getBinSize();
         final int chr1Index = chr1.getIndex();

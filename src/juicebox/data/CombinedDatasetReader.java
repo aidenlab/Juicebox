@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,6 +122,11 @@ public class CombinedDatasetReader implements DatasetReader {
         return readers.get(0).getNormalizationVector(chr1Idx, zoom, normalizationType);
     }
 
+    @Override
+    public int getDepthBase() {
+        return readers.get(0).getDepthBase();
+    }
+
     /**
      * @param key -- string identifier for matrix, concatenation of chromosome names
      * @return Merged matrices read in
@@ -201,6 +206,11 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) {
         return null; //Undefined for combined datasets
+    }
+
+    @Override
+    public ListOfDoubleArrays readExpectedVectorPart(long position, long nVals) {
+        return null;
     }
 
     @Override

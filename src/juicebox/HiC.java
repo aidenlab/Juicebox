@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -404,13 +404,19 @@ public class HiC {
 
     public Matrix getMatrix() {
         if (dataset == null) {
-            System.err.println("Dataset is null");
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Dataset is null");
+            }
             return null;
         } else if (xContext == null) {
-            System.err.println("xContext is null");
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("xContext is null");
+            }
             return null;
         } else if (yContext == null) {
-            System.err.println("yContext is null");
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("yContext is null");
+            }
             return null;
         }
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
@@ -924,8 +930,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.equalsIgnoreCase("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.equalsIgnoreCase("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
@@ -936,8 +942,8 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+        if (!xChr.equalsIgnoreCase("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!yChr.equalsIgnoreCase("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
         return xChr + "@" + (long) (xContext.getBinOrigin() * currentZoom.getBinSize()) + "_" +
                 yChr + "@" + (long) (yContext.getBinOrigin() * currentZoom.getBinSize());

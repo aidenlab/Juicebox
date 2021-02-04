@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
-import java.io.Serializable;
 
 
 /**
@@ -50,9 +49,8 @@ import java.io.Serializable;
 // extends to JScrollPane or ScrollBar//
 // Load chromosome figure shape from GapSizes from tool.
 
-public class HiCChromosomeFigPanel extends JComponent implements Serializable {
+public class HiCChromosomeFigPanel extends JComponent {
 
-    private static final long serialVersionUID = 123798L;
     private final Font spanFont = HiCGlobals.font(12, false);
     private final HiC hic;
     private Orientation orientation;
@@ -133,24 +131,13 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                int scroll = e.getWheelRotation();
-
-              if (System.getProperty("os.name").toLowerCase().contains("win")) {
-                  double precScroll = e.getPreciseWheelRotation();
-    
-                  if (precScroll >= 0) {
-                      scroll = (int) Math.ceil(precScroll);
-                  } else {
-                      scroll = (int) Math.floor(precScroll);
-                  }
-              }
+                int scroll = (int) Math.round(e.getPreciseWheelRotation());
 
                 if (isHorizontal()) {
                     hic.moveBy(scroll, 0);
                 } else {
                     hic.moveBy(0, scroll);
                 }
-
             }
         });
 

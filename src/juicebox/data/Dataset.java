@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,7 @@ public class Dataset {
     String genomeId;
     String restrictionEnzyme = null;
     List<HiCZoom> bpZooms, dynamicZooms, fragZooms;
+    private int v9DepthBase = 0;
     private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
@@ -243,6 +244,11 @@ public class Dataset {
 
     public void setAttributes(Map<String, String> map) {
         this.attributes = map;
+        try {
+            v9DepthBase = Integer.parseInt(attributes.get(Preprocessor.V9_DEPTH_BASE));
+        } catch (Exception e) {
+            v9DepthBase = 0;
+        }
     }
 
 
@@ -992,5 +998,9 @@ public class Dataset {
 
     public NormalizationHandler getNormalizationHandler() {
         return normalizationHandler;
+    }
+
+    public int getDepthBase() {
+        return v9DepthBase;
     }
 }

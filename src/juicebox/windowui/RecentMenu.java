@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ import java.util.prefs.Preferences;
  * @author Ido Machol, Muhammad S Shamim, Neva Durand
  */
 public abstract class RecentMenu extends JMenu {
-    private static final long serialVersionUID = 4685393080959162312L;
+
     private static final int maxLengthEntryName = 100;
     private final int m_maxItems;
     private final String m_entry;

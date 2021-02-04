@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.Feature2D;
 import org.broad.igv.util.Pair;
 
@@ -308,7 +309,7 @@ public class TrackPanel extends JPanel {
         try {
             Feature2D highlight = hic.getHighlightedFeature();
             if (highlight != null) {
-                g.setColor(HiCGlobals.HIGHLIGHT_COLOR);
+                g.setColor(FeatureRenderer.HIGHLIGHT_COLOR);
                 MatrixZoomData zd = hic.getZd();
                 HiCGridAxis xAxis = zd.getXGridAxis();
                 HiCGridAxis yAxis = zd.getYGridAxis();

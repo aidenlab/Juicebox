@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,8 +23,6 @@
  */
 
 package juicebox.track;
-
-import org.broad.igv.Globals;
 
 /**
  * @author jrobinso
@@ -37,6 +35,7 @@ public class HiCFragmentAxis implements HiCGridAxis {
     private final int igvZoom;
     private final int[] sites;
     private final long chrLength;
+    private final double log2 = Math.log(2.0D);
     
     
     /**
@@ -51,14 +50,9 @@ public class HiCFragmentAxis implements HiCGridAxis {
         
         // Compute an approximate igv zoom level
         double averageBinSizeInBP = ((double) this.chrLength) / (sites.length + 1) * binSize;
-        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / Globals.log2);
+        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / log2);
     }
-    
-    
-    // todo I think both getGenomicStart/End below have a bug - MSS
-    // getGenomicStart can never actually return sites[sites.length-1]
-    // getGenomicEnd can never actually return chrLength
-    // maybe this is the correct behavior, but this actually seems like a bug
+
     @Override
     public long getGenomicStart(double binNumber) {
         int fragNumber = (int) binNumber * binSize;

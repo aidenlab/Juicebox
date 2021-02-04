@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,6 @@ import java.util.regex.Pattern;
  */
 public class EncodeFileBrowser extends JDialog {
     
-    private static final long serialVersionUID = 3049287764412827292L;
     private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
     private final EncodeTableModel model;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,6 +52,8 @@ public class Preprocessor {
     
     protected static final int VERSION = 9;
     protected static final int BLOCK_SIZE = 1000;
+    public static final String V9_DEPTH_BASE = "v9-depth-base";
+    protected int v9DepthBase = 2;
     public static final String HIC_FILE_SCALING = "hicFileScalingFactor";
     public static final String STATISTICS = "statistics";
     public static final String GRAPHS = "graphs";
@@ -126,6 +128,12 @@ public class Preprocessor {
 
     public void setCountThreshold(int countThreshold) {
         this.countThreshold = countThreshold;
+    }
+
+    public void setV9DepthBase(int v9DepthBase) {
+        if (v9DepthBase > 1 || v9DepthBase < 0) {
+            this.v9DepthBase = v9DepthBase;
+        }
     }
 
     public void setMapqThreshold(int mapqThreshold) {
@@ -479,6 +487,7 @@ public class Preprocessor {
         if (stats != null) nAttributes += 1;
         if (graphs != null) nAttributes += 1;
         if (hicFileScaling != null) nAttributes += 1;
+        if (v9DepthBase != 2) nAttributes += 1;
     
         los.writeInt(nAttributes);
         los.writeString(SOFTWARE);
@@ -494,6 +503,10 @@ public class Preprocessor {
         if (hicFileScaling != null) {
             los.writeString(HIC_FILE_SCALING);
             los.writeString(hicFileScaling.toString());
+        }
+        if (v9DepthBase != 2) {
+            los.writeString(V9_DEPTH_BASE);
+            los.writeString("" + v9DepthBase);
         }
 
 
@@ -542,7 +555,7 @@ public class Preprocessor {
         if (binSize == 0) binSize = 1;
         int nBinsX = (int) (genomeLength / binSize + 1); // todo
         int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
-        return new MatrixPP(0, 0, binSize, nBlockColumns, chromosomeHandler, fragmentCalculation, countThreshold);
+        return new MatrixPP(0, 0, binSize, nBlockColumns, chromosomeHandler, fragmentCalculation, countThreshold, v9DepthBase);
     }
 
     /**
@@ -742,7 +755,8 @@ public class Preprocessor {
                         if (outputFile != null) outputFile.deleteOnExit();
                         System.exit(58);
                     }
-                    currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes, fragmentCalculation, fragBinSizes, countThreshold);
+                    currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes,
+                            fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase);
                 }
                 currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), expectedValueCalculations, tmpDir);
 

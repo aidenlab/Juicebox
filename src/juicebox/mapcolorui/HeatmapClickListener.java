@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
 
     private void unsafeMouseClickSubActionA(final MouseEvent eF) {
         HiC hic = heatmapPanel.getHiC();
-        int[] chromosomeBoundaries = heatmapPanel.getChromosomeBoundaries();
+        long[] chromosomeBoundaries = heatmapPanel.getChromosomeBoundaries();
 
         double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
         double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());

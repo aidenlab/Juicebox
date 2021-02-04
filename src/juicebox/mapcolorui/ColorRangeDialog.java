@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import java.text.ParseException;
  * @author Jim Robinson
  */
 class ColorRangeDialog extends JDialog {
-    
+
     private static final long serialVersionUID = -2570891809264626823L;
     private final DecimalFormat df2;
     private final JTextField minimumField = new JTextField();

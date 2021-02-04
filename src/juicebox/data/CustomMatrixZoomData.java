@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -148,7 +147,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             System.err.println("no y?");
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        ExecutorService executor = HiCGlobals.newFixedThreadPool();
         // todo change to be by chromosome?
         for (Pair<MotifAnchor, MotifAnchor> xRegion : xAxisRegions) {
             for (Pair<MotifAnchor, MotifAnchor> yRegion : yAxisRegions) {
@@ -222,7 +221,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     private void actuallyLoadGivenBlocks(final List<Block> blockList, final NormalizationType no,
                                          Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd) {
         final AtomicInteger errorCounter = new AtomicInteger();
-        ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        ExecutorService service = HiCGlobals.newFixedThreadPool();
 
         long[] timesPassed = new long[3];
         long overallTimeStart = System.currentTimeMillis();

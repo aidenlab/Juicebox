@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -129,6 +129,7 @@ public class APA extends JuicerCLT {
     private int[] resolutions = new int[]{25000, 10000, 5000};
     private int[] regionWidths = new int[]{6, 6, 3};
     private boolean includeInterChr = false;
+    private final Object key = new Object();
 
     /**
      * Usage for APA
@@ -155,11 +156,6 @@ public class APA extends JuicerCLT {
 
         this.minPeakDist=minPeakDist;
         this.maxPeakDist=maxPeakDist;
-
-        //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
-        // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
-
-
     }
 
     @Override
@@ -298,8 +294,6 @@ public class APA extends JuicerCLT {
                 APADataStack.initializeDataSaveFolder(outputDirectory,"" + resolution);
 
                 for (int l = 0; l < numCPUThreads; l++) {
-                    final int threadNum = l;
-
                     Runnable worker = new Runnable() {
                         @Override
                         public void run() {
@@ -311,8 +305,7 @@ public class APA extends JuicerCLT {
                                     APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
 
                                     MatrixZoomData zd;
-
-                                    synchronized(ds) {
+                                    synchronized (key) {
                                         zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
                                     }
 
@@ -346,13 +339,13 @@ public class APA extends JuicerCLT {
                                     for (Feature2D loop : loops) {
                                         try {
                                             RealMatrix newData;
-                                            synchronized(ds) {
+                                            synchronized (key) {
                                                 newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm);
                                             }
                                             apaDataStack.addData(newData);
                                             //apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
                                         } catch (Exception e) {
-                                            System.err.println(e);
+                                            System.err.println(e.getMessage());
                                             System.err.println("Unable to find data for loop: " + loop);
                                         }
                                     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,7 +29,9 @@ import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
+import juicebox.mapcolorui.ColorScaleHandler;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.HiCMapTileManager;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.*;
@@ -152,7 +154,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 4202L;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
       }
     };
@@ -165,7 +167,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 42012L;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
       }
     };
@@ -200,16 +202,14 @@ public class MainMenuBar extends JMenuBar {
 
 
     // TODO: make this an export of the data on screen instead of a GUI for CLT
-    if (!HiCGlobals.isRestricted) {
-      JMenuItem dump = new JMenuItem("Export Data...");
-      dump.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          superAdapter.exportDataLauncher();
-        }
-      });
-      fileMenu.add(dump);
-    }
+    JMenuItem dump = new JMenuItem("Export Data...");
+    dump.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        superAdapter.exportDataLauncher();
+      }
+    });
+    fileMenu.add(dump);
 
     JMenuItem creditsMenu = new JMenuItem();
     creditsMenu.setText("About");
@@ -317,7 +317,7 @@ public class MainMenuBar extends JMenuBar {
       private static final long serialVersionUID = 4204L;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
         superAdapter.setNormalizationDisplayState();
 
@@ -402,13 +402,13 @@ public class MainMenuBar extends JMenuBar {
     colorItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
+        JColorChooser colorChooser = new JColorChooser(ColorScaleHandler.HIC_MAP_COLOR);
         JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
                 true, colorChooser, null, null);
         dialog.setVisible(true);
         Color color = colorChooser.getColor();
         if (color != null) {
-          HiCGlobals.HIC_MAP_COLOR = color;
+          ColorScaleHandler.HIC_MAP_COLOR = color;
           superAdapter.getMainViewPanel().resetAllColors();
           superAdapter.refresh();
         }
@@ -549,6 +549,16 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.getHeatmapPanel().repaint();
       }
     });
+
+    final JCheckBoxMenuItem renderWithGPU = new JCheckBoxMenuItem("Use GPU");
+    renderWithGPU.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCMapTileManager.toggleUseGPU();
+      }
+    });
+
+
     final JCheckBoxMenuItem hackLinearColorScale = new JCheckBoxMenuItem("Hack linear color scale");
     hackLinearColorScale.addActionListener(new ActionListener() {
       @Override
@@ -578,6 +588,7 @@ public class MainMenuBar extends JMenuBar {
 
     displayTiles.setSelected(HiCGlobals.displayTiles);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(renderWithGPU);
       devMenu.add(displayTiles);
       devMenu.add(hackColorScaleEqual);
       devMenu.add(hackColorScale);

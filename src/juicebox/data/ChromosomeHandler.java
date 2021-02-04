@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public class ChromosomeHandler {
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
     private final List<Chromosome> cleanedChromosomes;
     private final String genomeID;
-    private final int[] chromosomeBoundaries;
+    private final long[] chromosomeBoundaries;
     private final Chromosome[] chromosomesArray;
     private final Chromosome[] chromosomeArrayWithoutAllByAll;
     private final Chromosome[] chromosomeArrayAutosomesOnly;
@@ -78,7 +78,7 @@ public class ChromosomeHandler {
         }
 
         cleanedChromosomes = initializeCleanedChromosomesList(chromosomes);
-        Pair<int[], List<Chromosome[]>> outputs = initializeInternalVariables();
+        Pair<long[], List<Chromosome[]>> outputs = initializeInternalVariables();
         chromosomeBoundaries = outputs.getFirst();
         chromosomesArray = outputs.getSecond().get(0);
         chromosomeArrayWithoutAllByAll = outputs.getSecond().get(1);
@@ -223,7 +223,7 @@ public class ChromosomeHandler {
         return cleanedChromosomes;
     }
 
-    private Pair<int[], List<Chromosome[]>> initializeInternalVariables() {
+    private Pair<long[], List<Chromosome[]>> initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
@@ -233,12 +233,12 @@ public class ChromosomeHandler {
         }
 
         // for all-by-all view
-        int[] chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
+        long[] chromosomeBoundaries = new long[cleanedChromosomes.size() - 1];
         long bound = 0;
         for (int i = 1; i < cleanedChromosomes.size(); i++) {
             Chromosome c = cleanedChromosomes.get(i);
             bound += (c.getLength() / 1000);
-            chromosomeBoundaries[i - 1] = (int) bound;
+            chromosomeBoundaries[i - 1] = bound;
         }
 
         Chromosome[] chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
@@ -311,7 +311,7 @@ public class ChromosomeHandler {
         return chromosomesArray.length;
     }
 
-    public int[] getChromosomeBoundaries() {
+    public long[] getChromosomeBoundaries() {
         return chromosomeBoundaries;
     }
 

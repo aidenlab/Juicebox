@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         String genomeWideName = chromosomeHandler.getChromosomeFromIndex(0).getName();
-        String genomeWidePairName = genomeWideName + "_" + genomeWideName;
+        String genomeWidePairName = genomeWideName + "-" + genomeWideName;
         chromosomePairIndexes.put(chromosomePairCounter, genomeWidePairName);
         chromosomePairIndexesReverse.put(genomeWidePairName, chromosomePairCounter);
         chromosomePairIndex1.put(chromosomePairCounter, 0);
@@ -73,7 +73,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             for (int j = i; j < chromosomeHandler.size(); j++){
                 String c1Name = chromosomeHandler.getChromosomeFromIndex(i).getName();
                 String c2Name = chromosomeHandler.getChromosomeFromIndex(j).getName();
-                String chromosomePairName = c1Name + "_" + c2Name;
+                String chromosomePairName = c1Name + "-" + c2Name;
                 chromosomePairIndexes.put(chromosomePairCounter, chromosomePairName);
                 chromosomePairIndexesReverse.put(chromosomePairName,chromosomePairCounter);
                 chromosomePairIndex1.put(chromosomePairCounter, i);
@@ -145,7 +145,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             System.exit(70);
         }
         for (Map.Entry<Integer,String> entry : chromosomePairIndexes.entrySet()) {
-            String reverseName = entry.getValue().split("_")[1] + "_" + entry.getValue().split("_")[0];
+            String reverseName = entry.getValue().split("-")[1] + "-" + entry.getValue().split("-")[0];
             if (tempIndex.containsKey(entry.getValue())) {
                 mndIndex.put(entry.getKey(), tempIndex.get(entry.getValue()));
             } else if (tempIndex.containsKey(reverseName)) {
@@ -262,7 +262,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                     currentChr2 = chr2;
                     currentMatrixKey = currentChr1 + "_" + currentChr2;
 
-                    currentMatrixName = localChromosomeHandler.getChromosomeFromIndex(chr1).getName() + "_" + localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                    currentMatrixName = localChromosomeHandler.getChromosomeFromIndex(chr1).getName() + "-" + localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
                     currentPairIndex = chromosomePairIndexesReverse.get(currentMatrixName);
 
                     if (currentPairIndex != givenChromosomePairIndex) {
@@ -274,7 +274,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         if (outputFile != null) outputFile.deleteOnExit();
                         System.exit(58);
                     }
-                    currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes, fragmentCalculation, fragBinSizes, countThreshold);
+                    currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes,
+                            fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase);
                 }
                 currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), localExpectedValueCalculations, tmpDir);
 

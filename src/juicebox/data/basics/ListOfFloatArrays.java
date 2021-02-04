@@ -89,6 +89,20 @@ public class ListOfFloatArrays {
         return overallLength;
     }
 
+    public long getMaxRow() {
+        long maxIndex = 0;
+        float maxVal = 0;
+        for (int index = 0; index < overallLength; index++) {
+            int pseudoRow = (int) (index / DEFAULT_LENGTH);
+            int pseudoCol = (int) (index % DEFAULT_LENGTH);
+            if (maxVal < internalList.get(pseudoRow)[pseudoCol]) {
+                maxVal = internalList.get(pseudoRow)[pseudoCol];
+                maxIndex = index;
+            }
+        }
+        return maxIndex;
+    }
+
     public ListOfFloatArrays deepClone() {
         ListOfFloatArrays clone = new ListOfFloatArrays(overallLength);
         for (int k = 0; k < internalList.size(); k++) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import juicebox.track.HiCGridAxis;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -43,9 +42,8 @@ import java.text.NumberFormat;
 /**
  * @author jrobinso
  */
-public class HiCRulerPanel extends JPanel implements Serializable {
+public class HiCRulerPanel extends JPanel {
 
-    private static final long serialVersionUID = 3754386054158787331L;
     private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = HiCGlobals.font(9, false);

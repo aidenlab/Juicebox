@@ -206,9 +206,11 @@ public class Dump extends JuiceboxCLT {
         } else if (matrixType == MatrixType.EXPECTED) {
             final ExpectedValueFunction df = dataset.getExpectedValuesOrExit(zoom, norm, chromosome, true);
     
-            ListOfDoubleArrays values = df.getExpectedValuesNoNormalization();
+            ListOfDoubleArrays values;
             if (!ChromosomeHandler.isAllByAll(chromosome)) {
                 values = df.getExpectedValuesWithNormalization(chromosome.getIndex());
+            } else {
+                values = df.getExpectedValuesNoNormalization();
             }
     
             if (ofile != null && ofile.endsWith(".npy")) {
