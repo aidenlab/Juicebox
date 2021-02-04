@@ -135,8 +135,6 @@ public class GeneralTileManager {
                         }
                     }
 
-                    //TODO ******** UNCOMMENT *******
-                    //Uncomment to draw tile grid (for debugging)
                     if (HiCGlobals.displayTiles) {
                         renderer.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
                     }

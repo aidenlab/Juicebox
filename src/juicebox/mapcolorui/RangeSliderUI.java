@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -55,6 +55,7 @@ class RangeSliderUI extends BasicSliderUI {
 
     private boolean colorIsOE = false;
     private boolean colorIsBlank = false;
+    private final Object key = new Object();
 
     /**
      * Location and size of thumb for upper value.
@@ -303,7 +304,7 @@ class RangeSliderUI extends BasicSliderUI {
      * Paints the thumb for the lower value using the specified graphics object.
      */
     private void paintLowerThumb(Graphics g) {
-        Rectangle knobBounds = thumbRect;
+        //Rectangle knobBounds = thumbRect;
         super.paintThumb(g);
     }
 
@@ -340,7 +341,7 @@ class RangeSliderUI extends BasicSliderUI {
      * This method is called when the user presses the Page Up or Down keys.
      */
     public void scrollByBlock(int direction) {
-        synchronized (slider) {
+        synchronized (key) {
             int blockIncrement = (slider.getMaximum() - slider.getMinimum()) / 10;
             if (blockIncrement <= 0 && slider.getMaximum() > slider.getMinimum()) {
                 blockIncrement = 1;
@@ -362,7 +363,7 @@ class RangeSliderUI extends BasicSliderUI {
      * This method is called when the user presses one of the arrow keys.
      */
     public void scrollByUnit(int direction) {
-        synchronized (slider) {
+        synchronized (key) {
             int delta = ((direction > 0) ? POSITIVE_SCROLL : NEGATIVE_SCROLL);
 
             if (upperThumbSelected) {
@@ -510,7 +511,7 @@ class RangeSliderUI extends BasicSliderUI {
          * value in the slider.
          */
         private void moveLowerThumb() {
-            int thumbMiddle = 0;
+            int thumbMiddle;
 
             switch (slider.getOrientation()) {
                 case JSlider.VERTICAL:
@@ -585,7 +586,7 @@ class RangeSliderUI extends BasicSliderUI {
          * value in the slider.
          */
         private void moveUpperThumb() {
-            int thumbMiddle = 0;
+            int thumbMiddle;
 
             switch (slider.getOrientation()) {
                 case JSlider.VERTICAL:

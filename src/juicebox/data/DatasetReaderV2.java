@@ -316,7 +316,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int binSize = dis.readInt();
         HiCZoom zoom = new HiCZoom(unit, binSize);
-        // TODO: Default binSize value for "ALL" is 6197...(actually (genomeLength/1000)/500; depending on bug fix, could be 6191 for hg19); We need to make sure our maps hold a valid binSize value as default.
+        // TODO: Default binSize value for "ALL" is 6197...
+        //  (actually (genomeLength/1000)/500; depending on bug fix, could be 6191 for hg19);
+        //  We need to make sure our maps hold a valid binSize value as default.
 
         int blockBinCount = dis.readInt();
         int blockColumnCount = dis.readInt();

@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -241,7 +241,7 @@ public class ResourceTree {
     }
 
     public boolean addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
-        Boolean localFilesAdded = Boolean.FALSE;
+        boolean localFilesAdded = false;
 
         File[] oneDfiles = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
 
@@ -250,7 +250,7 @@ public class ResourceTree {
 
                 if (file == null || !file.exists()) continue;
 
-                localFilesAdded = Boolean.TRUE;
+                localFilesAdded = true;
 
                 String path = file.getAbsolutePath();
                 openAnnotationPath = new File(path);
