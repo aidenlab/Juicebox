@@ -42,16 +42,20 @@ import java.awt.image.BufferedImage;
 
 public class HiCMapTileManager {
     private static final int imageTileWidth = 500;
-    public static boolean useCPU = true;
+    private static boolean useGPU = false;
     private final ObjectCache<String, GeneralTileManager.ImageTile> tileCache = new ObjectCache<>(30);
     private final GLProfile glp = GLProfile.getDefault();
-    private final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
-    private final GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.getDefault());
+    private final GLCapabilities caps = new GLCapabilities(glp);
+    private final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
     private final DefaultGLCapabilitiesChooser defaultChooser = new DefaultGLCapabilitiesChooser();
     private final ColorScaleHandler colorScaleHandler;
 
     public HiCMapTileManager(ColorScaleHandler colorScaleHandler) {
         this.colorScaleHandler = colorScaleHandler;
+    }
+
+    public static void toggleUseGPU() {
+        useGPU = !useGPU;
     }
 
     public void clearTileCache() {
@@ -80,12 +84,12 @@ public class HiCMapTileManager {
             final int by0 = tileRow * imageTileWidth;
 
             Image image;
-            if (useCPU) {
-                image = renderDataWithCPU(parent, bx0, by0, imageWidth, imageHeight,
+            if (useGPU) {
+                image = renderDataWithGPU(bx0, by0, imageWidth, imageHeight,
                         zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
                         hic.getExpectedValues(), hic.getExpectedControlValues());
             } else {
-                image = renderDataWithGPU(bx0, by0, imageWidth, imageHeight,
+                image = renderDataWithCPU(parent, bx0, by0, imageWidth, imageHeight,
                         zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
                         hic.getExpectedValues(), hic.getExpectedControlValues());
             }
