@@ -204,25 +204,28 @@ public class HeatmapPanel extends JComponent {
                 } else {
                     g.setColor(Color.DARK_GRAY);
                 }
-                if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr1())) {
-                    if (zd instanceof CustomMatrixZoomData) {
-                        List<Long> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
-                        //int maxSize = xBins.get(xBins.size() - 1);
-                        int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
-                        for (long xBin : xBins) {
-                            int x = (int) ((xBin - binOriginX) * scaleFactor);
-                            g.drawLine(x, 0, x, maxSize);
+                final ChromosomeHandler handler = hic.getChromosomeHandler();
+                if (handler != null && zd != null) {
+                    if (handler.isCustomChromosome(zd.getChr1())) {
+                        if (zd instanceof CustomMatrixZoomData) {
+                            List<Long> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
+                            //int maxSize = xBins.get(xBins.size() - 1);
+                            int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
+                            for (long xBin : xBins) {
+                                int x = (int) ((xBin - binOriginX) * scaleFactor);
+                                g.drawLine(x, 0, x, maxSize);
+                            }
                         }
                     }
-                }
-                if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr2())) {
-                    if (zd instanceof CustomMatrixZoomData) {
-                        List<Long> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
-                        //int maxSize = yBins.get(yBins.size() - 1);
-                        int maxSize = (int) ((zd.getXGridAxis().getBinCount() - binOriginX) * scaleFactor);
-                        for (long yBin : yBins) {
-                            int y = (int) ((yBin - binOriginY) * scaleFactor);
-                            g.drawLine(0, y, maxSize, y);
+                    if (handler.isCustomChromosome(zd.getChr2())) {
+                        if (zd instanceof CustomMatrixZoomData) {
+                            List<Long> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
+                            //int maxSize = yBins.get(yBins.size() - 1);
+                            int maxSize = (int) ((zd.getXGridAxis().getBinCount() - binOriginX) * scaleFactor);
+                            for (long yBin : yBins) {
+                                int y = (int) ((yBin - binOriginY) * scaleFactor);
+                                g.drawLine(0, y, maxSize, y);
+                            }
                         }
                     }
                 }
