@@ -51,6 +51,7 @@ import java.util.List;
  */
 public class LayersPanel extends JDialog {
 
+    private static final long serialVersionUID = 9000047;
     public static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static LoadAction trackLoadAction;
     private static LoadEncodeAction encodeAction;

@@ -31,7 +31,6 @@ import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
 import juicebox.mapcolorui.ColorScaleHandler;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.mapcolorui.HiCMapTileManager;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.*;
@@ -49,7 +48,7 @@ import java.io.IOException;
  */
 public class MainMenuBar extends JMenuBar {
 
-  private static final long serialVersionUID = 2342324643L;
+  private static final long serialVersionUID = 9000025;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
   private static final String recentMapEntityNode = "hicMapRecent";
@@ -151,7 +150,7 @@ public class MainMenuBar extends JMenuBar {
 
     recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-      private static final long serialVersionUID = 4202L;
+      private static final long serialVersionUID = 9000021;
 
       public void onSelectPosition(String mapPath) {
         String[] temp = encodeSafeDelimeterSplit(mapPath);
@@ -164,7 +163,7 @@ public class MainMenuBar extends JMenuBar {
 
     recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-      private static final long serialVersionUID = 42012L;
+      private static final long serialVersionUID = 9000022;
 
       public void onSelectPosition(String mapPath) {
         String[] temp = encodeSafeDelimeterSplit(mapPath);
@@ -314,7 +313,7 @@ public class MainMenuBar extends JMenuBar {
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
-      private static final long serialVersionUID = 4204L;
+      private static final long serialVersionUID = 9000023;
 
       public void onSelectPosition(String mapPath) {
         String[] temp = encodeSafeDelimeterSplit(mapPath);
@@ -341,7 +340,7 @@ public class MainMenuBar extends JMenuBar {
     // restore recent saved states
     previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
 
-      private static final long serialVersionUID = 4205L;
+      private static final long serialVersionUID = 9000024;
 
       public void onSelectPosition(String mapPath) {
         superAdapter.launchLoadStateFromXML(mapPath);
@@ -550,15 +549,6 @@ public class MainMenuBar extends JMenuBar {
       }
     });
 
-    final JCheckBoxMenuItem renderWithGPU = new JCheckBoxMenuItem("Use GPU");
-    renderWithGPU.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        HiCMapTileManager.toggleUseGPU();
-      }
-    });
-
-
     final JCheckBoxMenuItem hackLinearColorScale = new JCheckBoxMenuItem("Hack linear color scale");
     hackLinearColorScale.addActionListener(new ActionListener() {
       @Override
@@ -588,7 +578,6 @@ public class MainMenuBar extends JMenuBar {
 
     displayTiles.setSelected(HiCGlobals.displayTiles);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-      devMenu.add(renderWithGPU);
       devMenu.add(displayTiles);
       devMenu.add(hackColorScaleEqual);
       devMenu.add(hackColorScale);

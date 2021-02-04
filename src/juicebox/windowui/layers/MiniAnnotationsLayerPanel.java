@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,7 +26,6 @@ package juicebox.windowui.layers;
 
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.windowui.DisabledGlassPane;
 import org.broad.igv.ui.color.ColorChooserPanel;
 
 import javax.swing.*;
@@ -39,7 +38,7 @@ import java.io.IOException;
  */
 public class MiniAnnotationsLayerPanel extends JPanel {
 
-    public static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
+    private static final long serialVersionUID = 9000049;
     private static final int MAX_NUM_LETTERS = 8;
     private final int miniButtonSize = 22;
     private final int maximumVisibleLayers = 5;

@@ -24,9 +24,6 @@
 
 package juicebox.mapcolorui;
 
-import com.jogamp.opengl.*;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ExpectedValueFunction;
@@ -42,20 +39,11 @@ import java.awt.image.BufferedImage;
 
 public class HiCMapTileManager {
     private static final int imageTileWidth = 500;
-    private static boolean useGPU = false;
     private final ObjectCache<String, GeneralTileManager.ImageTile> tileCache = new ObjectCache<>(30);
-    private final GLProfile glp = GLProfile.getDefault();
-    private final GLCapabilities caps = new GLCapabilities(glp);
-    private final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-    private final DefaultGLCapabilitiesChooser defaultChooser = new DefaultGLCapabilitiesChooser();
     private final ColorScaleHandler colorScaleHandler;
 
     public HiCMapTileManager(ColorScaleHandler colorScaleHandler) {
         this.colorScaleHandler = colorScaleHandler;
-    }
-
-    public static void toggleUseGPU() {
-        useGPU = !useGPU;
     }
 
     public void clearTileCache() {
@@ -83,18 +71,11 @@ public class HiCMapTileManager {
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
 
-            Image image;
-            if (useGPU) {
-                image = renderDataWithGPU(bx0, by0, imageWidth, imageHeight,
-                        zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
-                        hic.getExpectedValues(), hic.getExpectedControlValues());
-            } else {
-                image = renderDataWithCPU(parent, bx0, by0, imageWidth, imageHeight,
-                        zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
-                        hic.getExpectedValues(), hic.getExpectedControlValues());
-            }
+            Image image = renderDataWithCPU(parent, bx0, by0, imageWidth, imageHeight,
+                    zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
+                    hic.getExpectedValues(), hic.getExpectedControlValues());
 
-            //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
+            // if (scaleFactor > 0.999 && scaleFactor < 1.001) {
             tile = new GeneralTileManager.ImageTile(image, bx0, by0);
             tileCache.put(key, tile);
         }
@@ -120,49 +101,6 @@ public class HiCMapTileManager {
             return null;
         }
         return image;
-    }
-
-    private BufferedImage renderDataWithGPU(int bx0, int by0, int imageWidth, int imageHeight,
-                                            MatrixZoomData zd, MatrixZoomData controlZd, MatrixType displayOption,
-                                            NormalizationType obsNormalizationType, NormalizationType ctrlNormalizationType,
-                                            ExpectedValueFunction expectedValues, ExpectedValueFunction expectedControlValues) {
-        GLAutoDrawable drawable = generateGLDrawable(imageWidth, imageHeight);
-
-        GL2 gl = drawable.getGL().getGL2();
-        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        gl.glViewport(0, 0, imageWidth, imageHeight);
-        gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        gl.glLoadIdentity();
-        gl.glOrtho(0, imageWidth, imageHeight, 0, -1, 1);
-
-        if (HiCGlobals.isDarkulaModeEnabled) {
-            gl.glColor3f(.05f, .05f, .05f);
-            gl.glRecti(0, 0, imageWidth, imageHeight);
-        } else {
-            gl.glColor3f(.95f, .95f, .95f);
-            gl.glRecti(0, 0, imageWidth, imageHeight);
-        }
-
-        HeatmapRenderer renderer = new HeatmapGPURenderer(gl, colorScaleHandler);
-        if (!renderer.render(bx0, by0, imageWidth, imageHeight,
-                zd, controlZd, displayOption,
-                obsNormalizationType, ctrlNormalizationType,
-                expectedValues, expectedControlValues, true)) {
-            return null;
-        }
-
-        BufferedImage image = new AWTGLReadBufferUtil(drawable.getGLProfile(),
-                true).readPixelsToBufferedImage(drawable.getGL(), 0, 0,
-                imageWidth, imageHeight, true);
-        return image;
-    }
-
-    private GLAutoDrawable generateGLDrawable(int width, int height) {
-        GLAutoDrawable drawable = factory.createOffscreenAutoDrawable(factory.getDefaultDevice(),
-                caps, defaultChooser, width, height);
-        drawable.display();
-        drawable.getContext().makeCurrent();
-        return drawable;
     }
 
     public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixType displayOption, String cacheKey) {
