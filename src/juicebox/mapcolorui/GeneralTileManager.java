@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,19 +30,17 @@ import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.util.ObjectCache;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
-public class TileManager {
+public class GeneralTileManager {
     private static final int imageTileWidth = 500;
-    private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
-    private final ColorScaleHandler colorScaleHandler;
 
-    public TileManager(ColorScaleHandler colorScaleHandler) {
-        this.colorScaleHandler = colorScaleHandler;
+    private final HiCMapTileManager mapTileManager;
+
+    public GeneralTileManager(ColorScaleHandler colorScaleHandler) {
+        mapTileManager = new HiCMapTileManager(colorScaleHandler);
     }
 
     public boolean renderHiCTiles(HeatmapRenderer renderer, double binOriginX, double binOriginY, double bRight, double bBottom,
@@ -65,7 +63,7 @@ public class TileManager {
 
                 ImageTile tile = null;
                 try {
-                    tile = getImageTile(zd, controlZd, tileRow, tileColumn, displayOption,
+                    tile = mapTileManager.getImageTile(zd, controlZd, tileRow, tileColumn, displayOption,
                             observedNormalizationType, controlNormalizationType, hic, parent);
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
@@ -114,7 +112,6 @@ public class TileManager {
                     }
 
 
-                    //if (mainWindow.isRefreshTest()) {
                     try {
                         if (xDest0 < xDest1 && yDest0 < yDest1 && xSrc0 < xSrc1 && ySrc0 < ySrc1) {
                             // basically ensure that we're not trying to plot empty space
@@ -137,15 +134,12 @@ public class TileManager {
                             System.err.println("SVG export did not work");
                         }
                     }
-                    //}
-
 
                     //TODO ******** UNCOMMENT *******
                     //Uncomment to draw tile grid (for debugging)
                     if (HiCGlobals.displayTiles) {
                         renderer.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
                     }
-
                 }
             }
         }
@@ -156,73 +150,14 @@ public class TileManager {
             //In case render is called as a result of zoom change event, check if
             //We need to update slider with map range:
             String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
-            colorScaleHandler.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
+            mapTileManager.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
             //debrisFeatureSize = (int) (debrisFeatureSize * scaleFactor);
         }
 
         return allTilesNull;
     }
 
-    /**
-     * Return the specified image tile, scaled by scaleFactor
-     *
-     * @param zd         Matrix of tile
-     * @param tileRow    row index of tile
-     * @param tileColumn column index of tile
-     * @return image tile
-     */
-    private ImageTile getImageTile(MatrixZoomData zd, MatrixZoomData controlZd, int tileRow, int tileColumn, MatrixType displayOption,
-                                   NormalizationType obsNormalizationType, NormalizationType ctrlNormalizationType,
-                                   HiC hic, JComponent parent) {
 
-        String key = zd.getTileKey(tileRow, tileColumn, displayOption);
-        ImageTile tile = tileCache.get(key);
-
-        if (tile == null) {
-
-            // Image size can be smaller than tile width when zoomed out, or near the edges.
-
-            long maxBinCountX = zd.getXGridAxis().getBinCount();
-            long maxBinCountY = zd.getYGridAxis().getBinCount();
-
-            if (maxBinCountX < 0 || maxBinCountY < 0) return null;
-
-            int imageWidth = maxBinCountX < imageTileWidth ? (int) maxBinCountX : imageTileWidth;
-            int imageHeight = maxBinCountY < imageTileWidth ? (int) maxBinCountY : imageTileWidth;
-
-            BufferedImage image = (BufferedImage) parent.createImage(imageWidth, imageHeight);
-            Graphics2D g2D = (Graphics2D) image.getGraphics();
-            if (HiCGlobals.isDarkulaModeEnabled) {
-                g2D.setColor(Color.darkGray);
-                g2D.fillRect(0, 0, imageWidth, imageHeight);
-            }
-
-            final int bx0 = tileColumn * imageTileWidth;
-            final int by0 = tileRow * imageTileWidth;
-
-            HeatmapRenderer renderer = new HeatmapRenderer(g2D, colorScaleHandler);
-            //System.out.println("tx "+tileColumn+" ty "+tileRow+" bx "+bx0+" by "+by0);
-            if (!renderer.render(bx0,
-                    by0,
-                    imageWidth,
-                    imageHeight,
-                    zd,
-                    controlZd,
-                    displayOption,
-                    obsNormalizationType,
-                    ctrlNormalizationType,
-                    hic.getExpectedValues(),
-                    hic.getExpectedControlValues(),
-                    true)) {
-                return null;
-            }
-
-            //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
-            tile = new ImageTile(image, bx0, by0);
-            tileCache.put(key, tile);
-        }
-        return tile;
-    }
 
     private void bypassTileAndDirectlyDrawOnGraphics(HeatmapRenderer renderer, MatrixZoomData zd, int tileRow, int tileColumn,
                                                      MatrixType displayOption, NormalizationType observedNormalizationType,
@@ -273,7 +208,7 @@ public class TileManager {
     }
 
     public void clearTileCache() {
-        tileCache.clear();
+        mapTileManager.clearTileCache();
     }
 
     static class ImageTile {

@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -46,7 +46,7 @@ import java.util.*;
 public class HeatmapRenderer {
 
     public static float PSEUDO_COUNT = 1f;
-    private static final int PIXEL_WIDTH = 1, PIXEL_HEIGHT = 1;
+    protected static final int PIXEL_WIDTH = 1, PIXEL_HEIGHT = 1;
     private final ColorScaleHandler colorScaleHandler;
     private final Graphics2D g;
 
@@ -66,8 +66,10 @@ public class HeatmapRenderer {
                           final NormalizationType observedNormalizationType, final NormalizationType controlNormalizationType,
                           final ExpectedValueFunction df, final ExpectedValueFunction controlDF,
                           boolean isImportant) {
-        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        if (g != null) {
+            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        }
 
         int chr1 = zd.getChr1Idx();
         int chr2 = zd.getChr2Idx();
@@ -1190,10 +1192,6 @@ public class HeatmapRenderer {
         }
     }
 
-    private void setColor(Color color) {
-        g.setColor(color);
-    }
-
     public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixType displayOption, String cacheKey) {
         colorScaleHandler.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
     }
@@ -1252,17 +1250,21 @@ public class HeatmapRenderer {
         int px = binX - originX;
         int py = binY - originY;
         if (px > -1 && py > -1 && px <= width && py <= height) {
-            g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
+            directPixelPainting(px, py);
         }
     }
 
     private void directDensePainting(int originX, int originY, int binX, int binY) {
         int px = binX - originX;
         int py = binY - originY;
-        g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
+        directPixelPainting(px, py);
     }
 
-    private void directPixelPainting(int px, int py) {
+    protected void setColor(Color color) {
+        g.setColor(color);
+    }
+
+    protected void directPixelPainting(int px, int py) {
         g.fillRect(px, py, PIXEL_WIDTH, PIXEL_HEIGHT);
     }
 

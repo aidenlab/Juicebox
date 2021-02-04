@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -62,7 +62,7 @@ public class HeatmapPanel extends JComponent {
     private final HiC hic;
     private final SuperAdapter superAdapter;
     private final ColorScaleHandler colorScaleHandler = new ColorScaleHandler();
-    private final TileManager tileManager = new TileManager(colorScaleHandler);
+    private final GeneralTileManager tileManager = new GeneralTileManager(colorScaleHandler);
     private final HeatmapMouseHandler mouseHandler;
     private boolean showGridLines = true;
     private final HeatmapClickListener clickListener;
