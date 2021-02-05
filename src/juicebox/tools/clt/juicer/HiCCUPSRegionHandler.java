@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,11 @@ package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSRegionContainer;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.util.ArrayList;
@@ -64,16 +64,15 @@ public class HiCCUPSRegionHandler {
             //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
             NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
             if (normVector != null) {
-                final double[] normalizationVector = normVector.getData();
+                final double[] normalizationVector = normVector.getData().getValues().get(0);
                 normVectorMap.put(pairKey, normalizationVector);
-
+    
                 final double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
-                        zoom, norm);
+                        zoom, norm).getValues().get(0);
                 expectedVectorMap.put(pairKey, expectedVector);
 
                 // need overall bounds for the chromosome
-                int chrLength = chromosome.getLength();
-                int chrMatrixWidth = (int) Math.ceil((double) chrLength / conf.getResolution());
+                int chrMatrixWidth = (int) Math.ceil((double) chromosome.getLength() / conf.getResolution());
                 double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWidth * 1.0 / regionWidth) + 1;
                 long load_time = System.currentTimeMillis();
                 if (HiCGlobals.printVerboseComments) {
@@ -85,7 +84,7 @@ public class HiCCUPSRegionHandler {
 
                     if (rowBounds[4] < chrMatrixWidth - regionMargin) {
                         for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
-                            if (restrictSearchRegions && (j - i) * regionWidth * conf.getResolution() > 400) {
+                            if (restrictSearchRegions && (j - i) * regionWidth * conf.getResolution() > 8000000) {
                                 continue;
                             }
 

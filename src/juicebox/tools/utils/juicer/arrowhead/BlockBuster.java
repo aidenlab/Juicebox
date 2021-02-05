@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.tools.utils.juicer.arrowhead;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
@@ -53,11 +54,14 @@ public class BlockBuster {
      *
      * @return contact domain list and scores for given list/control
      */
-    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth, MatrixZoomData zd,
+    public static void run(Chromosome chrom, int resolution, int matrixWidth, MatrixZoomData zd,
                            NormalizationType norm, ArrowheadScoreList list, ArrowheadScoreList control,
                            Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
                            Feature2DList contactDomainControlScoresGenomeWide) {
 
+        int chrIndex = chrom.getIndex();
+        String chrName = chrom.getName();
+		long chrLength = chrom.getLength();
         // used for sliding window across diagonal
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
@@ -102,7 +106,7 @@ public class BlockBuster {
                 // merge/bin domains in very close proximity
                 List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5 * resolution);
                 binnedScores = binScoresByDistance(binnedScores, 10 * resolution);
-                Collections.sort(binnedScores, Collections.reverseOrder());
+                binnedScores.sort(Collections.reverseOrder());
 
                 // convert to Feature2DList format
                 Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);

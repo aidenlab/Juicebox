@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,14 +26,13 @@ package juicebox.data.anchor;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DWithMotif;
 import juicebox.track.feature.FeatureFunction;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
 import java.util.*;
@@ -78,9 +77,9 @@ public class MotifAnchorTools {
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D f : feature2DList) {
                     Chromosome chrom = handler.getChromosomeFromName((f.getChr1()));
-                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getIndex(), f.getStart1(), f.getEnd1()));
+                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getName(), f.getStart1(), f.getEnd1()));
                     chrom = handler.getChromosomeFromName((f.getChr2()));
-                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getIndex(), f.getStart2(), f.getEnd2()));
+                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getName(), f.getStart2(), f.getEnd2()));
                 }
             }
         });
@@ -264,13 +263,13 @@ public class MotifAnchorTools {
         return bestAnchors;
     }
 
-    public static MotifAnchor searchForFeature(final int chrID, final String sequence, GenomeWideList<MotifAnchor> anchorList) {
+    public static MotifAnchor searchForFeature(final String chrID, final String sequence, GenomeWideList<MotifAnchor> anchorList) {
         final MotifAnchor[] anchor = new MotifAnchor[1];
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr() == chrID && motif.getSequence().equals(sequence)) {
+                    if (motif.getChr().equalsIgnoreCase(chrID) && motif.getSequence().equals(sequence)) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -279,13 +278,13 @@ public class MotifAnchorTools {
         return anchor[0];
     }
 
-    public static MotifAnchor searchForFeature(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+    public static MotifAnchor searchForFeature(final String chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
         final MotifAnchor[] anchor = new MotifAnchor[1];
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr() == chrID && motif.getX1() == start && motif.getX2() == end) {
+                    if (motif.getChr().equalsIgnoreCase(chrID) && motif.getX1() == start && motif.getX2() == end) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -294,13 +293,13 @@ public class MotifAnchorTools {
         return anchor[0];
     }
 
-    public static MotifAnchor searchForFeatureWithin(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+    public static MotifAnchor searchForFeatureWithin(final String chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
         final MotifAnchor[] anchor = new MotifAnchor[1];
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr() == chrID && motif.getX1() >= start && motif.getX2() <= end) {
+                    if (motif.getChr().equalsIgnoreCase(chrID) && motif.getX1() >= start && motif.getX2() <= end) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -309,13 +308,13 @@ public class MotifAnchorTools {
         return anchor[0];
     }
 
-    public static List<MotifAnchor> searchForFeaturesWithin(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+    public static List<MotifAnchor> searchForFeaturesWithin(final String chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
         final List<MotifAnchor> anchors = new ArrayList<>();
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr() == chrID && motif.getX1() >= start && motif.getX2() <= end) {
+                    if (motif.getChr().equalsIgnoreCase(chrID) && motif.getX1() >= start && motif.getX2() <= end) {
                         anchors.add((MotifAnchor) motif.deepClone());
                     }
                 }
@@ -344,7 +343,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;
@@ -457,7 +456,7 @@ public class MotifAnchorTools {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
-            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+            bottomListToTopList.put(anchor, new HashSet<>());
         }
 
         int topIndex = 0;
@@ -540,14 +539,13 @@ public class MotifAnchorTools {
     public static int[] calculateConvergenceHistogram(Feature2DList features) {
 
         // ++, +- (convergent), -+ (divergent), --, other (incomplete)
-        final int[] results = new int[5];
+        final int[] results = new int[6];
 
         features.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
-                    Feature2DWithMotif feature2DWithMotif = (Feature2DWithMotif) feature;
-                    results[feature2DWithMotif.getConvergenceStatus()]++;
+                    results[feature.toFeature2DWithMotif().getConvergenceStatus()]++;
                 }
             }
         });

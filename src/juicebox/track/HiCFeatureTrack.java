@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,9 @@ import org.broad.igv.util.ResourceLocator;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -82,22 +84,23 @@ public class HiCFeatureTrack extends HiCTrack {
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
-
+    
         String chr = context.getChromosome().getName();
         double startBin = context.getBinOrigin();
         final double scaleFactor = hic.getScaleFactor();
         double endBin = startBin + (width / scaleFactor);
-
-        int gStart = gridAxis.getGenomicStart(startBin);
-        int gEnd = gridAxis.getGenomicEnd(endBin);
-
+    
+        // todo igv
+        int gStart = (int) gridAxis.getGenomicStart(startBin);
+        int gEnd = (int) gridAxis.getGenomicEnd(endBin);
+    
         int fh = Math.min(height - 2, BLOCK_HEIGHT);
         int fy = y + (height - fh) / 2;
         int fCenter = y + height / 2;
-
+    
         g.setFont(font);
         g.setColor(getPosColor());
-
+    
         //Graphics strGraphics = g.create();
         g.setColor(new Color(0, 150, 0));
 
@@ -106,7 +109,7 @@ public class HiCFeatureTrack extends HiCTrack {
         if (SuperAdapter.assemblyModeCurrentlyActive) {
             // Update features according to current assembly status
             gStart = 0;
-            gEnd = context.getChrLength();
+            gEnd = (int) context.getChrLength();
         }
 
         try {
@@ -194,7 +197,8 @@ public class HiCFeatureTrack extends HiCTrack {
             }
         }
     }
-
+    
+    
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
 
@@ -216,27 +220,27 @@ public class HiCFeatureTrack extends HiCTrack {
     }
 
     private IGVFeature getFeatureAtPixel(int x, Context context, TrackPanel.Orientation orientation) {
-
+    
         HiCGridAxis gridAxis;
         try {
             gridAxis = orientation == TrackPanel.Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
         } catch (Exception e) {
             return null;
         }
-
+    
         int binOrigin = (int) (context.getBinOrigin());
         int bin = binOrigin + (int) (x / hic.getScaleFactor());
-
-        int start = gridAxis.getGenomicStart(bin);
-        int end = gridAxis.getGenomicEnd(bin);
-        int middle = gridAxis.getGenomicMid(bin);
-
+    
+        int start = (int) gridAxis.getGenomicStart(bin);
+        int end = (int) gridAxis.getGenomicEnd(bin);
+        int middle = (int) gridAxis.getGenomicMid(bin);
+    
         String chr = context.getChromosome().getName();
-
+    
         int b1 = Math.max(0, bin - 2);
         int b2 = bin + 2;
-        int buffer = (gridAxis.getGenomicEnd(b2) - gridAxis.getGenomicStart(b1)) / 2;
-
+        int buffer = (int) ((gridAxis.getGenomicEnd(b2) - gridAxis.getGenomicStart(b1)) / 2);
+    
         // The maximum length of all features in this collection. Used to insure we consider all features that
         // might overlap the position (feature are sorted by start position, but length is variable)
         int maxFeatureLength = 284000;  // TTN gene
@@ -260,7 +264,7 @@ public class HiCFeatureTrack extends HiCTrack {
         List<Feature> featuresAtMouse = FeatureUtils.getAllFeaturesAt(middle, maxFeatureLength, buffer, allFeatures);
         // Return the most specific (smallest);
         if (featuresAtMouse != null && featuresAtMouse.size() > 0) {
-            Collections.sort(featuresAtMouse, new Comparator<Feature>() {
+            featuresAtMouse.sort(new Comparator<Feature>() {
                 @Override
                 public int compare(Feature feature, Feature feature1) {
                     return ((feature.getEnd() - feature.getStart()) - (feature1.getEnd() - feature1.getStart()));

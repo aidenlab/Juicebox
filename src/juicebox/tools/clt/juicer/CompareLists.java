@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -116,7 +116,8 @@ public class CompareLists extends JuicerCLT {
 
     private void generateHistogramMetrics(Feature2DList list) {
         final int[] metrics = MotifAnchorTools.calculateConvergenceHistogram(list);
-        System.out.println("++ : " + metrics[0] + " +- : " + metrics[1] + " -+ : " + metrics[2] + " -- : " + metrics[3]);
+        System.out.println("++ : " + metrics[0] + " +- : " + metrics[1] + " -+ : " + metrics[2] + " -- : " + metrics[3]
+                + " not unique : " + metrics[4] + " not complete : " + metrics[5]);
     }
 
     private void compareTwoLists(Feature2DList listA, Feature2DList listB, int compareTypeID) {

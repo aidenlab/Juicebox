@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +29,11 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.juicer.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.*;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
@@ -213,9 +213,10 @@ public class HiCCUPSUtils {
         if (normVectorContainer == null) {
             HiCFileTools.triggerNormError(norm);
         } else {
-            double[] normalizationVector = normVectorContainer.getData();
+            double[] normalizationVector = normVectorContainer.getData().getValues().get(0);
             for (Feature2D feature : list) {
-                int index1 = feature.getStart1() / res, index2 = feature.getStart2() / res;
+                int index1 = (int) (feature.getStart1() / res);
+                int index2 = (int) (feature.getStart2() / res);
                 if (nearbyValuesClear(normalizationVector, index1) && nearbyValuesClear(normalizationVector, index2)) {
                     features.add(feature);
                 }
@@ -243,21 +244,21 @@ public class HiCCUPSUtils {
         List<Feature2D> coalesced = new ArrayList<>();
 
         while (!featureLL.isEmpty()) {
-
+    
             // See Feature2D
             Collections.sort(featureLL);
             Collections.reverse(featureLL);
-
+    
             Feature2D pixel = featureLL.pollFirst();
             featureLL.remove(pixel);
             List<Feature2D> pixelList = new ArrayList<>();
             pixelList.add(pixel);
-
-            int pixelListX = pixel.getStart1();
-            int pixelListY = pixel.getStart2();
+    
+            int pixelListX = (int) pixel.getStart1();
+            int pixelListY = (int) pixel.getStart2();
             double r = 0;
             double pixelClusterRadius = originalClusterRadius;
-
+    
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
                 //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
@@ -277,20 +278,20 @@ public class HiCCUPSUtils {
                     }
                     //System.out.println("Radii "+distances);
                     r = Math.round(Collections.max(distances));
-
+            
                     pixelClusterRadius = originalClusterRadius + r;
                 }
             }
-
-            pixel.setEnd1(pixel.getStart1() + resolution);
-            pixel.setEnd2(pixel.getStart2() + resolution);
+    
+            pixel.setEnd1((int) pixel.getStart1() + resolution);
+            pixel.setEnd2((int) pixel.getStart2() + resolution);
             pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
             setPixelColor(pixel);
             coalesced.add(pixel);
-
+    
             featureLL.removeAll(pixelList);
         }
 

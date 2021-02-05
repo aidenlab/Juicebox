@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,7 +154,7 @@ public class LoadStateFromXMLFile {
         //superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
         //todo: Check that color scale value is not 0!
-        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor / colorScaleFactor, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
+        superAdapter.getMainViewPanel().updateColorSlider(hic, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
         superAdapter.setEnableForAllElements(true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();

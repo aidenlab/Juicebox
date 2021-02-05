@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -36,8 +36,8 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 
 /**
@@ -48,36 +48,35 @@ import java.util.List;
 public class Feature2D implements Comparable<Feature2D> {
 
     static final String genericHeader = "#chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
-    private static final String genericLegacyHeader = "#chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
-    private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
-    private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
-    public static int tolerance = 0;
-    public static boolean allowHiCCUPSOrdering = false;
-    final FeatureType featureType;
-    final Map<String, String> attributes;
-    private final String chr1;
-    private final String chr2;
-    private final NumberFormat formatter = NumberFormat.getInstance();
-    final int start1;
-    final int start2;
-    int end1;
-    int end2;
-    private boolean isSelected = false;
-    private Feature2D reflection = null;
-    private Color color, translucentColor;
-    private boolean test = false;
-
-    public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
-                     Map<String, String> attributes) {
-        this.featureType = featureType;
-        this.chr1 = chr1;
-        this.start1 = start1;
-        this.end1 = end1;
-        this.chr2 = chr2;
-        this.start2 = start2;
-        this.end2 = end2;
-        this.color = (c == null ? Color.black : c);
-        setTranslucentColor();
+	private static final String genericLegacyHeader = "#chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+	private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
+	private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
+	public static int tolerance = 0;
+	public static boolean allowHiCCUPSOrdering = false;
+	final FeatureType featureType;
+	final Map<String, String> attributes;
+	final String chr1;
+	final String chr2;
+	private final NumberFormat formatter = NumberFormat.getInstance();
+	final long start1;
+	final long start2;
+	long end1;
+	long end2;
+	private boolean isSelected = false;
+	private Feature2D reflection = null;
+	private Color color, translucentColor;
+	
+	public Feature2D(FeatureType featureType, String chr1, long start1, long end1, String chr2, long start2, long end2, Color c,
+					 Map<String, String> attributes) {
+		this.featureType = featureType;
+		this.chr1 = chr1;
+		this.start1 = start1;
+		this.end1 = end1;
+		this.chr2 = chr2;
+		this.start2 = start2;
+		this.end2 = end2;
+		this.color = (c == null ? Color.black : c);
+		setTranslucentColor();
         this.attributes = attributes;
     }
 
@@ -113,62 +112,62 @@ public class Feature2D implements Comparable<Feature2D> {
     public String getChr2() {
         return chr2;
     }
-
-    public int getStart1() {
-        return start1;
-    }
-
-    public int getStart2() {
-        return start2;
-    }
-
-    public int getEnd1() {
-        return end1;
-    }
+	
+	public long getStart1() {
+		return start1;
+	}
+	
+	public long getStart2() {
+		return start2;
+	}
+	
+	public long getEnd1() {
+		return end1;
+	}
 
     public void setEnd1(int end1) {
         this.end1 = end1;
         if (reflection != null)
             reflection.end2 = end1;
     }
-
-    public int getEnd2() {
-        return end2;
-    }
+	
+	public long getEnd2() {
+		return end2;
+	}
 
     public void setEnd2(int end2) {
         this.end2 = end2;
         if (reflection != null)
             reflection.end1 = end2;
     }
-
-    public int getWidth1() {
-        return end1 - start1;
-    }
-
-    public int getWidth2() {
-        return end2 - start2;
-    }
-
-    public int getMidPt1() {
-        return midPoint(start1, end1);
-    }
-
-    public int getMidPt2() {
-        return midPoint(start2, end2);
-    }
-
-    private int midPoint(int start, int end) {
-        return (int) (start + (end - start) / 2.0);
-    }
-
-    public Color getColor() {
-        if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
+	
+	public long getWidth1() {
+		return end1 - start1;
+	}
+	
+	public long getWidth2() {
+		return end2 - start2;
+	}
+	
+	public long getMidPt1() {
+		return midPoint(start1, end1);
+	}
+	
+	public long getMidPt2() {
+		return midPoint(start2, end2);
+	}
+	
+	private long midPoint(long start, long end) {
+		return (long) (start + (end - start) / 2.0);
+	}
+	
+	public Color getColor() {
+		if (isSelected) {
+            return Color.DARK_GRAY;
         } else {
-            return color;
-        }
-    }
+			return color;
+		}
+	}
 
 
     public void setColor(Color color) {
@@ -180,7 +179,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Color getTranslucentColor() {
         if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
+            return Color.DARK_GRAY;
         } else {
             return translucentColor;
         }
@@ -232,7 +231,7 @@ public class Feature2D implements Comparable<Feature2D> {
             // organize attributes into categories. +1 is for the leftover category if no keywords present
             ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<>();
             for (int i = 0; i < categories.length + 1; i++) {
-                sortedFeatureAttributes.add(new ArrayList<Map.Entry<String, String>>());
+                sortedFeatureAttributes.add(new ArrayList<>());
             }
 
             // sorting the entries, also filtering out f1-f5 flags
@@ -262,7 +261,7 @@ public class Feature2D implements Comparable<Feature2D> {
                         return o1.getKey().compareToIgnoreCase(o2.getKey());
                     }
                 };
-                Collections.sort(attributeCategory, cmp);
+				attributeCategory.sort(cmp);
                 for (Map.Entry<String, String> entry : attributeCategory) {
                     String tmpKey = entry.getKey();
                     txt.append("<br>");
@@ -382,15 +381,15 @@ public class Feature2D implements Comparable<Feature2D> {
      * @return
      */
     public boolean overlapsWith(Feature2D otherFeature) {
-
-        float window1 = (otherFeature.getEnd1() - otherFeature.getStart1()) / 2;
-        float window2 = (otherFeature.getEnd2() - otherFeature.getStart2()) / 2;
-
-        int midOther1 = otherFeature.getMidPt1();
-        int midOther2 = otherFeature.getMidPt2();
-
-        return midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1) && midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2);
-    }
+	
+		float window1 = (otherFeature.getEnd1() - otherFeature.getStart1()) / 2;
+		float window2 = (otherFeature.getEnd2() - otherFeature.getStart2()) / 2;
+	
+		long midOther1 = otherFeature.getMidPt1();
+		long midOther2 = otherFeature.getMidPt2();
+	
+		return midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1) && midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2);
+	}
 
     @Override
     public int compareTo(Feature2D o) {
@@ -401,12 +400,16 @@ public class Feature2D implements Comparable<Feature2D> {
             if (val > 0) return 1;
             if (val < 0) return -1;
         }
-        int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
-                start2 - o.start2, end1 - o.end1, end2 - o.end2};
-        for (int i : comparisons) {
-            if (i != 0)
-                return i;
-        }
+		long[] comparisons = new long[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
+				start2 - o.start2, end1 - o.end1, end2 - o.end2};
+		for (long i : comparisons) {
+			if (i != 0)
+				if (i > 0) {
+					return 1;
+				} else {
+					return -1;
+				}
+		}
         return 0;
     }
 
@@ -435,7 +438,7 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public boolean containsAttributeValue(String attribute) {
-        return attributes.values().contains(attribute);
+		return attributes.containsValue(attribute);
     }
 
     public String getLocationKey() {
@@ -443,7 +446,7 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public ArrowheadScore toArrowheadScore() {
-        int[] indices = new int[]{start1, end1, start2, end2};
+		long[] indices = new long[]{start1, end1, start2, end2};
         return new ArrowheadScore(indices);
     }
 
@@ -477,14 +480,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 53 * hash + chr1.hashCode() + end1 - start1;
-        hash = 53 * hash + chr2.hashCode() + end2 - start2;
-        return hash;
-    }
-
-    public void doTest() {
-        test = true;
+		return Objects.hash(chr1, end1, start1, chr2, end2, start2);
     }
 
     public void clearAttributes() {
@@ -501,8 +497,8 @@ public class Feature2D implements Comparable<Feature2D> {
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
             List<Feature2D> emptyList = new ArrayList<>();
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
+            anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, emptyList));
+            anchors.add(new MotifAnchor(chr2, start2, end2, emptyList, originalFeatures));
         }
         return anchors;
     }
@@ -513,13 +509,21 @@ public class Feature2D implements Comparable<Feature2D> {
             attrClone.put(key, attributes.get(key));
         }
         return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
-    }
-
-    public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
-        isSelected = setIsSelectedColorUpdate;
-    }
-
-  public enum FeatureType {
-        NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
-    }
+	}
+	
+	public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
+		isSelected = setIsSelectedColorUpdate;
+	}
+	
+	public Feature2DWithMotif toFeature2DWithMotif() {
+		return new Feature2DWithMotif(featureType, chr1, start1, end1, chr2, start2, end2, color, attributes);
+	}
+	
+	public boolean containsPoint(float x, float y) {
+		return start1 <= x && x <= end1 && start2 <= y && y <= end2;
+	}
+	
+	public enum FeatureType {
+		NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
+	}
 }

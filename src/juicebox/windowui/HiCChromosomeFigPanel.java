@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,8 +30,8 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.track.HiCGridAxis;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +39,6 @@ import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
-import java.io.Serializable;
 
 
 /**
@@ -50,9 +49,9 @@ import java.io.Serializable;
 // extends to JScrollPane or ScrollBar//
 // Load chromosome figure shape from GapSizes from tool.
 
-public class HiCChromosomeFigPanel extends JComponent implements Serializable {
+public class HiCChromosomeFigPanel extends JComponent {
 
-    private static final long serialVersionUID = 123798L;
+    private static final long serialVersionUID = 9000042;
     private final Font spanFont = HiCGlobals.font(12, false);
     private final HiC hic;
     private Orientation orientation;
@@ -133,24 +132,13 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         addMouseWheelListener(new MouseWheelListener() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                int scroll = e.getWheelRotation();
-
-              if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
-                double precScroll = e.getPreciseWheelRotation();
-
-                if (precScroll >= 0) {
-                  scroll = (int) Math.ceil(precScroll);
-                } else {
-                  scroll = (int) Math.floor(precScroll);
-                }
-              }
+                int scroll = (int) Math.round(e.getPreciseWheelRotation());
 
                 if (isHorizontal()) {
                     hic.moveBy(scroll, 0);
                 } else {
                     hic.moveBy(0, scroll);
                 }
-
             }
         });
 
@@ -248,7 +236,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         g.drawString(rangeString, strPosition, vPos);
     }
 
-    private int genomeLength() {
+    private long genomeLength() {
         return context.getChromosome().getLength();
     }
 
@@ -256,16 +244,16 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         Color chrContour = new Color(116, 173, 212);
         Color chrFillIn = new Color(163, 202, 187);
         Color chrInside = new Color(222, 222, 222);
-
-        int genomeLength = genomeLength();
-
-        int[] genomePositions;
+    
+        long genomeLength = genomeLength();
+    
+        long[] genomePositions;
         try {
             genomePositions = hic.getCurrentRegionWindowGenomicPositions();
         } catch (Exception e) {
             return;
         }
-
+    
         float chrFigLength = w - 2;
 
         if (isHorizontal()) {
@@ -279,7 +267,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             g.drawLine(chrFigStart, h / 2, chrFigStart, h / 4 - 3);
             g.drawLine(0, 0, 0, 3);
             g.drawLine(chrFigStart, h / 4 - 3, 0, 3);
-
+    
             MatrixZoomData zd;
             try {
                 zd = hic.getZd();
@@ -287,14 +275,14 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
                 return;
             }
             HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
-            int maxX = context.getChromosome().getLength();
-            int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
-            int endbinNumber = (genomePositions[1] > maxX) ? x : w;
-
+            long maxX = context.getChromosome().getLength();
+            long x = (long) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
+            int endbinNumber = (int) ((genomePositions[1] > maxX) ? x : w);
+    
             g.drawLine(chrFigEnd, h / 2, chrFigEnd, h / 4 - 3);
             g.drawLine(endbinNumber - 1, 0, endbinNumber - 1, 3);
             g.drawLine(chrFigEnd, h / 4 - 3, endbinNumber - 1, 3);
-
+    
             // Later implement shape to create a chromosome shape
             RoundRectangle2D chrFig = new RoundRectangle2D.Double(1, h / 4, w - 2, h / 2, h / 2, h / 2);
             g.setClip(chrFig);

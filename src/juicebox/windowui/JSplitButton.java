@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -42,7 +42,7 @@ import java.awt.image.BufferedImage;
  */
 class JSplitButton extends AbstractButton implements Accessible {
 
-    private static final long serialVersionUID = 249426086343067971L;
+    private static final long serialVersionUID = 900002;
     private static final String uiClassID = "ButtonUI";
     private static final int DEFAULT_POPUP_ICON_LENGTH = 10;
     private static final String ALWAYS_SHOWS_POPUP_CHANGED_PROPERTY =
@@ -679,12 +679,8 @@ class JSplitButton extends AbstractButton implements Accessible {
 
     private class AccessibleJSplitButton extends AccessibleAbstractButton {
 
-        private static final long serialVersionUID = 4456023430055534939L;
+        private static final long serialVersionUID = 900001;
 
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent.
-         * AccessibleJComponent#getAccessibleRole()
-         */
         @Override
         public AccessibleRole getAccessibleRole() {
             return AccessibleRole.PUSH_BUTTON;

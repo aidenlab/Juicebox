@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,29 @@
 
 package juicebox.tools.clt.old;
 
-import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
+import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.NormalizationType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
-
     private String inputVectorFile = null;
-
     private int genomeWideResolution = -100;
-
     private String file;
-    private static boolean doNotSkipKRNorm = true;
+    private final List<NormalizationType> normalizationTypes = new ArrayList<>();
+    private Map<NormalizationType, Integer> resolutionsToBuildTo;
+    protected static int numCPUThreads = 1;
 
     public AddNorm() {
         super(getBasicUsage()+"\n"
@@ -48,7 +54,9 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
                 + " Above options ignored if input_vector_file present\n"
-                + "           : --skip-kr skip KR normalization\n"
+                + "           : -k normalizations to include\n"
+                + "           : -r resolutions for respective normalizations to build to\n"
+                + "           : -j number of CPU threads to use\n"
         );
     }
 
@@ -56,10 +64,17 @@ public class AddNorm extends JuiceboxCLT {
         return "addNorm <input_HiC_file> [input_vector_file]";
     }
 
+    public static Map<NormalizationType, Integer> defaultHashMapForResToBuildTo(List<NormalizationType> normalizationTypes) {
+        HashMap<NormalizationType, Integer> map = new HashMap<>();
+        for (NormalizationType norm : normalizationTypes) {
+            map.put(norm, 0);
+        }
+        return map;
+    }
+
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParser parser1 = (CommandLineParser) parser;
-        if (parser1.getHelpOption()) {
+    public void readArguments(String[] args, CommandLineParser parser) {
+        if (parser.getHelpOption()) {
             printUsageAndExit();
         }
 
@@ -69,28 +84,69 @@ public class AddNorm extends JuiceboxCLT {
         else if (args.length != 2) {
             printUsageAndExit();
         }
-        noFragNorm = parser1.getNoFragNormOption();
-        genomeWideResolution = parser1.getGenomeWideOption();
-        doNotSkipKRNorm = parser1.getDoNotSkipKROption();
-        file = args[1];
+        noFragNorm = parser.getNoFragNormOption();
+        genomeWideResolution = parser.getGenomeWideOption();
+        normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
+        resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
+        List<String> resolutions = parser.getResolutionOption();
+      
+        if (resolutions == null) {
+            resolutions = new ArrayList<>();
+            for (int i = 0; i < normalizationTypes.size(); i++) {
+                resolutions.add("0");
+            }
+        }
+        if (resolutions.size() > normalizationTypes.size()) {
+            System.err.println("Error: too many resolutions specified for given normalization types");
+            System.exit(0);
+        }
+        if (resolutions.size() < normalizationTypes.size()) {
+            System.err.println("Error: too few resolutions specified for given normalization types");
+            System.exit(0);
+        }
+        for (int k = 0; k < resolutions.size(); k++) {
+            try {
+                int resVal = Integer.parseInt(resolutions.get(k));
+                resolutionsToBuildTo.put(normalizationTypes.get(k), resVal);
+            } catch (Exception e) {
+                resolutionsToBuildTo.put(normalizationTypes.get(k), 0);
+            }
+        }
 
+        updateNumberOfCPUThreads(parser);
+
+        file = args[1];
     }
 
     @Override
     public void run() {
+        HiCGlobals.allowDynamicBlockIndex = false;
         try {
             if (inputVectorFile != null) {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
             }
+            else if (numCPUThreads==1){
+                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, resolutionsToBuildTo, genomeWideResolution, noFragNorm);
+            }
             else {
-                boolean useGenomeWideResolution = genomeWideResolution != -100;
-                if (useGenomeWideResolution)
-                    NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm, doNotSkipKRNorm);
-                else
-                    NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm, doNotSkipKRNorm);
+                MultithreadedNormalizationVectorUpdater updater = new MultithreadedNormalizationVectorUpdater();
+                updater.setNumCPUThreads(numCPUThreads);
+                updater.updateHicFile(file,normalizationTypes,resolutionsToBuildTo, genomeWideResolution, noFragNorm);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser juicerParser) {
+        int numThreads = juicerParser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

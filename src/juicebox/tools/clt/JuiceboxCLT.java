@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.windowui.NormalizationType;
@@ -48,7 +47,7 @@ public abstract class JuiceboxCLT {
         return nextLine.trim().split("\\s+");
     }
 
-    public abstract void readArguments(String[] args, CmdLineParser parser);
+    public abstract void readArguments(String[] args, CommandLineParser parser);
 
     public abstract void run();
 
@@ -73,7 +72,7 @@ public abstract class JuiceboxCLT {
         if (norm == null) {
             System.err.println("Normalization type " + norm + " unrecognized.  Normalization type must be one of \n" +
                     "\"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
-                    " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+                    " \"GW_VC\", \"INTER_KR\", \"INTER_VC\", or a custom added normalization.");
             System.exit(16);
         }
     }

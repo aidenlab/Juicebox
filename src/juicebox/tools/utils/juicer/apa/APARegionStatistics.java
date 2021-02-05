@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
+import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
@@ -54,8 +55,8 @@ public class APARegionStatistics {
         double centralVal = data.getEntry(midPoint, midPoint);
 
         /** NOTE - indices are inclusive in java, but in python the second index is not inclusive */
-
-        peak2mean = centralVal / ((sum(data.getData()) - centralVal) / (data.getColumnDimension() - 1));
+        double mean = (MatrixTools.sum(data.getData()) - centralVal) / (data.getRowDimension() * data.getColumnDimension() - 1);
+        peak2mean = centralVal / mean;
 
         double avgUL = mean(data.getSubMatrix(0, regionWidth - 1, 0, regionWidth - 1).getData());
         peak2UL = centralVal / avgUL;
@@ -79,14 +80,6 @@ public class APARegionStatistics {
             for (double val : row)
                 stats.addValue(val);
         return stats;
-    }
-
-    public static double sum(double[][] x) {
-        double total = 0;
-        for (double[] row : x)
-            for (double val : row)
-                total += val;
-        return total;
     }
 
     private static double mean(double[][] x) {

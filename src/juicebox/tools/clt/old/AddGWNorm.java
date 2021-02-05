@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,8 @@
 
 package juicebox.tools.clt.old;
 
-import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
 
 
 public class AddGWNorm extends JuiceboxCLT {
@@ -39,7 +38,7 @@ public class AddGWNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public void readArguments(String[] args, CommandLineParser parser) {
         //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
         if (args.length != 3) {
             printUsageAndExit();
@@ -56,7 +55,8 @@ public class AddGWNorm extends JuiceboxCLT {
     @Override
     public void run() {
         try {
-            GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
+            System.err.println("Please use AddNorm to handle the addition of genomewide normalizations");
+            //GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
         } catch (Exception e) {
             e.printStackTrace();
         }

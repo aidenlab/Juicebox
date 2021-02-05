@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,26 +82,26 @@ class AFAUtils {
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D feature, int L, int resolution, int window,
                                                   NormalizationType norm, LocationType relativeLocation) throws IOException {
 
-        int loopX, loopY;
+        long loopX, loopY;
         if (relativeLocation.equals(LocationType.TL)) {
             loopX = feature.getStart1();
             loopY = feature.getStart2();
         } else if (relativeLocation.equals(LocationType.BR)) {
-            loopX = feature.getEnd1();
-            loopY = feature.getEnd2();
-        } else {//LocationType.CENTER
-            loopX = feature.getMidPt1();
-            loopY = feature.getMidPt2();
-        }
-
-        loopX /= resolution;
-        loopY /= resolution;
-
-        int binXStart = loopX - window;
-        int binXEnd = loopX + (window + 1);
-        int binYStart = loopY - window;
-        int binYEnd = loopY + (window + 1);
-
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
-    }
+			loopX = feature.getEnd1();
+			loopY = feature.getEnd2();
+		} else {//LocationType.CENTER
+			loopX = feature.getMidPt1();
+			loopY = feature.getMidPt2();
+		}
+	
+		loopX /= resolution;
+		loopY /= resolution;
+	
+		long binXStart = loopX - window;
+		long binXEnd = loopX + (window + 1);
+		long binYStart = loopY - window;
+		long binYEnd = loopY + (window + 1);
+	
+		return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
+	}
 }

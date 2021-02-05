@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -116,7 +116,7 @@ public class APAUtils {
         int rows = matrix.getRowDimension();
         int center = rows / 2;
         double centerVal = matrix.getEntry(center, center);
-        double remainingSum = APARegionStatistics.sum(matrix.getData()) - centerVal;
+        double remainingSum = MatrixTools.sum(matrix.getData()) - centerVal;
         double remainingAverage = remainingSum / (rows * rows - 1);
         return centerVal / remainingAverage;
     }
@@ -173,26 +173,26 @@ public class APAUtils {
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
                                                   int L, int resolution, int window, NormalizationType norm) throws IOException {
-        int loopX = loop.getMidPt1() / resolution;
-        int loopY = loop.getMidPt2() / resolution;
-        int binXStart = loopX - window;
-        int binXEnd = loopX + (window + 1);
-        int binYStart = loopY - window;
-        int binYEnd = loopY + (window + 1);
-
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
-    }
+		long loopX = loop.getMidPt1() / resolution;
+		long loopY = loop.getMidPt2() / resolution;
+		long binXStart = loopX - window;
+		long binXEnd = loopX + (window + 1);
+		long binYStart = loopY - window;
+		long binYEnd = loopY + (window + 1);
+	
+		return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
+	}
 
     public static RealMatrix extractLocalizedDataForAFA(MatrixZoomData zd, Feature2D loop,
                                                         int resolution, int window, NormalizationType norm) throws IOException {
-        int loopX = loop.getMidPt1() / resolution;
-        int loopY = loop.getMidPt2() / resolution;
-        int binXStart = loopY;
-        int binXEnd = loopX + (window + 1);
-        int binYStart = loopY - window;
-        int binYEnd = loopX + 1;
-        int L = binXStart - binXEnd;
-        int dis = zd.getBinSize();
+		long loopX = loop.getMidPt1() / resolution;
+		long loopY = loop.getMidPt2() / resolution;
+		long binXStart = loopY;
+		long binXEnd = loopX + (window + 1);
+		long binYStart = loopY - window;
+		long binYEnd = loopX + 1;
+		int L = (int) (binXStart - binXEnd);
+		int dis = zd.getBinSize();
         /*int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopX - window;
@@ -200,8 +200,8 @@ public class APAUtils {
         int binYStart = loopX;
         int binYEnd = loopY + window;
         L = binXStart - binXEnd;*/
-
-        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
+	
+		return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
     }
 
     public static RealMatrix linearInterpolation (RealMatrix original, int targetNumRows, int targetNumCols){

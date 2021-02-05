@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 package juicebox.data.feature;
 
 import juicebox.data.ChromosomeHandler;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -57,7 +57,7 @@ public class GenomeWideList<T extends Feature> {
      */
     public GenomeWideList(ChromosomeHandler handler) {
         for (Chromosome c : handler.getChromosomeArray()) {
-            featureLists.put("" + c.getIndex(), new ArrayList<T>());
+            featureLists.put("" + c.getIndex(), new ArrayList<>());
         }
     }
 

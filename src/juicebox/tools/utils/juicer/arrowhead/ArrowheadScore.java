@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,13 @@ import java.util.Map;
  * Container class for Arrowhead blocks
  */
 public class ArrowheadScore {
-    final int[] indices = new int[4];
-    double score = Double.NaN;
+    final long[] indices = new long[4];
+	double score = Double.NaN;
     boolean isActive = false;
-
-    public ArrowheadScore(int[] indices) {
-        System.arraycopy(indices, 0, this.indices, 0, 4);
-    }
+	
+	public ArrowheadScore(long[] indices) {
+		System.arraycopy(indices, 0, this.indices, 0, 4);
+	}
 
     /**
      * use for deep copying
@@ -68,13 +68,13 @@ public class ArrowheadScore {
      * @return true if block is fully contained within given bounds
      */
     public boolean isWithin(int limStart, int limEnd, int resolution) {
-        boolean containedInBounds = true;
-        for (int index : indices) {
-            int scaledIndex = index / resolution;
-            containedInBounds = containedInBounds && scaledIndex >= limStart && scaledIndex <= limEnd;
-        }
-        return containedInBounds;
-    }
+		boolean containedInBounds = true;
+		for (long index : indices) {
+			long scaledIndex = index / resolution;
+			containedInBounds = containedInBounds && scaledIndex >= limStart && scaledIndex <= limEnd;
+		}
+		return containedInBounds;
+	}
 
     public boolean equivalentTo(ArrowheadScore mScore) {
         return Arrays.equals(indices, mScore.indices);

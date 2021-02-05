@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,7 +25,6 @@
 package juicebox.mapcolorui;
 
 import juicebox.HiCGlobals;
-import juicebox.gui.MainViewPanel;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -42,10 +41,6 @@ import java.awt.event.MouseEvent;
  */
 class RangeSliderUI extends BasicSliderUI {
 
-    /**
-     * Color of selected range.
-     */
-
     private final Color rangeColorBlank = Color.gray;
     private final Color[] gradientColorsBlank = {Color.gray, Color.gray};
     private final float[] fractionsBlank = {0.0f, 1.0f};
@@ -57,83 +52,10 @@ class RangeSliderUI extends BasicSliderUI {
     private final Color[] gradientColorsOE = HiCGlobals.isDarkulaModeEnabled ?
             new Color[]{Color.BLUE, Color.BLACK, Color.RED} : new Color[]{Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
-    private final int oeColorMax;
-    private Color[] gradientColorsPreDef =
-            {new Color(255, 242, 255),
-                    new Color(255, 230, 242),
-                    new Color(255, 222, 230),
-                    new Color(250, 218, 234),
-                    new Color(255, 206, 226),
-                    new Color(238, 198, 210),
-                    new Color(222, 186, 182),
-                    new Color(226, 174, 165),
-                    new Color(214, 157, 145),
-                    new Color(194, 141, 125),
-                    new Color(218, 157, 121),
-                    new Color(234, 182, 129),
-                    new Color(242, 206, 133),
-                    new Color(238, 222, 153),
-                    new Color(242, 238, 161),
-                    new Color(222, 238, 161),
-                    new Color(202, 226, 149),
-                    new Color(178, 214, 117),
-                    new Color(149, 190, 113),
-                    new Color(117, 170, 101),
-                    new Color(113, 153, 89),
-                    new Color(18, 129, 242),
-                    new Color(255, 0, 0)
-            };
-    //            {new Color(18, 129, 242),
-//            new Color(113, 153, 89),
-//            new Color(117, 170, 101),
-//            new Color(149, 190, 113),
-//            new Color(178, 214, 117),
-//            new Color(202, 226, 149),
-//            new Color(222, 238, 161),
-//            new Color(242, 238, 161),
-//            new Color(238, 222, 153),
-//            new Color(242, 206, 133),
-//            new Color(234, 182, 129),
-//            new Color(218, 157, 121),
-//            new Color(194, 141, 125),
-//            new Color(214, 157, 145),
-//            new Color(226, 174, 165),
-//            new Color(222, 186, 182),
-//            new Color(238, 198, 210),
-//            new Color(255, 206, 226),
-//            new Color(250, 218, 234),
-//            new Color(255, 222, 230),
-//            new Color(255, 230, 242),
-//            new Color(255, 242, 255),
-//            new Color(255,0,0)};
-    private float[] fractionsPreDef =
-            {0.0f,
-                    0.15f,
-                    0.2f,
-                    0.25f,
-                    0.3f,
-                    0.325f,
-                    0.35f,
-                    0.375f,
-                    0.4f,
-                    0.425f,
-                    0.45f,
-                    0.5f,
-                    0.55f,
-                    0.6f,
-                    0.65f,
-                    0.7f,
-                    0.75f,
-                    0.8f,
-                    0.85f,
-                    0.9f,
-                    0.925f,
-                    0.95f,
-                    1.0f};
+
     private boolean colorIsOE = false;
     private boolean colorIsBlank = false;
-    private boolean colorIsPreDef = false;
-    private int preDefColorMax;
+    private final Object key = new Object();
 
     /**
      * Location and size of thumb for upper value.
@@ -160,7 +82,6 @@ class RangeSliderUI extends BasicSliderUI {
      */
     public RangeSliderUI(RangeSlider b) {
         super(b);
-        oeColorMax = OEColorScale.defaultMaxOEVal;
     }
 
     /**
@@ -258,15 +179,6 @@ class RangeSliderUI extends BasicSliderUI {
         return new Dimension(12, 12);
     }
 
-
-    public String getColorsAsText() {
-        StringBuilder tmpStr = new StringBuilder();
-        for (int idx = 0; idx < gradientColorsPreDef.length - 1; idx++) {
-            tmpStr.append("Color(").append(gradientColorsPreDef[idx].getRed()).append(",").append(gradientColorsPreDef[idx].getGreen()).append(",").append(gradientColorsPreDef[idx].getBlue()).append("),");
-        }
-        return tmpStr.toString();
-    }
-
     /**
      * Paints the slider.  The selected thumb is always painted on top of the
      * other thumb.
@@ -331,13 +243,10 @@ class RangeSliderUI extends BasicSliderUI {
             } else if (colorIsOE) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
-            } else if (colorIsPreDef) {
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsPreDef, gradientColorsPreDef);
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length - 1], rightSide);
             } else {
                 Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, HiCGlobals.HIC_MAP_COLOR});
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, HiCGlobals.HIC_MAP_COLOR, rightSide);
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, ColorScaleHandler.HIC_MAP_COLOR});
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, ColorScaleHandler.HIC_MAP_COLOR, rightSide);
             }
 
 
@@ -395,7 +304,7 @@ class RangeSliderUI extends BasicSliderUI {
      * Paints the thumb for the lower value using the specified graphics object.
      */
     private void paintLowerThumb(Graphics g) {
-        Rectangle knobBounds = thumbRect;
+        //Rectangle knobBounds = thumbRect;
         super.paintThumb(g);
     }
 
@@ -432,7 +341,7 @@ class RangeSliderUI extends BasicSliderUI {
      * This method is called when the user presses the Page Up or Down keys.
      */
     public void scrollByBlock(int direction) {
-        synchronized (slider) {
+        synchronized (key) {
             int blockIncrement = (slider.getMaximum() - slider.getMinimum()) / 10;
             if (blockIncrement <= 0 && slider.getMaximum() > slider.getMinimum()) {
                 blockIncrement = 1;
@@ -454,7 +363,7 @@ class RangeSliderUI extends BasicSliderUI {
      * This method is called when the user presses one of the arrow keys.
      */
     public void scrollByUnit(int direction) {
-        synchronized (slider) {
+        synchronized (key) {
             int delta = ((direction > 0) ? POSITIVE_SCROLL : NEGATIVE_SCROLL);
 
             if (upperThumbSelected) {
@@ -469,26 +378,6 @@ class RangeSliderUI extends BasicSliderUI {
 
     public void setDisplayToOE(boolean isOE) {
         this.colorIsOE = isOE;
-    }
-
-    public void setDisplayToPreDef(boolean isPreDef) {
-
-        this.colorIsPreDef = isPreDef;
-        if (MainViewPanel.preDefMapColorFractions.size() == 0) {
-            return;
-        }
-        int colorArraySize = MainViewPanel.preDefMapColorFractions.size();
-        gradientColorsPreDef = MainViewPanel.preDefMapColorGradient.toArray(new Color[colorArraySize]);
-
-        fractionsPreDef = new float[colorArraySize];
-        int i = 0;
-
-        float fractionSize = 1.0f / colorArraySize;
-        for (; i < colorArraySize; i++) {
-            fractionsPreDef[i] = fractionSize * i;
-        }
-
-        this.preDefColorMax = PreDefColorScale.defaultMaxPreDefVal;
     }
 
     public void setDisplayToBlank(boolean isBlank) {
@@ -622,7 +511,7 @@ class RangeSliderUI extends BasicSliderUI {
          * value in the slider.
          */
         private void moveLowerThumb() {
-            int thumbMiddle = 0;
+            int thumbMiddle;
 
             switch (slider.getOrientation()) {
                 case JSlider.VERTICAL:
@@ -679,10 +568,11 @@ class RangeSliderUI extends BasicSliderUI {
                     if (colorIsOE) {
                         int val = ((RangeSlider) slider).getLowerValue();
                         if (val == 0) {
-                            val = -1;
-                            ((RangeSlider) slider).setLowerValue(val);
+                            ((RangeSlider) slider).setLowerValue(-1);
+                            ((RangeSlider) slider).setUpperValue(1);
+                        } else {
+                            ((RangeSlider) slider).setUpperValue(-val);
                         }
-                        ((RangeSlider) slider).setUpperValue(-val);
                     }
 
                     break;
@@ -696,7 +586,7 @@ class RangeSliderUI extends BasicSliderUI {
          * value in the slider.
          */
         private void moveUpperThumb() {
-            int thumbMiddle = 0;
+            int thumbMiddle;
 
             switch (slider.getOrientation()) {
                 case JSlider.VERTICAL:

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -38,7 +38,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class DumpDialog extends JFileChooser {
-    private static final long serialVersionUID = -9074804975107889779L;
+
+    private static final long serialVersionUID = 900009;
     private JComboBox<String> box;
 
     /**
@@ -83,8 +84,10 @@ public class DumpDialog extends JFileChooser {
                         NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : nv.getData()) {
-                            pw.println(element);
+                        for (double[] array : nv.getData().getValues()) {
+                            for (double element : array) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }
@@ -99,18 +102,20 @@ public class DumpDialog extends JFileChooser {
                     }
 
                     if (box.getSelectedItem().equals("Expected vector")) {
-                        int length = df.getLength();
+                        long length = df.getLength();
                         int c = zd.getChr1Idx();
                         PrintWriter pw = new PrintWriter(getSelectedFile());
-                        for (int i = 0; i < length; i++) {
+                        for (long i = 0; i < length; i++) {
                             pw.println((float) df.getExpectedValue(c, i));
                         }
                         pw.flush();
                     } else {
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         // print out vector
-                        for (double element : df.getExpectedValues()) {
-                            pw.println(element);
+                        for (double[] values : df.getExpectedValuesNoNormalization().getValues()) {
+                            for (double element : values) {
+                                pw.println(element);
+                            }
                         }
                         pw.close();
                     }

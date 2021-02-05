@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -47,7 +47,8 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class QCDialog extends JDialog {
-    private static final long serialVersionUID = -436533197805525691L;
+
+    private static final long serialVersionUID = 9000012;
     private static final long[] logXAxis = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231,
             285, 351, 433, 534, 658, 811, 1000, 1233,
             1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112,
@@ -296,7 +297,7 @@ public class QCDialog extends JDialog {
 
 
         if (df != null) {
-            double[] expected = df.getExpectedValues();
+            double[] expected = df.getExpectedValuesNoNormalization().getValues().get(0);
             final XYSeriesCollection collection = new XYSeriesCollection();
             final XYSeries expectedValues = new XYSeries("Expected");
             for (int i = 0; i < expected.length; i++) {

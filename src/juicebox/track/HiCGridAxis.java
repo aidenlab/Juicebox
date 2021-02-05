@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,19 +31,19 @@ package juicebox.track;
  */
 public interface HiCGridAxis {
 
-    int getGenomicStart(double binNumber);
-
-    int getGenomicEnd(double binNumber);
-
-    int getGenomicMid(double binNumber);
+    long getGenomicStart(double binNumber);
+	
+	long getGenomicEnd(double binNumber);
+	
+	long getGenomicMid(double binNumber);
 
     int getIGVZoom();
-
-    int getBinCount();
+	
+	long getBinCount();
 
     int getBinSize();
-
-    int getBinNumberForGenomicPosition(int genomePosition);
+	
+	int getBinNumberForGenomicPosition(long genomePosition);
 
     int getBinNumberForFragment(int fragmentX);
 }

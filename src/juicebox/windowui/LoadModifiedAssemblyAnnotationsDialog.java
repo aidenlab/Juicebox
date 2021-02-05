@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -59,7 +59,7 @@ import java.util.Map;
 
 public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
-    private static final long serialVersionUID = 323844632613064L;
+    private static final long serialVersionUID = 9000013;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;
@@ -191,7 +191,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
 
-        Boolean localFilesAdded = Boolean.FALSE;
+        boolean localFilesAdded = false;
 
         File[] twoDfiles = FileDialogUtils.chooseMultiple("Choose Assembly files", openAnnotationPath, null);
 
@@ -200,7 +200,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 
                 if (file == null || !file.exists()) continue;
 
-                localFilesAdded = Boolean.TRUE;
+                localFilesAdded = true;
 
                 if (customAddedFeatures == null) {
                     customAddedFeatures = new DefaultMutableTreeNode(
@@ -316,28 +316,6 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         }
     }
 
-    //Overriding in order to change text color
-    private void colorSearchStrings(final String[] parts) {
-        tree.setCellRenderer(new DefaultTreeCellRenderer() {
-
-            private static final long serialVersionUID = 4231L;
-
-
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
-                                                          boolean leaf, int row, boolean hasFocus) {
-                String text = value.toString();
-                for (int i = 0; i < Math.min(parts.length, searchHighlightColors.length); i++) {
-                    text = text.replaceAll(parts[i], "<font color=\"" + searchHighlightColors[i] + "\">" + parts[i] + "</font>");
-                }
-                String html = "<html>" + text + "</html>";
-
-                return super.getTreeCellRendererComponent(
-                        tree, html, sel, expanded, leaf, row, hasFocus);
-            }
-        });
-    }
-
     private boolean createNodes(DefaultMutableTreeNode top, HiC hic) {
 
         // Add dataset-specific 2d annotations
@@ -395,14 +373,10 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     public void valueChanged(TreeSelectionEvent e) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                 tree.getLastSelectedPathComponent();
-
+    
         if (node == null) return;
-
-        if (node.isLeaf()) {
-            openAssemblyButton.setEnabled(true);
-        } else {
-            openAssemblyButton.setEnabled(false);
-        }
+    
+        openAssemblyButton.setEnabled(node.isLeaf());
     }
 
     private void collapseAll(JTree tree) {

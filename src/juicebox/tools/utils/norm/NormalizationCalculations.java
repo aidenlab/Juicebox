@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -26,6 +26,9 @@ package juicebox.tools.utils.norm;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.basics.ListOfIntArrays;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
@@ -34,8 +37,8 @@ import org.broad.igv.Globals;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -48,37 +51,44 @@ import java.util.Iterator;
  *         Time: 4:03 PM
  */
 public class NormalizationCalculations {
-
-    private ArrayList<ContactRecord> contactRecords;
-    private int totSize;
+    
+    private List<List<ContactRecord>> contactRecords;
+    private long totSize;
     private boolean isEnoughMemory = false;
+    private int chr1;
+    private int chr2;
 
+    /**
+     * Initializing from a single MatrixZoomData object
+     *
+     * @param zd
+     */
     public NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
 
-        Iterator<ContactRecord> iter1 = zd.getNewContactRecordIterator();
-        int count = 0;
-        while (iter1.hasNext()) {
-            iter1.next();
-            count++;
-        }
-        if (count * 1000 < Runtime.getRuntime().maxMemory()) {
+        long count = zd.getNumberOfContactRecords();
+        // todo where did the 1000 come from?
+        // each contact record is 12 bytes; if longs/doubles, then 24 bytes
+        // at worst, we probably double this?
+        if (count * 48 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
-
-            this.contactRecords = new ArrayList<>();
-            Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
-            while (iter.hasNext()) {
-                ContactRecord cr = iter.next();
-                contactRecords.add(cr);
-            }
+            this.contactRecords = zd.getContactRecordList();
             this.totSize = zd.getXGridAxis().getBinCount();
+            this.chr1 = zd.getChr1Idx();
+            this.chr2 = zd.getChr2Idx();
         }
     }
 
-    public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
+    /**
+     * Initialize from genomewide data or direct dump/calcK CLT
+     *
+     * @param list
+     * @param totSize
+     */
+    public NormalizationCalculations(List<List<ContactRecord>> list, int totSize) {
         this.contactRecords = list;
         this.totSize = totSize;
     }
@@ -90,7 +100,7 @@ public class NormalizationCalculations {
         String nextLine;
         int lineCount = 0;
         int maxBin = 0;
-        ArrayList<ContactRecord> readList = new ArrayList<>();
+        List<ContactRecord> readList = new ArrayList<>();
         while ((nextLine = reader.readLine()) != null) {
             lineCount++;
             String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
@@ -107,12 +117,15 @@ public class NormalizationCalculations {
             if (binX > maxBin) maxBin = binX;
             if (binY > maxBin) maxBin = binY;
         }
-        NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin + 1);
-        double[] norm = nc.getNorm(NormalizationHandler.KR);
-        for (double d : norm) {
-            System.out.println(d);
+        List<List<ContactRecord>> listOfLists = new ArrayList<>();
+        listOfLists.add(readList);
+        NormalizationCalculations nc = new NormalizationCalculations(listOfLists, maxBin + 1);
+        for (float[] array : nc.getNorm(NormalizationHandler.KR).getValues()) {
+            for (double d : array) {
+                System.out.println(d);
+            }
         }
-
+    
     }
 
     /*
@@ -135,114 +148,130 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static double[] computeKRNormVector(int[] offset, ArrayList<ContactRecord> list, double tol, double[] x0, double delta) {
-
-        int n = x0.length;
-        double[] e = new double[n];
-        Arrays.fill(e, 1);
-
+    private static ListOfDoubleArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfDoubleArrays x0, double delta) {
+    
+        long n = x0.getLength();
+        ListOfDoubleArrays e = new ListOfDoubleArrays(n, 1);
+    
         double g = 0.9;
         double etamax = 0.1;
         double eta = etamax;
-
+    
         double rt = Math.pow(tol, 2);
-
-        double[] v = sparseMultiplyFromContactRecords(offset, list, x0);
-        double[] rk = new double[v.length];
-        for (int i = 0; i < v.length; i++) {
-            v[i] = v[i] * x0[i];
-            rk[i] = 1 - v[i];
+    
+        ListOfDoubleArrays v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
+        ListOfDoubleArrays rk = new ListOfDoubleArrays(v.getLength());
+        for (long i = 0; i < v.getLength(); i++) {
+            v.multiplyBy(i, x0.get(i));
+            rk.set(i, 1 - v.get(i));
         }
         double rho_km1 = 0;
-        for (double aRk : rk) {
-            rho_km1 += aRk * aRk;
+        for (double[] aRkArray : rk.getValues()) {
+            for (double aRk : aRkArray) {
+                rho_km1 += aRk * aRk;
+            }
         }
         double rout = rho_km1;
         double rold = rout;
         int MVP = 0;  // We'll count matrix vector products.
-
+    
         int not_changing = 0;
         while (rout > rt && not_changing < 100) {    // Outer iteration
             int k = 0;
-            double[] y = new double[e.length];
-            double[] ynew = new double[e.length];
-            double[] Z = new double[e.length];
-            double[] p = new double[e.length];
-            double[] w = new double[e.length];
+            ListOfDoubleArrays y = e.deepClone();
+            ListOfDoubleArrays ynew = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays Z = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays p = new ListOfDoubleArrays(e.getLength());
+            ListOfDoubleArrays w = new ListOfDoubleArrays(e.getLength());
             double alpha;
             double beta;
             double gamma;
             double rho_km2 = rho_km1;
-            System.arraycopy(e, 0, y, 0, y.length);
-
+        
+        
             double innertol = Math.max(Math.pow(eta, 2) * rout, rt);
             while (rho_km1 > innertol) {   // Inner iteration by CG
                 k++;
-
+            
                 if (k == 1) {
                     rho_km1 = 0;
-                    for (int i = 0; i < Z.length; i++) {
-                        Z[i] = rk[i] / v[i];
-                        p[i] = Z[i];
-                        rho_km1 += rk[i] * Z[i];
+                    for (long i = 0; i < Z.getLength(); i++) {
+                        double rkVal = rk.get(i);
+                        double zVal = rkVal / v.get(i);
+                        Z.set(i, zVal);
+                        rho_km1 += rkVal * zVal;
                     }
+                    p = Z.deepClone();
+    
                 } else {
                     beta = rho_km1 / rho_km2;
-                    for (int i = 0; i < p.length; i++) {
-                        p[i] = Z[i] + beta * p[i];
+                    p.multiplyEverythingBy(beta);
+                    for (long i = 0; i < p.getLength(); i++) {
+                        p.addTo(i, Z.get(i));
                     }
                 }
-                double[] tmp = new double[e.length];
-                for (int i = 0; i < tmp.length; i++) {
-                    tmp[i] = x0[i] * p[i];
+                ListOfDoubleArrays tmp = new ListOfDoubleArrays(e.getLength());
+                for (long i = 0; i < tmp.getLength(); i++) {
+                    tmp.set(i, x0.get(i) * p.get(i));
                 }
-                tmp = sparseMultiplyFromContactRecords(offset, list, tmp);
+                tmp = sparseMultiplyFromContactRecords(offset, listOfLists, tmp);
                 alpha = 0;
                 // Update search direction efficiently.
-                for (int i = 0; i < tmp.length; i++) {
-                    w[i] = x0[i] * tmp[i] + v[i] * p[i];
-                    alpha += p[i] * w[i];
+                for (long i = 0; i < tmp.getLength(); i++) {
+                    double pVal = p.get(i);
+                    double wVal = (x0.get(i) * tmp.get(i) + v.get(i) * pVal);
+                    w.set(i, wVal);
+                    alpha += pVal * wVal;
                 }
                 alpha = rho_km1 / alpha;
                 double minynew = Double.MAX_VALUE;
                 // Test distance to boundary of cone.
-                for (int i = 0; i < p.length; i++) {
-                    ynew[i] = y[i] + alpha * p[i];
-                    if (ynew[i] < minynew) minynew = ynew[i];
+                for (long i = 0; i < p.getLength(); i++) {
+                    double yVal = y.get(i) + alpha * p.get(i);
+                    ynew.set(i, yVal);
+                    if (yVal < minynew) {
+                        minynew = yVal;
+                    }
                 }
                 if (minynew <= delta) {
                     if (delta == 0) break;     // break out of inner loop?
                     gamma = Double.MAX_VALUE;
-                    for (int i = 0; i < ynew.length; i++) {
-                        if (alpha * p[i] < 0) {
-                            if ((delta - y[i]) / (alpha * p[i]) < gamma) {
-                                gamma = (delta - y[i]) / (alpha * p[i]);
+                    for (long i = 0; i < ynew.getLength(); i++) {
+                        double pVal = p.get(i);
+                        if (alpha * pVal < 0) {
+                            double yVal = y.get(i);
+                            if ((delta - yVal) / (alpha * pVal) < gamma) {
+                                gamma = ((delta - yVal) / (alpha * pVal));
                             }
                         }
                     }
-                    for (int i = 0; i < y.length; i++)
-                        y[i] = y[i] + gamma * alpha * p[i];
+                    for (long i = 0; i < y.getLength(); i++) {
+                        y.addTo(i, gamma * alpha * p.get(i));
+                    }
                     break;   // break out of inner loop?
                 }
                 rho_km2 = rho_km1;
                 rho_km1 = 0;
-                for (int i = 0; i < y.length; i++) {
-                    y[i] = ynew[i];
-                    rk[i] = rk[i] - alpha * w[i];
-                    Z[i] = rk[i] / v[i];
-                    rho_km1 += rk[i] * Z[i];
+                y = ynew.deepClone();
+                for (long i = 0; i < y.getLength(); i++) {
+                    rk.addTo(i, -alpha * w.get(i));
+                    double rkVal = rk.get(i);
+                    Z.set(i, rkVal / v.get(i));
+                    rho_km1 += rkVal * Z.get(i);
                 }
-
+            
             } // end inner loop
-            for (int i = 0; i < x0.length; i++) {
-                x0[i] = x0[i] * y[i];
+            for (long i = 0; i < x0.getLength(); i++) {
+                x0.multiplyBy(i, y.get(i));
             }
-            v = sparseMultiplyFromContactRecords(offset, list, x0);
+            v = sparseMultiplyFromContactRecords(offset, listOfLists, x0);
             rho_km1 = 0;
-            for (int i = 0; i < v.length; i++) {
-                v[i] = v[i] * x0[i];
-                rk[i] = 1 - v[i];
-                rho_km1 += rk[i] * rk[i];
+            for (long i = 0; i < v.getLength(); i++) {
+                v.multiplyBy(i, x0.get(i));
+                double rkVal = 1 - v.get(i);
+                rk.set(i, rkVal);
+            
+                rho_km1 += rkVal * rkVal;
             }
             if (Math.abs(rho_km1 - rout) < 0.000001 || Double.isInfinite(rho_km1)) {
                 not_changing++;
@@ -265,35 +294,37 @@ public class NormalizationCalculations {
         }
         return x0;
     }
-
-    private static double[] sparseMultiplyFromContactRecords(int[] offset, ArrayList<ContactRecord> list, double[] vector) {
-        double[] result = new double[vector.length];
-
-        for (ContactRecord cr : list) {
-            int row = cr.getBinX();
-            int col = cr.getBinY();
-            float value = cr.getCounts();
-
-            row = offset[row];
-            col = offset[col];
-
-            if (row != -1 && col != -1) {
-                result[row] += vector[col] * value;
-                if (row != col) {
-                    result[col] += vector[row] * value;
+    
+    private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfDoubleArrays vector) {
+        ListOfDoubleArrays result = new ListOfDoubleArrays(vector.getLength());
+        
+        for (List<ContactRecord> localList : listOfLists) {
+            for (ContactRecord cr : localList) {
+                int row = cr.getBinX();
+                int col = cr.getBinY();
+                float value = cr.getCounts();
+                
+                row = offset.get(row);
+                col = offset.get(col);
+                
+                if (row != -1 && col != -1) {
+                    result.addTo(row, vector.get(col) * value);
+                    if (row != col) {
+                        result.addTo(col, vector.get(row) * value);
+                    }
                 }
             }
         }
-
+        
         return result;
     }
-
+    
     boolean isEnoughMemory() {
         return isEnoughMemory;
     }
-
-    public double[] getNorm(NormalizationType normOption) {
-        double[] norm;
+    
+    public ListOfFloatArrays getNorm(NormalizationType normOption) {
+        ListOfFloatArrays norm;
         switch (normOption.getLabel().toUpperCase()) {
             case NormalizationHandler.strKR:
             case NormalizationHandler.strGW_KR:
@@ -312,82 +343,81 @@ public class NormalizationCalculations {
                 norm = computeMMBA();
                 break;
             case NormalizationHandler.strNONE:
-                norm = new double[totSize];
-                Arrays.fill(norm, 1);
-                return norm;
+                return new ListOfFloatArrays(totSize, 1);
             default:
                 System.err.println("Not supported for normalization " + normOption);
                 return null;
         }
-
-        if (norm != null) {
+        
+        if (norm != null && norm.getLength() > 0) {
             double factor = getSumFactor(norm);
             System.out.println();
-            for (int i = 0; i < norm.length; i++) {
-                norm[i] = norm[i] * factor;
-            }
+            norm.multiplyEverythingBy(factor);
         }
         return norm;
     }
-
+    
     /**
      * Compute vanilla coverage norm, just the sum of the rows
      *
      * @return Normalization vector
      */
-    double[] computeVC() {
-        double[] rowsums = new double[totSize];
-
-        Arrays.fill(rowsums, 0);
-
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            rowsums[x] += value;
-            if (x != y) {
-                rowsums[y] += value;
+    ListOfFloatArrays computeVC() {
+        ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
+        
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                rowsums.addTo(x, value);
+                if (x != y) {
+                    rowsums.addTo(y, value);
+                }
             }
         }
 
         return rowsums;
 
     }
-
+    
     /**
      * Get the sum of the normalized matrix
      *
      * @param norm Normalization vector
      * @return Square root of ratio of original to normalized vector
      */
-    public double getSumFactor(double[] norm) {
-        Double[] normMatrixSums = getNormMatrixSumFactor(norm);
+    public double getSumFactor(ListOfFloatArrays norm) {
+        double[] normMatrixSums = getNormMatrixSumFactor(norm);
         return Math.sqrt(normMatrixSums[0] / normMatrixSums[1]);
     }
-
-    public Double[] getNormMatrixSumFactor(double[] norm) {
+    
+    public double[] getNormMatrixSumFactor(ListOfFloatArrays norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
-                // want total sum of matrix, not just upper triangle
-                if (x == y) {
-                    norm_sum += value / (norm[x] * norm[y]);
-                    matrix_sum += value;
-                } else {
-                    norm_sum += 2 * value / (norm[x] * norm[y]);
-                    matrix_sum += 2 * value;
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                double valX = norm.get(x);
+                double valY = norm.get(y);
+                if (!Double.isNaN(valX) && !Double.isNaN(valY) && valX > 0 && valY > 0) {
+                    // want total sum of matrix, not just upper triangle
+                    if (x == y) {
+                        norm_sum += value / (valX * valY);
+                        matrix_sum += value;
+                    } else {
+                        norm_sum += 2 * value / (valX * valY);
+                        matrix_sum += 2 * value;
+                    }
                 }
-
             }
         }
-        return new Double[]{norm_sum, matrix_sum};
+        return new double[]{norm_sum, matrix_sum};
     }
-
-
+    
+    
     public int getNumberOfValidEntriesInVector(double[] norm) {
         int counter = 0;
         for (double val : norm) {
@@ -397,30 +427,30 @@ public class NormalizationCalculations {
         }
         return counter;
     }
-
-
-
-    double[] computeKR() {
-
+    
+    
+    ListOfFloatArrays computeKR() {
+        
         boolean recalculate = true;
-        int[] offset = getOffset(0);
-        double[] kr = null;
+        ListOfIntArrays offset = getOffset(0);
+        ListOfFloatArrays kr = null;
         int iteration = 1;
-
+        
         while (recalculate && iteration <= 6) {
             // create new matrix indices upon every iteration, because we've thrown out rows
             // newSize is size of new sparse matrix (non-sparse rows)
-            int newSize = 0;
-            for (int offset1 : offset) {
-                if (offset1 != -1) newSize++;
+            long newSize = 0;
+            for (int[] array : offset.getValues()) {
+                for (int offset1 : array) {
+                    if (offset1 != -1) newSize++;
+                }
             }
-
+            
             // initialize x0 for call the compute KR norm
-            double[] x0 = new double[newSize];
-            Arrays.fill(x0, 1);
-
+            ListOfDoubleArrays x0 = new ListOfDoubleArrays(newSize, 1);
+            
             x0 = computeKRNormVector(offset, contactRecords, 0.000001, x0, 0.1);
-
+            
             // assume all went well and we don't need to recalculate
             recalculate = false;
             int rowsTossed = 0;
@@ -437,28 +467,32 @@ public class NormalizationCalculations {
             } else {
                 // otherwise, check to be sure there are no tiny KR values
                 // create true KR vector
-                kr = new double[totSize];
+                kr = new ListOfFloatArrays(totSize);
                 int krIndex = 0;
-                for (int offset1 : offset) {
-                    if (offset1 == -1) {
-                        kr[krIndex++] = Double.NaN;
-                    } else {
-                        kr[krIndex++] = (1.0 / x0[offset1]);
+                for (int[] offsetArray : offset.getValues()) {
+                    for (int offset1 : offsetArray) {
+                        if (offset1 == -1) {
+                            kr.set(krIndex++, Float.NaN);
+                        } else {
+                            kr.set(krIndex++, (float) (1.0f / x0.get(offset1)));
+                        }
                     }
                 }
                 // find scaling factor
                 double mySum = getSumFactor(kr);
-
+    
                 // if any values are too small, recalculate.  set those rows to be thrown out and reset the offset
                 // note that if no rows are thrown out, the offset should not change
                 int index = 0;
-                for (int i = 0; i < kr.length; i++) {
-                    if (kr[i] * mySum < 0.01) {
-                        offset[i] = -1;
+                for (long i = 0; i < kr.getLength(); i++) {
+                    if (kr.get(i) * mySum < 0.01) {
+                        offset.set(i, -1);
                         rowsTossed++;
                         recalculate = true;
                     } else {
-                        if (offset[i] != -1) offset[i] = index++;
+                        if (offset.get(i) != -1) {
+                            offset.set(i, index++);
+                        }
                     }
                 }
                 // if (recalculate) System.out.print(" " + rowsTossed);
@@ -467,28 +501,24 @@ public class NormalizationCalculations {
             System.gc();
         }
         if (iteration > 6 && recalculate) {
-            kr = new double[totSize];
-            for (int i = 0; i < totSize; i++) {
-                kr[i] = Double.NaN;
-            }
+            kr = new ListOfFloatArrays(totSize, Float.NaN);
         }
-
+        
         return kr;
-
     }
-
-    private int[] getOffset(double percent) {
-        double[] rowSums = new double[totSize];
-
-        Arrays.fill(rowSums, 0);
-
-        for (ContactRecord cr : contactRecords) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            rowSums[x] += value;
-            if (x != y) {
-                rowSums[y] += value;
+    
+    private ListOfIntArrays getOffset(double percent) {
+        ListOfDoubleArrays rowSums = new ListOfDoubleArrays(totSize, 0);
+        
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                rowSums.addTo(x, value);
+                if (x != y) {
+                    rowSums.addTo(y, value);
+                }
             }
         }
 
@@ -496,33 +526,302 @@ public class NormalizationCalculations {
         if (percent > 0) {
             // Get percent threshold from positive row sums (nonzero)
             int j = 0;
-            for (double sum : rowSums) if (sum != 0) j++;
+            for (double[] array : rowSums.getValues()) {
+                for (double sum : array) {
+                    if (sum != 0) {
+                        j++;
+                    }
+                }
+            }
             double[] posRowSums = new double[j];
             j = 0;
-            for (double sum : rowSums) if (sum != 0) posRowSums[j++] = sum;
+            for (double[] array : rowSums.getValues()) {
+                for (double sum : array) {
+                    if (sum != 0) {
+                        posRowSums[j++] = sum;
+                    }
+                }
+            }
             thresh = StatUtils.percentile(posRowSums, percent);
         }
-        int[] offset = new int[rowSums.length];
+        
+        ListOfIntArrays offset = new ListOfIntArrays(rowSums.getLength());
         int index = 0;
-        for (int i = 0; i < rowSums.length; i++) {
-            if (rowSums[i] <= thresh) {
-                offset[i] = -1;
+        for (long i = 0; i < rowSums.getLength(); i++) {
+            if (rowSums.get(i) <= thresh) {
+                offset.set(i, -1);
             } else {
-                offset[i] = index++;
+                offset.set(i, index++);
             }
         }
-
+        
         return offset;
-
+        
     }
-
-    public double[] computeMMBA() {
-
-        double[] tempTargetVector = new double[totSize];
-        for (int k = 0; k < totSize; k++) {
-            tempTargetVector[k] = 1;
-        }
-
+    
+    public ListOfFloatArrays computeMMBA() {
+        
+        ListOfFloatArrays tempTargetVector = new ListOfFloatArrays(totSize, 1);
+        
         return ZeroScale.mmbaScaleToVector(contactRecords, tempTargetVector);
     }
+
+    /*public List<List<ContactRecord>> booleanBalancing() {
+        ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
+        Map<Float,Map<Long,Integer>> rowsumIndices = new HashMap<>();
+        Map<Long, List<LinkedContactRecord>> rows = new HashMap<>();
+        //Map<Long, RandomizedCollection> remainingContacts = new HashMap<>();
+        List<Double> thresholds = new ArrayList<>(Arrays.asList(1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,3.0,4.0,5.0));
+
+        for (List<ContactRecord> localList : contactRecords) {
+            for (ContactRecord cr : localList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+                rowsums.addTo(x, value);
+                if (x != y) {
+                    rowsums.addTo(y, value);
+
+                }
+                List<LinkedContactRecord> row1 = rows.get((long) x);
+                List<LinkedContactRecord> row2 = rows.get((long) y);
+                if (row1 == null) {
+                    row1 = new ArrayList<>();
+                    rows.put((long) x, row1);
+                    //remainingContacts.put((long) x, new RandomizedCollection());
+                }
+                if (row2 == null) {
+                    row2 = new ArrayList<>();
+                    rows.put((long) y, row2);
+                    //remainingContacts.put((long) y, new RandomizedCollection());
+                }
+                int xCurrentSize = row1.size();
+                int yCurrentSize = row2.size();
+                for (int i = 0; i < value; i++) {
+                    row1.add(new LinkedContactRecord(cr, yCurrentSize+i));
+                    //remainingContacts.get((long) x).insert(xCurrentSize);
+                    if (x != y) {
+                        row2.add(new LinkedContactRecord(cr, xCurrentSize+i));
+                        //remainingContacts.get((long) y).insert(yCurrentSize);
+                    }
+                }
+
+
+            }
+        }
+        System.out.println("loaded contacts for matrix: " + chr1 + "-" + chr2);
+
+        int rowSumThreshold = (int) (1.0d / getSumFactor(rowsums));
+        List<Float> sortedRowSums = new ArrayList<>();
+        for (long i = 0; i < rowsums.getLength(); i++) {
+            //Instant E = Instant.now();
+            Map<Long,Integer> sumIndexList = rowsumIndices.get(rowsums.get(i));
+            if (sumIndexList == null) {
+                rowsumIndices.put(rowsums.get(i), new HashMap<>());
+                sumIndexList = rowsumIndices.get(rowsums.get(i));
+            }
+            sumIndexList.put(i,1);
+            sortedRowSums.add(rowsums.get(i));
+            //Instant F = Instant.now();
+            //System.err.println(Duration.between(E,F).toNanos());
+        }
+
+        System.out.println("mapped row sums to rows indices for matrix: " + chr1 + "-" + chr2);
+
+
+        Collections.sort(sortedRowSums);
+
+        Map<Float,Integer> SumMap = new HashMap<>();
+        List<Float> SumKeys = new ArrayList<>(rowsumIndices.keySet());
+        Collections.sort(SumKeys);
+        int keyCounter = 0;
+        for (float key : SumKeys) {
+            //Collections.sort(rowsumIndices.get(key));
+            while (sortedRowSums.get(keyCounter)!=key) {
+                keyCounter++;
+            }
+            SumMap.put(key,keyCounter);
+        }
+
+        System.out.println("sorted row sums for matrix: " + chr1 + "-" + chr2);
+
+        Instant A = Instant.now();
+        Map<Long,Integer> currentRows = rowsumIndices.get(sortedRowSums.get(sortedRowSums.size()-1));
+        long currentRow = currentRows.keySet().iterator().next();
+        //System.out.println(currentRows.keySet().size() + " " + sortedRowSums.get(sortedRowSums.size()-1) + " " + currentRow + " " + rowsums.get(currentRow));
+        Instant B = Instant.now();
+        //System.err.println(Duration.between(A,B).toNanos());
+        //System.err.println(rowSumThreshold + " " + getSumFactor(rowsums) + " " + rowsums.get(rowsums.getMaxRow()));
+        Random randomNumberGenerator = new Random(0);
+        while (rowsums.get(currentRow) > rowSumThreshold) {
+            float currentRowSum = rowsums.get(currentRow);
+            //Instant C = Instant.now();
+            //List<Integer> removedContactList = new ArrayList<>(removedContacts.get(currentRow));
+            //Collections.sort(removedContactList);
+            //int randomContact = getRandomWithExclusion(randomNumberGenerator, rows.get(currentRow).size(), removedContactList);
+            //removedContacts.get(currentRow).add(randomContact);
+            //int randomContact = remainingContacts.get(currentRow).getRandom();
+            int randomContact = (int) (rows.get(currentRow).size() * randomNumberGenerator.nextDouble());
+            //remainingContacts.get(currentRow).remove(randomContact);
+            long firstRow, secondRow;
+            if (rows.get(currentRow).get(randomContact).getContactRecord().getBinX() == currentRow) {
+                firstRow = (long) rows.get(currentRow).get(randomContact).getContactRecord().getBinX();
+                secondRow = (long) rows.get(currentRow).get(randomContact).getContactRecord().getBinY();
+            } else {
+                firstRow = (long) rows.get(currentRow).get(randomContact).getContactRecord().getBinY();
+                secondRow = (long) rows.get(currentRow).get(randomContact).getContactRecord().getBinX();
+            }
+            //System.out.println(currentRow + " " + firstRow + " " + secondRow);
+            float firstRowSum = rowsums.get(firstRow);
+            int symmetricRandomContactPosition = rows.get(firstRow).get(randomContact).getLink();
+            long lastRow = rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX() == firstRow? rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinY() : rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX();
+            int lastLink = rows.get(firstRow).get(rows.get(firstRow).size()-1).getLink();
+            //System.out.println("initial values " + currentRow + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinX() + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinY() + " " + rows.get(firstRow).get(randomContact).getLink() +  " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinY() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+            rows.get(firstRow).get(randomContact).getContactRecord().incrementCount(-1);
+            rows.get(firstRow).set(randomContact, rows.get(firstRow).get(rows.get(firstRow).size()-1));
+            //System.out.println("first row swapped " + currentRow + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinX() + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinY() + " " + rows.get(firstRow).get(randomContact).getLink() +  " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinY() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+
+            long partnerRow;
+            int partnerLink = rows.get(firstRow).get(randomContact).getLink();
+            if (rows.get(firstRow).get(randomContact).getContactRecord().getBinX() == firstRow) {
+                partnerRow = (long) rows.get(firstRow).get(randomContact).getContactRecord().getBinY();
+            } else {
+                partnerRow = (long) rows.get(firstRow).get(randomContact).getContactRecord().getBinX();
+            }
+            //System.out.println(firstRow + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinY() + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinX() + " " + partnerRow + " " + partnerLink + " " + symmetricRandomContactPosition);
+            rows.get(partnerRow).get(partnerLink).setLink(randomContact);
+            //System.out.println("partner link updated " + currentRow + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinX() + " " + rows.get(firstRow).get(randomContact).getContactRecord().getBinY() + " " + rows.get(firstRow).get(randomContact).getLink() +  " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinY() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+            rows.get(firstRow).remove(rows.get(firstRow).size()-1);
+            //System.out.println("first row removed " + currentRow + " " + rows.get(firstRow).get(Math.min(randomContact,rows.get(firstRow).size()-1)).getContactRecord().getBinX() + " " + rows.get(firstRow).get(Math.min(randomContact,rows.get(firstRow).size()-1)).getContactRecord().getBinY() + " " + rows.get(firstRow).get(Math.min(randomContact,rows.get(firstRow).size()-1)).getLink() +  " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinX() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getContactRecord().getBinY() + " " + rows.get(firstRow).get(rows.get(firstRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+
+            rowsums.addTo(firstRow, -1);
+            float newFirstRowSum = rowsums.get(firstRow);
+            //System.out.println(currentRowSum + " " + rowsums.get(currentRow) + " " + sortedRowSums.get(sortedRowSums.size()-1) );
+            rowsumIndices.get(currentRowSum).remove(currentRow);
+            Map<Long,Integer> newRow1 = rowsumIndices.get(newFirstRowSum);
+            if (newRow1 == null) {
+                rowsumIndices.put(newFirstRowSum, new HashMap<>());
+                newRow1 = rowsumIndices.get(newFirstRowSum);
+                newRow1.put(firstRow,1);
+            } else {
+                newRow1.put(firstRow,1);
+            }
+            int switchPlace1 = SumMap.get(firstRowSum);
+            float potentialSwitchSum1 = sortedRowSums.get(switchPlace1);
+            if (switchPlace1 == sortedRowSums.size()-1) {
+                sortedRowSums.set(switchPlace1, newFirstRowSum);
+                if (SumMap.get(newFirstRowSum) == null) {
+                    SumMap.put(newFirstRowSum, switchPlace1);
+                }
+            } else {
+                sortedRowSums.set(sortedRowSums.size()-1, potentialSwitchSum1);
+                sortedRowSums.set(switchPlace1, newFirstRowSum);
+                SumMap.put(firstRowSum, switchPlace1+1);
+                if (SumMap.get(newFirstRowSum) == null) {
+                    SumMap.put(newFirstRowSum, switchPlace1);
+                }
+            }
+            //System.out.println(currentRowSum + " " + rowsums.get(currentRow) + " " + sortedRowSums.get(sortedRowSums.size()-1) );
+
+            if (firstRow != secondRow) {
+                float secondRowSum = rowsums.get(secondRow);
+                //removedContacts.get(secondRow).add(symmetricRandomContactPosition);
+                //remainingContacts.get(secondRow).remove(symmetricRandomContactPosition);
+                lastRow = rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinX() == secondRow? rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinY() : rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinX();
+                lastLink = rows.get(secondRow).get(rows.get(secondRow).size()-1).getLink();
+                //System.out.println("second row last check " + currentRow + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinX() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinY() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+
+                rows.get(secondRow).set(symmetricRandomContactPosition, rows.get(secondRow).get(rows.get(secondRow).size()-1));
+                //System.out.println("second row swapped " + currentRow + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinX() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinY() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+
+                partnerLink = rows.get(secondRow).get(symmetricRandomContactPosition).getLink();
+                if (rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() == secondRow) {
+                    partnerRow = (long) rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY();
+                } else {
+                    partnerRow = (long) rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX();
+                }
+                if (symmetricRandomContactPosition!=rows.get(secondRow).size()-1) {
+                    rows.get(partnerRow).get(partnerLink).setLink(symmetricRandomContactPosition);
+                }
+                //System.out.println("partner link updated " + currentRow + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinX() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getContactRecord().getBinY() + " " + rows.get(secondRow).get(symmetricRandomContactPosition).getLink() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinX() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getContactRecord().getBinY() + " " + rows.get(secondRow).get(rows.get(secondRow).size()-1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+
+                rows.get(secondRow).remove(rows.get(secondRow).size()-1);
+                if (rows.get(secondRow).size()>0) {
+                    //System.out.println("second row removed " + currentRow + " " + rows.get(secondRow).get(Math.min(symmetricRandomContactPosition, rows.get(secondRow).size() - 1)).getContactRecord().getBinX() + " " + rows.get(secondRow).get(Math.min(symmetricRandomContactPosition, rows.get(secondRow).size() - 1)).getContactRecord().getBinY() + " " + rows.get(secondRow).get(Math.min(symmetricRandomContactPosition, rows.get(secondRow).size() - 1)).getLink() + " " + rows.get(secondRow).get(rows.get(secondRow).size() - 1).getContactRecord().getBinX() + " " + rows.get(secondRow).get(rows.get(secondRow).size() - 1).getContactRecord().getBinY() + " " + rows.get(secondRow).get(rows.get(secondRow).size() - 1).getLink() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinX() + " " + rows.get(lastRow).get(lastLink).getContactRecord().getBinY() + " " + rows.get(lastRow).get(lastLink).getLink());
+                }
+                rowsums.addTo(secondRow, -1);
+                //System.out.println(currentRowSum + " " + rowsums.get(currentRow) + " " + sortedRowSums.get(sortedRowSums.size()-1) + " " + secondRowSum );
+                float newSecondRowSum = rowsums.get(secondRow);
+                //int removeIndex2 = Collections.binarySearch(rowsumIndices.get(secondRowSum),secondRow);
+                rowsumIndices.get(secondRowSum).remove(secondRow);
+                Map<Long,Integer> newRow2 = rowsumIndices.get(newSecondRowSum);
+                if (newRow2 == null) {
+                    rowsumIndices.put(newSecondRowSum, new HashMap<>());
+                    newRow2 = rowsumIndices.get(newSecondRowSum);
+                    newRow2.put(secondRow,1);
+                } else {
+                    newRow2.put(secondRow,1);
+                }
+                int switchPlace2 = SumMap.get(secondRowSum);
+                if (switchPlace2 == 0) {
+                    sortedRowSums.set(0,newSecondRowSum);
+                    if (SumMap.get(newSecondRowSum) == null) {
+                        SumMap.put(newSecondRowSum,0);
+                    }
+                    if (sortedRowSums.get(1)==secondRowSum) {
+                        SumMap.put(secondRowSum,1);
+                    } else {
+                        SumMap.remove(secondRowSum);
+                    }
+                } else {
+                    sortedRowSums.set(switchPlace2, newSecondRowSum);
+                    if (SumMap.get(newSecondRowSum) == null) {
+                        SumMap.put(newSecondRowSum,switchPlace2);
+                    }
+                    if (sortedRowSums.size() == switchPlace2+1) {
+                        SumMap.remove(secondRowSum);
+                    } else if (sortedRowSums.get(switchPlace2+1) == secondRowSum) {
+                        SumMap.put(secondRowSum, switchPlace2+1);
+                    } else {
+                        SumMap.remove(secondRowSum);
+                    }
+                }
+            }
+            //System.out.println(currentRowSum + " " + rowsums.get(currentRow) + " " + sortedRowSums.get(sortedRowSums.size()-1) );
+            currentRows = rowsumIndices.get(sortedRowSums.get(sortedRowSums.size()-1));
+            currentRow = currentRows.keySet().iterator().next();
+            double maxRatio = (rowsums.get(currentRow)*1.0d)/rowSumThreshold;
+            if (thresholds.size()>0 && maxRatio < thresholds.get(thresholds.size()-1)) {
+                double passedThreshold = thresholds.get(thresholds.size()-1);
+                while (thresholds.size()>0 && maxRatio < thresholds.get(thresholds.size()-1)) {
+                    passedThreshold = thresholds.remove(thresholds.size()-1);
+                }
+                System.out.println("passed threshold: " + passedThreshold + " for matrix: " + chr1 + "-" + chr2 + "(current max sum: " + rowsums.get(currentRow) + " , sum threshold: " + rowSumThreshold + ")");
+            }
+            //Instant D = Instant.now();
+            //System.err.println(Duration.between(C,D).toMillis());
+        }
+
+        return contactRecords;
+
+    }*/
+
+    public int getRandomWithExclusion(Random rnd, int end, List<Integer> exclude) {
+        int random = 0;
+        try {
+            random = rnd.nextInt(end - exclude.size());
+        } catch (Exception e) {
+            System.err.println(end + " " + exclude.size());
+            e.printStackTrace();
+        }
+        for (int ex : exclude) {
+            if (random < ex) {
+                break;
+            }
+            random++;
+        }
+        return random;
+    }
 }
+
+

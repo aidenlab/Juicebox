@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,12 @@
 
 package juicebox;
 
-import juicebox.data.ChromosomeHandler;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * TODO These should probably be deleted, but keeping them until respective author decides/refactors
  * Created by muhammadsaadshamim on 8/3/15.
  */
 class Unused {
-
+/*
     private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
         List<Integer[]> listPositions = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(seqPath))) {
@@ -69,7 +61,6 @@ class Unused {
         }
     }
 
-    /*
             Iterator<ContactRecord> iter = zd.getNewContactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
@@ -90,7 +81,6 @@ class Unused {
                     indexToRegion.get(y).addNeighbor(x, counts);
                 }
             }
-            */
 
     private void loadNormalizationVector(File file, HiC hic) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)), HiCGlobals.bufferSize);
@@ -125,6 +115,6 @@ class Unused {
 
             //hic.getDataset().putCustomNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
         }
-
     }
+    */
 }

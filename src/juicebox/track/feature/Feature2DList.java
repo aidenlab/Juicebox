@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
-import org.broad.igv.feature.Chromosome;
+import juicebox.data.basics.Chromosome;
 
 import java.awt.*;
 import java.io.File;
@@ -289,6 +289,7 @@ public class Feature2DList {
      * Export feature list to given file path
      *
      * @param outputFile
+     * @return true if successful
      */
     public boolean exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
@@ -298,6 +299,7 @@ public class Feature2DList {
             } else {
                 System.err.println("Error features not written to file: " + outputFile.getAbsolutePath());
             }
+            return true;
         }
         return false;
     }

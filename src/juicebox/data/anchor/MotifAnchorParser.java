@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,10 @@ package juicebox.data.anchor;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
@@ -221,7 +221,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                MotifAnchor anchor = new MotifAnchor(chr.getIndex(), start1, end1);
+                MotifAnchor anchor = new MotifAnchor(chr.getName(), start1, end1);
                 anchor.setFIMOAttributes(score, pValue, qValue, strand, sequence);
 
                 anchors.add(anchor);
@@ -299,7 +299,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                anchors.add(new MotifAnchor(chr.getIndex(), start1, end1));
+                anchors.add(new MotifAnchor(chr.getName(), start1, end1));
             }
         }
         if (anchors.size() < 1) System.err.println("BED File empty - file may have problems or error was encountered");
