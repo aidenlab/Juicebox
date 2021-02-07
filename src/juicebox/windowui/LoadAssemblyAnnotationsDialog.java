@@ -120,7 +120,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         JPanel buttonPanel = new JPanel();
 
         openAssemblyButton = new JButton("Open Assembly");
-        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.setEnabled(false);
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

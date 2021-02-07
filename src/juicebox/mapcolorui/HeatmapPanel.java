@@ -305,7 +305,7 @@ public class HeatmapPanel extends JComponent {
 
     public void disableAssemblyEditing() {
         mouseHandler.clearSelectedFeatures();
-        superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+        superAdapter.getMainViewPanel().toggleToolTipUpdates(true);
         mouseHandler.setActivelyEditingAssembly(false);
         HiCGlobals.splitModeEnabled = false;
         SuperAdapter.assemblyModeCurrentlyActive = false;

@@ -512,18 +512,22 @@ public class Feature2D implements Comparable<Feature2D> {
 	}
 	
 	public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
-		isSelected = setIsSelectedColorUpdate;
-	}
-	
-	public Feature2DWithMotif toFeature2DWithMotif() {
-		return new Feature2DWithMotif(featureType, chr1, start1, end1, chr2, start2, end2, color, attributes);
-	}
-	
-	public boolean containsPoint(float x, float y) {
-		return start1 <= x && x <= end1 && start2 <= y && y <= end2;
-	}
-	
-	public enum FeatureType {
-		NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
-	}
+        isSelected = setIsSelectedColorUpdate;
+    }
+
+    public Feature2DWithMotif toFeature2DWithMotif() {
+        return new Feature2DWithMotif(featureType, chr1, start1, end1, chr2, start2, end2, color, attributes);
+    }
+
+    public boolean containsPoint(float x, float y) {
+        return start1 <= x && x <= end1 && start2 <= y && y <= end2;
+    }
+
+    public boolean containsPoint(Point point) {
+        return containsPoint(point.x, point.y);
+    }
+
+    public enum FeatureType {
+        NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
+    }
 }

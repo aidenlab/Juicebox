@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyOperationExecutor;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
@@ -779,7 +780,48 @@ public class HeatmapMouseHandler extends MouseAdapter {
                     if (Math.abs(deltaX) > 0 && Math.abs(deltaY) > 0) {
                         hic.broadcastLocation();
                     }
-                } else hic.broadcastLocation();
+                } else {
+                    hic.broadcastLocation();
+                }
+            }
+
+            if (e.isShiftDown() && HiCGlobals.phasing) {
+
+                //superscaffold selection handling in the phasing case
+
+                Feature2DGuiContainer newSelectedSuperscaffold = getMouseHoverSuperscaffold(e.getX(), e.getY());
+                if (newSelectedSuperscaffold == null) {
+                    parent.removeSelection();
+                } else {
+                    int tentativeSuperscaffoldId = Integer.parseInt(newSelectedSuperscaffold.getFeature2D().getAttribute("Superscaffold #")) - 1;
+                    int altTentativeSuperscaffoldId;
+                    if (tentativeSuperscaffoldId % 2 == 0) {
+                        altTentativeSuperscaffoldId = tentativeSuperscaffoldId + 1;
+                    } else {
+                        altTentativeSuperscaffoldId = tentativeSuperscaffoldId - 1;
+                    }
+
+                    if (selectedSuperscaffolds.contains(tentativeSuperscaffoldId)) {
+                        selectedSuperscaffolds.remove(new Integer(tentativeSuperscaffoldId));
+                        highlightedFeatures.remove(newSelectedSuperscaffold.getFeature2D());
+                    } else if (selectedSuperscaffolds.contains(altTentativeSuperscaffoldId)) {
+                        return;
+                    } else {
+                        selectedSuperscaffolds.add(tentativeSuperscaffoldId);
+                        highlightedFeatures.add(newSelectedSuperscaffold.getFeature2D());
+                    }
+
+                    addHighlightedFeatures(highlightedFeatures);
+
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                    superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(highlightedFeatures.isEmpty());
+
+                    currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
+
+                    restoreDefaultVariables();
+                }
+                return;
             }
 
             if (activelyEditingAssembly && HiCGlobals.splitModeEnabled && currentPromptedAssemblyAction == PromptedAssemblyAction.CUT) {
@@ -861,7 +903,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
                 //getAssemblyPopupMenu(e.getX(), e.getY()).show(parent, e.getX(), e.getY());
 
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(true);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
 
@@ -936,7 +978,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
         if (newSelectedFeatures != null) {
             selectedFeatures.addAll(newSelectedFeatures);
         }
-        HiCGlobals.translationInProgress = Boolean.FALSE;
+        HiCGlobals.translationInProgress = false;
         parent.removeSelection(); //TODO fix this so that highlight moves with translated selection
     }
 
@@ -1172,8 +1214,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
                 List<Scaffold> listOfScaffolds =
                         superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfAggregateScaffolds();
-                long
-                        lastGenomicBin = 0;
+                long lastGenomicBin = 0;
                 try {
                     lastGenomicBin = listOfScaffolds.get(listOfScaffolds.size() - 1).getCurrentFeature2D().getEnd2() /
                             hic.getZd().getBinSize();
@@ -1183,7 +1224,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 int bottomRightCornerX = (int) ((lastGenomicBin - binOriginX) * scaleFactor);
                 int bottomRightCornerY = (int) ((lastGenomicBin - binOriginY) * scaleFactor);
 
-                if (!selectedFeatures.isEmpty()) {
+                if (!selectedFeatures.isEmpty() && !HiCGlobals.phasing) {
                     if (mousePoint.getX() - topLeftCornerX >= 0 &&
                             mousePoint.getX() - topLeftCornerX <= minDist &&
                             mousePoint.getY() - topLeftCornerY >= 0 &&
@@ -1480,10 +1521,12 @@ public class HeatmapMouseHandler extends MouseAdapter {
     }
 
     private Feature2DGuiContainer getMouseHoverSuperscaffold(int x, int y) {
+        final Point mousePoint = calculateSelectionPoint(x, y);
+
         if (activelyEditingAssembly) {
             for (Feature2DGuiContainer loop : allFeaturePairs) {
                 if (loop.getFeature2D().getFeatureType() == Feature2D.FeatureType.SUPERSCAFFOLD) {
-                    if (loop.getFeature2D().containsPoint(x, y)) {
+                    if (loop.getFeature2D().containsPoint(mousePoint)) {
                         return loop;
                     }
                 }
@@ -1717,10 +1760,32 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
                 if (!selectedFeatures.isEmpty()) {
                     Collections.sort(selectedFeatures);
-                    for (Feature2D feature2D : selectedFeatures) {
-                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append(feature2D.tooltipText());
-                        txt.append("</span>");
+                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append(selectedFeatures.get(0).tooltipText());
+                    txt.append("</span>");
+                    switch (selectedFeatures.size()) {
+                        case 1:
+                            break;
+                        case 2:
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+                            txt.append("</span>");
+                            break;
+                        case 3:
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(selectedFeatures.get(1).tooltipText());
+                            txt.append("</span>");
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+                            txt.append("</span>");
+                            break;
+                        default:
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append("...");
+                            txt.append("</span>");
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
+                            txt.append("</span>");
                     }
                 } else {
                     for (Feature2DGuiContainer loop : allFeaturePairs) {
@@ -1865,73 +1930,79 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-//        final JMenuItem miRepeatSelection = new JCheckBoxMenuItem("Repeat selection");
-//        miRepeatSelection.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                selectedFeatures=lastSelectedFeatures;
-//                updateSelectedFeatures(true);
-//
-//                Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-//                Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-//                superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-//                repaint();
-//
-//                if (superAdapter.getMainLayer().getLayerVisibility()) {
-//                    tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-//                    addHighlightedFeature(tempSelectedGroup);
-//                }
-//
-////                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-////                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
-////                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-//
-////                currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
-//
-////                restoreDefaultVariables();
-//
-//            }
-//        });
-//        //System.out.println("I am in repeatselection and "+lastSelectedFeatures.size());
-//        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
-//        menu.add(miRepeatSelection);
+        if (HiCGlobals.phasing) {
+            final JMenuItem phaseMergeItems = new JMenuItem("Merge phased blocks");
+            phaseMergeItems.setEnabled(selectedSuperscaffolds.size() > 1);
+            phaseMergeItems.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AssemblyOperationExecutor.phaseMerge(superAdapter, selectedSuperscaffolds);
+                    // Cleanup
+                    parent.removeSelection();
+                }
+            });
+            menu.add(phaseMergeItems);
+        } else {
+            final JMenuItem miMoveToTop = new JMenuItem("Move to top");
+            miMoveToTop.setEnabled(!selectedFeatures.isEmpty());
+            miMoveToTop.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AssemblyOperationExecutor.moveSelection(superAdapter,
+                            selectedFeatures,
+                            null);
+                    parent.removeSelection();
+                }
+            });
+            menu.add(miMoveToTop);
+
+            final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
+            miMoveToDebris.setEnabled(!selectedFeatures.isEmpty());
+            miMoveToDebris.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    parent.moveSelectionToEnd();
+                }
+            });
+            menu.add(miMoveToDebris);
+
+            final JMenuItem miMoveToDebrisAndDisperse = new JMenuItem("Move to debris and add boundaries");
+            miMoveToDebrisAndDisperse.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+            miMoveToDebrisAndDisperse.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    moveSelectionToEndAndDisperse();
+                }
+            });
+            menu.add(miMoveToDebrisAndDisperse);
+
+            final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
+            groupItems.setEnabled(selectedFeatures.size() > 1);
+            groupItems.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
+
+                    // Cleanup
+                    parent.removeSelection();
+                }
+            });
+            menu.add(groupItems);
 
 
-        final JMenuItem miMoveToDebris = new JMenuItem("Move to debris");
-        miMoveToDebris.setEnabled(!selectedFeatures.isEmpty());
-        miMoveToDebris.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                parent.moveSelectionToEnd();
-            }
-        });
-        menu.add(miMoveToDebris);
+            final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
+            splitItems.setEnabled(!selectedFeatures.isEmpty());
+            splitItems.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
 
-        final JMenuItem groupItems = new JMenuItem("Remove chr boundaries");
-        groupItems.setEnabled(selectedFeatures.size() > 1);
-        groupItems.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AssemblyOperationExecutor.multiMerge(superAdapter, selectedFeatures);
-
-                // Cleanup
-                parent.removeSelection();
-            }
-        });
-        menu.add(groupItems);
-
-        final JMenuItem splitItems = new JMenuItem("Add chr boundaries");
-        splitItems.setEnabled(!selectedFeatures.isEmpty());
-        splitItems.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
-
-                // Cleanup
-                parent.removeSelection();
-            }
-        });
-        menu.add(splitItems);
+                    // Cleanup
+                    parent.removeSelection();
+                }
+            });
+            menu.add(splitItems);
+        }
 
         final JMenuItem miUndo = new JMenuItem("Undo");
         miUndo.addActionListener(new ActionListener() {
@@ -1944,7 +2015,6 @@ public class HeatmapMouseHandler extends MouseAdapter {
         });
         miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
         menu.add(miUndo);
-
 
         final JMenuItem miRedo = new JMenuItem("Redo");
         miRedo.addActionListener(new ActionListener() {
@@ -1959,6 +2029,15 @@ public class HeatmapMouseHandler extends MouseAdapter {
         menu.add(miRedo);
 
         return menu;
+    }
+
+    void moveSelectionToEndAndDisperse() {
+        AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+        final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
+        int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
+        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
+        AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
+        parent.removeSelection();
     }
 
     public Feature2DGuiContainer getCurrentUpstreamFeature() {
