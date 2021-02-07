@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.03.04";
+    public static final String versionNum = "2.04.01";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -65,8 +65,6 @@ public class HiCGlobals {
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
-    public static final boolean isDevAssemblyToolsAllowedPublic = true;
-    public static final boolean isDevCustomChromosomesAllowedPublic = true;
     public static final Color diffGrayColor = new Color(238, 238, 238);
     // for state saving
     public static Color HIC_MAP_COLOR = Color.RED;
@@ -93,7 +91,6 @@ public class HiCGlobals {
     public static boolean isLegacyOutputPrintingEnabled = false;
     public static final boolean isDevAssemblyToolsAllowedPublic = true;
     public static final boolean isDevCustomChromosomesAllowedPublic = true;
-    public static final Color diffGrayColor = new Color(238, 238, 238);
     public static boolean HACK_COLORSCALE = false;
     public static boolean HACK_COLORSCALE_EQUAL = false;
     public static boolean HACK_COLORSCALE_LINEAR = false;

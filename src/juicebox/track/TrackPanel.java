@@ -307,34 +307,36 @@ public class TrackPanel extends JPanel {
         }
 
         try {
-            Feature2D highlight = hic.getHighlightedFeature();
-            if (highlight != null) {
+            List<Feature2D> highlights = hic.getHighlightedFeatures();
+            if (highlights.size() > 0) {
                 g.setColor(FeatureRenderer.HIGHLIGHT_COLOR);
                 MatrixZoomData zd = hic.getZd();
                 HiCGridAxis xAxis = zd.getXGridAxis();
                 HiCGridAxis yAxis = zd.getYGridAxis();
                 double binOriginX = hic.getXContext().getBinOrigin();
                 double binOriginY = hic.getYContext().getBinOrigin();
-                int binStart1 = xAxis.getBinNumberForGenomicPosition(highlight.getStart1());
-                int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlight.getEnd1());
-                int binStart2 = yAxis.getBinNumberForGenomicPosition(highlight.getStart2());
-                int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlight.getEnd2());
-                double scaleFactor = hic.getScaleFactor();
+                for (Feature2D highlight : highlights) {
+                    int binStart1 = xAxis.getBinNumberForGenomicPosition(highlight.getStart1());
+                    int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlight.getEnd1());
+                    int binStart2 = yAxis.getBinNumberForGenomicPosition(highlight.getStart2());
+                    int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlight.getEnd2());
+                    double scaleFactor = hic.getScaleFactor();
 
-                if (orientation == Orientation.X) {
-                    if (HiCFileTools.equivalentChromosome(highlight.getChr1(), zd.getChr1())) {
-                        int x3 = (int) ((binStart1 - binOriginX) * scaleFactor);
-                        int h3 = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                    if (orientation == Orientation.X) {
+                        if (HiCFileTools.equivalentChromosome(highlight.getChr1(), zd.getChr1())) {
+                            int x3 = (int) ((binStart1 - binOriginX) * scaleFactor);
+                            int h3 = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
-                        g.drawLine(x3, 0, x3, getHeight());
-                        g.drawLine(x3 + h3, 0, x3 + h3, getHeight());
+                            g.drawLine(x3, 0, x3, getHeight());
+                            g.drawLine(x3 + h3, 0, x3 + h3, getHeight());
+                        }
+                    } else if (HiCFileTools.equivalentChromosome(highlight.getChr2(), zd.getChr2())) {
+                        int y3 = (int) ((binStart2 - binOriginY) * scaleFactor);
+                        int w3 = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+
+                        g.drawLine(0, y3, getWidth(), y3);
+                        g.drawLine(0, y3 + w3, getWidth(), y3 + w3);
                     }
-                } else if (HiCFileTools.equivalentChromosome(highlight.getChr2(), zd.getChr2())) {
-                    int y3 = (int) ((binStart2 - binOriginY) * scaleFactor);
-                    int w3 = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
-
-                    g.drawLine(0, y3, getWidth(), y3);
-                    g.drawLine(0, y3 + w3, getWidth(), y3 + w3);
                 }
             }
         } catch (Exception e2) {

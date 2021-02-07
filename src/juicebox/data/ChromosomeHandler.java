@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import juicebox.Context;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
@@ -45,7 +46,7 @@ public class ChromosomeHandler {
     private static final String CHR_ALL = "All";
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
     private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
-    private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
+    private final List<Chromosome> cleanedChromosomes;
     private final String genomeID;
     private final long[] chromosomeBoundaries;
     private final Chromosome[] chromosomesArray;
@@ -85,18 +86,18 @@ public class ChromosomeHandler {
         chromosomeArrayAutosomesOnly = outputs.getSecond().get(2);
     }
 
-    public static String cleanUpName(String name) {
-        return name; // todo for hg19??
-//        if (name.equalsIgnoreCase("assembly")) {
-//            return "assembly";
-//        }
-//        if (name.equalsIgnoreCase("pseudoassembly")) {
-//            return "pseudoassembly";
-//        }
-//        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
-
+    public static boolean isWholeGenomeView(Context xContext, Context yContext) {
+        return isAllByAll(xContext.getChromosome()) && isAllByAll(yContext.getChromosome());
     }
-  
+
+
+    public String cleanUpName(String name) {
+        if (genomeID.equalsIgnoreCase("hg19") || genomeID.equalsIgnoreCase("hg38")) {
+            return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+        }
+        return name;
+    }
+
     public static boolean isAllByAll(String name) {
         return name.toLowerCase().contains("all");
     }
@@ -128,18 +129,6 @@ public class ChromosomeHandler {
         return isAllByAll(chromosome.getName());
     }
 
-    public String cleanUpName(String name) {
-        if (name.equalsIgnoreCase("assembly")) {
-            return "assembly";
-        }
-        if (name.equalsIgnoreCase("pseudoassembly")) {
-            return "pseudoassembly";
-        }
-        if (genomeID.equalsIgnoreCase("hg19") || genomeID.equalsIgnoreCase("hg38")) {
-            return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
-        }
-        return name;
-    }
 
     private GenomeWideList<MotifAnchor> generateChromDotSizesBedFile() {
         GenomeWideList<MotifAnchor> chromDotSizes = new GenomeWideList<>(this);

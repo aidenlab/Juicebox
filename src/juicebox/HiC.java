@@ -85,8 +85,7 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private Feature2D highlightedFeature;
-    private List<Feature2D> highlightedFeatures;
+    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private boolean showFeatureHighlight;
 
     public HiC(SuperAdapter superAdapter) {
@@ -1183,17 +1182,17 @@ public class HiC {
 
         printWriter.println("track name=\"Rainbow track\" description=\"Rainbow track\" visibility=2 itemRgb=\"On\"");
         int resolution = getZoom().getBinSize();
-        int size = chromosome.getLength() / resolution + 1;
+        long size = chromosome.getLength() / resolution + 1;
         for (int i = 0; i < size; i++) {
             printWriter.println(chromosome.getName() + "\t" + i * resolution + "\t" + ((i + 1) * resolution) + "\t-\t0\t+\t" + i * resolution + "\t" + ((i + 1) * resolution) + "\t" + getRgb(i, size));
         }
     }
 
-    private String getRgb(int i, int size) {
+    private String getRgb(int i, long size) {
         int red = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 0 * Math.PI * 2 / 3)) + 128;
         int blue = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 1 * Math.PI * 2 / 3)) + 128;
         int green = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 2 * Math.PI * 2 / 3)) + 128;
-        return Integer.toString(red) + "," + Integer.toString(green) + "," + Integer.toString(blue);
+        return red + "," + green + "," + blue;
     }
 
     public boolean isInPearsonsMode() {
@@ -1266,19 +1265,16 @@ public class HiC {
         return null;
     }
 
-    public Feature2D getHighlightedFeature() {
+    public List<Feature2D> getHighlightedFeatures() {
         if (showFeatureHighlight) {
-            return highlightedFeature;
+            return highlightedFeatures;
         }
-        return null;
+        return new ArrayList<>();
     }
 
-    public void setHighlightedFeature(Feature2D highlightedFeature) {
-        this.highlightedFeature = highlightedFeature;
-    }
-
-    public void setHighlightedFeatures(List<Feature2D> highlightedFeature) {
-        this.highlightedFeatures = highlightedFeatures;
+    public void setHighlightedFeatures(List<Feature2D> highlightedFeatures) {
+        this.highlightedFeatures.clear();
+        this.highlightedFeatures.addAll(highlightedFeatures);
     }
 
     public void setShowFeatureHighlight(boolean showFeatureHighlight) {

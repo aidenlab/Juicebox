@@ -34,7 +34,6 @@ import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
 import juicebox.track.HiCTrack;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;

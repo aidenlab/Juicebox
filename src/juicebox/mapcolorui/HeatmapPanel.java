@@ -31,7 +31,6 @@ import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.data.ChromosomeHandler;
-import juicebox.data.CustomMatrixZoomData;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
@@ -63,6 +62,7 @@ public class HeatmapPanel extends JComponent {
     private boolean showGridLines = true;
     private final HeatmapClickListener clickListener;
     private long[] chromosomeBoundaries;
+    private final BoundingBoxRenderer boundingBoxRenderer = new BoundingBoxRenderer(this);
 
     public HeatmapPanel(SuperAdapter superAdapter) {
         this.mainWindow = superAdapter.getMainWindow();
@@ -83,6 +83,7 @@ public class HeatmapPanel extends JComponent {
 
     public void setChromosomeBoundaries(long[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
+        boundingBoxRenderer.setChromosomeBoundaries(chromosomeBoundaries);
     }
 
     public int getMinimumDimension() {
@@ -148,164 +149,41 @@ public class HeatmapPanel extends JComponent {
         boolean allTilesNull = tileManager.renderHiCTiles(renderer, binOriginX, binOriginY, bRight, bBottom, zd, controlZd,
                 scaleFactor, this.getBounds(), hic, this, superAdapter);
 
-        boolean isWholeGenome = ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome()) &&
-                ChromosomeHandler.isAllByAll(hic.getYContext().getChromosome());
+        boolean isWholeGenome = ChromosomeHandler.isWholeGenomeView(hic.getXContext(), hic.getYContext());
 
-        //if (mainWindow.isRefreshTest()) {
-        // Draw grid
+        Color color0 = g.getColor();
 
         if (isWholeGenome) {
-            Color color = g.getColor();
-            if (HiCGlobals.isDarkulaModeEnabled) {
-                g.setColor(Color.LIGHT_GRAY);
-            } else {
-                g.setColor(Color.DARK_GRAY);
-            }
-
-            long maxDimension = chromosomeBoundaries[chromosomeBoundaries.length - 1];
-
-            // Draw grid lines only if option is selected
-            if (showGridLines) {
-                for (long bound : chromosomeBoundaries) {
-                    // vertical lines
-                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(bound);
-                    int x = (int) ((xBin - binOriginX) * scaleFactor);
-                    g.drawLine(x, 0, x, getGridLineHeightLimit(zd, maxDimension));
-
-                    // horizontal lines
-                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
-                    int y = (int) ((yBin - binOriginY) * scaleFactor);
-                    g.drawLine(0, y, getGridLineWidthLimit(zd, maxDimension), y);
-                }
-            }
-
-            g.setColor(color);
-
-            //Cover gray background for the empty parts of the matrix:
-            if (HiCGlobals.isDarkulaModeEnabled) {
-                g.setColor(Color.darkGray);
-            } else {
-                g.setColor(Color.white);
-            }
-            g.fillRect(getGridLineHeightLimit(zd, maxDimension), 0, getHeight(), getWidth());
-            g.fillRect(0, getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
-            g.fillRect(getGridLineHeightLimit(zd, maxDimension), getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
-
+            boundingBoxRenderer.drawAllByAllGrid(g, zd, showGridLines, binOriginX, binOriginY, scaleFactor);
         } else {
-
-            if (showGridLines) {
-                Color color = g.getColor();
-                if (HiCGlobals.isDarkulaModeEnabled) {
-                    g.setColor(Color.LIGHT_GRAY);
-                } else {
-                    g.setColor(Color.DARK_GRAY);
-                }
-                final ChromosomeHandler handler = hic.getChromosomeHandler();
-                if (handler != null && zd != null) {
-                    if (handler.isCustomChromosome(zd.getChr1())) {
-                        if (zd instanceof CustomMatrixZoomData) {
-                            List<Long> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
-                            //int maxSize = xBins.get(xBins.size() - 1);
-                            int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
-                            for (long xBin : xBins) {
-                                int x = (int) ((xBin - binOriginX) * scaleFactor);
-                                g.drawLine(x, 0, x, maxSize);
-                            }
-                        }
-                    }
-                    if (handler.isCustomChromosome(zd.getChr2())) {
-                        if (zd instanceof CustomMatrixZoomData) {
-                            List<Long> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
-                            //int maxSize = yBins.get(yBins.size() - 1);
-                            int maxSize = (int) ((zd.getXGridAxis().getBinCount() - binOriginX) * scaleFactor);
-                            for (long yBin : yBins) {
-                                int y = (int) ((yBin - binOriginY) * scaleFactor);
-                                g.drawLine(0, y, maxSize, y);
-                            }
-                        }
-                    }
-                }
-                g.setColor(color);
-            }
+            boundingBoxRenderer.drawRegularGrid(g, zd, showGridLines, hic.getChromosomeHandler(), binOriginX, binOriginY, scaleFactor);
         }
+        CursorRenderer cursorRenderer = new CursorRenderer(this);
+        cursorRenderer.drawCursors(g, hic.getCursorPoint(), hic.getDiagonalCursorPoint(),
+                binOriginX, binOriginY, scaleFactor, hic.getColorForRuler(), bRight, bBottom);
 
-        Point cursorPoint = hic.getCursorPoint();
-        if (cursorPoint != null) {
-            g.setColor(hic.getColorForRuler());
-            g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
-            g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
-        } else {
-            Point diagonalCursorPoint = hic.getDiagonalCursorPoint();
-            if (diagonalCursorPoint != null) {
-                g.setColor(hic.getColorForRuler());
-                // quadrant 4 signs in plotting equal to quadrant 1 flipped across x in cartesian plane
-                // y = -x + b
-                // y + x = b
-                int b = diagonalCursorPoint.x + diagonalCursorPoint.y;
-                // at x = 0, y = b unless y exceeds height
-                int leftEdgeY = Math.min(b, getHeight());
-                int leftEdgeX = b - leftEdgeY;
-                // at y = 0, x = b unless x exceeds width
-                int rightEdgeX = Math.min(b, getWidth());
-                int rightEdgeY = b - rightEdgeX;
-                g.drawLine(leftEdgeX, leftEdgeY, rightEdgeX, rightEdgeY);
+        g.setColor(color0);
 
-                // now we need to draw the perpendicular
-                // line which intersects this at the mouse
-                // m = -1, neg reciprocal is 1
-                // y2 = x2 + b2
-                // y2 - x2 = b2
-                int b2 = diagonalCursorPoint.y - diagonalCursorPoint.x;
-                // at x2 = 0, y2 = b2 unless y less than 0
-                int leftEdgeY2 = Math.max(b2, 0);
-                int leftEdgeX2 = leftEdgeY2 - b2;
-                // at x2 = width, y2 = width+b2 unless x exceeds height
-                int rightEdgeY2 = Math.min(getWidth() + b2, getHeight());
-                int rightEdgeX2 = rightEdgeY2 - b2;
-                g.drawLine(leftEdgeX2, leftEdgeY2, rightEdgeX2, rightEdgeY2);
-
-                // find a point on the diagonal (binx = biny)
-                double binXYOrigin = Math.max(binOriginX, binOriginY);
-                // ensure diagonal is in view
-                if (binXYOrigin < bRight && binXYOrigin < bBottom) {
-                    int xDiag = (int) ((binXYOrigin - binOriginX) * scaleFactor);
-                    int yDiag = (int) ((binXYOrigin - binOriginY) * scaleFactor);
-                    // see if new point is above the line y2 = x2 + b2
-                    // y' less than due to flipped topography
-                    int vertDisplacement = yDiag - (xDiag + b2);
-                    // displacement takes care of directionality of diagonal
-                    // being above/below is the second line we drew
-                    int b3 = b2 + (2 * vertDisplacement);
-                    // at x2 = 0, y2 = b2 unless y less than 0
-                    int leftEdgeY3 = Math.max(b3, 0);
-                    int leftEdgeX3 = leftEdgeY3 - b3;
-                    // at x2 = width, y2 = width+b2 unless x exceeds height
-                    int rightEdgeY3 = Math.min(getWidth() + b3, getHeight());
-                    int rightEdgeX3 = rightEdgeY3 - b3;
-                    g.drawLine(leftEdgeX3, leftEdgeY3, rightEdgeX3, rightEdgeY3);
-                }
-            }
-        }
         if (allTilesNull) {
             g.setFont(FontManager.getFont(12));
             GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
         } else {
             // Render loops
-            int centerX = (int) (screenWidth / scaleFactor) / 2;
-            int centerY = (int) (screenHeight / scaleFactor) / 2;
-            //float x1 = (float) binOriginX * zd.getBinSize();
-            //float y1 = (float) binOriginY * zd.getBinSize();
-            //float x2 = x1 + (float) (screenWidth / scaleFactor) * zd.getBinSize();
-            //float y2 = y1 + (float) (screenHeight / scaleFactor) * zd.getBinSize();
-            //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(x1, y1, x2, y2);
+            int centerX = (int) ((screenWidth / scaleFactor) / 2);
+            int centerY = (int) ((screenHeight / scaleFactor) / 2);
+            float x1 = (float) (binOriginX * zd.getBinSize());
+            float y1 = (float) (binOriginY * zd.getBinSize());
+            float x2 = x1 + (float) ((screenWidth / scaleFactor) * zd.getBinSize());
+            float y2 = y1 + (float) ((screenHeight / scaleFactor) * zd.getBinSize());
+            net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(x1, y1, x2, y2);
 
             Graphics2D g2 = (Graphics2D) g.create();
-            final boolean activelyEditingAssembly = mouseHandler.getIsActivelyEditingAssembly();
-            mouseHandler.clearFeaturePairs(activelyEditingAssembly);
+            mouseHandler.clearFeaturePairs();
 
-            // Only look at assembly layers if we're in assembly mode
+            final boolean activelyEditingAssembly = mouseHandler.getIsActivelyEditingAssembly();
             List<AnnotationLayerHandler> handlers;
             if (activelyEditingAssembly) {
+                // Only look at assembly layers if we're in assembly mode
                 handlers = superAdapter.getAssemblyLayerHandlers();
             } else {
                 handlers = superAdapter.getAllLayers();
@@ -325,33 +203,15 @@ public class HeatmapPanel extends JComponent {
                 mouseHandler.addAllFeatures(handler, loops, zd,
                         binOriginX, binOriginY, scaleFactor, activelyEditingAssembly);
 
-                final Feature2D highlightedFeature = mouseHandler.getHighlightedFeature();
+                final List<Feature2D> highlightedFeatures = mouseHandler.getHighlightedFeature();
                 final boolean showFeatureHighlight = mouseHandler.getShouldShowHighlight();
 
                 FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
-                        highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+                        highlightedFeatures, showFeatureHighlight, this.getWidth(), this.getHeight());
             }
             mouseHandler.renderMouseAnnotations(g2);
             g2.dispose();
         }
-    }
-
-    private int getGridLineWidthLimit(MatrixZoomData zd, long maxPosition) {
-        int w = getWidth();
-        if (w < 50 || hic.getScaleFactor() == 0) {
-            return 0;
-        }
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(maxPosition);
-        return (int) (xBin * hic.getScaleFactor());
-    }
-
-    private int getGridLineHeightLimit(MatrixZoomData zd, long maxPosition) {
-        int h = getHeight();
-        if (h < 50 || hic.getScaleFactor() == 0) {
-            return 0;
-        }
-        int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(maxPosition);
-        return (int) (yBin * hic.getScaleFactor());
     }
 
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
@@ -453,7 +313,7 @@ public class HeatmapPanel extends JComponent {
 
     public void removeHighlightedFeature() {
         mouseHandler.setFeatureOptionMenuEnabled(false);
-        mouseHandler.eraseHighlightedFeature();
+        mouseHandler.eraseHighlightedFeatures();
         superAdapter.repaintTrackPanels();
         repaint();
     }
@@ -464,7 +324,7 @@ public class HeatmapPanel extends JComponent {
         mouseHandler.setTempSelectedGroup(null);
         superAdapter.clearEditsAndUpdateLayers();
         HiCGlobals.splitModeEnabled = false;
-        superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+        superAdapter.getMainViewPanel().toggleToolTipUpdates(true);
         removeHighlightedFeature();
 
         Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
