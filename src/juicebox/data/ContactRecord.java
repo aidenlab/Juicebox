@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,14 @@ package juicebox.data;
 
 import juicebox.windowui.NormalizationType;
 
+import java.util.Objects;
+
 /**
  * @author jrobinso
  * @since Aug 3, 2010
  */
 public class ContactRecord implements Comparable<ContactRecord> {
-
+    
     /**
      * Bin number in x coordinate
      */
@@ -46,7 +48,6 @@ public class ContactRecord implements Comparable<ContactRecord> {
      * Total number of counts, or cumulative score
      */
     private float counts;
-    private String key;
 
     public ContactRecord(int binX, int binY, float counts) {
         this.binX = binX;
@@ -84,10 +85,24 @@ public class ContactRecord implements Comparable<ContactRecord> {
         return "" + binX + " " + binY + " " + counts;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(binX, binY, counts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        return compareTo((ContactRecord) obj) == 0;
+    }
+
+
     public String getKey(NormalizationType normalizationType) {
-        if (key == null) {
-            key = binX + "_" + binY + "_" + normalizationType;
-        }
-        return key;
+        return binX + "_" + binY + "_" + normalizationType;
     }
 }

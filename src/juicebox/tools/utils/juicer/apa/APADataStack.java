@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -47,6 +47,7 @@ public class APADataStack {
     private static RealMatrix gwCenterNormedAPAMatrix;
     private static RealMatrix gwRankAPAMatrix;
     private static List<Double> gwEnhancement;
+    private static final Object key = new Object();
 
     // saving data variables
     private static int[] axesRange;
@@ -84,7 +85,7 @@ public class APADataStack {
      * @param outputFolderDirectory   to directory
      * @param prefix of files to be saved
      */
-    private static void initializeDataSaveFolder(File outputFolderDirectory, String prefix) {
+    public static void initializeDataSaveFolder(File outputFolderDirectory, String prefix) {
         if (prefix.length() < 1) {// no preference specified
             dataDirectory = new File(outputFolderDirectory,
                     new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date()));
@@ -106,7 +107,7 @@ public class APADataStack {
         }
     }
 
-    public static void exportGenomeWideData(Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
+    public static void exportGenomeWideData(Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData, boolean dontIncludePlots) {
         double gwNPeaksUsedInv = 1. / peakNumbers[0];
         gwNormedAPAMatrix = gwNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
         gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
@@ -115,7 +116,7 @@ public class APADataStack {
         RealMatrix[] matrices = {gwAPAMatrix, gwNormedAPAMatrix, gwCenterNormedAPAMatrix, gwRankAPAMatrix};
         String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA"};
 
-        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth, saveAllData);
+        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth, saveAllData, dontIncludePlots);
     }
 
     public static APARegionStatistics retrieveDataStatistics(int currentRegionWidth){
@@ -126,7 +127,7 @@ public class APADataStack {
                                     RealMatrix[] apaMatrices,
                                     String[] apaDataTitles,
                                     List<Double> givenEnhancement,
-                                    Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
+                                    Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData, boolean dontIncludePlots) {
 
         File subFolder = HiCFileTools.createValidDirectory(new File(dataDirectory, prefix).getAbsolutePath());
         if (HiCGlobals.printVerboseComments) {
@@ -139,8 +140,10 @@ public class APADataStack {
 
             String title = "N=" + peakNumbers[0] + " (filtered) " + peakNumbers[1] + " (unique) " +
                     peakNumbers[2] + " (total)";
-            APAPlotter.plot(apaMatrices[i], axesRange, new File(subFolder, apaDataTitles[i] + ".png"),
-                    title, currentRegionWidth, apaDataTitles[i].equals("APA"));
+            if (!dontIncludePlots) {
+                APAPlotter.plot(apaMatrices[i], axesRange, new File(subFolder, apaDataTitles[i] + ".png"),
+                        title, currentRegionWidth, apaDataTitles[i].equals("APA"));
+            }
             MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
                     apaMatrices[i]);
         }
@@ -174,14 +177,16 @@ public class APADataStack {
     }
 
     public synchronized void updateGenomeWideData() {
-        gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
-        gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
-        gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);
-        gwRankAPAMatrix = gwRankAPAMatrix.add(rankAPAMatrix);
-        gwEnhancement.addAll(enhancement);
+        synchronized (key) {
+            gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
+            gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
+            gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);
+            gwRankAPAMatrix = gwRankAPAMatrix.add(rankAPAMatrix);
+            gwEnhancement.addAll(enhancement);
+        }
     }
 
-    public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
+    public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData, boolean dontIncludePlots) {
         double nPeaksUsedInv = 1. / peakNumbers[0];
         normedAPAMatrix = normedAPAMatrix.scalarMultiply(nPeaksUsedInv);
         centerNormedAPAMatrix = centerNormedAPAMatrix.scalarMultiply(nPeaksUsedInv);
@@ -190,7 +195,7 @@ public class APADataStack {
         RealMatrix[] matrices = {APAMatrix, normedAPAMatrix, centerNormedAPAMatrix, rankAPAMatrix};
         String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
 
-        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth, saveAllData);
+        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth, saveAllData, dontIncludePlots);
     }
 
     public void thresholdPlots(int val) {

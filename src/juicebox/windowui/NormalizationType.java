@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,17 @@
 package juicebox.windowui;
 
 
+import java.util.Objects;
+
 /**
  * @author jrobinso Date: 8/31/13  9:47 PM
  */
 public class NormalizationType {
-    //LOADED("Loaded");
-    private final String label;
-    private final String description;
-
-    public NormalizationType(String label, String description) {
+	//LOADED("Loaded");
+	private final String label;
+	private final String description;
+	
+	public NormalizationType(String label, String description) {
         this.label = label.toUpperCase();
         this.description = description;
     }
@@ -64,6 +66,6 @@ public class NormalizationType {
 
     @Override
     public int hashCode() {
-        return label.hashCode() + 31 * description.hashCode();
+		return Objects.hash(label.hashCode(), description.hashCode());
     }
 }

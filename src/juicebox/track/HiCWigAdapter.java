@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,8 @@ import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ResourceLocator;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso
@@ -100,19 +100,19 @@ public class HiCWigAdapter extends HiCDataAdapter {
         }
 
     }
-
-
-    protected java.util.List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
-        List<LocusScore> scores = locusScoreMap.get(chr);
-        if (scores == null) {
-            // Problems with human not having the "chr".  Try adding "chr"
-            scores = locusScoreMap.get("chr" + chr);
-        }
-        // neither option has been seen yet.  try again with regular chr
-        if (scores == null) {
-            int[] startLocations = dataset.getStartLocations(chr);
-            int[] endLocations = dataset.getEndLocations(chr);
-            float[] values = dataset.getData(trackName, chr);
+	
+	
+	protected java.util.List<LocusScore> getLocusScores(String chr, long gStart, long gEnd, int zoom, WindowFunction windowFunction) {
+		List<LocusScore> scores = locusScoreMap.get(chr);
+		if (scores == null) {
+			// Problems with human not having the "chr".  Try adding "chr"
+			scores = locusScoreMap.get("chr" + chr);
+		}
+		// neither option has been seen yet.  try again with regular chr
+		if (scores == null) {
+			int[] startLocations = dataset.getStartLocations(chr);
+			int[] endLocations = dataset.getEndLocations(chr);
+			float[] values = dataset.getData(trackName, chr);
 
             if (values == null) {
                 chr = "chr" + chr;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -43,7 +44,6 @@ import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
@@ -204,7 +204,7 @@ public class HiCCUPS extends JuicerCLT {
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
-                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore-sparsity]" +
                 "<hicFile> <outputDirectory> [specified_loop_list]");
         Feature2D.allowHiCCUPSOrdering = true;
     }
@@ -309,7 +309,7 @@ public class HiCCUPS extends JuicerCLT {
 
         try {
             final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
-            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+            double firstExpected = df.getExpectedValuesNoNormalization().getFirstValue(); // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
             // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
@@ -320,7 +320,7 @@ public class HiCCUPS extends JuicerCLT {
             if (firstExpected < 100000) {
                 System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
                 if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
                     System.exit(0);
                 }
             }
@@ -557,7 +557,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 }
                 int currProg = currentProgressStatus.incrementAndGet();
-                int resonableDivisor = regionHandler.getSize() / 20;
+                int resonableDivisor = Math.max(regionHandler.getSize() / 20, 1);
                 if (HiCGlobals.printVerboseComments || currProg % resonableDivisor == 0) {
                     DecimalFormat df = new DecimalFormat("#.####");
                     df.setRoundingMode(RoundingMode.FLOOR);

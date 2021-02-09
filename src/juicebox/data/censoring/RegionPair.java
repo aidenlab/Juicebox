@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,20 @@
 
 package juicebox.data.censoring;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import org.broad.igv.util.Pair;
 
-public class RegionPair {
+import java.util.Objects;
 
-    public final int xI;
-    public final int yI;
-    public final MotifAnchor xRegion;
-    public final MotifAnchor xTransRegion;
-    public final MotifAnchor yRegion;
-    public final MotifAnchor yTransRegion;
+public class RegionPair {
+	
+	public final int xI;
+	public final int yI;
+	public final MotifAnchor xRegion;
+	public final MotifAnchor xTransRegion;
+	public final MotifAnchor yRegion;
+	public final MotifAnchor yTransRegion;
 
     private RegionPair(int xI, Pair<MotifAnchor, MotifAnchor> xLocalRegion,
                        int yI, Pair<MotifAnchor, MotifAnchor> yLocalRegion) {
@@ -46,35 +49,35 @@ public class RegionPair {
         this.yTransRegion = yLocalRegion.getSecond();
     }
 
-    public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion) {
-        int xI = xRegion.getFirst().getChr();
-        int yI = yRegion.getFirst().getChr();
+    public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion, ChromosomeHandler handler) {
+        int xI = handler.getChromosomeFromName(xRegion.getFirst().getChr()).getIndex();
+        int yI = handler.getChromosomeFromName(yRegion.getFirst().getChr()).getIndex();
 
         // todo debug for diff custom chrs against each other
         //  return new RegionPair(xI, xRegion, yI, yRegion);
 
         if (xI <= yI) {
-            return new RegionPair(xI, xRegion, yI, yRegion);
-        } else {
-            return new RegionPair(yI, yRegion, xI, xRegion);
-        }
-    }
-
-    public String getDescription() {
-        return "" + xI + "_" + yI + xRegion.toString() + xTransRegion.toString() + yRegion.toString() + yTransRegion.toString();
-    }
-
-    public int[] getOriginalGenomeRegion() {
-        return new int[]{
-                xRegion.getX1(), xRegion.getX2(),
-                yRegion.getX1(), yRegion.getX2()};
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj instanceof RegionPair) {
-            RegionPair o = (RegionPair) obj;
+			return new RegionPair(xI, xRegion, yI, yRegion);
+		} else {
+			return new RegionPair(yI, yRegion, xI, xRegion);
+		}
+	}
+	
+	public String getDescription() {
+		return "" + xI + "_" + yI + xRegion.toString() + xTransRegion.toString() + yRegion.toString() + yTransRegion.toString();
+	}
+	
+	public long[] getOriginalGenomeRegion() {
+		return new long[]{
+				xRegion.getX1(), xRegion.getX2(),
+				yRegion.getX1(), yRegion.getX2()};
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj instanceof RegionPair) {
+			RegionPair o = (RegionPair) obj;
 
             return xI == o.xI
                     && yI == o.yI
@@ -88,9 +91,6 @@ public class RegionPair {
 
     @Override
     public int hashCode() {
-        int hash = 29 * xI + 31 * yI;
-        hash *= xRegion.hashCode() + xTransRegion.hashCode();
-        hash *= yRegion.hashCode() + yTransRegion.hashCode();
-        return hash;
+		return Objects.hash(xI, yI, xRegion.hashCode(), xTransRegion.hashCode(), yRegion.hashCode(), yTransRegion.hashCode());
     }
 }

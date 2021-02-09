@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,33 +40,33 @@ import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Created by Marie on 6/4/15.
  * Modified by muhammadsaadshamim
  */
 public class AnnotationLayerHandler {
-
-    private static boolean importAnnotationsEnabled = false;
-    private Rectangle selectionRegion;
-    private Feature2D.FeatureType featureType = Feature2D.FeatureType.NONE;
-    private Feature2D lastResizeLoop = null;
-    private int lastChr1Idx = -1;
-    private int lastChr2Idx = -1;
-    private Pair<Integer, Integer> lastStarts = null;
-    private Pair<Integer, Integer> lastEnds = null;
-    private AnnotationLayer annotationLayer;
-    private String layerName;
-    private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
-    private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
-    private boolean canExport = false, canUndo = false;
-    private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
-    private final List<JToggleButton> activeLayerButtons = new ArrayList<>();
-    private Color defaultColor = Color.BLUE;
-    private final List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
-    private final List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
+	
+	private static boolean importAnnotationsEnabled = false;
+	private Rectangle selectionRegion;
+	private Feature2D.FeatureType featureType = Feature2D.FeatureType.NONE;
+	private Feature2D lastResizeLoop = null;
+	private int lastChr1Idx = -1;
+	private int lastChr2Idx = -1;
+	private Pair<Long, Long> lastStarts = null;
+	private Pair<Long, Long> lastEnds = null;
+	private AnnotationLayer annotationLayer;
+	private String layerName;
+	private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
+	private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
+	private boolean canExport = false, canUndo = false;
+	private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
+	private final List<JToggleButton> activeLayerButtons = new ArrayList<>();
+	private Color defaultColor = Color.BLUE;
+	private final List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
+	private final List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
     private JTextField nameTextField;
     private JLabel miniNameLabel;
 
@@ -95,16 +95,16 @@ public class AnnotationLayerHandler {
     private void doDomain() {
         featureType = Feature2D.FeatureType.DOMAIN;
     }
-
-    public void setStationaryStart(int start1, int start2) {
-        lastStarts = new Pair<>(start1, start2);
-        lastEnds = null;
-    }
-
-    public void setStationaryEnd(int end1, int end2) {
-        lastEnds = new Pair<>(end1, end2);
-        lastStarts = null;
-    }
+	
+	public void setStationaryStart(long start1, long start2) {
+		lastStarts = new Pair<>(start1, start2);
+		lastEnds = null;
+	}
+	
+	public void setStationaryEnd(long end1, long end2) {
+		lastEnds = new Pair<>(end1, end2);
+		lastStarts = null;
+	}
 
     // Update selection region from new rectangle
     public void updateSelectionRegion(Rectangle newRegion) {
@@ -159,29 +159,29 @@ public class AnnotationLayerHandler {
 
     public Feature2D generateFeature(HiC hic) {
         if (selectionRegion == null) return null;
-
-        int start1, start2, end1, end2;
-        Feature2D newFeature;
-        setExportAbility(true);
-        setUndoAbility(true);
-        clearLastItem();
-        String chr1 = hic.getXContext().getChromosome().getName();
-        String chr2 = hic.getYContext().getChromosome().getName();
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<>();
-        int rightBound = hic.getXContext().getChromosome().getLength();
-        int bottomBound = hic.getYContext().getChromosome().getLength();
-        int leftBound = 0;
-        int x = selectionRegion.x;
-        int y = selectionRegion.y;
-        int width = selectionRegion.width;
-        int height = selectionRegion.height;
-
-        start1 = geneXPos(hic, x, 0);
-        end1 = geneXPos(hic, x + width, 0);
-        start2 = geneYPos(hic, y, 0);
-        end2 = geneYPos(hic, y + height, 0);
+	
+		long start1, start2, end1, end2;
+		Feature2D newFeature;
+		setExportAbility(true);
+		setUndoAbility(true);
+		clearLastItem();
+		String chr1 = hic.getXContext().getChromosome().getName();
+		String chr2 = hic.getYContext().getChromosome().getName();
+		int chr1Idx = hic.getXContext().getChromosome().getIndex();
+		int chr2Idx = hic.getYContext().getChromosome().getIndex();
+		HashMap<String, String> attributes = new HashMap<>();
+		long rightBound = hic.getXContext().getChromosome().getLength();
+		long bottomBound = hic.getYContext().getChromosome().getLength();
+		int leftBound = 0;
+		int x = selectionRegion.x;
+		int y = selectionRegion.y;
+		int width = selectionRegion.width;
+		int height = selectionRegion.height;
+	
+		start1 = geneXPos(hic, x, 0);
+		end1 = geneXPos(hic, x + width, 0);
+		start2 = geneYPos(hic, y, 0);
+		end2 = geneYPos(hic, y + height, 0);
 
 //        System.out.println(start1 + "\t" + end1);
 
@@ -240,23 +240,23 @@ public class AnnotationLayerHandler {
     }
 
     private Feature2D generateTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
-        Collections.sort(selectedFeatures);
-
-        Feature2D firstSelectedContig = selectedFeatures.get(0);
-        Feature2D lastSelectedContig = selectedFeatures.get(selectedFeatures.size() - 1);
-
-        String chrX = hiC.getXContext().getChromosome().getName();
-        String chrY = hiC.getYContext().getChromosome().getName();
-
-        Integer startX = firstSelectedContig.getStart1();
-        Integer startY = firstSelectedContig.getStart2();
-        Integer endX = lastSelectedContig.getEnd1();
-        Integer endY = lastSelectedContig.getEnd2();
-
-        HashMap<String, String> attributes = new HashMap<>();
-
-        return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, getDefaultColor(), attributes);
-    }
+		Collections.sort(selectedFeatures);
+	
+		Feature2D firstSelectedContig = selectedFeatures.get(0);
+		Feature2D lastSelectedContig = selectedFeatures.get(selectedFeatures.size() - 1);
+	
+		String chrX = hiC.getXContext().getChromosome().getName();
+		String chrY = hiC.getYContext().getChromosome().getName();
+	
+		long startX = firstSelectedContig.getStart1();
+		long startY = firstSelectedContig.getStart2();
+		long endX = lastSelectedContig.getEnd1();
+		long endY = lastSelectedContig.getEnd2();
+	
+		HashMap<String, String> attributes = new HashMap<>();
+	
+		return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, getDefaultColor(), attributes);
+	}
 
     public Feature2D addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
         Feature2D tempSelectedGroup = generateTempSelectedGroup(selectedFeatures, hiC);
@@ -283,18 +283,18 @@ public class AnnotationLayerHandler {
             this.getAllVisibleLoops().checkAndRemoveFeature(chr1Idx, chr2Idx, feature2D);
         }
     }
-
-    private boolean regionsOverlapSignificantly(int start1, int end1, int start2, int end2, double tolerance) {
-
-        // must cross diagonal for overlap
-        if ((start1 < end2 && end1 > start2) || (start1 > end2 && end1 < start2)) {
-            double areaFeatureScaled = (end1 - start1) / 100.0 * (end2 - start2) / 100.0;
-            double areaOverlapScaled = Math.pow((Math.min(end1, end2) - Math.max(start1, start2)) / 100.0, 2);
-
-            return areaOverlapScaled / areaFeatureScaled > tolerance;
-        }
-
-        return false;
+	
+	private boolean regionsOverlapSignificantly(long start1, long end1, long start2, long end2, double tolerance) {
+		
+		// must cross diagonal for overlap
+		if ((start1 < end2 && end1 > start2) || (start1 > end2 && end1 < start2)) {
+			double areaFeatureScaled = (end1 - start1) / 100.0 * (end2 - start2) / 100.0;
+			double areaOverlapScaled = Math.pow((Math.min(end1, end2) - Math.max(start1, start2)) / 100.0, 2);
+			
+			return areaOverlapScaled / areaFeatureScaled > tolerance;
+		}
+		
+		return false;
     }
 
     private boolean pointsShouldSnapToDiagonal(HiC hic, int x, int y, int width, int height) {
@@ -385,32 +385,32 @@ public class AnnotationLayerHandler {
         }
     }
     */
-
-    //helper for getannotatemenu
-    private int geneXPos(HiC hic, int x, int displacement) {
-        try {
-            final MatrixZoomData zd = hic.getZd();
-            if (zd == null) return -1;
-            HiCGridAxis xGridAxis = zd.getXGridAxis();
-            int binX = getXBin(hic, x) + displacement;
-            return xGridAxis.getGenomicStart(binX);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
-
-    //helper for getannotatemenu
-    private int geneYPos(HiC hic, int y, int displacement) {
-        try {
-            final MatrixZoomData zd = hic.getZd();
-            if (zd == null) return -1;
-            HiCGridAxis yGridAxis = zd.getYGridAxis();
-            int binY = getYBin(hic, y) + displacement;
-            return yGridAxis.getGenomicStart(binY);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
+	
+	//helper for getannotatemenu
+	private long geneXPos(HiC hic, int x, int displacement) {
+		try {
+			final MatrixZoomData zd = hic.getZd();
+			if (zd == null) return -1;
+			HiCGridAxis xGridAxis = zd.getXGridAxis();
+			int binX = getXBin(hic, x) + displacement;
+			return xGridAxis.getGenomicStart(binX);
+		} catch (Exception e) {
+			return -1;
+		}
+	}
+	
+	//helper for getannotatemenu
+	private long geneYPos(HiC hic, int y, int displacement) {
+		try {
+			final MatrixZoomData zd = hic.getZd();
+			if (zd == null) return -1;
+			HiCGridAxis yGridAxis = zd.getYGridAxis();
+			int binY = getYBin(hic, y) + displacement;
+			return yGridAxis.getGenomicStart(binY);
+		} catch (Exception e) {
+			return -1;
+		}
+	}
 
     private int getXBin(HiC hic, int x) {
         return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
@@ -464,23 +464,22 @@ public class AnnotationLayerHandler {
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
 
-
         boolean previousStatus = annotationLayer.getFeatureHandler().getIsSparsePlottingEnabled();
 
         // Multiple regions selected
         if (selectionRegion != null) {
-            int startX, endX;
-            int startY, endY;
-
-            int x = selectionRegion.x;
-            int width = selectionRegion.width;
-
-            int y = selectionRegion.y;
-            int height = selectionRegion.height;
-
-            // Get starting chrX and ending chrX and window
-            startX = geneXPos(hic, x, 0);
-            endX = geneXPos(hic, x + width, 0);
+			long startX, endX;
+			long startY, endY;
+	
+			int x = selectionRegion.x;
+			int width = selectionRegion.width;
+	
+			int y = selectionRegion.y;
+			int height = selectionRegion.height;
+	
+			// Get starting chrX and ending chrX and window
+			startX = geneXPos(hic, x, 0);
+			endX = geneXPos(hic, x + width, 0);
 
             // Get starting chrY and ending chrY and window
             startY = geneYPos(hic, y, 0);
@@ -522,28 +521,26 @@ public class AnnotationLayerHandler {
     }
 
     private List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
-        List<Feature2D> selectedFeatures = new ArrayList<>();
-
-        final HiCGridAxis xAxis = zd.getXGridAxis();
-        final HiCGridAxis yAxis = zd.getYGridAxis();
-        final double binOriginX = hic.getXContext().getBinOrigin();
-        final double binOriginY = hic.getYContext().getBinOrigin();
-        final double scale = hic.getScaleFactor();
-
-        float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
-        float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
-        Point selectionPoint = new Point((int) x, (int) y);
-
-        Feature2DList features = this.getAnnotationLayer().getFeatureHandler().getAllVisibleLoops();
-        List<Feature2D> contigs = features.get(chr1Idx, chr2Idx);
-        for (Feature2D feature2D : contigs) {
-            Rectangle featureRectangle = new Rectangle(feature2D.getStart1(), feature2D.getStart2(), feature2D.getWidth1(), feature2D.getWidth2());
-            if (featureRectangle.contains(selectionPoint)) {
-                selectedFeatures.add(feature2D);
-            }
-        }
-        return selectedFeatures;
-    }
+		List<Feature2D> selectedFeatures = new ArrayList<>();
+	
+		final HiCGridAxis xAxis = zd.getXGridAxis();
+		final HiCGridAxis yAxis = zd.getYGridAxis();
+		final double binOriginX = hic.getXContext().getBinOrigin();
+		final double binOriginY = hic.getYContext().getBinOrigin();
+		final double scale = hic.getScaleFactor();
+	
+		long x = (long) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
+		long y = (long) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
+	
+		Feature2DList features = this.getAnnotationLayer().getFeatureHandler().getAllVisibleLoops();
+		List<Feature2D> contigs = features.get(chr1Idx, chr2Idx);
+		for (Feature2D feature2D : contigs) {
+			if (feature2D.containsPoint(x, y)) {
+				selectedFeatures.add(feature2D);
+			}
+		}
+		return selectedFeatures;
+	}
 
     public void removeFromList(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
                                double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -23,8 +23,6 @@
  */
 
 package juicebox.track;
-
-import org.broad.igv.Globals;
 
 /**
  * @author jrobinso
@@ -36,43 +34,39 @@ public class HiCFragmentAxis implements HiCGridAxis {
     private final int binSize;  // bin size in fragments
     private final int igvZoom;
     private final int[] sites;
-    private final int chrLength;
-
-
+    private final long chrLength;
+    private final double log2 = Math.log(2.0D);
+    
+    
     /**
      * @param sites     ordered by start position.  Its assumed bins are contiguous, no gaps and no overlap.
      * @param chrLength
      */
-    public HiCFragmentAxis(int binSize, int[] sites, int chrLength) {
-
+    public HiCFragmentAxis(int binSize, int[] sites, long chrLength) {
+        
         this.binSize = binSize;
         this.sites = sites;
         this.chrLength = chrLength;
-
+        
         // Compute an approximate igv zoom level
         double averageBinSizeInBP = ((double) this.chrLength) / (sites.length + 1) * binSize;
-        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / Globals.log2);
+        igvZoom = (int) (Math.log((this.chrLength / 700) / averageBinSizeInBP) / log2);
     }
 
-
-    // todo I think both getGenomicStart/End below have a bug - MSS
-    // getGenomicStart can never actually return sites[sites.length-1]
-    // getGenomicEnd can never actually return chrLength
-    // maybe this is the correct behavior, but this actually seems like a bug
     @Override
-    public int getGenomicStart(double binNumber) {
+    public long getGenomicStart(double binNumber) {
         int fragNumber = (int) binNumber * binSize;
         int siteIdx = Math.min(fragNumber, sites.length - 1);
-
+        
         if (binNumber >= sites.length) {
             binNumber = sites.length - 1;
         }
-
+        
         return binNumber == 0 ? 0 : sites[siteIdx - 1];
     }
-
+    
     @Override
-    public int getGenomicEnd(double binNumber) {
+    public long getGenomicEnd(double binNumber) {
         int fragNumber = (int) (binNumber + 1) * binSize - 1;
         int siteIdx = Math.min(fragNumber, sites.length - 1);
         return siteIdx < sites.length ? sites[siteIdx] : chrLength;
@@ -115,9 +109,9 @@ public class HiCFragmentAxis implements HiCGridAxis {
 //
 //
 //    }
-
+    
     @Override
-    public int getGenomicMid(double binNumber) {
+    public long getGenomicMid(double binNumber) {
         return (getGenomicStart(binNumber) + getGenomicEnd(binNumber)) / 2;
     }
 
@@ -126,8 +120,8 @@ public class HiCFragmentAxis implements HiCGridAxis {
     public int getIGVZoom() {
         return igvZoom;
     }
-
-
+    
+    
     /**
      * Return bin that this position lies on.  Fragment 0 means position < sites[0].
      * Fragment 1 means position >= sites[0] and < sites[1].
@@ -136,8 +130,8 @@ public class HiCFragmentAxis implements HiCGridAxis {
      * @return The fragment location such that position >= sites[retVal-1] and position <  sites[retVal]
      */
     @Override
-    public int getBinNumberForGenomicPosition(int position) {
-        return getFragmentNumberForGenomicPosition(position) / binSize;
+    public int getBinNumberForGenomicPosition(long position) {
+        return getFragmentNumberForGenomicPosition((int) position) / binSize; // should not exceed max int size
     }
 
 
@@ -183,9 +177,9 @@ public class HiCFragmentAxis implements HiCGridAxis {
             throw new RuntimeException("Fragment: " + fragment + " is out of range");
         }
     }
-
+    
     @Override
-    public int getBinCount() {
+    public long getBinCount() {
         return (sites.length / binSize) + 1;
     }
 

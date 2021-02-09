@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -55,7 +55,7 @@ import java.util.concurrent.Future;
 
 public class MainWindow extends JFrame {
 
-    private static final long serialVersionUID = -3654174199024388185L;
+    private static final long serialVersionUID = -9000020;
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
@@ -69,7 +69,7 @@ public class MainWindow extends JFrame {
     public static Cursor groupNECursor;
     public static Cursor groupSWCursor;
     private static MainWindow theInstance;
-    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
+    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
     private final HiC hic; // The "model" object containing the state for this instance.
 
     private MainWindow() {
@@ -128,17 +128,17 @@ public class MainWindow extends JFrame {
             String[] latest = latestVersion.split("\\.");
             String[] current = HiCGlobals.versionNum.split("\\.");
             boolean isOutdated = false;
-
-            int iC = Integer.valueOf(current[0]);
-            int iL = Integer.valueOf(latest[0]);
-
+    
+            int iC = Integer.parseInt(current[0]);
+            int iL = Integer.parseInt(latest[0]);
+    
             if (iC < iL) {
                 isOutdated = true;
             } else if (iC == iL) {
-                int jC = Integer.valueOf(current[1]);
-                int jL = Integer.valueOf(latest[1]);
-                int kC = Integer.valueOf(current[2]);
-                int kL = Integer.valueOf(latest[2]);
+                int jC = Integer.parseInt(current[1]);
+                int jL = Integer.parseInt(latest[1]);
+                int kC = Integer.parseInt(current[2]);
+                int kL = Integer.parseInt(latest[2]);
                 if (jC < jL) {
                     isOutdated = true;
                 } else if (jC == jL && kC < kL) {
@@ -217,7 +217,7 @@ public class MainWindow extends JFrame {
     }
 
     private void createCursors() {
-        boolean isWindows = (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0);
+        boolean isWindows = (System.getProperty("os.name").toLowerCase().contains("win"));
 
         // Make background transparent
         BufferedImage handImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);

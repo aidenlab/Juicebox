@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,15 @@
 
 package juicebox.tools.utils.norm;
 
-import juicebox.data.*;
-import juicebox.tools.utils.original.Preprocessor;
-import juicebox.windowui.HiCZoom;
+import juicebox.data.DatasetReaderV2;
+import juicebox.tools.utils.original.LargeIndexEntry;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +46,7 @@ class UnusedFunctions {
      */
     public static void internalTest(String[] args) throws IOException {
 
+        /*
         String path = args[0];
 
         if (args.length == 2) {
@@ -64,6 +62,8 @@ class UnusedFunctions {
        */
     }
 
+    /*
+    
     static void writeNormSums(
             List<Chromosome> chromosomes, Dataset ds, List<HiCZoom> zooms, Map<String, NormalizationVector> normVectors,
             BufferedByteWriter buffer) throws IOException {
@@ -81,13 +81,14 @@ class UnusedFunctions {
 
                 for (HiCZoom zoom : zooms) {
 
-                    MatrixZoomData zd2 = ds.getMatrix(chr1, chr2).getZoomData(zoom);
-                    Iterator<ContactRecord> iter2 = zd2.getNewContactRecordIterator();
+                    MatrixZoomData zd2 = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
+                    if (zd2 == null) continue;
 
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
-                    getNormalizedSumForNormalizationType(sums, iter2, normVectors, NormalizationHandler.SCALE, chr1, chr2, zoom);
+                    List<List<ContactRecord>> contactRecords = zd2.getContactRecordList();
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.VC_SQRT, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.KR, chr1, chr2, zoom);
+                    getNormalizedSumForNormalizationType(sums, contactRecords, normVectors, NormalizationHandler.SCALE, chr1, chr2, zoom);
                 }
             }
         }
@@ -104,7 +105,7 @@ class UnusedFunctions {
 
     }
 
-    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, Iterator<ContactRecord> iter2, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
+    private static void getNormalizedSumForNormalizationType(List<NormalizedSum> sums, List<List<ContactRecord>> recordLists, Map<String, NormalizationVector> normVectors, NormalizationType vc, Chromosome chr1, Chromosome chr2, HiCZoom zoom) {
 
         String key1 = NormalizationVector.getKey(NormalizationHandler.VC, chr1.getIndex(), zoom.getUnit().toString(), zoom.getBinSize());
         NormalizationVector vector1 = normVectors.get(key1);
@@ -118,17 +119,18 @@ class UnusedFunctions {
 
         if (vec1 == null || vec2 == null) return;
 
-        while (iter2.hasNext()) {
-            ContactRecord cr = iter2.next();
-            int x = cr.getBinX();
-            int y = cr.getBinY();
+        for (List<ContactRecord> recordList : recordLists) {
+            for (ContactRecord cr : recordList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
 
-            if (!Double.isNaN(vec1[x]) && !Double.isNaN(vec2[y]) && vec1[x] > 0 && vec2[y] > 0) {
-                // want total sum of matrix, not just upper triangle
-                if (x == y) {
-                    vecSum += cr.getCounts() / (vec1[x] * vec2[y]);
-                } else {
-                    vecSum += 2 * cr.getCounts() / (vec1[x] * vec2[y]);
+                if (!Double.isNaN(vec1[x]) && !Double.isNaN(vec2[y]) && vec1[x] > 0 && vec2[y] > 0) {
+                    // want total sum of matrix, not just upper triangle
+                    if (x == y) {
+                        vecSum += cr.getCounts() / (vec1[x] * vec2[y]);
+                    } else {
+                        vecSum += 2 * cr.getCounts() / (vec1[x] * vec2[y]);
+                    }
                 }
             }
         }
@@ -137,6 +139,8 @@ class UnusedFunctions {
             sums.add(new NormalizedSum(NormalizationHandler.VC.getLabel(), chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(), zoom.getBinSize(), vecSum));
         }
     }
+    
+    */
 
     static private void dumpNormalizationVectorIndex(String path, String outputFile, NormalizationHandler normalizationHandler) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
@@ -151,11 +155,11 @@ class UnusedFunctions {
             buffer.putInt(1);
             buffer.putNullTerminatedString(path);
 
-            Map<String, Preprocessor.IndexEntry> normVectorMap = reader.getNormVectorIndex();
+            Map<String, LargeIndexEntry> normVectorMap = reader.getNormVectorIndex();
 
             List<NormalizationVectorIndexEntry> normList = new ArrayList<>();
 
-            for (Map.Entry<String, Preprocessor.IndexEntry> entry : normVectorMap.entrySet()) {
+            for (Map.Entry<String, LargeIndexEntry> entry : normVectorMap.entrySet()) {
                 String[] parts = entry.getKey().split("_");
                 String strType;
                 int chrIdx;

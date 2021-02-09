@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.IGVFeatureCopy;
+import juicebox.mapcolorui.ColorScaleHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -46,7 +47,8 @@ import java.io.IOException;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class MainMenuBar extends JMenuBar {
-  private static final long serialVersionUID = 2342324643L;
+
+  private static final long serialVersionUID = 9000025;
   private static final int recentMapListMaxItems = 10;
   private static final int recentLocationMaxItems = 20;
   private static final String recentMapEntityNode = "hicMapRecent";
@@ -63,6 +65,7 @@ public class MainMenuBar extends JMenuBar {
   private static JMenuItem importMapAsFile;
   private static JMenuItem slideShow;
   private static JMenuItem showStats, showControlStats;
+  private static JMenuItem renameGenome;
   //private static JMenu annotationsMenu;
   private static JMenu viewMenu;
   private static JMenu bookmarksMenu;
@@ -147,10 +150,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-      private static final long serialVersionUID = 4202L;
+      private static final long serialVersionUID = 9000021;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
       }
     };
@@ -160,10 +163,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
-      private static final long serialVersionUID = 42012L;
+      private static final long serialVersionUID = 9000022;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
       }
     };
@@ -198,16 +201,14 @@ public class MainMenuBar extends JMenuBar {
 
 
     // TODO: make this an export of the data on screen instead of a GUI for CLT
-    if (!HiCGlobals.isRestricted) {
-      JMenuItem dump = new JMenuItem("Export Data...");
-      dump.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          superAdapter.exportDataLauncher();
-        }
-      });
-      fileMenu.add(dump);
-    }
+    JMenuItem dump = new JMenuItem("Export Data...");
+    dump.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        superAdapter.exportDataLauncher();
+      }
+    });
+    fileMenu.add(dump);
 
     JMenuItem creditsMenu = new JMenuItem();
     creditsMenu.setText("About");
@@ -221,33 +222,30 @@ public class MainMenuBar extends JMenuBar {
         JPanel textPanel = new JPanel(new GridLayout(0, 1));
         textPanel.add(new JLabel("<html><center>" +
                 "<h3 style=\"margin-bottom:30px;\" class=\"header\">" +
-                "Juicebox: Visualization software for Hi-C data" +
-                "</h3>" +
+                "Juicebox with Assembly Tools</h3>" +
                 "</center>" +
                 "<p>" +
-                "Juicebox is the Aiden Lab's software for visualizing data<br>" +
-                "from proximity ligation experiments, such as Hi-C.<br>" +
-                "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
-                "and Erez Aiden. Ongoing development work is carried<br>" +
-                "out by " +
-                "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
-                "and Marie Hoeger.<br><br>" +
+                "Juicebox is the Aiden Lab's software for visualizing data from proximity ligation experiments, " +
+                "such as Hi-C. Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden.<br><br>" +
+                "Ongoing development work is carried out by Muhammad S. Shamim, Neva Durand, Olga Dudchenko, " +
+                "Suhas Rao, and other members of the Aiden Lab.<br><br>" +
                 "Current version: " + HiCGlobals.versionNum + "<br>" +
-                "Copyright © 2014. Broad Institute and Aiden Lab" +
+                "Copyright © 2014-2021. Broad Institute and Aiden Lab" +
                 "<br><br>" +
                 "" +
-                "If you use Juicebox in your research, please cite:<br><br>" +
+                "If you use Juicebox or Assembly Tools in your research, please cite:<br><br>" +
                 "" +
-                "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S.<br>Shamim, " +
-                "Ido Machol, Jill P. Mesirov, Eric S. Lander, and<br>Erez Lieberman Aiden.<br>" +
-                " \"Juicebox provides a visualization system for Hi-C<br>contact maps " +
-                "with unlimited zoom.\" <em>Cell Systems</em><br>July 2016.</strong>" +
+                "<strong>Neva C. Durand*, James T. Robinson*, et al. " +
+                "\"Juicebox provides a visualization system for Hi-C contact maps " +
+                "with unlimited zoom.\" <em>Cell Systems</em> 2016.</strong>" +
                 "<br><br>" +
-                "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
-                "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-                "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
-                "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                "<strong>Olga Dudchenko, et al. " +
+                "\"The Juicebox Assembly Tools module facilitates de novo assembly of " +
+                "mammalian genomes with chromosome-length scaffolds for under $1000.\" " +
+                "<em>Biorxiv</em> 2018.</strong>" +
+                "<br><br>" +
+                "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, et al. \"A 3D Map of the Human Genome at Kilobase " +
+                "Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 2014.</strong><br>" +
                 "* contributed equally" +
                 "</p></html>"));
 
@@ -315,10 +313,10 @@ public class MainMenuBar extends JMenuBar {
 
     recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
-      private static final long serialVersionUID = 4204L;
+      private static final long serialVersionUID = 9000023;
 
       public void onSelectPosition(String mapPath) {
-          String[] temp = encodeSafeDelimeterSplit(mapPath);
+        String[] temp = encodeSafeDelimeterSplit(mapPath);
         superAdapter.restoreLocation(temp[1]);
         superAdapter.setNormalizationDisplayState();
 
@@ -342,7 +340,7 @@ public class MainMenuBar extends JMenuBar {
     // restore recent saved states
     previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
 
-      private static final long serialVersionUID = 4205L;
+      private static final long serialVersionUID = 9000024;
 
       public void onSelectPosition(String mapPath) {
         superAdapter.launchLoadStateFromXML(mapPath);
@@ -392,11 +390,7 @@ public class MainMenuBar extends JMenuBar {
     layersItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (layersItem.isSelected()) {
-          superAdapter.setLayersPanelVisible(true);
-        } else {
-          superAdapter.setLayersPanelVisible(false);
-        }
+        superAdapter.setLayersPanelVisible(layersItem.isSelected());
 
       }
     });
@@ -407,13 +401,13 @@ public class MainMenuBar extends JMenuBar {
     colorItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JColorChooser colorChooser = new JColorChooser(HiCGlobals.HIC_MAP_COLOR);
+        JColorChooser colorChooser = new JColorChooser(ColorScaleHandler.HIC_MAP_COLOR);
         JDialog dialog = JColorChooser.createDialog(MainMenuBar.this, "Select Heatmap Color",
                 true, colorChooser, null, null);
         dialog.setVisible(true);
         Color color = colorChooser.getColor();
         if (color != null) {
-          HiCGlobals.HIC_MAP_COLOR = color;
+          ColorScaleHandler.HIC_MAP_COLOR = color;
           superAdapter.getMainViewPanel().resetAllColors();
           superAdapter.refresh();
         }
@@ -540,15 +534,34 @@ public class MainMenuBar extends JMenuBar {
       devMenu.add(skipSortInPhase);
     }
 
-    final JMenuItem addCustomNorms = new JMenuItem("Add Custom Norms...");
-    addCustomNorms.addActionListener(new ActionListener() {
+    final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
+    addCustomNormsObs.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        superAdapter.safeLaunchImportNormalizations();
+        superAdapter.safeLaunchImportNormalizations(false);
       }
     });
+
+    final JMenuItem addCustomNormsCtrl = new JMenuItem("Add Custom Norms to Control...");
+    addCustomNormsCtrl.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchImportNormalizations(true);
+      }
+    });
+
+    final JMenuItem addResolutionToDatasets = new JMenuItem("Add Custom Resolution...");
+    addResolutionToDatasets.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.safeLaunchCreateNewResolution();
+      }
+    });
+
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
-      devMenu.add(addCustomNorms);
+      devMenu.add(addCustomNormsObs);
+      devMenu.add(addCustomNormsCtrl);
+      devMenu.add(addResolutionToDatasets);
     }
 
     final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
@@ -559,9 +572,40 @@ public class MainMenuBar extends JMenuBar {
         superAdapter.getHeatmapPanel().repaint();
       }
     });
+
+    final JCheckBoxMenuItem hackLinearColorScale = new JCheckBoxMenuItem("Hack linear color scale");
+    hackLinearColorScale.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE_LINEAR = !HiCGlobals.HACK_COLORSCALE_LINEAR;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
+    final JCheckBoxMenuItem hackColorScale = new JCheckBoxMenuItem("Hack color scale");
+    hackColorScale.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE = !HiCGlobals.HACK_COLORSCALE;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
+    final JCheckBoxMenuItem hackColorScaleEqual = new JCheckBoxMenuItem("Hack color scale equally");
+    hackColorScaleEqual.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.HACK_COLORSCALE_EQUAL = !HiCGlobals.HACK_COLORSCALE_EQUAL;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+
     displayTiles.setSelected(HiCGlobals.displayTiles);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
       devMenu.add(displayTiles);
+      devMenu.add(hackColorScaleEqual);
+      devMenu.add(hackColorScale);
+      devMenu.add(hackLinearColorScale);
     }
 
     final JCheckBoxMenuItem colorFeatures = new JCheckBoxMenuItem("Recolor 1D Annotations in Assembly Mode");
@@ -599,6 +643,21 @@ public class MainMenuBar extends JMenuBar {
     }
 
 
+        renameGenome = new JMenuItem("Rename genome...");
+        renameGenome.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String curr_genome = superAdapter.getHiC().getDataset().getGenomeId();
+                String response = JOptionPane.showInputDialog("Current genome is " + curr_genome +
+                        "\nEnter another genome name or press cancel to exit");
+                if (response != null) {
+                    superAdapter.getHiC().getDataset().setGenomeId(response);
+                }
+            }
+        });
+        renameGenome.setEnabled(false);
+        fileMenu.add(renameGenome);
+    fileMenu.addSeparator();
 
     JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
     editPearsonsColorItem.addActionListener(new ActionListener() {
@@ -608,6 +667,15 @@ public class MainMenuBar extends JMenuBar {
       }
     });
     devMenu.add(editPearsonsColorItem);
+
+    JMenuItem editPseudoCounts = new JMenuItem("Change Pseudocount");
+    editPseudoCounts.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.launchSetPseudoCountEditor();
+      }
+    });
+    devMenu.add(editPseudoCounts);
 
     JMenuItem mapSubset = new JMenuItem("Select Map Subset...");
     mapSubset.addActionListener(new ActionListener() {
@@ -736,21 +804,20 @@ public class MainMenuBar extends JMenuBar {
                     // Rescale resolution slider labels
                     superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-                    // Rescale axis tick labels
-                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
-                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+                  // Rescale axis tick labels
+                  superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                  superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale and redraw assembly annotations
-                    if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().resetState();
-                    }
-
-      
+                  // Rescale and redraw assembly annotations
+                  if (superAdapter.getAssemblyStateTracker() != null) {
+                    superAdapter.getAssemblyStateTracker().resetState();
+                  }
 
 
-        } catch (NumberFormatException t) {
-          JOptionPane.showMessageDialog(null, "Value must be an integer!");
-        }
+                } catch (NumberFormatException t) {
+                  JOptionPane.showMessageDialog(null, "Value must be an integer!");
+                }
+
       }
     });
 
@@ -772,11 +839,9 @@ public class MainMenuBar extends JMenuBar {
     setScale.setEnabled(true);
     assemblyMenu.add(setScale);
     assemblyMenu.add(exitAssembly);
-//        assemblyMenu.add(enableAssembly);
-
-
+    // assemblyMenu.add(enableAssembly);
     add(fileMenu);
-    //add(annotationsMenu);
+    // add(annotationsMenu);
     add(viewMenu);
     add(bookmarksMenu);
     if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
@@ -785,7 +850,7 @@ public class MainMenuBar extends JMenuBar {
     add(devMenu);
   }
 
-  public RecentMenu getRecentLocationMenu() {
+    public RecentMenu getRecentLocationMenu() {
     return recentLocationMenu;
   }
 

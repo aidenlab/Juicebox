@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,11 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.windowui.HiCZoom;
-import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import java.util.*;
 
@@ -43,8 +44,17 @@ public class Matrix {
 
     private final int chr1;
     private final int chr2;
-    List<MatrixZoomData> bpZoomData;
-    List<MatrixZoomData> fragZoomData;
+    private final static Set<Pair<Integer, Integer>> dynamicZoomResolutions = new HashSet<>();
+    protected List<MatrixZoomData> bpZoomData = new ArrayList<>();
+    protected List<MatrixZoomData> fragZoomData = new ArrayList<>();
+    protected List<MatrixZoomData> dynamicBPZoomData = new ArrayList<>();
+    private final Comparator<MatrixZoomData> comparator = new Comparator<MatrixZoomData>() {
+        @Override
+        public int compare(MatrixZoomData o1, MatrixZoomData o2) {
+            return o2.getBinSize() - o1.getBinSize();
+        }
+    };
+
     /**
      * Constructor for creating a matrix from precomputed data.
      *
@@ -56,78 +66,6 @@ public class Matrix {
         this.chr1 = chr1;
         this.chr2 = chr2;
         initZoomDataMap(zoomDataList);
-    }
-
-    public static String generateKey(int chr1, int chr2) {
-        if (chr2 < chr1) return "" + chr2 + "_" + chr1;
-        return "" + chr1 + "_" + chr2;
-    }
-
-    public static Matrix createAssemblyChromosomeMatrix(ChromosomeHandler handler,
-                                                        final Map<String, Matrix> matrices, DatasetReader reader) {
-        Map<HiCZoom, MatrixZoomData> assemblyZDs = new HashMap<>();
-
-        Matrix matrix = null;
-        int numAttempts = 0;
-        while (matrix == null && numAttempts < 3) {
-            try {
-                matrix = reader.readMatrix("1_1");
-            } catch (Exception ignored) {
-                numAttempts++;
-            }
-        }
-
-        int length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
-        for (MatrixZoomData zd : matrix.bpZoomData) {
-            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(), length / zd.getBinSize(), length / zd.getBinSize(), null, null, reader));
-        }
-
-
-        //TODO: assumption that we are doing this before modifying the handler
-
-//        for (Chromosome i : handler.getChromosomeArrayWithoutAllByAll()) {
-//            for (Chromosome j : handler.getChromosomeArrayWithoutAllByAll()) {
-//
-//                //System.out.println("from mtrx");
-//                String key = Matrix.generateKey(i, j);
-//                try {
-//                    Matrix m = matrices.get(key);
-//                    if (m == null) {
-//                        // TODO sometimes this fails once or twice, but later succeeds -
-//                        // TODO high priority, needs to be fixed??????
-//                        int numAttempts = 0;
-//                        while (m == null && numAttempts < 3) {
-//                            try {
-//                                m = reader.readMatrix(key);
-//                            } catch (Exception ignored) {
-//                                numAttempts++;
-//                            }
-//                        }
-//
-//                        for(MatrixZoomData tempMatrixZoomData : m.bpZoomData){
-//                            tempMatrixZoomData.
-//                        }
-//
-//
-//                        // modify m for each zoom
-////                        matrices.put(key, m); //perhaps move it to the end
-//                    }
-//                    for (MatrixZoomData zd : m.bpZoomData) {
-//                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, assemblyZDs, reader);
-//                    }
-////                    for (MatrixZoomData zd : m.fragZoomData) {
-////                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
-////                    }
-//                } catch (Exception ee) {
-//                    System.err.println("Everything failed in creatingAssemblyChromosomeMatrix " + key);
-//                    ee.printStackTrace();
-//                }
-//            }
-//        }
-
-        Matrix m = new Matrix(handler.size(), handler.size(), new ArrayList<>(assemblyZDs.values()));
-        matrices.put(generateKey(handler.size(), handler.size()), m);
-        return m;
     }
 
     public static Matrix createCustomChromosomeMatrix(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
@@ -185,6 +123,9 @@ public class Matrix {
                     for (MatrixZoomData zd : m.bpZoomData) {
                         updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
                     }
+                    for (MatrixZoomData zd : m.dynamicBPZoomData) {
+                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+                    }
                     for (MatrixZoomData zd : m.fragZoomData) {
                         updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
                     }
@@ -197,6 +138,117 @@ public class Matrix {
             }
         }
         return new Matrix(chr1.getIndex(), chr2.getIndex(), new ArrayList<>(customZDs.values()));
+    }
+
+    private void initZoomDataMap(List<MatrixZoomData> zoomDataList) {
+        for (MatrixZoomData zd : zoomDataList) {
+            if (zd.getZoom().getUnit() == HiC.Unit.BP) {
+                bpZoomData.add(zd);
+            } else {
+                fragZoomData.add(zd);
+            }
+    
+            // Zooms should be sorted, but in case they are not...
+    
+            bpZoomData.sort(comparator);
+            fragZoomData.sort(comparator);
+        }
+
+        for (Pair<Integer, Integer> resPair : dynamicZoomResolutions) {
+            try {
+                createDynamicResolutionMZD(resPair, false);
+            } catch (Exception e) {
+                System.err.println("Dynamic resolution could not be made");
+            }
+        }
+        dynamicBPZoomData.sort(comparator);
+
+    }
+
+    public static String generateKey(int chr1, int chr2) {
+        if (chr2 < chr1) return "" + chr2 + "_" + chr1;
+        return "" + chr1 + "_" + chr2;
+    }
+
+    public static Matrix createAssemblyChromosomeMatrix(ChromosomeHandler handler,
+                                                        final Map<String, Matrix> matrices, DatasetReader reader) {
+        Map<HiCZoom, MatrixZoomData> assemblyZDs = new HashMap<>();
+
+        Matrix matrix = null;
+        int numAttempts = 0;
+        while (matrix == null && numAttempts < 3) {
+            try {
+                matrix = reader.readMatrix("1_1");
+            } catch (Exception ignored) {
+                numAttempts++;
+            }
+        }
+
+        long length = handler.getChromosomeFromName("pseudoassembly").getLength(); // TODO: scaling; also maybe chromosome ends need to shift to start with new bin at every zoom?
+        for (MatrixZoomData zd : matrix.bpZoomData) {
+            // todo @dudcha is this done for resolutions where conversion will be lossy?
+            assemblyZDs.put(zd.getZoom(), new MatrixZoomData(handler.getChromosomeFromName("pseudoassembly"), handler.getChromosomeFromName("pseudoassembly"), zd.getZoom(),
+                    (int) (length / zd.getBinSize()), (int) (length / zd.getBinSize()), null, null, reader));
+        }
+
+
+        //TODO: assumption that we are doing this before modifying the handler
+
+//        for (Chromosome i : handler.getChromosomeArrayWithoutAllByAll()) {
+//            for (Chromosome j : handler.getChromosomeArrayWithoutAllByAll()) {
+//
+//                //System.out.println("from mtrx");
+//                String key = Matrix.generateKey(i, j);
+//                try {
+//                    Matrix m = matrices.get(key);
+//                    if (m == null) {
+//                        // TODO sometimes this fails once or twice, but later succeeds -
+//                        // TODO high priority, needs to be fixed??????
+//                        int numAttempts = 0;
+//                        while (m == null && numAttempts < 3) {
+//                            try {
+//                                m = reader.readMatrix(key);
+//                            } catch (Exception ignored) {
+//                                numAttempts++;
+//                            }
+//                        }
+//
+//                        for(MatrixZoomData tempMatrixZoomData : m.bpZoomData){
+//                            tempMatrixZoomData.
+//                        }
+//
+//
+//                        // modify m for each zoom
+////                        matrices.put(key, m); //perhaps move it to the end
+//                    }
+//                    for (MatrixZoomData zd : m.bpZoomData) {
+//                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, assemblyZDs, reader);
+//                    }
+////                    for (MatrixZoomData zd : m.fragZoomData) {
+////                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+////                    }
+//                } catch (Exception ee) {
+//                    System.err.println("Everything failed in creatingAssemblyChromosomeMatrix " + key);
+//                    ee.printStackTrace();
+//                }
+//            }
+//        }
+
+        Matrix m = new Matrix(handler.size(), handler.size(), new ArrayList<>(assemblyZDs.values()));
+        matrices.put(generateKey(handler.size(), handler.size()), m);
+        return m;
+    }
+
+    public void createDynamicResolutionMZD(Pair<Integer, Integer> resPair, boolean addToSet) {
+        int newRes = resPair.getFirst();
+        int highRes = resPair.getSecond();
+
+        MatrixZoomData highMZD = getZoomData(new HiCZoom(HiC.Unit.BP, highRes));
+        MatrixZoomData newMZD = new DynamicMatrixZoomData(new HiCZoom(HiC.Unit.BP, newRes), highMZD);
+        if (addToSet) {
+            dynamicZoomResolutions.add(resPair);
+        }
+        dynamicBPZoomData.add(newMZD);
     }
 
     private static List<Chromosome> getIndicesFromSubChromosomes(final ChromosomeHandler handler, Chromosome chromosome) {
@@ -233,7 +285,6 @@ public class Matrix {
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
-        if (HiCGlobals.printVerboseComments) System.out.println("c1 " + chr1 + " c2 " + chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);
@@ -243,28 +294,12 @@ public class Matrix {
         return generateKey(chr1, chr2);
     }
 
-    private void initZoomDataMap(List<MatrixZoomData> zoomDataList) {
-
-        bpZoomData = new ArrayList<>();
-        fragZoomData = new ArrayList<>();
-        for (MatrixZoomData zd : zoomDataList) {
-            if (zd.getZoom().getUnit() == HiC.Unit.BP) {
-                bpZoomData.add(zd);
-            } else {
-                fragZoomData.add(zd);
-            }
-
-            // Zooms should be sorted, but in case they are not...
-            Comparator<MatrixZoomData> comp = new Comparator<MatrixZoomData>() {
-                @Override
-                public int compare(MatrixZoomData o1, MatrixZoomData o2) {
-                    return o2.getBinSize() - o1.getBinSize();
-                }
-            };
-            Collections.sort(bpZoomData, comp);
-            Collections.sort(fragZoomData, comp);
+    public MatrixZoomData getFirstZoomData() {
+        if (bpZoomData != null && bpZoomData.size() > 0) {
+            return getFirstZoomData(HiC.Unit.BP);
+       } else {
+            return getFirstZoomData(HiC.Unit.FRAG);
         }
-
     }
 
     public MatrixZoomData getFirstZoomData(HiC.Unit unit) {
@@ -289,6 +324,12 @@ public class Matrix {
         List<MatrixZoomData> zdList = (zoom.getUnit() == HiC.Unit.BP) ? bpZoomData : fragZoomData;
         //linear search for bin size, the lists are not large
         for (MatrixZoomData zd : zdList) {
+            if (zd.getBinSize() == targetZoom) {
+                return zd;
+            }
+        }
+
+        for (MatrixZoomData zd : dynamicBPZoomData) {
             if (zd.getBinSize() == targetZoom) {
                 return zd;
             }

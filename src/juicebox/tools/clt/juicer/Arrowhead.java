@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.tools.clt.juicer;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
@@ -37,7 +38,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.Arrays;
@@ -117,7 +117,7 @@ public class Arrowhead extends JuicerCLT {
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "[--ignore_sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
+                "[--ignore-sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -181,7 +181,7 @@ public class Arrowhead extends JuicerCLT {
     public void run() {
         try {
             final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationHandler.NONE);
-            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+			double firstExpected = df.getExpectedValuesNoNormalization().getFirstValue(); // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
             // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
@@ -192,7 +192,7 @@ public class Arrowhead extends JuicerCLT {
             if (firstExpected < 100000) {
                 System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
                 if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
                     System.exit(0);
                 }
             }
@@ -245,7 +245,11 @@ public class Arrowhead extends JuicerCLT {
 
         final HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler);
+        final double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler, zoom);
+        if (maxProgressStatus < 1) {
+            System.err.println("No valid chromosome matrices at given resolution");
+            return;
+        }
         final AtomicInteger currentProgressStatus = new AtomicInteger(0);
         System.out.println("max " + maxProgressStatus);
 
@@ -256,9 +260,8 @@ public class Arrowhead extends JuicerCLT {
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
-
-                    Matrix matrix = ds.getMatrix(chr, chr);
-                    if (matrix != null) {
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+                    if (zd != null) {
 
                         ArrowheadScoreList list = new ArrowheadScoreList(inputList, chr, resolution);
                         ArrowheadScoreList control = new ArrowheadScoreList(inputControl, chr, resolution);
@@ -268,8 +271,7 @@ public class Arrowhead extends JuicerCLT {
                         }
 
                         // actual Arrowhead algorithm
-                        BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                                matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
+                        BlockBuster.run(chr, resolution, matrixSize, zd, norm, list, control, contactDomainsGenomeWide,
                                 contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
 
                         //todo should this be inside if? But the wouldn't increment for skipped chr;s?

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.dev.Grind;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
@@ -37,27 +36,27 @@ import java.util.List;
 public class CommandLineParserForJuicer extends CommandLineParser {
 
     // used flags
-    // wmnxcrplafdptkqbvuhgjyz
+    // wmnxcrplafdptkqbvuhgjyzo
 
     // available flags
-    // oes
+    // es
 
     // General
-    private final Option matrixSizeOption = addIntegerOption('m', "matrix-window-width");
+    private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
-    private final Option normalizationTypeOption = addStringOption('k', "normalization");
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
-    private final Option apaMinValOption = addDoubleOption('n', "min_dist");
-    private final Option apaMaxValOption = addDoubleOption('x', "max_dist");
+    private final Option apaMinValOption = addDoubleOption('n', "min-dist");
+    private final Option apaMaxValOption = addDoubleOption('x', "max-dist");
     private final Option multipleCornerRegionDimensionsOption = addStringOption('q', "corner-width");
     private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
-    private final Option apaSaveAllData = addBooleanOption('u', "all_data");
+    private final Option apaSaveAllData = addBooleanOption('u', "save-all");
+    private final Option apaDontIncludePlots = addBooleanOption('o', "no-plots");
 
     // HICCUPS
     private final Option fdrOption = addStringOption('f', "fdr-thresholds");
@@ -68,82 +67,22 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
     private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
-    // previously for AFA
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
-
-    // for GRIND
-    private final Option useObservedOverExpectedOption = addBooleanOption("observed-over-expected");
-    private final Option useDenseLabelsOption = addBooleanOption("dense-labels");
-    private final Option useWholeGenome = addBooleanOption("whole-genome");
-    private final Option useDiagonalOption = addBooleanOption("diagonal");
-    private final Option cornerOffBy = addIntegerOption("off-from-diagonal");
-    private final Option stride = addIntegerOption("stride");
-    private final Option useDontIgnoreDirectionOrientationOption = addBooleanOption("use-feature-orientation");
-    private final Option useOnlyMakePositiveExamplesOption = addBooleanOption("only-make-positives");
-    private final Option generateImageFormatPicturesOption = addStringOption("img");
-    private final Option useAmorphicLabelingOption = addBooleanOption("amorphic-labeling");
-    private final Option useTxtInsteadOfNPYOption = addBooleanOption("text-output");
-
-    //iterate-down-diagonal, iterate-on-list, iterate-distortions, iterate-domains
-    private final Option useListIterationOption = addBooleanOption("iterate-on-list");
-    private final Option useDomainOption = addBooleanOption("iterate-domains");
-    private final Option useIterationDownDiagonalOption = addBooleanOption("iterate-down-diagonal");
-    private final Option useDistortionOption = addBooleanOption("iterate-distortions");
 
     public CommandLineParserForJuicer() {
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
-                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("shuffle") || cmd.equals("grind");
-    }
-
-    public int getGrindDataSliceOption() {
-        Object opt = getOptionValue(useListIterationOption);
-        if (opt != null) return Grind.LIST_ITERATION_OPTION;
-        opt = getOptionValue(useDomainOption);
-        if (opt != null) return Grind.DOMAIN_OPTION;
-        opt = getOptionValue(useIterationDownDiagonalOption);
-        if (opt != null) return Grind.DOWN_DIAGONAL_OPTION;
-        opt = getOptionValue(useDistortionOption);
-        if (opt != null) return Grind.DISTORTION_OPTION;
-        return 0;
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
+                || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
+                || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("drinks")
+                || cmd.equals("shuffle") || cmd.equals("grind");
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
         return optionToBoolean(bypassMinimumMapCountCheckOption);
-    }
-
-    // for GRIND
-    public boolean getUseObservedOverExpectedOption() {
-        return optionToBoolean(useObservedOverExpectedOption);
-    }
-
-    public boolean getUseAmorphicLabelingOption() {
-        return optionToBoolean(useAmorphicLabelingOption);
-    }
-
-    public boolean getUseWholeGenome() {
-        return optionToBoolean(useWholeGenome);
-    }
-
-    public boolean getUseGenomeDiagonal() {
-        return optionToBoolean(useDiagonalOption);
-    }
-
-    public boolean getDenseLabelsOption() {
-        return optionToBoolean(useDenseLabelsOption);
-    }
-
-    public boolean getDontIgnoreDirectionOrientationOption() {
-        return optionToBoolean(useDontIgnoreDirectionOrientationOption);
-    }
-
-    public boolean getUseOnlyMakePositiveExamplesOption() {
-        return optionToBoolean(useOnlyMakePositiveExamplesOption);
     }
 
     public boolean getLegacyOutputOption() {
@@ -159,14 +98,13 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return optionToBoolean(apaSaveAllData);
     }
 
+    public boolean getAPADontIncludePlots() {
+        return optionToBoolean(apaDontIncludePlots);
+    }
+
     /**
      * String flags
      */
-
-    public String getRelativeLocationOption() {
-        return optionToString(relativeLocationOption);
-    }
-
     public NormalizationType getNormalizationTypeOption(NormalizationHandler normalizationHandler) {
         return retrieveNormalization(optionToString(normalizationTypeOption), normalizationHandler);
     }
@@ -192,32 +130,11 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return null;
     }
 
-    private NormalizationType retrieveNormalization(String norm, NormalizationHandler normalizationHandler) {
-        if (norm == null || norm.length() < 1)
-            return null;
-
-        try {
-            return normalizationHandler.getNormTypeFromString(norm);
-        } catch (IllegalArgumentException error) {
-            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(7);
-        }
-        return null;
-    }
-
     /**
      * int flags
      */
     public int getAPAWindowSizeOption() {
         return optionToInt(apaWindowOption);
-    }
-
-    public int getCornerOffBy() {
-        return optionToInt(cornerOffBy);
-    }
-
-    public int getStride() {
-        return optionToInt(stride);
     }
 
     public int getMatrixSizeOption() {
@@ -248,16 +165,13 @@ public class CommandLineParserForJuicer extends CommandLineParser {
         return optionToStringList(multipleChromosomesOption);
     }
 
+    // todo fix to return list of ints
     public List<String> getMultipleResolutionOptions() {
         return optionToStringList(multipleResolutionsOption);
     }
 
     public List<String> getAPACornerRegionDimensionOptions() {
         return optionToStringList(multipleCornerRegionDimensionsOption);
-    }
-
-    public List<String> getAttributeOption() {
-        return optionToStringList(multipleAttributesOption);
     }
 
     public List<String> getFDROptions() {
@@ -287,13 +201,5 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public boolean restrictSearchRegionsOptions() {
         return optionToBoolean(restrictSearchRegionsOption);
-    }
-
-    public String getGenerateImageFormatPicturesOption() {
-        return optionToString(generateImageFormatPicturesOption);
-    }
-
-    public boolean getUseTxtInsteadOfNPY() {
-        return optionToBoolean(useTxtInsteadOfNPYOption);
     }
 }

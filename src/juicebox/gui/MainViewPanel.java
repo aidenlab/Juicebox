@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
 import juicebox.mapcolorui.ResolutionControl;
@@ -38,8 +39,6 @@ import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.MiniAnnotationsLayerPanel;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -49,17 +48,12 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class MainViewPanel {
 
-    public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
-    public static final List<Float> preDefMapColorFractions = new ArrayList<>();
-    public static boolean preDefMapColor = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static final JideButton refreshButton = new JideButton();
@@ -167,7 +161,7 @@ public class MainViewPanel {
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
-        chrBox1 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox1 = new JComboBox<>(); //new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox1.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -178,7 +172,7 @@ public class MainViewPanel {
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
-        chrBox2 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox2 = new JComboBox<>(); //new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox2.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -370,7 +364,7 @@ public class MainViewPanel {
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
-        colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel, preDefMapColor);
+        colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel);
 
         toolbarConstraints.gridx = 4;
         toolbarConstraints.weightx = 0.5;
@@ -458,7 +452,7 @@ public class MainViewPanel {
         annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
         annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-      rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
+        rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
         annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         mainPanel.add(bigPanel, BorderLayout.CENTER);
@@ -541,7 +535,10 @@ public class MainViewPanel {
 
     public void unsafeRefreshChromosomes(SuperAdapter superAdapter) {
 
-        if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
+        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+
+        if (ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2)) {
             chrBox1.setSelectedIndex(0);
             chrBox2.setSelectedIndex(0);
             MatrixType matrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
@@ -552,8 +549,8 @@ public class MainViewPanel {
             }
         }
 
-        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
-        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+        chr1 = (Chromosome) chrBox1.getSelectedItem();
+        chr2 = (Chromosome) chrBox2.getSelectedItem();
 
         Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
@@ -665,8 +662,9 @@ public class MainViewPanel {
             //           hic.getMatrix().getZoomData(initialZoom);
             MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
             MatrixZoomData zdControl = null;
-            if (hic.getControlMatrix() != null)
+            if (hic.getControlMatrix() != null) {
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
+            }
             try {
                 Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
                         thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
@@ -844,12 +842,8 @@ public class MainViewPanel {
         colorRangePanel.updateRatioColorSlider(hic, maxColor, upColor);
     }
 
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
-    }
-
-    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor, double scalefactor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
+    public void updateColorSlider(HiC hic, double lowColor, double upColor, double maxColor) {
+        colorRangePanel.updateColorSlider(hic, lowColor, upColor, maxColor);
     }
 
     public void setEnabledForNormalization(boolean isControl, String[] normalizationOptions, boolean versionStatus) {
@@ -877,8 +871,8 @@ public class MainViewPanel {
         return displayOptionComboBox;
     }
 
-    public void resetResolutionSlider() {
-        resolutionSlider.unit = HiC.Unit.BP;
+    public void resetResolutionSlider(HiC.Unit unit) {
+        resolutionSlider.unit = unit != null ? unit : HiC.Unit.BP;
         resolutionSlider.reset();
     }
 

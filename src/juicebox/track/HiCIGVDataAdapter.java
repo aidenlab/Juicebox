@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiC;
 import org.broad.igv.feature.LocusScore;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.DataTrack;
-import org.broad.igv.track.LoadedDataInterval;
 import org.broad.igv.track.WindowFunction;
 
 import java.awt.*;
@@ -99,11 +98,11 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
         return igvTrack.getAvailableWindowFunctions();
     }
 
-    protected List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
+    protected List<LocusScore> getLocusScores(String chr, long gStart, long gEnd, int zoom, WindowFunction windowFunction) {
         igvTrack.setWindowFunction(windowFunction);
-        org.broad.igv.track.LoadedDataInterval<List<LocusScore>> scores = igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
+        org.broad.igv.track.LoadedDataInterval<List<LocusScore>> scores = igvTrack.getSummaryScores(chr, (int) gStart, (int) gEnd, zoom);
         // Problems with human not having the "chr".  Return scores if not 0, otherwise try adding "chr"
         if (scores.getFeatures().size() > 0) return scores.getFeatures();
-        else return igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom).getFeatures(); 
+        else return igvTrack.getSummaryScores("chr" + chr, (int) gStart, (int) gEnd, zoom).getFeatures();
     }
 }

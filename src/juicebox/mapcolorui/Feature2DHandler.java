@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,12 @@ package juicebox.mapcolorui;
 import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.util.ArrayList;

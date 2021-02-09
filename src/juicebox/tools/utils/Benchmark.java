@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,12 @@
 
 package juicebox.tools.utils;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.basics.Chromosome;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
 import java.util.Random;
 
@@ -53,7 +53,7 @@ public class Benchmark extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] argv, CmdLineParser parser)   {
+    public void readArguments(String[] argv, CommandLineParser parser) {
         Globals.setHeadless(true);
 
 
@@ -98,11 +98,11 @@ public class Benchmark extends JuiceboxCLT {
             // Randomly choose chromosome and resolution to query
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
-
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
-            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+    
+            long end1 = random.nextInt((int) handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            long start1 = end1 - binSize * QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
-
+    
             dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();
@@ -117,11 +117,11 @@ public class Benchmark extends JuiceboxCLT {
             // Randomly choose chromosome and resolution to query
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
-
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
-            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+    
+            long end1 = random.nextInt((int) handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            long start1 = end1 - binSize * QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
-
+    
             dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.mapcolorui;
 
-import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
@@ -38,6 +37,8 @@ import java.util.List;
  * Created by muhammadsaadshamim on 6/4/15.
  */
 public class FeatureRenderer {
+
+    public static final Color HIGHLIGHT_COLOR = Color.BLACK;
 
     public static void render(Graphics2D g2, AnnotationLayerHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
@@ -124,13 +125,12 @@ public class FeatureRenderer {
             g2.setColor(highlightedFeatures.get(0).getColor());
 
             for (Feature2D highlightedFeature : highlightedFeatures) {
-
                 int binStart1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart1());
                 int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd1());
                 int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
                 int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
 
-                g2.setColor(HiCGlobals.HIGHLIGHT_COLOR);
+                g2.setColor(HIGHLIGHT_COLOR);
                 if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
                     int x = (int) ((binStart1 - binOriginX) * scaleFactor);
                     int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2019 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.Feature2D;
 import org.broad.igv.util.Pair;
 
@@ -51,7 +52,7 @@ import java.util.List;
  */
 public class TrackPanel extends JPanel {
 
-    private static final long serialVersionUID = -1195744055137430563L;
+    private static final long serialVersionUID = 9000038;
     //private MouseAdapter mouseAdapter;
     private final HiC hic;
     private final Orientation orientation;
@@ -306,34 +307,36 @@ public class TrackPanel extends JPanel {
         }
 
         try {
-            Feature2D highlight = hic.getHighlightedFeature();
-            if (highlight != null) {
-                g.setColor(HiCGlobals.HIGHLIGHT_COLOR);
+            List<Feature2D> highlights = hic.getHighlightedFeatures();
+            if (highlights.size() > 0) {
+                g.setColor(FeatureRenderer.HIGHLIGHT_COLOR);
                 MatrixZoomData zd = hic.getZd();
                 HiCGridAxis xAxis = zd.getXGridAxis();
                 HiCGridAxis yAxis = zd.getYGridAxis();
                 double binOriginX = hic.getXContext().getBinOrigin();
                 double binOriginY = hic.getYContext().getBinOrigin();
-                int binStart1 = xAxis.getBinNumberForGenomicPosition(highlight.getStart1());
-                int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlight.getEnd1());
-                int binStart2 = yAxis.getBinNumberForGenomicPosition(highlight.getStart2());
-                int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlight.getEnd2());
-                double scaleFactor = hic.getScaleFactor();
+                for (Feature2D highlight : highlights) {
+                    int binStart1 = xAxis.getBinNumberForGenomicPosition(highlight.getStart1());
+                    int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlight.getEnd1());
+                    int binStart2 = yAxis.getBinNumberForGenomicPosition(highlight.getStart2());
+                    int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlight.getEnd2());
+                    double scaleFactor = hic.getScaleFactor();
 
-                if (orientation == Orientation.X) {
-                    if (HiCFileTools.equivalentChromosome(highlight.getChr1(), zd.getChr1())) {
-                        int x3 = (int) ((binStart1 - binOriginX) * scaleFactor);
-                        int h3 = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                    if (orientation == Orientation.X) {
+                        if (HiCFileTools.equivalentChromosome(highlight.getChr1(), zd.getChr1())) {
+                            int x3 = (int) ((binStart1 - binOriginX) * scaleFactor);
+                            int h3 = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
-                        g.drawLine(x3, 0, x3, getHeight());
-                        g.drawLine(x3 + h3, 0, x3 + h3, getHeight());
+                            g.drawLine(x3, 0, x3, getHeight());
+                            g.drawLine(x3 + h3, 0, x3 + h3, getHeight());
+                        }
+                    } else if (HiCFileTools.equivalentChromosome(highlight.getChr2(), zd.getChr2())) {
+                        int y3 = (int) ((binStart2 - binOriginY) * scaleFactor);
+                        int w3 = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+
+                        g.drawLine(0, y3, getWidth(), y3);
+                        g.drawLine(0, y3 + w3, getWidth(), y3 + w3);
                     }
-                } else if (HiCFileTools.equivalentChromosome(highlight.getChr2(), zd.getChr2())) {
-                    int y3 = (int) ((binStart2 - binOriginY) * scaleFactor);
-                    int w3 = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
-
-                    g.drawLine(0, y3, getWidth(), y3);
-                    g.drawLine(0, y3 + w3, getWidth(), y3 + w3);
                 }
             }
         } catch (Exception e2) {
