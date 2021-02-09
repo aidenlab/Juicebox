@@ -64,6 +64,7 @@ public class HiC {
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
     private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
+    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -85,7 +86,6 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private boolean showFeatureHighlight;
 
     public HiC(SuperAdapter superAdapter) {
@@ -960,6 +960,7 @@ public class HiC {
     }
 
     public int validateBinSize(String key) {
+        initBinSizeDictionary(); //This should not be necessary
         if (binSizeDictionary.containsKey(key)) {
             return Integer.parseInt(String.valueOf(binSizeDictionary.get(key)));
         } else {
