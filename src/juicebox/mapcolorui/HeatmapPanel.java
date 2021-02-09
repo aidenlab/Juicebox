@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -488,6 +488,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
 
       } else {
+
         // Render loops
         int centerX = (int) (screenWidth / scaleFactor) / 2;
         int centerY = (int) (screenHeight / scaleFactor) / 2;
@@ -1428,8 +1429,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
     final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
     int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-    AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
-    AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
+    AssemblyOperationExecutor.moveAndDisperseSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
     removeSelection();
   }
 
