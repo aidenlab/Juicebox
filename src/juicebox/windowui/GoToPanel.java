@@ -153,10 +153,75 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         String delimiters = "\\s+|:\\s*|\\-\\s*";
         String dashDelimiters = "\\s+|\\-\\s*";
 
-        String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
-        String[] topChrTokens = positionChrTop.getText().split(delimiters);
-        String[] leftDashChrTokens = positionChrLeft.getText().split(dashDelimiters);
-        String[] topDashChrTokens = positionChrTop.getText().split(dashDelimiters);
+//        String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
+
+        String[] tmpLeftChrTokens = positionChrLeft.getText().split(":");
+        String[] leftChrTokens = new String[0];
+        String[] leftDashChrTokens = new String[0];
+
+        switch (tmpLeftChrTokens.length) {
+            case 1:
+                leftChrTokens = tmpLeftChrTokens;
+                break;
+            case 2:
+                leftDashChrTokens = positionChrLeft.getText().substring(tmpLeftChrTokens[0].length() + 1).split(dashDelimiters);
+                leftChrTokens = new String[leftDashChrTokens.length + 1];
+                leftChrTokens[0] = tmpLeftChrTokens[0];
+                for (int i = 0; i < leftDashChrTokens.length; i++) {
+                    leftChrTokens[i + 1] = leftDashChrTokens[i];
+                }
+                break;
+            case 3:
+                leftDashChrTokens = positionChrLeft.getText().substring(tmpLeftChrTokens[0].length() + 1).split(dashDelimiters);
+                leftChrTokens[0] = tmpLeftChrTokens[0];
+                int i = 0;
+                for (i = 0; i < leftDashChrTokens.length; i++) {
+                    leftChrTokens[i + 1] = leftDashChrTokens[i];
+                }
+                leftChrTokens[i] = leftDashChrTokens[2];
+                break;
+            default:
+        }
+//        if(tmpLeftChrTokens.length>1){
+//            String[] tmpList = positionChrLeft.getText().substring(tmpLeftChrTokens[0].length()).split(delimiters);
+//            leftChrTokens = new String[tmpList.length+1];
+//            leftChrTokens[0]=tmpLeftChrTokens[0];
+//            for(int i=1;i<tmpList.length;i++){
+//                leftChrTokens[i]=tmpList[i];
+//            }
+//        }
+
+//        String[] topChrTokens = positionChrTop.getText().split(delimiters);
+////        String[] leftDashChrTokens = positionChrLeft.getText().split(dashDelimiters);
+//        String[] topDashChrTokens = positionChrTop.getText().split(dashDelimiters);
+
+        String[] tmpTopChrTokens = positionChrTop.getText().split(":");
+        String[] topChrTokens = new String[0];
+        String[] topDashChrTokens = new String[0];
+
+        switch (tmpTopChrTokens.length) {
+            case 1:
+                topChrTokens = tmpTopChrTokens;
+                break;
+            case 2:
+                topDashChrTokens = positionChrTop.getText().substring(tmpTopChrTokens[0].length() + 1).split(dashDelimiters);
+                topChrTokens = new String[topDashChrTokens.length + 1];
+                topChrTokens[0] = tmpTopChrTokens[0];
+                for (int i = 0; i < topDashChrTokens.length; i++) {
+                    topChrTokens[i + 1] = topDashChrTokens[i];
+                }
+                break;
+            case 3:
+                topDashChrTokens = positionChrTop.getText().substring(tmpTopChrTokens[0].length() + 1).split(dashDelimiters);
+                topChrTokens[0] = tmpTopChrTokens[0];
+                int i;
+                for (i = 0; i < topDashChrTokens.length; i++) {
+                    topChrTokens[i + 1] = topDashChrTokens[i];
+                }
+                topChrTokens[i] = topDashChrTokens[2];
+                break;
+            default:
+        }
 
         if (topChrTokens.length == 1 || leftChrTokens.length == 1) {
             parseGenePositionText();

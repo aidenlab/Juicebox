@@ -58,6 +58,15 @@ public class AssemblyOperationExecutor {
         }
     }
 
+    public static void moveAndDisperseSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.moveSelection(selectedFeatures, featureOrigin);
+            assemblyScaffoldHandler.multiSplit(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
+        }
+    }
+
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         if (upstreamFeature2D != null && downstreamFeature2D != null) {
             AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();

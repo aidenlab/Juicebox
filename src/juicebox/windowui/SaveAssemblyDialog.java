@@ -24,11 +24,13 @@
 
 package juicebox.windowui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileExporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.PsfFileExporter;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import java.io.File;
@@ -70,6 +72,10 @@ public class SaveAssemblyDialog extends JFileChooser {
                     AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
                     assemblyFileExporter.exportAssemblyFile();
                 }
+
+                String autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave.assembly";
+                File autoSaveFile = new File(autoSaveFileName);
+                autoSaveFile.delete();
             }
         }
     }

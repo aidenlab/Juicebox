@@ -202,7 +202,7 @@ public class AssemblyScaffoldHandler {
         superscaffoldFeature2DHandler = new Feature2DHandler(superscaffoldFeature2DList);
         AssemblyHeatmapHandler.setListOfOSortedAggregateScaffolds(listOfAggregateScaffolds);
         // aggregate list is already sorted, no need to sort again
-        System.out.println("update assembly: " + listOfAggregateScaffolds.size());
+//        System.out.println("update assembly: " + listOfAggregateScaffolds.size());
     }
 
     private Feature2D populateSuperscaffoldFeature2D(long start, long end, int i) {
