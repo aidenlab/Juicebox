@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,15 @@ public class AssemblyOperationExecutor {
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
             assemblyScaffoldHandler.moveSelection(selectedFeatures, featureOrigin);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
+        }
+    }
+
+    public static void moveAndDisperseSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.moveSelection(selectedFeatures, featureOrigin);
+            assemblyScaffoldHandler.multiSplit(selectedFeatures);
             performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
         }
     }
