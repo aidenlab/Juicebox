@@ -47,9 +47,9 @@ public class NormalizationHandler {
     public static final NormalizationType INTER_KR = new NormalizationType(strINTER_KR, "Inter balanced");
     public static final NormalizationType GW_VC = new NormalizationType(strGW_VC, "Genome-wide coverage");
     public static final NormalizationType INTER_VC = new NormalizationType(strINTER_VC, "Inter coverage");//,
-    public static final NormalizationType SCALE = new NormalizationType(strSCALE, "Fast scaling");
-    public static final NormalizationType GW_SCALE = new NormalizationType(strGW_SCALE, "Genome-wide fast scaling");
-    public static final NormalizationType INTER_SCALE = new NormalizationType(strINTER_SCALE, "Inter fast scaling");
+    public static final NormalizationType SCALE = new NormalizationType(strSCALE, "Balanced++");
+    public static final NormalizationType GW_SCALE = new NormalizationType(strGW_SCALE, "Genome-wide Balanced++");
+    public static final NormalizationType INTER_SCALE = new NormalizationType(strINTER_SCALE, "Inter Balanced++");
 
     private final static List<NormalizationType> currentlyAvailableNorms = new ArrayList<>();
 
