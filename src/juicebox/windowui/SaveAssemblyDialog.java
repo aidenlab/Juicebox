@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,13 @@
 
 package juicebox.windowui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileExporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.PsfFileExporter;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import java.io.File;
@@ -71,6 +73,10 @@ public class SaveAssemblyDialog extends JFileChooser {
                     AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
                     assemblyFileExporter.exportAssemblyFile();
                 }
+
+                String autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave.assembly";
+                File autoSaveFile = new File(autoSaveFileName);
+                autoSaveFile.delete();
             }
         }
     }

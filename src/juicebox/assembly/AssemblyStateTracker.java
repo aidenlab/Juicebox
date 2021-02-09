@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,8 @@
 
 package juicebox.assembly;
 
+import juicebox.DirectoryManager;
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 
 import java.util.Stack;
@@ -36,6 +38,8 @@ public class AssemblyStateTracker {
     private final Stack<AssemblyScaffoldHandler> redoStack;
     private final AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
     private final SuperAdapter superAdapter;
+    private final String autoSaveFileName;
+    private int counter = 0;
 
     public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler, SuperAdapter superAdapter) {
 
@@ -44,6 +48,7 @@ public class AssemblyStateTracker {
         redoStack = new Stack<>();
         this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
         this.superAdapter = superAdapter;
+        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
     }
 
     public AssemblyScaffoldHandler getAssemblyHandler() {
@@ -65,8 +70,18 @@ public class AssemblyStateTracker {
     }
 
     public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
+        counter++;
         redoStack.clear();
         undoStack.push(assemblyScaffoldHandler);
+        if (counter % 20 == 0) {
+            if (HiCGlobals.phasing) {
+                PsfFileExporter psfFileExporter = new PsfFileExporter(assemblyScaffoldHandler, autoSaveFileName);
+                psfFileExporter.exportPsfFile();
+            } else {
+                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, autoSaveFileName);
+                assemblyFileExporter.exportAssemblyFile();
+            }
+        }
         while (undoStack.size() > 50) { //keeps stack at size of 50 or less
             undoStack.remove(0);
         }
