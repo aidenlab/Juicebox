@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -311,7 +311,13 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
                         superAdapter.removeLayer(annotationLayerHandler);
                 }
+
+//                System.out.println("before import "+System.currentTimeMillis());
+
                 assemblyFileImporter.importAssembly();
+
+//                System.out.println("out import "+System.currentTimeMillis());
+
                 // Rescale resolution slider labels
                 superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
@@ -325,11 +331,15 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 scaffoldLayerHandler.setProperties(scaffoldLayer, "Scaf", Color.green);
 
+//                System.out.println("after scaf layer "+System.currentTimeMillis());
+
                 // read in superscaffold data
                 AnnotationLayer superscaffoldLayer = new AnnotationLayer(
                         assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler(), AnnotationLayer.LayerType.SUPERSCAFFOLD);
                 AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 superscaffoldLayerHandler.setProperties(superscaffoldLayer, "Chr", Color.blue);
+
+//                System.out.println("after superscaf layer "+System.currentTimeMillis());
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 editLayerHandler.setColorOfAllAnnotations(Color.black);

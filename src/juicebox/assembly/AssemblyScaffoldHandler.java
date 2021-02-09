@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -202,7 +202,7 @@ public class AssemblyScaffoldHandler {
         superscaffoldFeature2DHandler = new Feature2DHandler(superscaffoldFeature2DList);
         AssemblyHeatmapHandler.setListOfOSortedAggregateScaffolds(listOfAggregateScaffolds);
         // aggregate list is already sorted, no need to sort again
-        System.out.println("update assembly: " + listOfAggregateScaffolds.size());
+//        System.out.println("update assembly: " + listOfAggregateScaffolds.size());
     }
 
     private Feature2D populateSuperscaffoldFeature2D(long start, long end, int i) {
