@@ -28,6 +28,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileExporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
+import juicebox.assembly.PsfFileExporter;
 
 import javax.swing.*;
 import java.io.File;
@@ -62,8 +63,13 @@ public class SaveAssemblyDialog extends JFileChooser {
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
-                assemblyFileExporter.exportAssemblyFile();
+                if (HiCGlobals.phasing) {
+                    PsfFileExporter psfFileExporter = new PsfFileExporter(assemblyScaffoldHandler, outputPath);
+                    psfFileExporter.exportPsfFile();
+                } else {
+                    AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyScaffoldHandler, outputPath);
+                    assemblyFileExporter.exportAssemblyFile();
+                }
             }
         }
     }

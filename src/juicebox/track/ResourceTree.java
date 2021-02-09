@@ -275,7 +275,7 @@ public class ResourceTree {
                             removeChildNodeFromFeatureRoot(treeNode);
                             removeResourceFromLeaf(resource, leafResources);
                         } else {
-                            setSelectionForMatchingChildNodes(treeNode, Boolean.TRUE);
+                            setSelectionForMatchingChildNodes(treeNode, true);
                             continue;
                         }
                     }

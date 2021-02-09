@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.AssemblyScaffoldHandler;
+import juicebox.assembly.PsfFileImporter;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.Load2DAnnotationsDialog;
@@ -64,8 +65,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private final JTree tree;
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
-    private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private final ArrayList<String> mostRecentPaths = new ArrayList<>();
+    private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
 
     public LoadModifiedAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
@@ -117,7 +118,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         JPanel buttonPanel = new JPanel();
 
         openAssemblyButton = new JButton("Open Assembly");
-        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.setEnabled(false);
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -264,8 +265,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     }
 
     private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter) {
-        String cpropsPath = null;
-        String asmPath = null;
+        String psfPath = null;
         String assemblyPath = null;
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -273,10 +273,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                 ItemInfo info = (ItemInfo) node.getUserObject();
                 if (info.itemURL.endsWith("assembly")) {
                     assemblyPath = info.itemURL;
-                } else if (info.itemURL.endsWith("cprops")) {
-                    cpropsPath = info.itemURL;
-                } else if (info.itemURL.endsWith("asm")) {
-                    asmPath = info.itemURL;
+                } else if (info.itemURL.endsWith("psf")) {
+                    psfPath = info.itemURL;
                 } else {
                     JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
                             "Error Message", JOptionPane.ERROR_MESSAGE);
@@ -285,14 +283,14 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             }
         }
 
-        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
+        if ((psfPath != null) || assemblyPath != null) {
 //            try {
-            AssemblyFileImporter assemblyFileImporter;
+            AssemblyFileImporter assemblyFileImporter = null;
             if (assemblyPath != null) {
                 assemblyFileImporter = new AssemblyFileImporter(assemblyPath, true);
-            } else {
-                assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
-            }
+            } else
+                assemblyFileImporter = new PsfFileImporter(psfPath, true);
+
             assemblyFileImporter.importAssembly();
             AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
             superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);

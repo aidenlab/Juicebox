@@ -98,10 +98,10 @@ public class AssemblyHeatmapHandler {
             if (!aggregateScaffold.getInvertedVsInitial()) {
                 currentFirstNucleotide = (aggregateScaffold.getCurrentStart() + originalFirstNucleotide - aggregateScaffold.getOriginalStart());
             } else {
-                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 1 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
+                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 2 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
             }
 
-            return (int) (currentFirstNucleotide / (HiCGlobals.hicMapScale * binSize) - 1);
+            return (int) ((currentFirstNucleotide - 1) / (HiCGlobals.hicMapScale * binSize));
         }
         return -1;
     }

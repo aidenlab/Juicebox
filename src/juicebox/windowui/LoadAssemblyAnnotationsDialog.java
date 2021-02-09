@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.AssemblyStateTracker;
+import juicebox.assembly.PsfFileImporter;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.AnnotationLayer;
@@ -67,8 +68,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final JTree tree;
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
-    private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private final ArrayList<String> mostRecentPaths = new ArrayList<>();
+    private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
     public LoadAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
@@ -119,7 +120,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         JPanel buttonPanel = new JPanel();
 
         openAssemblyButton = new JButton("Open Assembly");
-        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.setEnabled(false);
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -267,10 +268,9 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
     private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter) {
         // two-file format
-        String cpropsPath = null;
-        String asmPath = null;
         // single-file format
         String assemblyPath = null;
+        String psfPath = null;
 
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -279,11 +279,9 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 if (info.itemURL.endsWith("assembly")) {
                     assemblyPath = info.itemURL;
                     SuperAdapter.setDatasetTitle(assemblyPath);
-                } else if (info.itemURL.endsWith("cprops")) {
-                    cpropsPath = info.itemURL;
-                } else if (info.itemURL.endsWith("asm")) {
-                    asmPath = info.itemURL;
-                    SuperAdapter.setDatasetTitle(asmPath);
+                } else if (info.itemURL.endsWith("psf")) {
+                    psfPath = info.itemURL;
+                    HiCGlobals.phasing = true;
                 } else {
                     JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
                             "Error Message", JOptionPane.ERROR_MESSAGE);
@@ -292,7 +290,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             }
         }
 
-        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
+        if (assemblyPath != null || psfPath != null) {
 
             try {
                 if (superAdapter.getAssemblyStateTracker() != null) {
@@ -300,11 +298,11 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     superAdapter.refresh();
                 }
 
-                AssemblyFileImporter assemblyFileImporter;
+                AssemblyFileImporter assemblyFileImporter = null;
                 if (assemblyPath != null) {
                     assemblyFileImporter = new AssemblyFileImporter(assemblyPath, false);
                 } else {
-                    assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                    assemblyFileImporter = new PsfFileImporter(psfPath, false);
                 }
 
                 //temp layer to allow deleting of other layers
@@ -334,7 +332,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superscaffoldLayerHandler.setProperties(superscaffoldLayer, "Chr", Color.blue);
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
-                editLayerHandler.setColorOfAllAnnotations(Color.yellow);
+                editLayerHandler.setColorOfAllAnnotations(Color.black);
                 editLayerHandler.setLayerNameAndField("Edit");
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
                 editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
@@ -357,9 +355,6 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
 //                SuperAdapter.showMessageDialog("Could not load loop selection: " + ee.getMessage());
                 if (assemblyPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(assemblyPath));
-                if (cpropsPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
-                if (asmPath != null)
-                    customAddedFeatures.remove(loadedAnnotationsMap.get(asmPath)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
             }
         } else {
             System.err.println("Invalid files...");

@@ -510,6 +510,30 @@ public class MainMenuBar extends JMenuBar {
     devMenu = new JMenu("Dev");
     devMenu.setEnabled(false);
 
+    final JMenuItem addRainbowTrack = new JMenuItem("Add a rainbow track...");
+    addRainbowTrack.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        superAdapter.getHiC().generateRainbowBed();
+      }
+    });
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(addRainbowTrack);
+    }
+
+    final JCheckBoxMenuItem skipSortInPhase = new JCheckBoxMenuItem("Skip variant sorting in phase mode");
+    skipSortInPhase.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        HiCGlobals.noSortInPhasing = !HiCGlobals.noSortInPhasing;
+        superAdapter.getHeatmapPanel().repaint();
+      }
+    });
+    skipSortInPhase.setSelected(HiCGlobals.noSortInPhasing);
+    if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
+      devMenu.add(skipSortInPhase);
+    }
+
     final JMenuItem addCustomNormsObs = new JMenuItem("Add Custom Norms to Observed...");
     addCustomNormsObs.addActionListener(new ActionListener() {
       @Override
@@ -721,7 +745,7 @@ public class MainMenuBar extends JMenuBar {
     exitAssembly.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+        int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "warning", JOptionPane.YES_NO_OPTION);
         if (option == 0) {
           superAdapter.exitAssemblyMode();
         }

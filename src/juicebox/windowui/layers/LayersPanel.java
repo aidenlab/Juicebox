@@ -280,7 +280,7 @@ public class LayersPanel extends JDialog {
                 if (load2DAnnotationsDialog == null) {
                     load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter);
                 }
-                load2DAnnotationsDialog.setVisible(Boolean.TRUE);
+                load2DAnnotationsDialog.setVisible(true);
             }
         });
         importButton.setToolTipText("Import annotations into new layer");

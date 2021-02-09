@@ -85,7 +85,7 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private Feature2D highlightedFeature;
+    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private boolean showFeatureHighlight;
 
     public HiC(SuperAdapter superAdapter) {
@@ -930,8 +930,9 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!xChr.equalsIgnoreCase("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!yChr.equalsIgnoreCase("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+//        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+//        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+
 
         return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
@@ -942,8 +943,9 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!xChr.equalsIgnoreCase("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
-        if (!yChr.equalsIgnoreCase("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+//        if (!xChr.toLowerCase().equals("assembly") && !(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+//        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
+
 
         return xChr + "@" + (long) (xContext.getBinOrigin() * currentZoom.getBinSize()) + "_" +
                 yChr + "@" + (long) (yContext.getBinOrigin() * currentZoom.getBinSize());
@@ -1139,6 +1141,60 @@ public class HiC {
         }
     }
 
+    public void generateRainbowBed() {
+
+        // Initialize default file name
+        String filename = "temp.rainbow";
+
+        File outputBedFile = new File(DirectoryManager.getHiCDirectory(), filename + ".bed");
+//        SuperAdapter.showMessageDialog("Data will be saved to " + outputWigFile.getAbsolutePath());
+
+        Chromosome chromosome = getXContext().getChromosome();
+
+        safeGenerateRainbowBed(chromosome, outputBedFile);
+    }
+
+    private void safeGenerateRainbowBed(final Chromosome chromosome, final File outputBedFile) {
+        superAdapter.getMainWindow().executeLongRunningTask(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PrintWriter printWriter = new PrintWriter(outputBedFile);
+                    unsafeGenerateRainbowBed(chromosome, printWriter);
+                    printWriter.close();
+                    if (outputBedFile.exists() && outputBedFile.length() > 0) {
+                        // TODO this still doesn't add to the resource tree / load annotation dialog box
+                        //superAdapter.getTrackLoadAction();
+                        //getResourceTree().add1DCustomTrack(outputWigFile);
+                        HiC.this.unsafeLoadTrack(outputBedFile.getAbsolutePath());
+                        LoadAction loadAction = superAdapter.getTrackLoadAction();
+                        loadAction.checkBoxesForReload(outputBedFile.getName());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Unable to generate rainbow track");
+                }
+            }
+        }, "Saving rainbow bed file.");
+
+    }
+
+    private void unsafeGenerateRainbowBed(Chromosome chromosome, PrintWriter printWriter) {
+
+        printWriter.println("track name=\"Rainbow track\" description=\"Rainbow track\" visibility=2 itemRgb=\"On\"");
+        int resolution = getZoom().getBinSize();
+        long size = chromosome.getLength() / resolution + 1;
+        for (int i = 0; i < size; i++) {
+            printWriter.println(chromosome.getName() + "\t" + i * resolution + "\t" + ((i + 1) * resolution) + "\t-\t0\t+\t" + i * resolution + "\t" + ((i + 1) * resolution) + "\t" + getRgb(i, size));
+        }
+    }
+
+    private String getRgb(int i, long size) {
+        int red = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 0 * Math.PI * 2 / 3)) + 128;
+        int blue = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 1 * Math.PI * 2 / 3)) + 128;
+        int green = (int) Math.floor(127 * Math.sin(Math.PI / size * 2 * i + 2 * Math.PI * 2 / 3)) + 128;
+        return red + "," + green + "," + blue;
+    }
+
     public boolean isInPearsonsMode() {
         return MatrixType.isPearsonType(displayOption);
     }
@@ -1209,15 +1265,16 @@ public class HiC {
         return null;
     }
 
-    public Feature2D getHighlightedFeature() {
+    public List<Feature2D> getHighlightedFeatures() {
         if (showFeatureHighlight) {
-            return highlightedFeature;
+            return highlightedFeatures;
         }
-        return null;
+        return new ArrayList<>();
     }
 
-    public void setHighlightedFeature(Feature2D highlightedFeature) {
-        this.highlightedFeature = highlightedFeature;
+    public void setHighlightedFeatures(List<Feature2D> highlightedFeatures) {
+        this.highlightedFeatures.clear();
+        this.highlightedFeatures.addAll(highlightedFeatures);
     }
 
     public void setShowFeatureHighlight(boolean showFeatureHighlight) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,58 +30,48 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by nathanielmusial on 6/29/17.
+ * Created by dudcha on 10/27/20.
  */
-public class AssemblyFileExporter {
+public class PsfFileExporter {
 
     private final String outputFilePath;
     private final List<Scaffold> listOfScaffolds;
     private final List<List<Integer>> listOfSuperscaffolds;
-    private final List<String> listOfBundledScaffolds;
 
-
-    public AssemblyFileExporter(AssemblyScaffoldHandler assemblyScaffoldHandler, String outputFilePath) {
+    public PsfFileExporter(AssemblyScaffoldHandler assemblyScaffoldHandler, String outputFilePath) {
         this.outputFilePath = outputFilePath;
         this.listOfScaffolds = assemblyScaffoldHandler.getListOfScaffolds();
         this.listOfSuperscaffolds = assemblyScaffoldHandler.getListOfSuperscaffolds();
-        this.listOfBundledScaffolds = assemblyScaffoldHandler.getListOfBundledScaffolds();
     }
 
-    public void exportAssemblyFile() {
+    public void exportPsfFile() {
         try {
-            exportAssembly();
+            exportPsf();
         } catch (IOException exception) {
             System.out.println("Exporting failed...");
         }
     }
 
-    private void exportAssembly() throws IOException {
-        PrintWriter assemblyWriter = new PrintWriter(buildAssemblyOutputPath(), "UTF-8");
-        int last = 0;
+    private void exportPsf() throws IOException {
+        PrintWriter assemblyWriter = new PrintWriter(buildPsfOutputPath(), "UTF-8");
+        String name = "";
         for (Scaffold scaffold : listOfScaffolds) {
-            if (scaffold.getName() == "unattempted:::debris") {
-                continue;
-            }
-            assemblyWriter.print(">" + scaffold.toString() + "\n"); // Use print to account for OS difference in control characters
-            last = scaffold.getIndexId();
-        }
+            int id = scaffold.getIndexId();
 
-        if (listOfBundledScaffolds.size() > 0) {
-            for (String row : listOfBundledScaffolds) {
-                String[] splitRow = row.split(" ");
-                last += 1;
-                assemblyWriter.print(splitRow[0] + " " + last + " " + splitRow[2] + "\n");
+            if (id % 2 == 0) {
+                String[] splitName = scaffold.getName().split(":");
+                assemblyWriter.print(">" + name + " " + splitName[2] + " " + (id / 2) + "\n");
+                name = "";
+            } else {
+                name = scaffold.getName().replace(":", " ");
             }
         }
-        for (List<Integer> row : listOfSuperscaffolds) {
-            if (listOfBundledScaffolds.size() > 0 && row.get(0) == listOfScaffolds.size()) {
+        for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+            if (i % 2 != 0) {
                 continue;
             }
+            List<Integer> row = listOfSuperscaffolds.get(i);
             assemblyWriter.print(superscaffoldToString(row) + "\n");
-        }
-        if (listOfBundledScaffolds.size() > 0) {
-            for (int i = listOfScaffolds.size(); i <= last; i++)
-                assemblyWriter.print(i + "\n");
         }
         assemblyWriter.close();
     }
@@ -90,7 +80,13 @@ public class AssemblyFileExporter {
         StringBuilder stringBuilder = new StringBuilder();
         Iterator<Integer> iterator = scaffoldRow.iterator();
         while (iterator.hasNext()) {
-            stringBuilder.append(iterator.next());
+            int i = iterator.next();
+            if (i % 2 == 0) {
+                i = -i / 2;
+            } else {
+                i = (i + 1) / 2;
+            }
+            stringBuilder.append(i);
             if (iterator.hasNext()) {
                 stringBuilder.append(" ");
             }
@@ -98,8 +94,8 @@ public class AssemblyFileExporter {
         return stringBuilder.toString();
     }
 
-    private String buildAssemblyOutputPath() {
-        return this.outputFilePath + ".assembly";
+    private String buildPsfOutputPath() {
+        return this.outputFilePath + ".psf";
     }
 
 }

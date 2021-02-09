@@ -391,8 +391,8 @@ public class MatrixZoomData {
         }
 
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no, chr1, chr2);
-        System.out.println("I am block size: " + blockList.size());
-        System.out.println("I am first block: " + blockList.get(0).getNumber());
+//        System.out.println("I am block size: " + blockList.size());
+//        System.out.println("I am first block: " + blockList.get(0).getNumber());
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
@@ -405,6 +405,7 @@ public class MatrixZoomData {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
+
         long actualBinSize = binSize;
         if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
             actualBinSize = 1000 * actualBinSize;
@@ -418,13 +419,22 @@ public class MatrixZoomData {
         long x1pos, x2pos, y1pos, y2pos;
 
         for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+
+            if (HiCGlobals.phasing && xScaffold.getLength() < (actualBinSize / 2) * HiCGlobals.hicMapScale) {
+                continue;
+            }
+
             for (Scaffold yScaffold : yAxisAggregateScaffolds) {
-    
+
+                if (HiCGlobals.phasing && yScaffold.getLength() < (actualBinSize / 2) * HiCGlobals.hicMapScale) {
+                    continue;
+                }
+
                 x1pos = (long) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 x2pos = (long) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
                 y1pos = (long) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 y2pos = (long) (yScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
-    
+              
                 // have to case long because of thumbnail, maybe fix thumbnail instead
     
                 if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {

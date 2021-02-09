@@ -42,7 +42,7 @@ public class FeatureRenderer {
 
     public static void render(Graphics2D g2, AnnotationLayerHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
-                              Feature2D highlightedFeature, boolean showFeatureHighlight,
+                              List<Feature2D> highlightedFeatures, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
         if (annotationHandler.getLineStyle() == LineStyle.DASHED) {
             Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{1}, 0);
@@ -121,28 +121,30 @@ public class FeatureRenderer {
             }
         }
 
-        if (highlightedFeature != null && showFeatureHighlight) {
-            g2.setColor(highlightedFeature.getColor());
+        if (highlightedFeatures != null && highlightedFeatures.size() != 0 && showFeatureHighlight) {
+            g2.setColor(highlightedFeatures.get(0).getColor());
 
-            int binStart1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart1());
-            int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd1());
-            int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
-            int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
+            for (Feature2D highlightedFeature : highlightedFeatures) {
+                int binStart1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart1());
+                int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd1());
+                int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
+                int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
 
-            g2.setColor(HIGHLIGHT_COLOR);
-            if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
-                int x = (int) ((binStart1 - binOriginX) * scaleFactor);
-                int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                g2.setColor(HIGHLIGHT_COLOR);
+                if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
+                    int x = (int) ((binStart1 - binOriginX) * scaleFactor);
+                    int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
-                g2.drawLine(x, 0, x, maxHeight);
-                g2.drawLine(x + h, 0, x + h, maxHeight);
-            }
-            if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr2(), zd.getChr2())) {
-                int y = (int) ((binStart2 - binOriginY) * scaleFactor);
-                int w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+                    g2.drawLine(x, 0, x, maxHeight);
+                    g2.drawLine(x + h, 0, x + h, maxHeight);
+                }
+                if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr2(), zd.getChr2())) {
+                    int y = (int) ((binStart2 - binOriginY) * scaleFactor);
+                    int w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 
-                g2.drawLine(0, y, maxWidth, y);
-                g2.drawLine(0, y + w, maxWidth, y + w);
+                    g2.drawLine(0, y, maxWidth, y);
+                    g2.drawLine(0, y + w, maxWidth, y + w);
+                }
             }
         }
     }

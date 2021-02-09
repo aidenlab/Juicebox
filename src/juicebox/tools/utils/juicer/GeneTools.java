@@ -59,11 +59,19 @@ public class GeneTools {
     }
 
     private static String extractProperGeneFilePath(String genomeID) {
-        String newURL = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
-        try {
-            return MotifAnchorParser.downloadFromUrl(new URL(newURL), "genes");
-        } catch (IOException e) {
-            System.err.println("Unable to download file from online; attempting to use direct file path");
+        if (genomeID.equals("hg19") || genomeID.equals("hg38") || genomeID.equals("mm9") || genomeID.equals("mm10")) {
+            String newURL = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
+            try {
+                return MotifAnchorParser.downloadFromUrl(new URL(newURL), "genes");
+            } catch (IOException e) {
+                System.err.println("Unable to download file from online; attempting to use direct file path");
+            }
+        } else {
+            try {
+                return MotifAnchorParser.uncompressFromGzip(genomeID, "genes");
+            } catch (IOException e) {
+                System.err.println("Unable to unzip file; attempting to use direct file path");
+            }
         }
         return genomeID;
     }
