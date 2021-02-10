@@ -419,6 +419,9 @@ public class MainWindow extends JFrame {
         if (option == 0) {
             setVisible(false);
             dispose();
+            String autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave.assembly";
+            File autoSaveFile = new File(autoSaveFileName);
+            autoSaveFile.delete();
             System.out.println("Exiting Main Window");
             System.exit(0);
         }
