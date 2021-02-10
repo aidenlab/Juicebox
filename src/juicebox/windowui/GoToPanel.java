@@ -282,7 +282,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         } else if (estimatedOutBinSize > 0) {
             outBinSize = estimatedOutBinSize;
         } else if (hic.getZoom().getBinSize() != 0) { //no resolution specified, not at whole genome view
-            outBinSize = hic.validateBinSize(String.valueOf(hic.getZoom().getBinSize()));
+            outBinSize = hic.getZoom().getBinSize();
             if (outBinSize != Integer.MIN_VALUE) {
                 resolutionUnits = hic.getZoom().getUnit();
             }
@@ -304,23 +304,16 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         int outBinSize = 0;
         int resolutionUnits = 1;//BP
 
-        if (dashChrTokens.length == 1) {
-            outBinSize = hic.validateBinSize(chrTokens[2].toLowerCase());
-            System.out.println(outBinSize);
-            if (outBinSize != Integer.MIN_VALUE && chrTokens[2].toLowerCase().contains("f")) {
-                resolutionUnits = -1; //FRAG
-            } else if (outBinSize == Integer.MIN_VALUE) {
-                positionChr.setBackground(Color.yellow);
-                System.err.println("Invalid resolution " + chrTokens[2].toLowerCase());
+        try {
+            if (dashChrTokens.length == 1) {
+                outBinSize = cleanUpNumber(chrTokens[2]);
+            } else if (chrTokens.length > 3) {
+                outBinSize = cleanUpNumber(chrTokens[3]);
             }
-        } else if (chrTokens.length > 3) {
-            outBinSize = hic.validateBinSize(chrTokens[3].toLowerCase());
-            if (outBinSize != Integer.MIN_VALUE && chrTokens[3].toLowerCase().contains("f")) {
-                resolutionUnits = -1; //FRAG
-            } else if (outBinSize == Integer.MIN_VALUE) {
-                positionChr.setBackground(Color.yellow);
-                System.err.println("Invalid resolution " + chrTokens[3].toLowerCase());
-            }
+            System.out.println("Out bin size " + outBinSize);
+        } catch (Exception e) {
+            positionChr.setBackground(Color.yellow);
+            System.err.println("Invalid resolution " + chrTokens[3]);
         }
         return new int[]{outBinSize, resolutionUnits};
     }
