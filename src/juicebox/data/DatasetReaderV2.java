@@ -84,7 +84,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             long position = stream.position();
 
             // Read the header
-            LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+            LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
             String magicString = dis.readString();
             position += magicString.length() + 1;
@@ -302,7 +302,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private Pair<MatrixZoomData, Long> readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
                                                           long filePointer) throws IOException {
         stream.seek(filePointer);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
         String hicUnitStr = dis.readString();
         HiC.Unit unit = HiC.valueOfUnit(hicUnitStr);
@@ -339,7 +339,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             blockIndex.populateBlocks(dis);
             blockIndexMap.put(zd.getKey(), blockIndex);
         }
-        currentFilePointer += nBlocks * 16;
+        currentFilePointer += (nBlocks * 16L);
     
         long nBins1 = chr1.getLength() / binSize;
         long nBins2 = chr2.getLength() / binSize;
@@ -470,7 +470,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         //disList.add(new ByteArrayInputStream(buffer));
 
         //dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
-        dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
         int nEntries = dis.readInt();
         currentPosition += 4;
@@ -711,6 +711,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         //         " sz  "+idx.size+ " "+stream.getSource()+" "+stream.position()+" "+stream );
         if (c1 < 0 || c1 > dataset.getChromosomeHandler().getChromosomeArray().length ||
                 c2 < 0 || c2 > dataset.getChromosomeHandler().getChromosomeArray().length) {
+            System.err.println("WEIRD BUG HAPPENED AGAIN!!");
             return null;
         }
 
@@ -725,9 +726,14 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int[] chr2Sites = retrieveFragmentSitesFromCache(chr2);
 
         for (int i = 0; i < nResolutions; i++) {
-            Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, currentFilePosition);
-            zdList.add(result.getFirst());
-            currentFilePosition = result.getSecond();
+            try {
+                Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, currentFilePosition);
+                zdList.add(result.getFirst());
+                currentFilePosition = result.getSecond();
+            } catch (Exception ee) {
+                System.err.println("Weird error happened with trying to read MZD at currentFilePosition: " + currentFilePosition);
+                ee.printStackTrace();
+            }
         }
 
         return new Matrix(c1, c2, zdList);
