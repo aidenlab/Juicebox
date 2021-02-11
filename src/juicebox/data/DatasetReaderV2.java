@@ -63,28 +63,34 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      * Cache of chromosome name -> array of restriction sites
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
-    private final SeekableStream stream, backUpStream, highResStream;
-    private Map<String, IndexEntry> masterIndex;
+    private final Map<String, IndexEntry> masterIndex = Collections.synchronizedMap(new HashMap<>());
     private Map<String, LargeIndexEntry> normVectorIndex;
-    private Dataset dataset = null;
+    private final Dataset dataset;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
-    private final Map<String, BlockIndex> blockIndexMap;
+    private final Map<String, BlockIndex> blockIndexMap = Collections.synchronizedMap(new HashMap<>());
     private long masterIndexPos;
     private long normVectorFilePosition;
     private long nviHeaderPosition;
     private boolean activeStatus = true;
     private final AtomicBoolean useMainStream = new AtomicBoolean();
     public static double[] globalTimeDiffThings = new double[5];
+    private final IGVSeekableStreamFactory streamFactory = IGVSeekableStreamFactory.getInstance();
+
+    public DatasetReaderV2(String path) throws IOException {
+        super(path);
+        dataset = new Dataset(this);
+    }
 
     @Override
     public Dataset read() throws IOException {
 
         try {
-            long position = stream.position();
+            SeekableStream stream = getValidStream();
+            long position = 0L;
 
             // Read the header
-            LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+            LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
             String magicString = dis.readString();
             position += magicString.length() + 1;
@@ -221,29 +227,22 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             readFooter(masterIndexPos);
 
-
+            stream.close();
         } catch (IOException e) {
             System.err.println("Error reading dataset" + e.getLocalizedMessage());
             throw e;
         }
 
-
         return dataset;
 
     }
 
-    public DatasetReaderV2(String path) throws IOException {
-
-        super(path);
-        this.stream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
-        this.backUpStream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
-        this.highResStream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
-
-        if (this.stream != null && backUpStream != null) {
-            masterIndex = Collections.synchronizedMap(new HashMap<>());
-            dataset = new Dataset(this);
-        }
-        blockIndexMap = Collections.synchronizedMap(new HashMap<>());
+    private SeekableStream getValidStream() throws IOException {
+        SeekableStream stream;
+        do {
+            stream = streamFactory.getStreamFor(path);
+        } while (stream == null);
+        return stream;
     }
 
 
@@ -301,8 +300,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     private Pair<MatrixZoomData, Long> readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
                                                           long filePointer) throws IOException {
+        SeekableStream stream = getValidStream();
         stream.seek(filePointer);
-        LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        LittleEndianInputStream dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
         String hicUnitStr = dis.readString();
         HiC.Unit unit = HiC.valueOfUnit(hicUnitStr);
@@ -332,20 +332,21 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (binSize < 50 && HiCGlobals.allowDynamicBlockIndex) {
             int maxPossibleBlockNumber = blockColumnCount * blockColumnCount - 1;
-            DynamicBlockIndex blockIndex = new DynamicBlockIndex(highResStream, nBlocks, maxPossibleBlockNumber, currentFilePointer);
+            DynamicBlockIndex blockIndex = new DynamicBlockIndex(getValidStream(), nBlocks, maxPossibleBlockNumber, currentFilePointer);
             blockIndexMap.put(zd.getKey(), blockIndex);
         } else {
             BlockIndex blockIndex = new BlockIndex(nBlocks);
             blockIndex.populateBlocks(dis);
             blockIndexMap.put(zd.getKey(), blockIndex);
         }
-        currentFilePointer += nBlocks * 16;
+        currentFilePointer += (nBlocks * 16L);
     
         long nBins1 = chr1.getLength() / binSize;
         long nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
 
+        stream.close();
         return new Pair<>(zd, currentFilePointer);
     }
 
@@ -431,6 +432,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     private void readFooter(long position) throws IOException {
 
+        SeekableStream stream = getValidStream();
         stream.seek(position);
         long currentPosition = position;
 
@@ -470,7 +472,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         //disList.add(new ByteArrayInputStream(buffer));
 
         //dis = new LittleEndianInputStream(new SequenceInputStream(Collections.enumeration(disList)));
-        dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
         int nEntries = dis.readInt();
         currentPosition += 4;
@@ -660,6 +662,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 normVectorIndex.put(key, new LargeIndexEntry(filePosition, sizeInBytes));
             }
         }
+        stream.close();
     }
 
     private long readVectorOfFloats(LittleEndianInputStream dis, long nValues,
@@ -711,6 +714,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         //         " sz  "+idx.size+ " "+stream.getSource()+" "+stream.position()+" "+stream );
         if (c1 < 0 || c1 > dataset.getChromosomeHandler().getChromosomeArray().length ||
                 c2 < 0 || c2 > dataset.getChromosomeHandler().getChromosomeArray().length) {
+            System.err.println("WEIRD BUG HAPPENED AGAIN!!");
             return null;
         }
 
@@ -725,9 +729,14 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int[] chr2Sites = retrieveFragmentSitesFromCache(chr2);
 
         for (int i = 0; i < nResolutions; i++) {
-            Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, currentFilePosition);
-            zdList.add(result.getFirst());
-            currentFilePosition = result.getSecond();
+            try {
+                Pair<MatrixZoomData, Long> result = readMatrixZoomData(chr1, chr2, chr1Sites, chr2Sites, currentFilePosition);
+                zdList.add(result.getFirst());
+                currentFilePosition = result.getSecond();
+            } catch (Exception ee) {
+                System.err.println("Weird error happened with trying to read MZD at currentFilePosition: " + currentFilePosition);
+                ee.printStackTrace();
+            }
         }
 
         return new Matrix(c1, c2, zdList);
@@ -765,16 +774,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     private final CompressionUtils mainCompressionUtils = new CompressionUtils();
     private final CompressionUtils backUpCompressionUtils = new CompressionUtils();
-
-    @Override
-    public void close() {
-        try {
-            stream.close();
-            backUpStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }
 
     public Map<String, LargeIndexEntry> getNormVectorIndex() {
         return normVectorIndex;
@@ -898,26 +897,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     private byte[] seekAndFullyReadCompressedBytes(IndexEntry idx) throws IOException {
-
-        boolean currentlyUseMainStream;
         byte[] compressedBytes = new byte[idx.size];
-
-        synchronized (useMainStream) {
-            currentlyUseMainStream = useMainStream.get();
-            useMainStream.set(!currentlyUseMainStream);
-        }
-
-        if (currentlyUseMainStream) {
-            synchronized (stream) {
-                stream.seek(idx.position);
-                stream.readFully(compressedBytes);
-            }
-        } else {
-            synchronized (backUpStream) {
-                backUpStream.seek(idx.position);
-                backUpStream.readFully(compressedBytes);
-            }
-        }
+        SeekableStream stream = getValidStream();
+        stream.seek(idx.position);
+        stream.readFully(compressedBytes);
+        stream.close();
         return compressedBytes;
     }
 
@@ -936,21 +920,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             useMainStream.set(!currentlyUseMainStream);
         }
 
-        if (currentlyUseMainStream) {
-            synchronized (stream) {
-                stream.seek(idx.position);
-                for (int i = 0; i < compressedBytes.size(); i++) {
-                    stream.readFully(compressedBytes.get(i));
-                }
-            }
-        } else {
-            synchronized (backUpStream) {
-                backUpStream.seek(idx.position);
-                for (int i = 0; i < compressedBytes.size(); i++) {
-                    backUpStream.readFully(compressedBytes.get(i));
-                }
-            }
+        SeekableStream stream = getValidStream();
+        stream.seek(idx.position);
+        for (int i = 0; i < compressedBytes.size(); i++) {
+            stream.readFully(compressedBytes.get(i));
         }
+        stream.close();
         return compressedBytes;
     }
     @Override

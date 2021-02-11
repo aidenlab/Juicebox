@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -82,6 +82,11 @@ public enum MatrixType {
     NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
 
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
+            OBSERVED, OE, OEV2, PEARSON, LOG,
+            CONTROL, OECTRL, OECTRLV2, PEARSONCTRL, LOGC,
+            RATIO, RATIOV2, VS, OEVS, OEVSV2, PEARSONVS, LOGEOVS};
+
+    public static final MatrixType[] enabledMatrixTypesWithControlDev = new MatrixType[]{
             OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON, LOG, LOGEO,
             CONTROL, OECTRL, OECTRLV2, OECTRLP1, OECTRLP1V2, CME, PEARSONCTRL, LOGC, LOGCEO,
             VS, RATIO, RATIOV2, RATIOP1, RATIOP1V2, RATIO0, RATIO0V2, RATIO0P1, RATIO0P1V2,
@@ -91,9 +96,12 @@ public enum MatrixType {
             EXPLOGEO, EXPLOGCEO
     };
 
-    public static final MatrixType[] enabledMatrixTypesNoControl =
+    public static final MatrixType[] enabledMatrixTypesNoControlDev =
             new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
                     LOG, LOGEO, EXPLOGEO};
+
+    public static final MatrixType[] enabledMatrixTypesNoControl =
+            new MatrixType[]{OBSERVED, OE, OEV2, PEARSON, LOG};
 
     private final String value;
 

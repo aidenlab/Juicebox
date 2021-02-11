@@ -311,7 +311,13 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
                         superAdapter.removeLayer(annotationLayerHandler);
                 }
+
+//                System.out.println("before import "+System.currentTimeMillis());
+
                 assemblyFileImporter.importAssembly();
+
+//                System.out.println("out import "+System.currentTimeMillis());
+
                 // Rescale resolution slider labels
                 superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
@@ -325,11 +331,15 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 scaffoldLayerHandler.setProperties(scaffoldLayer, "Scaf", Color.green);
 
+//                System.out.println("after scaf layer "+System.currentTimeMillis());
+
                 // read in superscaffold data
                 AnnotationLayer superscaffoldLayer = new AnnotationLayer(
                         assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler(), AnnotationLayer.LayerType.SUPERSCAFFOLD);
                 AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 superscaffoldLayerHandler.setProperties(superscaffoldLayer, "Chr", Color.blue);
+
+//                System.out.println("after superscaf layer "+System.currentTimeMillis());
 
                 AnnotationLayerHandler editLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 editLayerHandler.setColorOfAllAnnotations(Color.black);

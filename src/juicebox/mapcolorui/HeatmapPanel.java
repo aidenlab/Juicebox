@@ -171,11 +171,6 @@ public class HeatmapPanel extends JComponent {
             // Render loops
             int centerX = (int) ((screenWidth / scaleFactor) / 2);
             int centerY = (int) ((screenHeight / scaleFactor) / 2);
-            float x1 = (float) (binOriginX * zd.getBinSize());
-            float y1 = (float) (binOriginY * zd.getBinSize());
-            float x2 = x1 + (float) ((screenWidth / scaleFactor) * zd.getBinSize());
-            float y2 = y1 + (float) ((screenHeight / scaleFactor) * zd.getBinSize());
-            net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(x1, y1, x2, y2);
 
             Graphics2D g2 = (Graphics2D) g.create();
             mouseHandler.clearFeaturePairs();

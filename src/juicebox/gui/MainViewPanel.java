@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -54,29 +54,29 @@ import java.awt.event.ActionListener;
  */
 public class MainViewPanel {
 
-    private static JComboBox<Chromosome> chrBox1;
-    private static JComboBox<Chromosome> chrBox2;
-    private static final JideButton refreshButton = new JideButton();
-    private static JComboBox<String> observedNormalizationComboBox, controlNormalizationComboBox;
-    private static JComboBox<MatrixType> displayOptionComboBox;
-    private static JColorRangePanel colorRangePanel;
-    private static ResolutionControl resolutionSlider;
-    private static TrackPanel trackPanelX;
-    private static TrackPanel trackPanelY;
-    private static TrackLabelPanel trackLabelPanel;
-    private static HiCRulerPanel rulerPanelX;
-    private static HeatmapPanel heatmapPanel;
-    private static HiCRulerPanel rulerPanelY;
-    private static ThumbnailPanel thumbnailPanel;
-    private static JEditorPane mouseHoverTextPanel;
-    private static GoToPanel goPanel;
-    private static final JPanel hiCPanel = new JPanel(new HiCLayout());
-    private static HiCChromosomeFigPanel chromosomePanelX;
-    private static HiCChromosomeFigPanel chromosomePanelY;
-    private static final JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
-    private static final JPanel chrSidePanel = new JPanel(new BorderLayout());
-    private static final JPanel chrSidePanel3 = new JPanel(new BorderLayout());
-    private static MainMenuBar menuBar;
+    private final JideButton refreshButton = new JideButton();
+    private final JPanel hiCPanel = new JPanel(new HiCLayout());
+    private final JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
+    private final JPanel chrSidePanel = new JPanel(new BorderLayout());
+    private final JPanel chrSidePanel3 = new JPanel(new BorderLayout());
+    private JComboBox<Chromosome> chrBox1;
+    private JComboBox<Chromosome> chrBox2;
+    private JComboBox<String> observedNormalizationComboBox, controlNormalizationComboBox;
+    private JComboBox<MatrixType> displayOptionComboBox;
+    private JColorRangePanel colorRangePanel;
+    private ResolutionControl resolutionSlider;
+    private TrackPanel trackPanelX;
+    private TrackPanel trackPanelY;
+    private TrackLabelPanel trackLabelPanel;
+    private HiCRulerPanel rulerPanelX;
+    private HeatmapPanel heatmapPanel;
+    private HiCRulerPanel rulerPanelY;
+    private ThumbnailPanel thumbnailPanel;
+    private JEditorPane mouseHoverTextPanel;
+    private GoToPanel goPanel;
+    private HiCChromosomeFigPanel chromosomePanelX;
+    private HiCChromosomeFigPanel chromosomePanelY;
+    private MainMenuBar menuBar;
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private final JPanel annotationsPanel = new JPanel(new BorderLayout());
     private final JPanel mainPanel = new JPanel(new BorderLayout());

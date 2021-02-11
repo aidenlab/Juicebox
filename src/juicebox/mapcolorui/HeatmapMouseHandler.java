@@ -2035,8 +2035,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
         AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
         final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
         int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
-        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
-        AssemblyOperationExecutor.multiSplit(superAdapter, selectedFeatures);
+        AssemblyOperationExecutor.moveAndDisperseSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
         parent.removeSelection();
     }
 

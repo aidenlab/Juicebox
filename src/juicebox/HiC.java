@@ -47,7 +47,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -59,16 +58,17 @@ import java.util.List;
 public class HiC {
 
     private final HiCTrackManager trackManager;
-    private final HashMap<String, Integer> binSizeDictionary = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
     private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
+    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
     private MatrixType displayOption = MatrixType.OBSERVED;
-    private NormalizationType obsNormalizationType, ctrlNormalizationType;
+    private NormalizationType obsNormalizationType = NormalizationHandler.NONE;
+    private NormalizationType ctrlNormalizationType = NormalizationHandler.NONE;
     private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
     private Dataset controlDataset;
@@ -85,7 +85,6 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private final List<Feature2D> highlightedFeatures = new ArrayList<>();
     private boolean showFeatureHighlight;
 
     public HiC(SuperAdapter superAdapter) {
@@ -95,7 +94,6 @@ public class HiC {
         m_zoomChanged = false;
         m_displayOptionChanged = false;
         m_normalizationTypeChanged = false;
-        initBinSizeDictionary();
     }
 
     /**
@@ -135,7 +133,6 @@ public class HiC {
         obsNormalizationType = NormalizationHandler.NONE;
         ctrlNormalizationType = NormalizationHandler.NONE;
         zoomActionTracker.clear();
-        binSizeDictionary.clear();
         clearFeatures();
     }
 
@@ -957,60 +954,6 @@ public class HiC {
         if (linkedMode) {
             broadcastLocation();
         }
-    }
-
-    public int validateBinSize(String key) {
-        if (binSizeDictionary.containsKey(key)) {
-            return Integer.parseInt(String.valueOf(binSizeDictionary.get(key)));
-        } else {
-            return Integer.MIN_VALUE;
-        }
-    }
-
-    private void initBinSizeDictionary() {
-        // TODO remove magic strings or move this to hicglobals?
-        //BP Bin size:
-        binSizeDictionary.put("2.5M", 2500000);
-        binSizeDictionary.put("1M", 1000000);
-        binSizeDictionary.put("500K", 500000);
-        binSizeDictionary.put("250K", 250000);
-        binSizeDictionary.put("100K", 100000);
-        binSizeDictionary.put("50K", 50000);
-        binSizeDictionary.put("25K", 25000);
-        binSizeDictionary.put("10K", 10000);
-        binSizeDictionary.put("5K", 5000);
-        binSizeDictionary.put("1K", 1000);
-        binSizeDictionary.put("2.5m", 2500000);
-        binSizeDictionary.put("1m", 1000000);
-        binSizeDictionary.put("500k", 500000);
-        binSizeDictionary.put("250k", 250000);
-        binSizeDictionary.put("100k", 100000);
-        binSizeDictionary.put("50k", 50000);
-        binSizeDictionary.put("25k", 25000);
-        binSizeDictionary.put("10k", 10000);
-        binSizeDictionary.put("5k", 5000);
-        binSizeDictionary.put("1k", 1000);
-        binSizeDictionary.put("2500000", 2500000);
-        binSizeDictionary.put("1000000", 1000000);
-        binSizeDictionary.put("500000", 500000);
-        binSizeDictionary.put("250000", 250000);
-        binSizeDictionary.put("100000", 100000);
-        binSizeDictionary.put("50000", 50000);
-        binSizeDictionary.put("25000", 25000);
-        binSizeDictionary.put("10000", 10000);
-        binSizeDictionary.put("5000", 5000);
-        binSizeDictionary.put("1000", 1000);
-        binSizeDictionary.put("500", 500);
-
-        //FRAG Bin size:
-        binSizeDictionary.put("500f", 500);
-        binSizeDictionary.put("200f", 200);
-        binSizeDictionary.put("100f", 100);
-        binSizeDictionary.put("50f", 50);
-        binSizeDictionary.put("20f", 20);
-        binSizeDictionary.put("5f", 5);
-        binSizeDictionary.put("2f", 2);
-        binSizeDictionary.put("1f", 1);
     }
 
     public void loadLoopList(String path) {
