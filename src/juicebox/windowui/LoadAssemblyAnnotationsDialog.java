@@ -281,6 +281,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     SuperAdapter.setDatasetTitle(assemblyPath);
                 } else if (info.itemURL.endsWith("psf")) {
                     psfPath = info.itemURL;
+                    SuperAdapter.setDatasetTitle(psfPath);
                     HiCGlobals.phasing = true;
                 } else {
                     JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
