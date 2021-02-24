@@ -539,7 +539,7 @@ public class MatrixZoomDataPP {
                         Instant F = Instant.now();
                         writeBlockChunk(threadBlocks, threadSafeBlocks, losArray, whichLos, indexEntries, sampledData);
                         Instant G = Instant.now();
-                        System.err.println(chr1 + " " + chr2 + " " + "threadWriteTimes" + " " + whichZoom + " " + threadNum + " " + whichLos + " " + Duration.between(F,G).toMillis());
+                        //System.err.println(chr1 + " " + chr2 + " " + "threadWriteTimes" + " " + whichZoom + " " + threadNum + " " + whichLos + " " + Duration.between(F,G).toMillis());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -585,8 +585,8 @@ public class MatrixZoomDataPP {
         }
         Instant E = Instant.now();
         computeStats(sampledData);
-        System.err.println(chr1 + " " + chr2 + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + Duration.between(C,D).toMillis() + " " +
-                Duration.between(D,E).toMillis());
+        //System.err.println(chr1 + " " + chr2 + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + Duration.between(C,D).toMillis() + " " +
+        //        Duration.between(D,E).toMillis());
         return finalIndexEntries;
     }
 
@@ -624,7 +624,7 @@ public class MatrixZoomDataPP {
             writeBlock(MatrixZoomDataPP.this, currentBlock, sampledData, losArray[threadNum+1], compressor);
             long size = losArray[threadNum+1].getWrittenCount() - position;
             Instant C = Instant.now();
-            System.err.println(chr1 + " " + chr2 + " " + threadNum + " " + num + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis());
+            //System.err.println(chr1 + " " + chr2 + " " + threadNum + " " + num + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis());
 
             indexEntries.add(new IndexEntry(num, position, (int) size));
         }
