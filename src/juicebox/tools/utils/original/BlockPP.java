@@ -54,6 +54,8 @@ class BlockPP {
         return number;
     }
 
+    int getNumRecords() {return contactRecordMap.size();}
+
     void incrementCount(int col, int row, float score) {
         Point p = new Point(col, row);
         ContactCount rec = contactRecordMap.get(p);

@@ -84,13 +84,17 @@ public class Preprocessor {
     protected static final Random random = new Random(5);
     protected static boolean allowPositionsRandomization = false;
     protected static boolean throwOutIntraFrag = false;
+    public static int BLOCK_CAPACITY = 1000;
     
     // Base-pair resolutions
     protected int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
     
     // Fragment resolutions
     protected int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
-    
+
+    // number of resolutions
+    protected int numResolutions = bpBinSizes.length + fragBinSizes.length;
+
     // hic scaling factor value
     protected double hicFileScalingFactor = 1;
     
@@ -301,7 +305,7 @@ public class Preprocessor {
     }
 
 
-    public void preprocess(final String inputFile, final String headerFile, final String footerFile, Map<Integer, Long> mndIndex) throws IOException {
+    public void preprocess(final String inputFile, final String headerFile, final String footerFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
         File file = new File(inputFile);
 
         if (!file.exists() || file.length() == 0) {
@@ -532,6 +536,8 @@ public class Preprocessor {
             los.writeInt(fragBinSizes[i]);
         }
 
+        numResolutions = nBpRes + nFragRes;
+
         // fragment sites
         if (nFragRes > 0) {
             for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
@@ -668,7 +674,7 @@ public class Preprocessor {
         }
     }
 
-    protected void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
 
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);
@@ -756,7 +762,7 @@ public class Preprocessor {
                         System.exit(58);
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes,
-                            fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase);
+                            fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase, BLOCK_CAPACITY);
                 }
                 currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), expectedValueCalculations, tmpDir);
 
@@ -1007,7 +1013,8 @@ public class Preprocessor {
         los.writeInt(numResolutions);
 
         //fos.writeInt(matrix.getZoomData().length);
-        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
+        for ( int i = 0; i < matrix.getZoomData().length; i++) {
+            MatrixZoomDataPP zd = matrix.getZoomData()[i];
             if (zd != null)
                 writeZoomHeader(zd, los);
         }
@@ -1021,12 +1028,19 @@ public class Preprocessor {
 
         final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
 
-        for (MatrixZoomDataPP zd : matrix.getZoomData()) {
+        for (int i = 0; i < matrix.getZoomData().length; i++) {
+            MatrixZoomDataPP zd = matrix.getZoomData()[i];
             if (zd != null) {
-                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(losArray[0], compressor);
+                List<IndexEntry> blockIndex = null;
                 if (doMultiThreadedBehavior) {
+                    if (losArray.length > 1) {
+                        blockIndex = zd.mergeAndWriteBlocks(losArray, compressor, i, matrix.getZoomData().length);
+                    } else {
+                        blockIndex = zd.mergeAndWriteBlocks(losArray[0], compressor);
+                    }
                     localBlockIndexes.put(zd.blockIndexPosition, blockIndex);
                 } else {
+                    blockIndex = zd.mergeAndWriteBlocks(losArray[0], compressor);
                     updateIndexPositions(blockIndex, losArray, true, outputFile, 0, zd.blockIndexPosition);
                 }
             }

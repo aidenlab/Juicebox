@@ -126,7 +126,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
         int blockCapacity = parser.getBlockCapacityOption();
         if (blockCapacity > 10) {
-            MatrixZoomDataPP.BLOCK_CAPACITY = blockCapacity;
+            Preprocessor.BLOCK_CAPACITY = blockCapacity;
         }
 
         noNorm = parser.getNoNormOption();

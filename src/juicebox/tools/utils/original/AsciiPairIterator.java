@@ -57,6 +57,10 @@ public class AsciiPairIterator implements PairIterator {
     private int dcicMapqIndex1 = -1;
     private int dcicMapqIndex2 = -1;
     private final ChromosomeHandler handler;
+    private long mndStart = 0;
+    private int mndChunkSize = 0;
+    private int mndChunkCounter = 0;
+    private boolean stopAfterChunk = false;
     //CharMatcher.anyOf(";,.")
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, ChromosomeHandler handler) throws IOException {
@@ -91,6 +95,28 @@ public class AsciiPairIterator implements PairIterator {
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();
     }
+
+    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex, int mndChunk, ChromosomeHandler handler) throws IOException {
+        this.handler = handler;
+        if (path.endsWith(".gz")) {
+            System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
+            System.exit(70);
+        } else {
+            //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
+            FileInputStream fis = new FileInputStream(path);
+            fis.getChannel().position(mndIndex);
+            this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
+            //FileChannel fc = FileChannel.open(new File(path).toPath(), StandardOpenOption.READ);
+            //fc.position(mndIndex);
+            //this.reader = new BufferedReader(Channels.newReader(fc, "US-ASCII"), HiCGlobals.bufferSize);
+            this.mndStart = mndIndex;
+            this.mndChunkSize = mndChunk;
+            this.stopAfterChunk = true;
+        }
+        this.chromosomeOrdinals = chromosomeOrdinals;
+        advance();
+    }
+
     /**
      * Read the next record
      * <p/>
@@ -120,7 +146,16 @@ public class AsciiPairIterator implements PairIterator {
 
         try {
             String nextLine;
-            if ((nextLine = reader.readLine()) != null) {
+            nextLine = reader.readLine();
+            if (nextLine != null) {
+                mndChunkCounter += nextLine.length() + 1;
+                if (stopAfterChunk) {
+                    if (mndChunkCounter > mndChunkSize) {
+                        nextLine = null;
+                    }
+                }
+            }
+            if (nextLine != null) {
                 //String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
                 String[] tokens = JuiceboxCLT.splitToList(nextLine);
 
