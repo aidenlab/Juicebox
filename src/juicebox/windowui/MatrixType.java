@@ -81,12 +81,19 @@ public enum MatrixType {
     EIGENVECTOR("Eigenvector"),
     NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
 
-    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            OBSERVED, OE, OEV2, PEARSON, LOG,
-            CONTROL, OECTRL, OECTRLV2, PEARSONCTRL, LOGC,
-            RATIO, RATIOV2, VS, OEVS, OEVSV2, PEARSONVS, LOGEOVS};
+    private static final MatrixType[] enabledMatrixTypesNoControl =
+            new MatrixType[]{OBSERVED, OE, OEV2, PEARSON, LOG};
 
-    public static final MatrixType[] enabledMatrixTypesWithControlDev = new MatrixType[]{
+    private static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
+            OBSERVED, CONTROL, VS, RATIO, RATIOV2,
+            OE, OECTRL, OEVS, OEV2, OECTRLV2, OEVSV2,
+            PEARSON, PEARSONCTRL, PEARSONVS, LOG, LOGC, LOGEOVS};
+
+    private static final MatrixType[] enabledMatrixTypesNoControlDev =
+            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
+                    LOG, LOGEO, EXPLOGEO};
+
+    private static final MatrixType[] enabledMatrixTypesWithControlDev = new MatrixType[]{
             OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON, LOG, LOGEO,
             CONTROL, OECTRL, OECTRLV2, OECTRLP1, OECTRLP1V2, CME, PEARSONCTRL, LOGC, LOGCEO,
             VS, RATIO, RATIOV2, RATIOP1, RATIOP1V2, RATIO0, RATIO0V2, RATIO0P1, RATIO0P1V2,
@@ -96,13 +103,7 @@ public enum MatrixType {
             EXPLOGEO, EXPLOGCEO
     };
 
-    public static final MatrixType[] enabledMatrixTypesNoControlDev =
-            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
-                    LOG, LOGEO, EXPLOGEO};
-
-    public static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, OE, OEV2, PEARSON, LOG};
-
+    private static boolean useAdvancedViews = false;
     private final String value;
 
     MatrixType(String value) {
@@ -208,6 +209,28 @@ public enum MatrixType {
 
     public static boolean isControlPearsonType(MatrixType option) {
         return option.toString().toLowerCase().contains("control") && option.toString().toLowerCase().contains("pearson");
+    }
+
+    public static MatrixType[] getOptions(boolean withControl) {
+        if (withControl) {
+            if (useAdvancedViews) {
+                return MatrixType.enabledMatrixTypesWithControlDev;
+            }
+            return MatrixType.enabledMatrixTypesWithControl;
+        } else {
+            if (useAdvancedViews) {
+                return MatrixType.enabledMatrixTypesNoControlDev;
+            }
+            return MatrixType.enabledMatrixTypesNoControl;
+        }
+    }
+
+    public static void toggleAdvancedViews() {
+        useAdvancedViews = !useAdvancedViews;
+    }
+
+    public static boolean getAdvancedViewEnabled() {
+        return useAdvancedViews;
     }
 
     public String toString() {

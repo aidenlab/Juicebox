@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -153,11 +153,15 @@ public class SuperAdapter {
 
     public void resetControlMap() {
         hic.setControlDataset(null);
-        MatrixType[] options = MatrixType.enabledMatrixTypesNoControl;
-        mainViewPanel.setSelectedDisplayOption(options, false);
+        mainViewPanel.setSelectedDisplayOption(false, false);
         currentlyLoadedControlFiles = null;
         controlTitle = null;
         updateTitle();
+    }
+
+    public void toggleAdvancedViews() {
+        MatrixType.toggleAdvancedViews();
+        mainViewPanel.setSelectedDisplayOption(false, hic.isControlLoaded());
     }
 
     public void launchSlideShow() {
@@ -440,10 +444,8 @@ public class SuperAdapter {
                 resetControlMap();
             }
 
-            MatrixType[] options;
             if (control) {
                 hic.setControlDataset(dataset);
-                options = MatrixType.enabledMatrixTypesWithControl;
                 mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
                         dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
@@ -455,12 +457,6 @@ public class SuperAdapter {
                 mainViewPanel.setEnabledForNormalization(false, hic.getNormalizationOptions(false),
                         dataset.getVersion() >= HiCGlobals.minVersion);
 
-                if (hic.isControlLoaded()) {
-                    options = MatrixType.enabledMatrixTypesWithControl;
-                } else {
-                    options = MatrixType.enabledMatrixTypesNoControl;
-                }
-
                 hic.resetContexts();
                 updateTrackPanel();
                 mainViewPanel.getMenuBar().getRecentLocationMenu().setEnabled(true);
@@ -470,7 +466,7 @@ public class SuperAdapter {
                 mainViewPanel.unsafeRefreshChromosomes(SuperAdapter.this);
 
             }
-            mainViewPanel.setSelectedDisplayOption(options, control);
+            mainViewPanel.setSelectedDisplayOption(control, hic.isControlLoaded());
             setEnableForAllElements(true);
 
             if (control) {

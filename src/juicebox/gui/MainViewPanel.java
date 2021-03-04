@@ -876,10 +876,19 @@ public class MainViewPanel {
         resolutionSlider.reset();
     }
 
-    public void setSelectedDisplayOption(MatrixType[] options, boolean control) {
-        if (control) {
-            MatrixType originalMatrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
-            displayOptionComboBox.setModel(new DefaultComboBoxModel<>(options));
+    public void setSelectedDisplayOption(boolean isControl, boolean isControlAlreadyLoaded) {
+        MatrixType[] options = MatrixType.getOptions(isControl || isControlAlreadyLoaded);
+
+
+        MatrixType originalMatrixType;
+        try {
+            originalMatrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
+        } catch (Exception e) {
+            originalMatrixType = null;
+        }
+        displayOptionComboBox.setModel(new DefaultComboBoxModel<>(options));
+
+        if (originalMatrixType != null) {
             int indx = 0;
             for (int i = 0; i < displayOptionComboBox.getItemCount(); i++) {
                 if (originalMatrixType.equals(displayOptionComboBox.getItemAt(i))) {
@@ -889,7 +898,6 @@ public class MainViewPanel {
             }
             displayOptionComboBox.setSelectedIndex(indx);
         } else {
-            displayOptionComboBox.setModel(new DefaultComboBoxModel<>(options));
             displayOptionComboBox.setSelectedIndex(0);
         }
     }

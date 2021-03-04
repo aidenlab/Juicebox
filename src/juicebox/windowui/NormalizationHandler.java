@@ -109,6 +109,8 @@ public class NormalizationHandler {
         normalizationTypes.add(VC_SQRT);
         //normalizationTypes.add(KR);
         normalizationTypes.add(SCALE);
+        normalizationTypes.add(INTER_SCALE);
+        normalizationTypes.add(GW_SCALE);
         return normalizationTypes;
     }
 }

@@ -428,6 +428,18 @@ public class MainMenuBar extends JMenuBar {
     darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
     viewMenu.add(darkulaMode);
 
+    final JCheckBoxMenuItem advancedViewsMode = new JCheckBoxMenuItem("Advanced Views Mode");
+    advancedViewsMode.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        MatrixType.toggleAdvancedViews();
+        //superAdapter.getMainViewPanel().resetAllColors();
+        //superAdapter.refresh();
+      }
+    });
+    advancedViewsMode.setSelected(MatrixType.getAdvancedViewEnabled());
+    viewMenu.add(advancedViewsMode);
+
     JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome (from .bed)...");
     addCustomChromosome.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {

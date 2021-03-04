@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -30,6 +30,7 @@ import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
 import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -67,7 +68,11 @@ public class AddNorm extends JuiceboxCLT {
     public static Map<NormalizationType, Integer> defaultHashMapForResToBuildTo(List<NormalizationType> normalizationTypes) {
         HashMap<NormalizationType, Integer> map = new HashMap<>();
         for (NormalizationType norm : normalizationTypes) {
-            map.put(norm, 0);
+            if (NormalizationHandler.isGenomeWideNorm(norm)) {
+                map.put(norm, 25000);
+            } else {
+                map.put(norm, 0);
+            }
         }
         return map;
     }
