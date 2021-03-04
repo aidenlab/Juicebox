@@ -56,7 +56,7 @@ public class MatrixPP {
      * @param chr2Idx             Chromosome 2
      */
     public MatrixPP(int chr1Idx, int chr2Idx, ChromosomeHandler chromosomeHandler, int[] bpBinSizes,
-                    FragmentCalculation fragmentCalculation, int[] fragBinSizes, int countThreshold, int v9DepthBase) {
+                    FragmentCalculation fragmentCalculation, int[] fragBinSizes, int countThreshold, int v9DepthBase, int BLOCK_CAPACITY) {
         this.chr1Idx = chr1Idx;
         this.chr2Idx = chr2Idx;
 
@@ -84,7 +84,7 @@ public class MatrixPP {
             } else {
                 nColumns = getNumColumnsFromNumBins(nBins, binSize, INTER_CUTOFF);
             }
-            zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold, v9DepthBase);
+            zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, false, fragmentCalculation, countThreshold, v9DepthBase, BLOCK_CAPACITY);
             zoom++;
 
         }

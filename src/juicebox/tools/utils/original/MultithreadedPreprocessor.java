@@ -31,6 +31,8 @@ import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.util.Pair;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -46,13 +48,27 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Integer> chromosomePairIndex2 = new ConcurrentHashMap<>();
     private int chromosomePairCounter = 0;
     private final Map<Integer, Integer> nonemptyChromosomePairs = new ConcurrentHashMap<>();
-    private final Map<Integer, MatrixPP> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
+    private final Map<Integer, Map<Integer, MatrixPP>> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
     private final Map<String, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
     private final Map<Integer, Long> matrixSizes = new ConcurrentHashMap<>();
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
-    private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
-    protected static Map<Integer, Long> mndIndex = null;
+    private Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
+    protected static Map<Integer, List<long[]>> mndIndex = null;
+    private final AtomicInteger chunkCounter = new AtomicInteger(0);
+    private int totalChunks = 0;
+    private int totalChrPairToWrite = 0;
+    private final AtomicInteger totalChrPairsWritten = new AtomicInteger(0);
+    private final ConcurrentHashMap<Integer, AtomicInteger> completedChunksPerChrPair = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Integer> numChunksPerChrPair = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, AtomicInteger> chrPairCompleted = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, AtomicInteger> chrPairAvailableThreads = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Integer> chrPairBlockCapacities = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrPairMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrChunkMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Map<Integer, Pair<Pair<Integer,Integer>, MatrixPP>>> threadSpecificChrPairMatrices = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, MatrixPP> finalChrMatrices = new ConcurrentHashMap<>();
+
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
@@ -83,7 +99,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
         }
 
         this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
-        this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
+        this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(numCPUThreads, (float) 0.75, numCPUThreads);
     }
 
     public void setNumCPUThreads(int numCPUThreads) {
@@ -97,7 +113,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     @Override
-    public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer, Long> ignore3) throws IOException {
+    public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer, List<long[]>> ignore3) throws IOException {
         super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 
         try {
@@ -107,9 +123,18 @@ public class MultithreadedPreprocessor extends Preprocessor {
             catOutputLine.append("cat ").append(outputFile + "_header");
             removeLine.append("rm ").append(outputFile + "_header");
             for (int i = 0; i < chromosomePairCounter; i++) {
-                if ((nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i)) || i == 0) {
+                if ((nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i) && mndIndex.containsKey(i)) || i == 0) {
                     catOutputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
                     removeLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i));
+                    if (i > 0) {
+                        int numOfNeededThreads = chrPairAvailableThreads.get(i).get();
+                        if (numOfNeededThreads > 1) {
+                            for (int j = 1; j <= numOfNeededThreads * numResolutions; j++) {
+                                catOutputLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j);
+                                removeLine.append(" ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j);
+                            }
+                        }
+                    }
                 }
             }
             catOutputLine.append(" ").append(outputFile + "_footer").append(" > ").append(outputFile).append("\n");
@@ -118,26 +143,31 @@ public class MultithreadedPreprocessor extends Preprocessor {
             finalOutput.println(removeLine.toString());
             finalOutput.close();
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("Unable to write to catOutputs.sh");
             System.exit(70);
         }
     }
 
-    private Map<Integer, Long> readMndIndex(String mndIndexFile) {
+    private Map<Integer, List<long[]>> readMndIndex(String mndIndexFile) {
         FileInputStream is = null;
-        Map<String, Long> tempIndex = new HashMap<>();
-        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
+        Map<String, List<long[]>> tempIndex = new HashMap<>();
+        Map<Integer, List<long[]>> mndIndex = new ConcurrentHashMap<>();
         try {
             is = new FileInputStream(mndIndexFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 String[] nextEntry = nextLine.split(",");
-                if (nextEntry.length > 2 || nextEntry.length < 2) {
+                if (nextEntry.length > 4 || nextEntry.length < 4) {
                     System.err.println("Improperly formatted merged nodups index");
                     System.exit(70);
                 } else {
-                    tempIndex.put(nextEntry[0], Long.parseLong(nextEntry[1]));
+                    if (tempIndex.get(nextEntry[0])==null) {
+                        tempIndex.put(nextEntry[0], new ArrayList<>());
+                    }
+                    long[] indexEntry = new long[]{Long.parseLong(nextEntry[2]),Long.parseLong(nextEntry[3])};
+                    tempIndex.get(nextEntry[0]).add(indexEntry);
                 }
             }
         } catch (Exception e) {
@@ -166,21 +196,14 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
     }
 
-    private void writeBodySingleChromosomePair(String inputFile, String splitInputFile, int givenChromosomePairIndex, Set<String> syncWrittenMatrices, ChromosomeHandler
-            localChromosomeHandler, Map<String, ExpectedValueCalculation>
-            localExpectedValueCalculations, Long mndIndexPosition) throws IOException {
+    private Pair<Pair<Integer,Integer>, MatrixPP> processIndividualMatrixChunk(String inputFile, int chunkNumber,
+                                                                               int currentChrPair, Set<String> syncWrittenMatrices, Map<String, ExpectedValueCalculation>
+                                                                                       localExpectedValueCalculations, int threadNum) throws IOException {
 
-        MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(localChromosomeHandler);
 
-        PairIterator iter;
-        if (mndIndex == null) {
-            iter = (inputFile.endsWith(".bin")) ?
-                    new BinPairIterator(splitInputFile) :
-                    new AsciiPairIterator(splitInputFile, chromosomeIndexes, chromosomeHandler);
-        } else {
-            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, mndIndexPosition, chromosomeHandler);
-        }
-
+        MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(chromosomeHandler);
+        int i = chunkNumber;
+        int chunksProcessed = 0;
 
         String currentMatrixName = null;
         int currentPairIndex = -1;
@@ -190,143 +213,250 @@ public class MultithreadedPreprocessor extends Preprocessor {
         MatrixPP currentMatrix = null;
         String currentMatrixKey = null;
 
-        while (iter.hasNext()) {
-            AlignmentPair pair = iter.next();
-            // skip pairs that mapped to contigs
-            if (!pair.isContigPair()) {
-                if (shouldSkipContact(pair)) continue;
-                // Flip pair if needed so chr1 < chr2
-                int chr1, chr2, bp1, bp2, frag1, frag2;
-                if (pair.getChr1() < pair.getChr2()) {
-                    bp1 = pair.getPos1();
-                    bp2 = pair.getPos2();
-                    frag1 = pair.getFrag1();
-                    frag2 = pair.getFrag2();
-                    chr1 = pair.getChr1();
-                    chr2 = pair.getChr2();
-                    if (bp1 < 0) {
-                        bp1 = 0;
-                    } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
-                        bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
-                    }
-                    if (bp2 < 0) {
-                        bp2 = 0;
-                    } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
-                        bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
-                    }
-                } else {
-                    bp1 = pair.getPos2();
-                    bp2 = pair.getPos1();
-                    frag1 = pair.getFrag2();
-                    frag2 = pair.getFrag1();
-                    chr1 = pair.getChr2();
-                    chr2 = pair.getChr1();
-                    if (bp1 < 0) {
-                        bp1 = 0;
-                    } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
-                        bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
-                    }
-                    if (bp2 < 0) {
-                        bp2 = 0;
-                    } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
-                        bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
-                    }
-                }
-
-
-                // Randomize position within fragment site
-                if (allowPositionsRandomization && fragmentCalculation != null) {
-                    Pair<Integer, Integer> newBPos12 = getRandomizedPositions(chr1, chr2, frag1, frag2, bp1, bp2);
-                    bp1 = newBPos12.getFirst();
-                    bp2 = newBPos12.getSecond();
-                }
-                // only increment if not intraFragment and passes the mapq threshold
-                if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
-                    // Starting a new matrix
-                    if (currentMatrix != null) {
-                        currentMatrix.parsingComplete();
-                        LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
-                        //long A = System.currentTimeMillis();
-                        writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
-                        //long B = System.currentTimeMillis();
-                        //System.out.println("Time to write matrix "+currentPairIndex+": " + (B-A));
-                        syncWrittenMatrices.add(currentMatrixKey);
-                        currentMatrix = null;
-                        System.gc();
-                        break;
-                        //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
-                    }
-
-                    // Start the next matrix
-                    currentChr1 = chr1;
-                    currentChr2 = chr2;
-                    currentMatrixKey = currentChr1 + "_" + currentChr2;
-
-                    currentMatrixName = localChromosomeHandler.getChromosomeFromIndex(chr1).getName() + "-" + localChromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                    currentPairIndex = chromosomePairIndexesReverse.get(currentMatrixName);
-
-                    if (currentPairIndex != givenChromosomePairIndex) {
-                        break;
-                    }
-
-                    if (syncWrittenMatrices.contains(currentMatrixKey)) {
-                        System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
-                        if (outputFile != null) outputFile.deleteOnExit();
-                        System.exit(58);
-                    }
-                    currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes,
-                            fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase);
-                }
-                currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), localExpectedValueCalculations, tmpDir);
-
-                int pos1 = getGenomicPosition(chr1, bp1, localChromosomeHandler);
-                int pos2 = getGenomicPosition(chr2, bp2, localChromosomeHandler);
-                wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), localExpectedValueCalculations, tmpDir);
-
+        while (i < totalChunks) {
+            int chrPair = chunkCounterToChrPairMap.get(i);
+            if (chrPair != currentChrPair) {
+                break;
             }
-        }
+            int chrChunk = chunkCounterToChrChunkMap.get(i);
+            List<long[]> chunkPositions = mndIndex.get(chrPair);
+            PairIterator iter = null;
+            if (mndIndex == null) {
+                System.err.println("No index for merged nodups file.");
+            } else {
+                iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chunkPositions.get(chrChunk)[0], (int) chunkPositions.get(chrChunk)[1], chromosomeHandler);
+            }
+            while (iter.hasNext()) {
+                AlignmentPair pair = iter.next();
+                // skip pairs that mapped to contigs
+                if (!pair.isContigPair()) {
+                    if (shouldSkipContact(pair)) continue;
+                    // Flip pair if needed so chr1 < chr2
+                    int chr1, chr2, bp1, bp2, frag1, frag2;
+                    if (pair.getChr1() < pair.getChr2()) {
+                        bp1 = pair.getPos1();
+                        bp2 = pair.getPos2();
+                        frag1 = pair.getFrag1();
+                        frag2 = pair.getFrag2();
+                        chr1 = pair.getChr1();
+                        chr2 = pair.getChr2();
+                        if (bp1 < 0) {
+                            bp1 = 0;
+                        } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
+                            bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
+                        }
+                        if (bp2 < 0) {
+                            bp2 = 0;
+                        } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
+                            bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
+                        }
+                    } else {
+                        bp1 = pair.getPos2();
+                        bp2 = pair.getPos1();
+                        frag1 = pair.getFrag2();
+                        frag2 = pair.getFrag1();
+                        chr1 = pair.getChr2();
+                        chr2 = pair.getChr1();
+                        if (bp1 < 0) {
+                            bp1 = 0;
+                        } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
+                            bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
+                        }
+                        if (bp2 < 0) {
+                            bp2 = 0;
+                        } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
+                            bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
+                        }
+                    }
 
+                    // Randomize position within fragment site
+                    if (allowPositionsRandomization && fragmentCalculation != null) {
+                        Pair<Integer, Integer> newBPos12 = getRandomizedPositions(chr1, chr2, frag1, frag2, bp1, bp2);
+                        bp1 = newBPos12.getFirst();
+                        bp2 = newBPos12.getSecond();
+                    }
+                    // only increment if not intraFragment and passes the mapq threshold
+                    if (!(currentChr1 == chr1 && currentChr2 == chr2)) {
+
+                        // Start the next matrix
+                        currentChr1 = chr1;
+                        currentChr2 = chr2;
+                        currentMatrixKey = currentChr1 + "_" + currentChr2;
+
+                        currentMatrixName = chromosomeHandler.getChromosomeFromIndex(chr1).getName() + "-" + chromosomeHandler.getChromosomeFromIndex(chr2).getName();
+                        currentPairIndex = chromosomePairIndexesReverse.get(currentMatrixName);
+
+                        if (currentPairIndex != currentChrPair) {
+                            break;
+                        }
+
+                        if (syncWrittenMatrices.contains(currentMatrixKey)) {
+                            System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
+                            if (outputFile != null) outputFile.deleteOnExit();
+                            System.exit(58);
+                        }
+                        currentMatrix = new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes, fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase, chrPairBlockCapacities.get(currentChrPair));
+                    }
+                    currentMatrix.incrementCount(bp1, bp2, frag1, frag2, pair.getScore(), localExpectedValueCalculations, tmpDir);
+
+                    int pos1 = getGenomicPosition(chr1, bp1, chromosomeHandler);
+                    int pos2 = getGenomicPosition(chr2, bp2, chromosomeHandler);
+                    wholeGenomeMatrix.incrementCount(pos1, pos2, pos1, pos2, pair.getScore(), localExpectedValueCalculations, tmpDir);
+
+                }
+            }
+
+            if (iter != null) iter.close();
+            chunksProcessed++;
+            i = chunkCounter.getAndIncrement();
+        }
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
-            writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
+            //LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(currentPairIndex)), HiCGlobals.bufferSize))};
+            //writeMatrix(currentMatrix, localLos, getDefaultCompressor(), localMatrixPositions, currentPairIndex, true);
         }
-
-
-        if (iter != null) iter.close();
-
-        wholeGenomeMatrixParts.put(currentPairIndex, wholeGenomeMatrix);
+        wholeGenomeMatrixParts.get(currentChrPair).put(threadNum, wholeGenomeMatrix);
+        return new Pair<>(new Pair<>(i, chunksProcessed), currentMatrix);
 
     }
 
     @Override
-    protected void writeBody(String inputFile, Map<Integer, Long> mndIndex) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
 
         Set<String> syncWrittenMatrices = Collections.synchronizedSet(new HashSet<>());
-        final AtomicInteger chromosomePair = new AtomicInteger(1);
+        final AtomicInteger freeThreads = new AtomicInteger(numCPUThreads);
+
+        for (int chrPair = 1; chrPair < chromosomePairCounter; chrPair++) {
+            if (mndIndex.containsKey(chrPair)) {
+                int numOfChunks = mndIndex.get(chrPair).size();
+                totalChrPairToWrite++;
+                completedChunksPerChrPair.put(chrPair, new AtomicInteger(0));
+                numChunksPerChrPair.put(chrPair, numOfChunks);
+                chrPairCompleted.put(chrPair, new AtomicInteger(0));
+                chrPairAvailableThreads.put(chrPair, new AtomicInteger(0));
+                chrPairBlockCapacities.put(chrPair, BLOCK_CAPACITY/Math.min(numCPUThreads,numOfChunks));
+                threadSpecificChrPairMatrices.put(chrPair, new ConcurrentHashMap<>());
+                wholeGenomeMatrixParts.put(chrPair, new ConcurrentHashMap<>());
+                for (int i=0; i<numOfChunks; i++) {
+                    int currentChunk = totalChunks;
+                    chunkCounterToChrPairMap.put(currentChunk, chrPair);
+                    chunkCounterToChrChunkMap.put(currentChunk, i);
+                    totalChunks++;
+                }
+            }
+        }
 
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
-        for (int l = 0; l < numCPUThreads; l++) {
-            final int threadNum = l;
+        for (int i = 1; i < numCPUThreads; i++) {
+            int threadNum = i;
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
-                    runIndividualMatrixCode(chromosomePair, inputFile, syncWrittenMatrices, threadNum, mndIndex);
+                    try {
+                        int currentChunk = chunkCounter.getAndIncrement();
+                        Map<String, ExpectedValueCalculation> localExpectedValueCalculations = null;
+                        if (expectedVectorFile == null) {
+                            localExpectedValueCalculations = new LinkedHashMap<>();
+                            for (int bBinSize : bpBinSizes) {
+                                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
+                                String key = "BP_" + bBinSize;
+                                localExpectedValueCalculations.put(key, calc);
+                            }
+                            if (fragmentCalculation != null) {
+                                // Create map of chr name -> # of fragments
+                                Map<String, int[]> sitesMap = fragmentCalculation.getSitesMap();
+                                Map<String, Integer> fragmentCountMap = new HashMap<>();
+                                for (Map.Entry<String, int[]> entry : sitesMap.entrySet()) {
+                                    int fragCount = entry.getValue().length + 1;
+                                    String chr = entry.getKey();
+                                    fragmentCountMap.put(chr, fragCount);
+                                }
+
+                                for (int fBinSize : fragBinSizes) {
+                                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
+                                    String key = "FRAG_" + fBinSize;
+                                    localExpectedValueCalculations.put(key, calc);
+                                }
+
+                            }
+                        }
+                        while (currentChunk < totalChunks) {
+                            int currentChrPair = chunkCounterToChrPairMap.get(currentChunk);
+                            Instant A = Instant.now();
+                            threadSpecificChrPairMatrices.get(currentChrPair).put(threadNum, processIndividualMatrixChunk(inputFile, currentChunk, currentChrPair, syncWrittenMatrices, localExpectedValueCalculations, threadNum));
+                            Instant B = Instant.now();
+                            synchronized(finalChrMatrices) {
+                                if (!finalChrMatrices.containsKey(currentChrPair)) {
+                                    int currentChr1 = chromosomePairIndex1.get(currentChrPair);
+                                    int currentChr2 = chromosomePairIndex2.get(currentChrPair);
+                                    finalChrMatrices.put(currentChrPair, new MatrixPP(currentChr1, currentChr2, chromosomeHandler, bpBinSizes, fragmentCalculation, fragBinSizes, countThreshold, v9DepthBase, chrPairBlockCapacities.get(currentChrPair)));
+                                }
+                                synchronized(finalChrMatrices.get(currentChrPair)) {
+                                    finalChrMatrices.get(currentChrPair).mergeMatrices(threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getSecond());
+                                }
+                            }
+                            Instant C = Instant.now();
+                            for (int completedChunks = 0; completedChunks < threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getSecond(); completedChunks++) {
+                                completedChunksPerChrPair.get(currentChrPair).getAndIncrement();
+                            }
+                            System.err.println(currentChrPair + " " + threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getSecond() + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + completedChunksPerChrPair.get(currentChrPair).get());
+                            currentChunk = threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getFirst();
+                            int currentAvailableThreads = chrPairAvailableThreads.get(currentChrPair).incrementAndGet();
+                            if (completedChunksPerChrPair.get(currentChrPair).get() == numChunksPerChrPair.get(currentChrPair)) {
+                                Instant D = Instant.now();
+                                WriteIndividualMatrix(currentChrPair, currentAvailableThreads);
+                                Instant E = Instant.now();
+                                finalChrMatrices.remove(currentChrPair);
+                                threadSpecificChrPairMatrices.remove(currentChrPair);
+                                chrPairCompleted.get(currentChrPair).getAndIncrement();
+                                System.err.println(currentChrPair + " " + Duration.between(D,E).toMillis());
+                            }
+                            while (chrPairCompleted.get(currentChrPair).get() == 0) {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                }
+                            }
+
+                        }
+                        allLocalExpectedValueCalculations.put(threadNum, localExpectedValueCalculations);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             };
             executor.execute(worker);
         }
         executor.shutdown();
+
         // Wait until all threads finish
         while (!executor.isTerminated()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+            }
         }
+
+
+        if (expectedVectorFile == null) {
+            for (int i = 0; i < numCPUThreads; i++) {
+                if (allLocalExpectedValueCalculations.get(i) != null) {
+                    for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
+                        expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
+                    }
+                }
+            }
+        }
+
 
         MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(chromosomeHandler);
 
         for (int i = 1; i < chromosomePairCounter; i++) {
             if (nonemptyChromosomePairs.containsKey(i)) {
                 if (wholeGenomeMatrixParts.containsKey(i)) {
-                    wholeGenomeMatrix.mergeMatrices(wholeGenomeMatrixParts.get(i));
+                    for (Map.Entry<Integer,MatrixPP> entry : wholeGenomeMatrixParts.get(i).entrySet()) {
+                        wholeGenomeMatrix.mergeMatrices(entry.getValue());
+                    }
                 }
             }
         }
@@ -355,101 +485,38 @@ public class MultithreadedPreprocessor extends Preprocessor {
 
         masterIndexPosition = currentPosition;
 
-        if (expectedVectorFile == null) {
-            for (int i = 0; i < numCPUThreads; i++) {
-                for (Map.Entry<String, ExpectedValueCalculation> entry : allLocalExpectedValueCalculations.get(i).entrySet()) {
-                    expectedValueCalculations.get(entry.getKey()).merge(entry.getValue());
-                }
-            }
-        }
+
     }
 
-    void runIndividualMatrixCode(AtomicInteger chromosomePair, String inputFile, Set<String> syncWrittenMatrices, int threadNum,
-                                 Map<Integer,Long> mndIndex) {
-        int i = chromosomePair.getAndIncrement();
-
-        int localChromosomePairCounter = chromosomePairCounter;
-        Map<String, ExpectedValueCalculation> localExpectedValueCalculations = null;
-        if (expectedVectorFile == null) {
-            localExpectedValueCalculations = new LinkedHashMap<>();
-            for (int bBinSize : bpBinSizes) {
-                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationHandler.NONE);
-                String key = "BP_" + bBinSize;
-                localExpectedValueCalculations.put(key, calc);
+    void WriteIndividualMatrix(Integer chromosomePair, int numOfNeededThreads) throws IOException {
+        int chr1 = chromosomePairIndex1.get(chromosomePair);
+        int chr2 = chromosomePairIndex2.get(chromosomePair);
+        if (includedChromosomes != null) {
+            String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
+            String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
+            if (includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name)) {
+                nonemptyChromosomePairs.put(chromosomePair, 1);
             }
-            if (fragmentCalculation != null) {
-                // Create map of chr name -> # of fragments
-                Map<String, int[]> sitesMap = fragmentCalculation.getSitesMap();
-                Map<String, Integer> fragmentCountMap = new HashMap<>();
-                for (Map.Entry<String, int[]> entry : sitesMap.entrySet()) {
-                    int fragCount = entry.getValue().length + 1;
-                    String chr = entry.getKey();
-                    fragmentCountMap.put(chr, fragCount);
-                }
+        } else {
+            nonemptyChromosomePairs.put(chromosomePair, 1);
+        }
 
-                for (int fBinSize : fragBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationHandler.NONE);
-                    String key = "FRAG_" + fBinSize;
-                    localExpectedValueCalculations.put(key, calc);
-                }
-
+        LittleEndianOutputStream[] localLos;
+        if (numOfNeededThreads == 1) {
+            localLos = new LittleEndianOutputStream[1];
+            localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair)), HiCGlobals.bufferSize));
+        } else {
+            localLos = new LittleEndianOutputStream[(numOfNeededThreads * numResolutions) + 1];
+            localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair)), HiCGlobals.bufferSize));
+            for (int i = 1; i <= numOfNeededThreads * numResolutions; i++) {
+                localLos[i] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair) + "_" + i), HiCGlobals.bufferSize));
             }
         }
-        while (i < localChromosomePairCounter) {
-            //long A = System.currentTimeMillis();
-            Long mndIndexPosition = (long) 0;
-            if (mndIndex != null) {
-                if (!mndIndex.containsKey(i)) {
-                    System.out.println("No index position for " + chromosomePairIndexes.get(i));
-                    i = chromosomePair.getAndIncrement();
-                    continue;
-                } else {
-                    mndIndexPosition = mndIndex.get(i);
-                    try {
-                        writeBodySingleChromosomePair(inputFile, null, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
-                    } catch (Exception e2) {
-                        e2.printStackTrace();
-                    }
-                }
-            } else {
-                // split method; deprecate?
-                boolean isGZ = inputFile.endsWith(".gz");
-                String chrInputFile = inputFile.replaceAll(".gz", "") + "_" + chromosomePairIndexes.get(i);
-                String chrInputFile2 = inputFile + "_" + chromosomeHandler.getChromosomeFromIndex(
-                        chromosomePairIndex2.get(i)).getName() + "_" + chromosomeHandler.getChromosomeFromIndex(
-                        chromosomePairIndex1.get(i)).getName();
-                if (isGZ) {
-                    chrInputFile = chrInputFile + ".gz";
-                    chrInputFile2 = chrInputFile2 + ".gz";
-                }
 
-                try {
-                    writeBodySingleChromosomePair(inputFile, chrInputFile, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
-                } catch (Exception e) {
-                    try {
-                        writeBodySingleChromosomePair(inputFile, chrInputFile2, i, syncWrittenMatrices, chromosomeHandler, localExpectedValueCalculations, mndIndexPosition);
-                    } catch (Exception e2) {
-                        System.err.println("Unable to open " + inputFile + "_" + chromosomePairIndexes.get(i));
-                    }
-                }
-            }
-            int chr1 = chromosomePairIndex1.get(i);
-            int chr2 = chromosomePairIndex2.get(i);
-            if (includedChromosomes != null) {
-                String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
-                String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
-                if (includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name)) {
-                    nonemptyChromosomePairs.put(i, 1);
-                }
-            } else {
-                nonemptyChromosomePairs.put(i, 1);
-            }
-            //long B = System.currentTimeMillis();
-            //System.out.println("Time to process matrix "+i+": " + (B-A));
-            i = chromosomePair.getAndIncrement();
-        }
-        allLocalExpectedValueCalculations.put(threadNum, localExpectedValueCalculations);
+        writeMatrix(finalChrMatrices.get(chromosomePair), localLos, getDefaultCompressor(), localMatrixPositions, chromosomePair, true);
+
     }
+
     @Override
     // MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] localLos,
@@ -458,9 +525,13 @@ public class MultithreadedPreprocessor extends Preprocessor {
         Pair<Map<Long, List<IndexEntry>>, Long> localBlockIndexes = super.writeMatrix(matrix, localLos, localCompressor, localMatrixPositions, chromosomePairIndex, true);
 
         chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes.getFirst());
-        long size = localLos[0].getWrittenCount() - localBlockIndexes.getSecond();
+        long size = 0 - localBlockIndexes.getSecond();
+        for (int i = 0; i < localLos.length; i++ ) {
+            size += localLos[i].getWrittenCount();
+            localLos[i].close();
+        }
         matrixSizes.put(chromosomePairIndex, size);
-        localLos[0].close();
+
 
         //System.out.print(".");
 
