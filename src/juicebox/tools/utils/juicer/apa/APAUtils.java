@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
+import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
@@ -32,6 +33,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -182,6 +184,18 @@ public class APAUtils {
 	
 		return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm, false);
 	}
+
+    public static RealMatrix extractLocalizedExpectedData(ExpectedValueFunction df, Chromosome chr, Feature2D loop, int L, int resolution,
+                                                          int window) throws IOException {
+        int loopX = (int) (loop.getMidPt1() / resolution);
+        int loopY = (int) (loop.getMidPt2() / resolution);
+        int binXStart = loopX - window;
+        int binXEnd = loopX + (window + 1);
+        int binYStart = loopY - window;
+        int binYEnd = loopY + (window + 1);
+
+        return HiCFileTools.extractLocalBoundedExpectedRegion(df, chr, binXStart, binYStart, L, L);
+    }
 
     public static RealMatrix extractLocalizedDataForAFA(MatrixZoomData zd, Feature2D loop,
                                                         int resolution, int window, NormalizationType norm) throws IOException {

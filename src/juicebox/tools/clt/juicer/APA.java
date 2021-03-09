@@ -288,87 +288,90 @@ public class APA extends JuicerCLT {
                 }
                 final int chromosomePairCounter = pairCounter;
 
-                final AtomicInteger chromosomePair = new AtomicInteger(1);
-
-                ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
                 APADataStack.initializeDataSaveFolder(outputDirectory,"" + resolution);
 
-                for (int l = 0; l < numCPUThreads; l++) {
-                    Runnable worker = new Runnable() {
-                        @Override
-                        public void run() {
-                            int threadPair = chromosomePair.getAndIncrement();
-                            while (threadPair < chromosomePairCounter) {
-                                Chromosome chr1 = chromosomePairs.get(threadPair)[0];
-                                Chromosome chr2 = chromosomePairs.get(threadPair)[1];
-                                if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
-                                    APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
+                for (int chrPair = 1; chrPair < chromosomePairCounter; chrPair++) {
+                    Chromosome chr1 = chromosomePairs.get(chrPair)[0];
+                    Chromosome chr2 = chromosomePairs.get(chrPair)[1];
+                    if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
+                        MatrixZoomData zd;
+                        zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
 
-                                    MatrixZoomData zd;
-                                    synchronized (key) {
-                                        zd = HiCFileTools.getMatrixZoomData(ds, chr1, chr2, zoom);
-                                    }
-
-                                    if (zd == null) {
-                                        threadPair = chromosomePair.getAndIncrement();
-                                        continue;
-                                    }
-
-                                    if (HiCGlobals.printVerboseComments) {
-                                        System.out.println("CHR " + chr1.getName() + " " + chr1.getIndex() + " CHR " + chr2.getName() + " " + chr2.getIndex());
-                                    }
-
-                                    List<Feature2D> loops = loopList.get(chr1.getIndex(), chr2.getIndex());
-                                    if (loops == null || loops.size() == 0) {
-                                        if (HiCGlobals.printVerboseComments) {
-                                            System.out.println("CHR " + chr1.getName() + " CHR " + chr2.getName() + " - no loops, check loop filtering constraints");
-                                        }
-                                        threadPair = chromosomePair.getAndIncrement();
-                                        continue;
-                                    }
-
-                                    Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr1, chr2));
-
-                                    if (loops.size() != peakNumbers[0])
-                                        System.err.println("Error reading statistics from " + chr1 + chr2);
-
-                                    for (int i = 0; i < peakNumbers.length; i++) {
-                                        gwPeakNumbers[i].addAndGet(peakNumbers[i]);
-                                    }
-
-                                    for (Feature2D loop : loops) {
-                                        try {
-                                            RealMatrix newData;
-                                            synchronized (key) {
-                                                newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm);
-                                            }
-                                            apaDataStack.addData(newData);
-                                            //apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
-                                        } catch (Exception e) {
-                                            System.err.println(e.getMessage());
-                                            System.err.println("Unable to find data for loop: " + loop);
-                                        }
-                                    }
-
-                                    apaDataStack.updateGenomeWideData();
-                                    if (saveAllData) {
-                                        apaDataStack.exportDataSet(chr1.getName() + 'v' + chr2.getName(), peakNumbers, finalCurrentRegionWidth, saveAllData, dontIncludePlots);
-                                    }
-                                    if (chr2.getIndex() == chr1.getIndex()) {
-                                        System.out.print(((int) Math.floor((100.0 * currentProgressStatus.incrementAndGet()) / maxProgressStatus)) + "% ");
-                                    }
-                                }
-                                threadPair = chromosomePair.getAndIncrement();
-                            }
+                        if (zd == null) {
+                            continue;
                         }
-                    };
-                    executor.execute(worker);
-                }
+                        if (HiCGlobals.printVerboseComments) {
+                            System.out.println("CHR " + chr1.getName() + " " + chr1.getIndex() + " CHR " + chr2.getName() + " " + chr2.getIndex());
+                        }
+                        List<Feature2D> loops = loopList.get(chr1.getIndex(), chr2.getIndex());
+                        if (loops == null || loops.size() == 0) {
+                            if (HiCGlobals.printVerboseComments) {
+                                System.out.println("CHR " + chr1.getName() + " CHR " + chr2.getName() + " - no loops, check loop filtering constraints");
+                            }
+                            continue;
+                        }
 
-                executor.shutdown();
+                        int numOfLoopChunks = (loops.size() / 2) + 1;
+                        int numOfLoops = loops.size();
+                        final AtomicInteger loopChunk = new AtomicInteger(0);
+                        Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr1, chr2));
 
-                // Wait until all threads finish
-                while (!executor.isTerminated()) {
+                        if (loops.size() != peakNumbers[0]) {
+                            System.err.println("Error reading statistics from " + chr1 + chr2);
+                        }
+
+                        for (int i = 0; i < peakNumbers.length; i++) {
+                            gwPeakNumbers[i].addAndGet(peakNumbers[i]);
+                        }
+
+                        ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
+                        for (int l = 0; l < numCPUThreads; l++) {
+                            final int threadChrPair = chrPair;
+                            Runnable worker = new Runnable() {
+                                @Override
+                                public void run() {
+                                    APADataStack apaDataStack = new APADataStack(L, chromosomePairCounter);
+                                    int threadChunk = loopChunk.getAndIncrement();
+                                    while (threadChunk < numOfLoopChunks) {
+                                        for (int loopIndex = threadChunk * 2; loopIndex < Math.min(numOfLoops, (threadChunk + 1) * 2); loopIndex++) {
+                                            Feature2D loop = loops.get(loopIndex);
+                                            try {
+                                                RealMatrix newData;
+                                                RealMatrix newExpectedData;
+                                                newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm);
+                                                //newExpectedData = APAUtils.extractLocalizedExpectedData(df, chr1, loop, L, resolution, window);
+                                                apaDataStack.addData(newData);
+                                                //apaDataStack.addExpectedData(newExpectedData);
+                                                //apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
+                                            } catch (Exception e) {
+                                                System.err.println(e);
+                                                System.err.println("Unable to find data for loop: " + loop);
+                                            }
+                                        }
+                                        threadChunk = loopChunk.getAndIncrement();
+                                    }
+                                    synchronized (ds) {
+                                        apaDataStack.updateGenomeWideData();
+                                    }
+
+                                    apaDataStack.updateChromosomeWideData(threadChrPair);
+                                }
+                            };
+                            executor.execute(worker);
+                        }
+                        executor.shutdown();
+
+                        // Wait until all threads finish
+                        while (!executor.isTerminated()) {
+                        }
+
+                        if (saveAllData) {
+                            APADataStack.exportChromosomeData(chr1.getName() + 'v' + chr2.getName(), peakNumbers, finalCurrentRegionWidth, saveAllData, dontIncludePlots, chrPair);
+                        }
+                    }
+                    if (chr2.getIndex() == chr1.getIndex()) {
+                        System.out.print(((int) Math.floor((100.0 * currentProgressStatus.incrementAndGet()) / maxProgressStatus)) + "% ");
+                    }
                 }
 
                 System.out.println("Exporting APA results...");

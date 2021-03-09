@@ -31,9 +31,8 @@ import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by muhammadsaadshamim on 5/1/15.
@@ -48,6 +47,14 @@ public class APADataStack {
     private static RealMatrix gwRankAPAMatrix;
     private static List<Double> gwEnhancement;
     private static final Object key = new Object();
+
+    // chromosome wide variables
+    private static boolean chromosomeWideVariablesNotSet = true;
+    private static Map<Integer, RealMatrix> chrAPAMatrices = new HashMap<>();
+    private static Map<Integer, RealMatrix> chrNormedAPAMatrices = new HashMap<>();
+    private static Map<Integer, RealMatrix> chrCenterNormedAPAMatrices = new HashMap<>();
+    private static Map<Integer, RealMatrix> chrRankAPAMatrices = new HashMap<>();
+    private static Map<Integer, List<Double>> chrEnhancements = new ConcurrentHashMap<>();
 
     // saving data variables
     private static int[] axesRange;
@@ -64,10 +71,8 @@ public class APADataStack {
      * class for saving data from chromosme wide run of APA, keeps static class to store genomide data
      *
      * @param n                width of matrix
-     * @param outputFolder location for saving data
-     * @param customPrefix     optional file/folder prefix
      */
-    public APADataStack(int n, File outputFolder, String customPrefix) {
+    public APADataStack(int n, int nChr) {
         APAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
         normedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
         centerNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
@@ -75,7 +80,7 @@ public class APADataStack {
         enhancement = new ArrayList<>();
 
         initializeGenomeWideVariables(n);
-        initializeDataSaveFolder(outputFolder, customPrefix);
+        initializeChromosomeWideVariables(n, nChr);
         axesRange = new int[]{-n / 2, 1, -n / 2, 1};
     }
 
@@ -102,8 +107,21 @@ public class APADataStack {
             gwCenterNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
             gwRankAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
             //gwCoverage = APAUtils.cleanArray2DMatrix(n, n);
-            gwEnhancement = new ArrayList<>();
+            gwEnhancement = Collections.synchronizedList(new ArrayList<>());
             genomeWideVariablesNotSet = false;
+        }
+    }
+
+    private static void initializeChromosomeWideVariables(int n, int numOfChrPairs) {
+        if (chromosomeWideVariablesNotSet) {
+            for (int i = 1; i < numOfChrPairs; i++) {
+                chrAPAMatrices.put(i, MatrixTools.cleanArray2DMatrix(n, n));
+                chrNormedAPAMatrices.put(i, MatrixTools.cleanArray2DMatrix(n, n));
+                chrCenterNormedAPAMatrices.put(i, MatrixTools.cleanArray2DMatrix(n, n));
+                chrRankAPAMatrices.put(i, MatrixTools.cleanArray2DMatrix(n, n));
+                chrEnhancements.put(i, Collections.synchronizedList(new ArrayList<>()));
+            }
+            chromosomeWideVariablesNotSet = false;
         }
     }
 
@@ -176,15 +194,30 @@ public class APADataStack {
         enhancement.add(APAUtils.peakEnhancement(newData));
     }
 
-    public synchronized void updateGenomeWideData() {
+    public void updateGenomeWideData() {
         synchronized (key) {
             gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
             gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
             gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);
             gwRankAPAMatrix = gwRankAPAMatrix.add(rankAPAMatrix);
+        }
+        synchronized(gwEnhancement) {
             gwEnhancement.addAll(enhancement);
         }
     }
+
+    public void updateChromosomeWideData(int chrPair) {
+        synchronized(chrAPAMatrices) {
+            chrAPAMatrices.put(chrPair, chrAPAMatrices.get(chrPair).add(APAMatrix));
+            chrNormedAPAMatrices.put(chrPair, chrNormedAPAMatrices.get(chrPair).add(normedAPAMatrix));
+            chrCenterNormedAPAMatrices.put(chrPair, chrCenterNormedAPAMatrices.get(chrPair).add(centerNormedAPAMatrix));
+            chrRankAPAMatrices.put(chrPair, chrRankAPAMatrices.get(chrPair).add(rankAPAMatrix));
+        }
+        synchronized(chrEnhancements) {
+            chrEnhancements.get(chrPair).addAll(enhancement);
+        }
+    }
+
 
     public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData, boolean dontIncludePlots) {
         double nPeaksUsedInv = 1. / peakNumbers[0];
@@ -196,6 +229,15 @@ public class APADataStack {
         String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
 
         saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth, saveAllData, dontIncludePlots);
+    }
+
+    public static void exportChromosomeData(String subFolderName, Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData, boolean dontIncludePlots, int chrPair) {
+        double chrNPeaksUsedInv = 1. / peakNumbers[0];
+        RealMatrix[] matrices = {chrAPAMatrices.get(chrPair), chrNormedAPAMatrices.get(chrPair).scalarMultiply(chrNPeaksUsedInv),
+                chrCenterNormedAPAMatrices.get(chrPair).scalarMultiply(chrNPeaksUsedInv), chrRankAPAMatrices.get(chrPair).scalarMultiply(chrNPeaksUsedInv)};
+        String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
+
+        saveDataSet(subFolderName, matrices, titles, chrEnhancements.get(chrPair), peakNumbers, currentRegionWidth, saveAllData, dontIncludePlots);
     }
 
     public void thresholdPlots(int val) {

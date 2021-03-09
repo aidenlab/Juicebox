@@ -352,7 +352,26 @@ public class HiCFileTools {
         
         return data;
     }
-    
+
+    public static RealMatrix extractLocalBoundedExpectedRegion(ExpectedValueFunction df, org.broad.igv.feature.Chromosome chr, int binXStart,
+                                                               int binYStart, int numRows, int numCols) throws IOException {
+
+        // numRows/numCols is just to ensure a set size in case bounds are approximate
+        // left upper corner is reference for 0,0
+        // List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, binYStart, binYEnd, normalizationType, fillUnderDiagonal);
+
+        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
+        for (int relativeX = 0; relativeX < numRows; relativeX++) {
+            for (int relativeY = 0; relativeY < numRows; relativeY++) {
+                int dist = Math.abs((binXStart - binYStart) + (relativeX - relativeY));
+                double expected = df.getExpectedValue(chr.getIndex(), dist);
+                data.addToEntry(relativeX, relativeY, expected);
+            }
+        }
+
+        return data;
+    }
+
     public static List<Block> getAllRegionBlocks(MatrixZoomData zd, long binXStart, long binXEnd,
                                                  long binYStart, long binYEnd,
                                                  NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
