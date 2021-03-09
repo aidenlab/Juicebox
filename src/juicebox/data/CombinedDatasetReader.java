@@ -256,6 +256,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
             dataset.setFragmentCounts(firstDataset.getFragmentCounts());
         }
+        dataset.dynamicZooms = new ArrayList<>();
 
         // Expected values, just sum
         // Map key ==  unit_binSize
