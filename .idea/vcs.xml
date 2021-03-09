@@ -3,22 +3,11 @@
   <component name="GithubSharedProjectSettings">
     <option name="branchProtectionPatterns">
       <list>
-        <option value="stable" />
-        <option value="PublicFriendlyVersion\.6\.29\.2016" />
-        <option value="dev" />
-        <option value="clustering_mahout" />
-        <option value="cache_cleaning" />
         <option value="GUI_AutoTest" />
         <option value="nightly" />
         <option value="Centromeres" />
-        <option value="MotifAnalysis" />
-        <option value="PublicVersionRelease\.7\.27\.2016" />
-        <option value="Public\.Friendly\.Version\.2\.9\.17" />
-        <option value="mss_gene_finder" />
-        <option value="hiccups_postproc_test" />
         <option value="olga_local_standard" />
         <option value="custom_submatrix_option" />
-        <option value="chromosomepanel" />
         <option value="AssemblyGui" />
         <option value="switch_cc_to_bins" />
         <option value="code_cleanup_8_1_17" />

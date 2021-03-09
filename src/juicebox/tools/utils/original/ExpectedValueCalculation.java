@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.IteratorContainer;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
@@ -36,7 +37,7 @@ import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -329,21 +330,21 @@ public class ExpectedValueCalculation {
         computeDensity();
         return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
     }
-	
-	// TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
-	public void addDistancesFromIterator(int chrIndx, List<List<ContactRecord>> recordLists, ListOfFloatArrays vector) {
-		for (List<ContactRecord> recordList : recordLists) {
-			for (ContactRecord cr : recordList) {
-				int x = cr.getBinX();
-				int y = cr.getBinY();
-				final float counts = cr.getCounts();
-				float xVal = vector.get(x);
-				float yVal = vector.get(y);
-				if (NormVectorUpdater.isValidNormValue(xVal) & NormVectorUpdater.isValidNormValue(yVal)) {
-					double value = counts / (xVal * yVal);
-					addDistance(chrIndx, x, y, value);
-				}
-			}
+
+    // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
+    public void addDistancesFromIterator(int chrIndx, IteratorContainer ic, ListOfFloatArrays vector) {
+        Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            final float counts = cr.getCounts();
+            float xVal = vector.get(x);
+            float yVal = vector.get(y);
+            if (NormVectorUpdater.isValidNormValue(xVal) & NormVectorUpdater.isValidNormValue(yVal)) {
+                double value = counts / (xVal * yVal);
+                addDistance(chrIndx, x, y, value);
+            }
         }
     }
 }

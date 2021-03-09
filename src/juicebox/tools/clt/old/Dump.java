@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -33,7 +33,6 @@ import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
-import juicebox.tools.utils.norm.GenomeWideNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationCalculations;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
@@ -44,7 +43,7 @@ import org.broad.igv.util.ResourceLocator;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 
 public class Dump extends JuiceboxCLT {
     
@@ -92,31 +91,25 @@ public class Dump extends JuiceboxCLT {
                 System.exit(1);
             }
 
-            List<List<ContactRecord>> allContactRecords = zd.getContactRecordList();
-            for (List<ContactRecord> contactRecords : allContactRecords) {
-                for (ContactRecord cr : contactRecords) {
-                    pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
-                }
+            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
             }
             pw.close();
             return;
         }
 
         // Build a "whole-genome" matrix
-        List<List<ContactRecord>> recordArrayList = GenomeWideNormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        IteratorContainer ic = new IteratorContainer(dataset, chromosomeHandler, zoom, includeIntra);
 
-        if (recordArrayList.isEmpty()) {
-            System.err.println("No reads found at " +  zoom +". Include intra is " + includeIntra);
+        if (ic.getNumberOfContactRecords() < 1) {
+            System.err.println("No reads found at " + zoom + ". Include intra is " + includeIntra);
             return;
         }
-        int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            totalSize += c1.getLength() / binSize + 1;
-        }
-    
-        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        float[] vector = calculations.getNorm(norm).getValues().get(0);
 
+        NormalizationCalculations calculations = new NormalizationCalculations(ic);
+        float[] vector = calculations.getNorm(norm).getValues().get(0);
 
         if (matrixType == MatrixType.NORM) {
 
@@ -128,18 +121,18 @@ public class Dump extends JuiceboxCLT {
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
 
                 if (zd == null) continue;
-                for (List<ContactRecord> crList : zd.getContactRecordList()) {
-                    for (ContactRecord cr : crList) {
-                        int x = cr.getBinX();
-                        int y = cr.getBinY();
-                        final float counts = cr.getCounts();
-                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                            double value = counts / (vector[x + addY] * vector[y + addY]);
-                            evKR.addDistance(chrIdx, x, y, value);
-                        }
+                Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+                while (iterator.hasNext()) {
+                    ContactRecord cr = iterator.next();
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    final float counts = cr.getCounts();
+                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                        double value = counts / (vector[x + addY] * vector[y + addY]);
+                        evKR.addDistance(chrIdx, x, y, value);
                     }
                 }
-    
+
                 addY += chr.getLength() / binSize + 1;
             }
             evKR.computeDensity();
@@ -157,24 +150,21 @@ public class Dump extends JuiceboxCLT {
     
     
         } else {   // type == "observed"
+            Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
 
-            for (List<ContactRecord> localList : recordArrayList) {
-                for (ContactRecord cr : localList) {
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    float value = cr.getCounts();
-
-                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                        value = (value / (vector[x] * vector[y]));
-                    } else {
-                        value = Float.NaN;
-                    }
-
-                    pw.println(x + "\t" + y + "\t" + value);
+                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                    value = (value / (vector[x] * vector[y]));
+                } else {
+                    value = Float.NaN;
                 }
+                pw.println(x + "\t" + y + "\t" + value);
             }
         }
-
         pw.close();
     }
 
