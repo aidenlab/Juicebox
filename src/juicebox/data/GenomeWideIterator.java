@@ -37,6 +37,7 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
     private final Dataset dataset;
     private final boolean iterationIsDone = false;
     private Iterator<ContactRecord> currentIterator = null;
+
     private int recentAddX = 0;
     private int recentAddY = 0;
     private int c1i = 0, c2i = 0;
@@ -47,6 +48,7 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
         this.includeIntra = includeIntra;
         this.zoom = zoom;
         this.dataset = dataset;
+        getNextIterator();
     }
 
     @Override
@@ -64,15 +66,15 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
         while (c1i < chromosomes.length) {
             Chromosome c1 = chromosomes[c1i];
             while (c2i < chromosomes.length) {
-                if (c1i == c2i && !includeIntra) continue;
                 Chromosome c2 = chromosomes[c2i];
-                if (c1.getIndex() > c2.getIndex()) continue;
 
-                MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
-                if (zd != null) {
-                    currentIterator = zd.getIteratorContainer().getNewContactRecordIterator();
-                    if (currentIterator != null && currentIterator.hasNext()) {
-                        return true;
+                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
+                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
+                    if (zd != null) {
+                        currentIterator = zd.getIteratorContainer().getNewContactRecordIterator();
+                        if (currentIterator != null && currentIterator.hasNext()) {
+                            return true;
+                        }
                     }
                 }
                 recentAddY += c2.getLength() / zoom.getBinSize() + 1;

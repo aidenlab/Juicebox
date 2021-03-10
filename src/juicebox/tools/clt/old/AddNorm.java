@@ -68,11 +68,7 @@ public class AddNorm extends JuiceboxCLT {
     public static Map<NormalizationType, Integer> defaultHashMapForResToBuildTo(List<NormalizationType> normalizationTypes) {
         HashMap<NormalizationType, Integer> map = new HashMap<>();
         for (NormalizationType norm : normalizationTypes) {
-            if (NormalizationHandler.isGenomeWideNorm(norm)) {
-                map.put(norm, 25000);
-            } else {
-                map.put(norm, 0);
-            }
+            map.put(norm, NormalizationHandler.getIdealResolutionLimit(norm));
         }
         return map;
     }
@@ -85,36 +81,29 @@ public class AddNorm extends JuiceboxCLT {
 
         if (args.length == 3) {
             inputVectorFile = args[2];
-        }
-        else if (args.length != 2) {
+        } else if (args.length != 2) {
             printUsageAndExit();
         }
         noFragNorm = parser.getNoFragNormOption();
         genomeWideResolution = parser.getGenomeWideOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
+
         List<String> resolutions = parser.getResolutionOption();
-      
-        if (resolutions == null) {
-            resolutions = new ArrayList<>();
-            for (int i = 0; i < normalizationTypes.size(); i++) {
-                resolutions.add("0");
+        if (resolutions != null && resolutions.size() > 0) {
+            if (resolutions.size() != normalizationTypes.size()) {
+                System.err.println("Error: Number of resolutions and normalizations need to be the same");
+                System.exit(0);
             }
-        }
-        if (resolutions.size() > normalizationTypes.size()) {
-            System.err.println("Error: too many resolutions specified for given normalization types");
-            System.exit(0);
-        }
-        if (resolutions.size() < normalizationTypes.size()) {
-            System.err.println("Error: too few resolutions specified for given normalization types");
-            System.exit(0);
-        }
-        for (int k = 0; k < resolutions.size(); k++) {
-            try {
-                int resVal = Integer.parseInt(resolutions.get(k));
-                resolutionsToBuildTo.put(normalizationTypes.get(k), resVal);
-            } catch (Exception e) {
-                resolutionsToBuildTo.put(normalizationTypes.get(k), 0);
+
+            for (int k = 0; k < resolutions.size(); k++) {
+                NormalizationType normType = normalizationTypes.get(k);
+                try {
+                    int resVal = Integer.parseInt(resolutions.get(k));
+                    resolutionsToBuildTo.put(normType, resVal);
+                } catch (Exception e) {
+                    resolutionsToBuildTo.put(normType, NormalizationHandler.getIdealResolutionLimit(normType));
+                }
             }
         }
 
