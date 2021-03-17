@@ -210,7 +210,7 @@ public class APA extends JuicerCLT {
             resolutions = Ints.toArray(intResolutions);
         }
 
-        numCPUThreads = juicerParser.getNumThreads();
+        updateNumberOfCPUThreads(juicerParser);
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -35,14 +35,33 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws Exception {
-    
-    
-        String[] strings = new String[]{"pre", //"-c", "1", //"--verbose",
-                "/Users/muhammad/JuiceboxMain/data/test.txt.gz",
-                "/Users/muhammad/Dropbox (Lab at Large)/testV9/test_new9-15.hic",
-                "hg19"};
-    
+
+
+        String[] strings = new String[]{"apa",
+                "-r", "5000", "-k", "KR", "--threads", "6", //"-c", "1", //"--verbose",
+                "/Users/mshamim/Desktop/hicfiles/gm12878_rh14_30.hic",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/GM12878_DT_Loops_Merged_lt_85.bedpe",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/apa_lt_85"};
+
+        //HiCTools.main(strings);
+
+        strings = new String[]{"apa",
+                "-r", "5000", "-k", "KR", "--threads", "6", //"-c", "1", //"--verbose",
+                "/Users/mshamim/Desktop/hicfiles/gm12878_rh14_30.hic",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/GM12878_DT_Loops_Merged_gt_85.bedpe",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/apa_gt_85"};
+
+        //HiCTools.main(strings);
+
+
+        strings = new String[]{"apa",
+                "-r", "5000", "-k", "KR", "--threads", "6", //"-c", "1", //"--verbose",
+                "/Users/mshamim/Desktop/hicfiles/gm12878_rh14_30.hic",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/GM12878_DT_Loops_Merged_btwn_85_90.bedpe",
+                "/Users/mshamim/Desktop/in-situ-trident/predictions/apa_btwn_85_90"};
+
         HiCTools.main(strings);
+
         /*
         strings = new String[]{"grind",
                 "-k", "KR", "-r", "25000",// "5000,10000,25000",
