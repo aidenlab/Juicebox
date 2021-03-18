@@ -372,6 +372,48 @@ public class HiCFileTools {
         return data;
     }
 
+    public static RealMatrix extractLocalRowSums(MatrixZoomData zd, long binXStart, long binXEnd,
+                                                 long chrStart, long chrEnd, int numRows,
+                                                 NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {
+
+        // numRows/numCols is just to ensure a set size in case bounds are approximate
+        // left upper corner is reference for 0,0
+        List<Block> blocks = getAllRegionBlocks(zd, binXStart, binXEnd, chrStart, chrEnd, normalizationType, fillUnderDiagonal);
+
+
+        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, 1);
+
+        if (blocks.size() > 0) {
+            for (Block b : blocks) {
+                if (b != null) {
+                    for (ContactRecord rec : b.getContactRecords()) {
+                        // only called for small regions - should not exceed int
+                        int relativeX = (int) (rec.getBinX() - binXStart);
+                        int relativeY = (int) (rec.getBinY() - binXStart);
+
+                        if (relativeX >= 0 && relativeX < numRows) {
+                            if (!Float.isNaN(rec.getCounts())) {
+                                data.addToEntry(relativeX, 0, rec.getCounts());
+                            }
+                        } else if (relativeY >= 0 && relativeY < numRows) {
+                            if (!Float.isNaN(rec.getCounts())) {
+                                data.addToEntry(relativeY, 0, rec.getCounts());
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // force cleanup
+        blocks = null;
+        //System.gc();
+
+        //System.out.println("individual row sum: " + MatrixTools.sum(data.getData()));
+        return data;
+    }
+
     public static List<Block> getAllRegionBlocks(MatrixZoomData zd, long binXStart, long binXEnd,
                                                  long binYStart, long binYEnd,
                                                  NormalizationType normalizationType, boolean fillUnderDiagonal) throws IOException {

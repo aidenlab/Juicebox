@@ -197,6 +197,25 @@ public class APAUtils {
         return HiCFileTools.extractLocalBoundedExpectedRegion(df, chr, binXStart, binYStart, L, L);
     }
 
+    public static List<RealMatrix> extractLocalizedRowSums(MatrixZoomData zd, Feature2D loop,
+                                                           int L, int resolution, int window, NormalizationType norm) throws IOException {
+        long loopX = loop.getMidPt1() / resolution;
+        long loopY = loop.getMidPt2() / resolution;
+        long binXStart = loopX - window;
+        long binXEnd = loopX + (window + 1);
+        long binYStart = loopY - window;
+        long binYEnd = loopY + (window + 1);
+        long chrXend = zd.getChr2().getLength() / zd.getBinSize() + 1;
+        long chrYend = zd.getChr1().getLength() / zd.getBinSize() + 1;
+
+        List<RealMatrix> vectors = new ArrayList<>();
+
+        vectors.add(HiCFileTools.extractLocalRowSums(zd, binXStart, binXEnd, 0, chrXend, L, norm, false));
+        vectors.add(HiCFileTools.extractLocalRowSums(zd, binYStart, binYEnd, 0, chrYend, L, norm, false));
+
+        return vectors;
+    }
+
     public static RealMatrix extractLocalizedDataForAFA(MatrixZoomData zd, Feature2D loop,
                                                         int resolution, int window, NormalizationType norm) throws IOException {
 		long loopX = loop.getMidPt1() / resolution;

@@ -60,6 +60,7 @@ public class MatrixTools {
         return presetValueMatrix(rows, cols, 0);
     }
 
+
     /**
      * @return matrix initialized with 1s
      */
@@ -204,6 +205,24 @@ public class MatrixTools {
         return flattenedMatrix;
     }
 
+
+    /**
+     * @return matrix with elementwise division by two norm vectors
+     */
+    public static RealMatrix normedCopy(RealMatrix original, RealMatrix v1, RealMatrix v2, int n) {
+        RealMatrix matrix = new Array2DRowRealMatrix(n, n);
+        for (int r = 0; r < n; r++) {
+            for (int c = 0; c < n; c++) {
+                double normVal = v1.getEntry(r,0) * v2.getEntry(c, 0);
+                if (normVal > 0) {
+                    matrix.setEntry(r, c, original.getEntry(r, c) / normVal);
+                } else {
+                    matrix.setEntry(r, c, 0);
+                }
+            }
+        }
+        return matrix;
+    }
 
     /**
      * Write data from matrix out to specified file with each row on a separate line

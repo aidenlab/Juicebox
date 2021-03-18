@@ -279,6 +279,28 @@ public class MatrixZoomData {
         return depth * blockColumnCount + positionAlongDiagonal;
     }
 
+    public int[] getBlockBoundsFromNumberVersion9Up(int blockNumber) {
+        int positionAlongDiagonal = blockNumber % blockColumnCount;
+        int depth = blockNumber / blockColumnCount;
+        int avgPosition1 = positionAlongDiagonal * blockBinCount;
+        int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
+        int depthBase = reader.getDepthBase();
+        double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
+        double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+        if ( depthBase > 1 ) {
+            difference1 = (Math.pow(depthBase, depth) - 1) * blockBinCount * Math.sqrt(2);
+            difference2 = (Math.pow(depthBase, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+        } else if (depthBase < 0) {
+            difference1 = Math.abs(depthBase) * depth * blockBinCount * Math.sqrt(2);
+            difference2 = Math.abs(depthBase) * (depth + 1) * blockBinCount * Math.sqrt(2);
+        }
+        int c1 = avgPosition1 + (int) difference1 / 2 - 1;
+        int c2 = avgPosition2 + (int) difference2 / 2 + 1;
+        int r1 = avgPosition1 - (int) difference2 / 2 - 1;
+        int r2 = avgPosition2 - (int) difference1 / 2 + 1;
+        return new int[]{c1, c2, r1, r2};
+    }
+
     private void populateBlocksToLoadV9(int positionAlongDiagonal, int depth, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
         int blockNumber = getBlockNumberVersion9FromPADAndDepth(positionAlongDiagonal, depth);
         String key = getBlockKey(blockNumber, no);
@@ -310,11 +332,26 @@ public class MatrixZoomData {
         }
         int furtherDepth = Math.max(translatedNearerDepth, translatedFurtherDepth) + 1; // +1; integer divide rounds down
 
+        int coveredBlocks = 0;
+        int unnecessaryBlocks = 0;
         for (int depth = nearerDepth; depth <= furtherDepth; depth++) {
             for (int pad = translatedLowerPAD; pad <= translatedHigherPAD; pad++) {
-                populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
+                coveredBlocks++;
+                int[] blockBounds = getBlockBoundsFromNumberVersion9Up(getBlockNumberVersion9FromPADAndDepth(pad, depth));
+                if (((blockBounds[0] >= binX1 && blockBounds[0] <= binX2) || (blockBounds[1] >= binX1 && blockBounds[1] <= binX2) || (blockBounds[0] <= binX1 && blockBounds[1] >= binX2))
+                    && ((blockBounds[2] >= binY1 && blockBounds[2] <= binY2) || (blockBounds[3] >= binY1 && blockBounds[3] <= binY2) || (blockBounds[2] <= binY1 && blockBounds[3] >= binY2))) {
+                    populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
+                } else if (((blockBounds[0] >= binY1 && blockBounds[0] <= binY2) || (blockBounds[1] >= binY1 && blockBounds[1] <= binY2) || (blockBounds[0] <= binY1 && blockBounds[1] >= binY2))
+                        && ((blockBounds[2] >= binX1 && blockBounds[2] <= binX2) || (blockBounds[3] >= binX1 && blockBounds[3] <= binX2) || (blockBounds[2] <= binX1 && blockBounds[3] >= binX2))) {
+                    populateBlocksToLoadV9(pad, depth, norm, blockList, blocksToLoad);
+                } else {
+                    //System.out.println("block bounds: " + blockBounds[0] + " " + blockBounds[1] + " " + blockBounds[2] + " " + blockBounds[3] + "; window bounds: " +
+                    //        binX1 + " " + binX2 + " " + binY1 + " " + binY2);
+                    unnecessaryBlocks++;
+                }
             }
         }
+        //System.out.println(coveredBlocks + " " + unnecessaryBlocks);
 
         actuallyLoadGivenBlocks(blockList, blocksToLoad, norm);
         

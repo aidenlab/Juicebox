@@ -57,6 +57,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option includeInterChromosomalOption = addBooleanOption('e', "include-inter-chr");
     private final Option apaSaveAllData = addBooleanOption('u', "save-all");
     private final Option apaDontIncludePlots = addBooleanOption('o', "no-plots");
+    private final Option apaAggregateNormalization = addBooleanOption("ag-norm");
 
     // HICCUPS
     private final Option fdrOption = addStringOption('f', "fdr-thresholds");
@@ -101,6 +102,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     public boolean getAPADontIncludePlots() {
         return optionToBoolean(apaDontIncludePlots);
     }
+
+    public boolean getAggregateNormalization() { return optionToBoolean(apaAggregateNormalization);}
 
     /**
      * String flags

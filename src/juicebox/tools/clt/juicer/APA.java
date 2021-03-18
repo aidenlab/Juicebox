@@ -130,6 +130,7 @@ public class APA extends JuicerCLT {
     private int[] regionWidths = new int[]{6, 6, 3};
     private boolean includeInterChr = false;
     private final Object key = new Object();
+    private boolean aggregateNormalization = false;
 
     /**
      * Usage for APA
@@ -211,6 +212,8 @@ public class APA extends JuicerCLT {
         }
 
         numCPUThreads = juicerParser.getNumThreads();
+
+        aggregateNormalization = juicerParser.getAggregateNormalization();
     }
 
     @Override
@@ -330,7 +333,7 @@ public class APA extends JuicerCLT {
                             Runnable worker = new Runnable() {
                                 @Override
                                 public void run() {
-                                    APADataStack apaDataStack = new APADataStack(L, chromosomePairCounter);
+                                    APADataStack apaDataStack = new APADataStack(L, chromosomePairCounter, aggregateNormalization);
                                     int threadChunk = loopChunk.getAndIncrement();
                                     while (threadChunk < numOfLoopChunks) {
                                         for (int loopIndex = threadChunk * 2; loopIndex < Math.min(numOfLoops, (threadChunk + 1) * 2); loopIndex++) {
@@ -341,6 +344,10 @@ public class APA extends JuicerCLT {
                                                 newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm);
                                                 //newExpectedData = APAUtils.extractLocalizedExpectedData(df, chr1, loop, L, resolution, window);
                                                 apaDataStack.addData(newData);
+                                                if (aggregateNormalization) {
+                                                    List<RealMatrix> newVectors = APAUtils.extractLocalizedRowSums(zd, loop, L, resolution, window, norm);
+                                                    apaDataStack.addRowSums(newVectors);
+                                                }
                                                 //apaDataStack.addExpectedData(newExpectedData);
                                                 //apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
                                             } catch (Exception e) {
