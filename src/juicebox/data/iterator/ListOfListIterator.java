@@ -27,43 +27,42 @@ package juicebox.data.iterator;
 import juicebox.data.ContactRecord;
 
 import java.util.Iterator;
+import java.util.List;
 
-public abstract class IteratorContainer {
+public class ListOfListIterator implements Iterator<ContactRecord> {
 
-    private final long matrixSize;
-    private long numberOfContactRecords = -1;
+    private final List<List<ContactRecord>> allContactRecords;
+    private Iterator<ContactRecord> currentIterator = null;
+    private int currentListIndex = 0;
 
-    public IteratorContainer(long matrixSize) {
-        this.matrixSize = matrixSize;
+    public ListOfListIterator(List<List<ContactRecord>> allContactRecords) {
+        this.allContactRecords = allContactRecords;
+        getNextIterator();
     }
 
-    abstract public Iterator<ContactRecord> getNewContactRecordIterator();
-
-    protected void setNumberOfContactRecords(long numberOfContactRecords) {
-        this.numberOfContactRecords = numberOfContactRecords;
-    }
-
-    public long getNumberOfContactRecords() {
-        if (numberOfContactRecords > 0) return numberOfContactRecords;
-
-        numberOfContactRecords = 0;
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-            numberOfContactRecords++;
+    @Override
+    public boolean hasNext() {
+        if (currentIterator.hasNext()) {
+            return true;
+        } else {
+            currentListIndex++;
         }
-
-        return numberOfContactRecords;
+        return getNextIterator();
     }
 
-    public long getMatrixSize() {
-        return matrixSize;
+    private boolean getNextIterator() {
+        while (currentListIndex < allContactRecords.size()) {
+            currentIterator = allContactRecords.get(currentListIndex).iterator();
+            if (currentIterator.hasNext()) {
+                return true;
+            }
+            currentListIndex++;
+        }
+        return false;
     }
 
-    public boolean getIsThereEnoughMemoryForNormCalculation() {
-        // when using an iterator, we basically only worry
-        // about the vector of row sums
-        // float is 4 bytes; one for each row
-        return matrixSize * 4 < Runtime.getRuntime().maxMemory();
+    @Override
+    public ContactRecord next() {
+        return currentIterator.next();
     }
 }

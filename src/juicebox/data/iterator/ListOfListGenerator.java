@@ -24,46 +24,20 @@
 
 package juicebox.data.iterator;
 
-import juicebox.data.ContactRecord;
+import juicebox.data.*;
+import juicebox.windowui.HiCZoom;
+import org.broad.igv.util.collections.LRUCache;
 
-import java.util.Iterator;
-
-public abstract class IteratorContainer {
-
-    private final long matrixSize;
-    private long numberOfContactRecords = -1;
-
-    public IteratorContainer(long matrixSize) {
-        this.matrixSize = matrixSize;
+public class ListOfListGenerator {
+    public static IteratorContainer createFromZD(DatasetReader reader, MatrixZoomData matrixZoomData,
+                                                 LRUCache<String, Block> blockCache, boolean saveAllIntoRAM) {
+        IteratorContainer ic = new ZDIteratorContainer(reader, matrixZoomData, blockCache);
+        return ic;
     }
 
-    abstract public Iterator<ContactRecord> getNewContactRecordIterator();
-
-    protected void setNumberOfContactRecords(long numberOfContactRecords) {
-        this.numberOfContactRecords = numberOfContactRecords;
-    }
-
-    public long getNumberOfContactRecords() {
-        if (numberOfContactRecords > 0) return numberOfContactRecords;
-
-        numberOfContactRecords = 0;
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-            numberOfContactRecords++;
-        }
-
-        return numberOfContactRecords;
-    }
-
-    public long getMatrixSize() {
-        return matrixSize;
-    }
-
-    public boolean getIsThereEnoughMemoryForNormCalculation() {
-        // when using an iterator, we basically only worry
-        // about the vector of row sums
-        // float is 4 bytes; one for each row
-        return matrixSize * 4 < Runtime.getRuntime().maxMemory();
+    public static IteratorContainer createForWholeGenome(Dataset dataset, ChromosomeHandler chromosomeHandler,
+                                                         HiCZoom zoom, boolean includeIntraData, boolean saveAllIntoRAM) {
+        IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
+        return ic;
     }
 }

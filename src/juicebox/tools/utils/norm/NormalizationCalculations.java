@@ -57,13 +57,7 @@ public class NormalizationCalculations {
     public NormalizationCalculations(IteratorContainer ic) {
         this.ic = ic;
         this.matrixSize = ic.getMatrixSize();
-        long count = ic.getNumberOfContactRecords();
-        // todo where did the 1000 come from?
-        // each contact record is 12 bytes; if longs/doubles, then 24 bytes
-        // at worst, we probably double this?
-        if (count * 48 < Runtime.getRuntime().maxMemory()) {
-            isEnoughMemory = true;
-        }
+        isEnoughMemory = ic.getIsThereEnoughMemoryForNormCalculation();
     }
 
     private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset,

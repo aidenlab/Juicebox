@@ -35,11 +35,19 @@ public class ListIteratorContainer extends IteratorContainer {
 
     public ListIteratorContainer(List<ContactRecord> readList, long matrixSize) {
         super(matrixSize);
+        setNumberOfContactRecords(readList.size());
         this.readList = readList;
     }
 
     @Override
     public Iterator<ContactRecord> getNewContactRecordIterator() {
         return readList.iterator();
+    }
+
+    @Override
+    public boolean getIsThereEnoughMemoryForNormCalculation() {
+        // float is 4 bytes; one for each row (row sums)
+        // 12 bytes (2 ints, 1 float) for contact record
+        return 4 * getMatrixSize() + 12 * getNumberOfContactRecords() < Runtime.getRuntime().maxMemory();
     }
 }

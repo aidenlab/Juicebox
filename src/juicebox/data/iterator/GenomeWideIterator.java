@@ -36,7 +36,6 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
     private final boolean includeIntra;
     private final HiCZoom zoom;
     private final Dataset dataset;
-    private final boolean iterationIsDone = false;
     private Iterator<ContactRecord> currentIterator = null;
 
     private int recentAddX = 0;

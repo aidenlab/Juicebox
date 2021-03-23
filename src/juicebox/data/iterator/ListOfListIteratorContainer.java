@@ -27,43 +27,28 @@ package juicebox.data.iterator;
 import juicebox.data.ContactRecord;
 
 import java.util.Iterator;
+import java.util.List;
 
-public abstract class IteratorContainer {
+public class ListOfListIteratorContainer extends IteratorContainer {
 
-    private final long matrixSize;
-    private long numberOfContactRecords = -1;
+    private final List<List<ContactRecord>> allContactRecords;
 
-    public IteratorContainer(long matrixSize) {
-        this.matrixSize = matrixSize;
+    public ListOfListIteratorContainer(List<List<ContactRecord>> allContactRecords, long matrixSize,
+                                       long totalNumberOfContacts) {
+        super(matrixSize);
+        setNumberOfContactRecords(totalNumberOfContacts);
+        this.allContactRecords = allContactRecords;
     }
 
-    abstract public Iterator<ContactRecord> getNewContactRecordIterator();
-
-    protected void setNumberOfContactRecords(long numberOfContactRecords) {
-        this.numberOfContactRecords = numberOfContactRecords;
+    @Override
+    public Iterator<ContactRecord> getNewContactRecordIterator() {
+        return new ListOfListIterator(allContactRecords);
     }
 
-    public long getNumberOfContactRecords() {
-        if (numberOfContactRecords > 0) return numberOfContactRecords;
-
-        numberOfContactRecords = 0;
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-            numberOfContactRecords++;
-        }
-
-        return numberOfContactRecords;
-    }
-
-    public long getMatrixSize() {
-        return matrixSize;
-    }
-
+    @Override
     public boolean getIsThereEnoughMemoryForNormCalculation() {
-        // when using an iterator, we basically only worry
-        // about the vector of row sums
-        // float is 4 bytes; one for each row
-        return matrixSize * 4 < Runtime.getRuntime().maxMemory();
+        // float is 4 bytes; one for each row (row sums)
+        // 12 bytes (2 ints, 1 float) for contact record
+        return 4 * getMatrixSize() + 12 * getNumberOfContactRecords() < Runtime.getRuntime().maxMemory();
     }
 }

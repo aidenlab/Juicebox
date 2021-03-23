@@ -33,7 +33,7 @@ import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.iterator.IteratorContainer;
-import juicebox.data.iterator.ZDIteratorContainer;
+import juicebox.data.iterator.ListOfListGenerator;
 import juicebox.data.v9depth.LogDepth;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
@@ -1248,10 +1248,6 @@ public class MatrixZoomData {
         blockCache.clear();
     }
 
-    public long getNumberOfContactRecords() {
-        return getIteratorContainer().getNumberOfContactRecords();
-    }
-
     private Iterator<ContactRecord> getNewContactRecordIterator() {
         return getIteratorContainer().getNewContactRecordIterator();
         //return new ContactRecordIterator(reader, this, blockCache);
@@ -1259,7 +1255,7 @@ public class MatrixZoomData {
 
     public IteratorContainer getIteratorContainer() {
         if (iteratorContainer == null) {
-            iteratorContainer = new ZDIteratorContainer(reader, this, blockCache);
+            iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache, false);
         }
         return iteratorContainer;
     }

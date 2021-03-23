@@ -30,8 +30,8 @@ import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
-import juicebox.data.iterator.GWIteratorContainer;
 import juicebox.data.iterator.IteratorContainer;
+import juicebox.data.iterator.ListOfListGenerator;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
+    // todo remove
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
@@ -154,11 +155,11 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         boolean includeIntraData = NormalizationHandler.isGenomeWideNormIntra(norm); // default INTER type
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
-        final IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
+        final IteratorContainer ic = ListOfListGenerator.createForWholeGenome(dataset, chromosomeHandler, zoom,
+                includeIntraData, false);
 
         NormalizationCalculations calculations = new NormalizationCalculations(ic);
         ListOfFloatArrays vector = calculations.getNorm(norm);
-
         if (vector == null) {
             return null;
         }
@@ -184,8 +185,6 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                     expectedValueCalculation.addDistance(chrIdx, x, y, value);
                 }
             }
-
-
             addY += chr.getLength() / resolution + 1;
         }
 
