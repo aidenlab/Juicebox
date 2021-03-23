@@ -32,11 +32,13 @@ import juicebox.data.basics.ListOfIntArrays;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.Globals;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -525,6 +527,10 @@ public class NormalizationCalculations {
         double thresh = 0;
         if (percent > 0) {
             // Get percent threshold from positive row sums (nonzero)
+            DescriptiveStatistics stats = new DescriptiveStatistics();
+            rowSums.getValues().forEach(sum -> Arrays.stream(sum).filter(i-> i != 0).forEach(stats::addValue));
+            thresh = stats.getPercentile( percent);
+            /*
             int j = 0;
             for (double[] array : rowSums.getValues()) {
                 for (double sum : array) {
@@ -534,6 +540,7 @@ public class NormalizationCalculations {
                 }
             }
             double[] posRowSums = new double[j];
+
             j = 0;
             for (double[] array : rowSums.getValues()) {
                 for (double sum : array) {
@@ -543,6 +550,7 @@ public class NormalizationCalculations {
                 }
             }
             thresh = StatUtils.percentile(posRowSums, percent);
+             */
         }
         
         ListOfIntArrays offset = new ListOfIntArrays(rowSums.getLength());

@@ -25,6 +25,7 @@
 package juicebox.matrix;
 
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.util.Arrays;
@@ -110,13 +111,12 @@ public class InMemoryMatrix implements BasicMatrix {
     }
 
     private void computeBounds() {
-        DoubleArrayList tmpList = new DoubleArrayList(data.length);
+        DescriptiveStatistics stats = new DescriptiveStatistics();
         for (float datum : data) {
-            if (!Float.isNaN(datum)) tmpList.add(datum);
+            if (!Float.isNaN(datum)) stats.addValue(datum);
         }
-        double[] tmp = tmpList.toArray();
-        lowerValue = (float) StatUtils.percentile(tmp, 5);
-        upperValue = (float) StatUtils.percentile(tmp, 95);
+        lowerValue = (float) stats.getPercentile(5);
+        upperValue = (float) stats.getPercentile(95);
     }
 
 

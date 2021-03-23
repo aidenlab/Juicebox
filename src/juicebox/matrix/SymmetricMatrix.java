@@ -26,6 +26,7 @@ package juicebox.matrix;
 
 
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.util.Arrays;
@@ -140,18 +141,18 @@ public class SymmetricMatrix implements BasicMatrix {
     private void computePercentiles() {
 
         // Statistics, other attributes
-        DoubleArrayList flattenedDataList = new DoubleArrayList(data.length);
+        DescriptiveStatistics flattenedDataStats = new DescriptiveStatistics();
 
         for (float value : data) {
             if (!Float.isNaN(value) && value != 1) {
-                flattenedDataList.add(value);
+                flattenedDataStats.addValue(value);
             }
         }
 
         // Stats
-        double[] flattenedData = flattenedDataList.toArray();
-        lowerValue = (float) StatUtils.percentile(flattenedData, 5);
-        upperValue = (float) StatUtils.percentile(flattenedData, 95);
+
+        lowerValue = (float) flattenedDataStats.getPercentile(5);
+        upperValue = (float) flattenedDataStats.getPercentile(95);
     }
 
 }
