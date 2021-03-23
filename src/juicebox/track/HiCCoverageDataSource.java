@@ -32,6 +32,7 @@ import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
 
@@ -79,7 +80,8 @@ public class HiCCoverageDataSource implements HiCDataSource {
             if (nv == null) {
                 setDataRange(new DataRange(0, 1));
             } else {
-                double max = StatUtils.percentile(nv.getData().getValues().get(0), 95);
+                DescriptiveStatistics stats = new DescriptiveStatistics(nv.getData().getValues().get(0));
+                double max = stats.getPercentile(95);
                 setDataRange(new DataRange(0, (float) max));
             }
 

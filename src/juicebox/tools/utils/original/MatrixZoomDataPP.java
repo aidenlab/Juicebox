@@ -32,6 +32,7 @@ import juicebox.data.basics.Chromosome;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
@@ -681,9 +682,9 @@ public class MatrixZoomDataPP {
 
     private void computeStats(DownsampledDoubleArrayList sampledData) {
 
-        double[] data = sampledData.toArray();
-        this.percent5 = StatUtils.percentile(data, 5);
-        this.percent95 = StatUtils.percentile(data, 95);
+        DescriptiveStatistics stats = new DescriptiveStatistics(sampledData.toArray());
+        this.percent5 = stats.getPercentile(5);
+        this.percent95 = stats.getPercentile(95);
 
     }
 

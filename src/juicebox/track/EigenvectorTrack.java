@@ -29,12 +29,11 @@ import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.common.ArrayTools;
-import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.ResourceLocator;
-import org.broad.igv.util.collections.DoubleArrayList;
 import org.broad.igv.util.collections.LRUCache;
 
 import javax.swing.*;
@@ -90,19 +89,18 @@ public class EigenvectorTrack extends HiCTrack {
 
             dataCache.put(cacheKey, data);
 
-            DoubleArrayList tmp = new DoubleArrayList(data.length);
+            DescriptiveStatistics stats = new DescriptiveStatistics();
 
             for (double datum : data) {
                 if (!Double.isNaN(datum)) {
-                    tmp.add(datum);
+                    stats.addValue(datum);
                 }
             }
 
-            double[] tmpArray = tmp.toArray();
-            medianCache.put(cacheKey, StatUtils.percentile(tmpArray, 50));
+            medianCache.put(cacheKey, stats.getPercentile(50));
 
             double max = 0;
-            for (double aData : tmpArray) {
+            for (double aData : stats.getValues()) {
                 if (Math.abs(aData) > max) max = Math.abs(aData);
             }
             dataMaxCache.put(cacheKey, max);

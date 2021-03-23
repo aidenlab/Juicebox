@@ -26,6 +26,7 @@ package juicebox.matrix;
 
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 /**
@@ -79,7 +80,7 @@ public class RealMatrixWrapper implements BasicMatrix {
     private void computePercentiles() {
 
         // Statistics, other attributes
-        DoubleArrayList flattenedDataList = new DoubleArrayList(matrix.getColumnDimension() * matrix.getRowDimension());
+        DescriptiveStatistics flattenedDataStats = new DescriptiveStatistics();
         double min = 1;
         double max = -1;
         for (int i = 0; i < matrix.getRowDimension(); i++) {
@@ -88,17 +89,15 @@ public class RealMatrixWrapper implements BasicMatrix {
                 if (!Double.isNaN(value) && value != 1) {
                     min = value < min ? value : min;
                     max = value > max ? value : max;
-                    flattenedDataList.add(value);
+                    flattenedDataStats.addValue(value);
                 }
             }
         }
 
         // Stats
-        double[] flattenedData = flattenedDataList.toArray();
-        lowerValue = (float) StatUtils.percentile(flattenedData, 5);
-        upperValue = (float) StatUtils.percentile(flattenedData, 95);
+        lowerValue = (float) flattenedDataStats.getPercentile(5);
+        upperValue = (float) flattenedDataStats.getPercentile(95);
         System.out.println(lowerValue + "  " + upperValue);
-
     }
 
 

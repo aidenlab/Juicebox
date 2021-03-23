@@ -65,8 +65,8 @@ public class Statistics extends JuiceboxCLT {
     }
     
     public static String getUsage() {
-        return " Usage: statistics [--ligation NNNN] [--mapqs mapq1,maqp2] [--mndindex mnd] [--threads thr]\n " +
-                "                   <site file> <stats file> <infile> <genome ID> [stats file 2] [outfile]\n" +
+        return " Usage: statistics [--ligation NNNN] [--mapqs mapq1,maqp2] [--mndindex mndindex.txt] [--threads numthreads]\n " +
+                "                   <site_file> <stats_file> [stats_file_2] <infile> <genomeID> [outfile]\n" +
                 " --ligation: ligation junction\n" +
                 " --mapqs: mapping quality threshold(s), do not consider reads < threshold\n" +
                 " --mndindex: file of indices for merged nodups to read from\n" +

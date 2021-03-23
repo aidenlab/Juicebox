@@ -30,10 +30,9 @@ import juicebox.data.ContactRecord;
 import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.MatrixType;
-import org.apache.commons.math.stat.StatUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
-import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -157,30 +156,29 @@ public class ColorScaleHandler {
     }
 
     public float computePercentile(List<Block> blocks, double p) {
-        DoubleArrayList dal = new DoubleArrayList(10000);
+        DescriptiveStatistics stats = new DescriptiveStatistics();
         if (blocks != null) {
             for (Block b : blocks) {
                 for (ContactRecord rec : b.getContactRecords()) {
                     // Filter diagonal
                     if (rec.getBinX() != rec.getBinY()) {
-                        dal.add(rec.getCounts());
+                        stats.addValue(rec.getCounts());
                     }
                 }
             }
         }
-        return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
+        return stats.getN() == 0 ? 1 : (float) stats.getPercentile(p);
     }
 
     public float computePercentile(BasicMatrix bm, double p) {
-        DoubleArrayList dal = new DoubleArrayList(10000);
-
+        DescriptiveStatistics stats = new DescriptiveStatistics();
         for (int i = 0; i < bm.getRowDimension(); i++) {
             for (int j = i + 1; j < bm.getColumnDimension(); j++) {
-                dal.add(bm.getEntry(i, j));
+                stats.addValue(bm.getEntry(i, j));
             }
         }
 
-        return dal.size() == 0 ? 1 : (float) StatUtils.percentile(dal.toArray(), p);
+        return stats.getN() == 0 ? 1 : (float) stats.getPercentile( p);
     }
 
     public float computePercentile(BasicMatrix bm1, BasicMatrix bm2, double percentile) {
