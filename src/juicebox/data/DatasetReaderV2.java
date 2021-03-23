@@ -73,9 +73,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private long normVectorFilePosition;
     private long nviHeaderPosition;
     private boolean activeStatus = true;
-    private final AtomicBoolean useMainStream = new AtomicBoolean();
     public static double[] globalTimeDiffThings = new double[5];
     private final IGVSeekableStreamFactory streamFactory = IGVSeekableStreamFactory.getInstance();
+    private final CompressionUtils compressionUtils = new CompressionUtils();
 
     public DatasetReaderV2(String path) throws IOException {
         super(path);
@@ -772,9 +772,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return blockIndex == null ? null : blockIndex.getBlockNumbers();
     }
 
-    private final CompressionUtils mainCompressionUtils = new CompressionUtils();
-    private final CompressionUtils backUpCompressionUtils = new CompressionUtils();
-
     public Map<String, LargeIndexEntry> getNormVectorIndex() {
         return normVectorIndex;
     }
@@ -906,7 +903,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     private List<byte[]> seekAndFullyReadLargeCompressedBytes(LargeIndexEntry idx) throws IOException {
-        boolean currentlyUseMainStream;
         List<byte[]> compressedBytes = new ArrayList<>();
         long counter = idx.size;
         while (counter > MAX_BYTE_READ_SIZE) {
@@ -914,11 +910,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             counter = counter - MAX_BYTE_READ_SIZE;
         }
         compressedBytes.add(new byte[(int) counter]);
-
-        synchronized (useMainStream) {
-            currentlyUseMainStream = useMainStream.get();
-            useMainStream.set(!currentlyUseMainStream);
-        }
 
         SeekableStream stream = getValidStream();
         stream.seek(idx.position);
@@ -1123,30 +1114,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     private byte[] decompress(byte[] compressedBytes) {
-        boolean currentlyUseMainCompression;
-
-        synchronized (useMainCompression) {
-            currentlyUseMainCompression = useMainCompression.get();
-            useMainCompression.set(!currentlyUseMainCompression);
-        }
-
-        if (currentlyUseMainCompression) {
-            synchronized (mainCompressionUtils) {
-                return mainCompressionUtils.decompress(compressedBytes);
-            }
-        } else {
-            synchronized (backUpCompressionUtils) {
-                return backUpCompressionUtils.decompress(compressedBytes);
-            }
-        }
+        return compressionUtils.decompress(compressedBytes);
     }
-
-    /*
-    private static byte[] seekAndFullyReadCompressedBytes(SeekableStream stream, long positionInStream, int byteArraySize) throws IOException{
-        byte[] compressedBytes = new byte[byteArraySize];
-        stream.seek(positionInStream);
-        stream.readFully(compressedBytes);
-        return compressedBytes;
-    }
-    */
 }

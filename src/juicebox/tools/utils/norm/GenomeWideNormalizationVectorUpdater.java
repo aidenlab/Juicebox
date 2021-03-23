@@ -152,14 +152,9 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         boolean includeIntraData = NormalizationHandler.isGenomeWideNormIntra(norm); // default INTER type
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
-        final List<List<ContactRecord>> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntraData);
+        final IteratorContainer ic = new IteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
 
-        int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            totalSize += c1.getLength() / resolution + 1;
-        }
-    
-        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
+        NormalizationCalculations calculations = new NormalizationCalculations(ic);
         ListOfFloatArrays vector = calculations.getNorm(norm);
 
         if (vector == null) {
@@ -175,18 +170,19 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null) continue;
 
-            for (List<ContactRecord> crList : zd.getContactRecordList()) {
-                for (ContactRecord cr : crList) {
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    final float vx = vector.get(x + addY);
-                    final float vy = vector.get(y + addY);
-                    if (isValidNormValue(vx) && isValidNormValue(vy)) {
-                        double value = cr.getCounts() / (vx * vy);
-                        expectedValueCalculation.addDistance(chrIdx, x, y, value);
-                    }
+            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float vx = vector.get(x + addY);
+                final float vy = vector.get(y + addY);
+                if (isValidNormValue(vx) && isValidNormValue(vy)) {
+                    double value = cr.getCounts() / (vx * vy);
+                    expectedValueCalculation.addDistance(chrIdx, x, y, value);
                 }
             }
+
 
             addY += chr.getLength() / resolution + 1;
         }
@@ -205,42 +201,5 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         }
 
         return new Pair<>(normVectorMap, expectedValueCalculation);
-    }
-
-    public static List<List<ContactRecord>> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler,
-                                                                     HiCZoom zoom, boolean includeIntra) {
-        List<List<ContactRecord>> recordArrayList = new ArrayList<>();
-        int addX = 0;
-        int addY = 0;
-        long maxPos = 0;
-        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
-            maxPos += c1.getLength() / zoom.getBinSize() + 1;
-        }
-        if (maxPos > Integer.MAX_VALUE) {
-            System.err.println("Max int size exceeded for genome wide normalization at " + zoom);
-        }
-
-        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
-            for (Chromosome c2 : handler.getChromosomeArrayWithoutAllByAll()) {
-                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
-                    if (zd != null) {
-                        for (List<ContactRecord> recordList : zd.getContactRecordList()) {
-                            List<ContactRecord> localList = new ArrayList<>();
-                            for (ContactRecord cr : recordList) {
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                localList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
-                            recordArrayList.add(localList);
-                        }
-                    }
-                }
-                addY += c2.getLength() / zoom.getBinSize() + 1;
-            }
-            addX += c1.getLength() / zoom.getBinSize() + 1;
-            addY = 0;
-        }
-        return recordArrayList;
     }
 }

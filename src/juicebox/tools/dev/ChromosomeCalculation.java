@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -142,7 +142,7 @@ public class ChromosomeCalculation {
     }
 
 
-    private static void sumColumn(MatrixZoomData m,
+    private static void sumColumn(MatrixZoomData zd,
                                   Map<Chromosome, Map<Integer, Float>> mapOfSums,
                                   Map<Chromosome, Map<Integer, Float>> mapOfDiagValues,
                                   Chromosome chrI,
@@ -151,18 +151,20 @@ public class ChromosomeCalculation {
         if (chrI.getIndex() == chrJ.getIndex()) {
             Map<Integer, Float> subMapOfSumsForChr = mapOfSums.getOrDefault(chrI, new HashMap<>());
             Map<Integer, Float> subMapOfDiagForChr = mapOfDiagValues.getOrDefault(chrI, new HashMap<>());
-            for (List<ContactRecord> contactList : m.getContactRecordList()) {
-                for (ContactRecord contact : contactList) {
-                    float count = contact.getCounts();
-                    int x = contact.getBinX();
-                    int y = contact.getBinY();
-                    if (x == y) {
-                        subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
-                        subMapOfDiagForChr.put(x, count);
-                    } else {
-                        subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
-                        subMapOfSumsForChr.put(y, subMapOfSumsForChr.getOrDefault(y, 0f) + count);
-                    }
+
+            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord contact = iterator.next();
+
+                float count = contact.getCounts();
+                int x = contact.getBinX();
+                int y = contact.getBinY();
+                if (x == y) {
+                    subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
+                    subMapOfDiagForChr.put(x, count);
+                } else {
+                    subMapOfSumsForChr.put(x, subMapOfSumsForChr.getOrDefault(x, 0f) + count);
+                    subMapOfSumsForChr.put(y, subMapOfSumsForChr.getOrDefault(y, 0f) + count);
                 }
             }
             mapOfSums.put(chrI, subMapOfSumsForChr);
@@ -170,14 +172,15 @@ public class ChromosomeCalculation {
         } else {
             Map<Integer, Float> subMap = mapOfSums.getOrDefault(chrI, new HashMap<>());
             Map<Integer, Float> subMap2 = mapOfSums.getOrDefault(chrJ, new HashMap<>());
-            for (List<ContactRecord> contactList : m.getContactRecordList()) {
-                for (ContactRecord contact : contactList) {
-                    float count = contact.getCounts();
-                    int x = contact.getBinX();
-                    int y = contact.getBinY();
-                    subMap.put(x, subMap.getOrDefault(x, 0f) + count);
-                    subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
-                }
+
+            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord contact = iterator.next();
+                float count = contact.getCounts();
+                int x = contact.getBinX();
+                int y = contact.getBinY();
+                subMap.put(x, subMap.getOrDefault(x, 0f) + count);
+                subMap2.put(y, subMap.getOrDefault(y, 0f) + count);
             }
             mapOfSums.put(chrI, subMap);
             mapOfSums.put(chrJ, subMap2);

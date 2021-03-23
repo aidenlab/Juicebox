@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -223,49 +223,14 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
     }
 
-    protected void runIndividualChromosomeCode(AtomicInteger chromosomeIndex,
-                                               Dataset ds, ChromosomeHandler chromosomeHandler, HiCZoom zoom, Map<NormalizationType, Integer> resolutionsToBuildTo,
-                                               Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, Double> withinZoomVCSQRTSumFactors,
-                                               Map<Integer, Double> withinZoomKRSumFactors, Map<Integer, Double> withinZoomSCALESumFactors,
-                                               Map<Integer, ListOfFloatArrays> withinZoomVCVectors, Map<Integer, ListOfFloatArrays> withinZoomVCSQRTVectors,
-                                               Map<Integer, ListOfFloatArrays> withinZoomKRVectors, Map<Integer, ListOfFloatArrays> withinZoomSCALEVectors,
-                                               Set<Chromosome> withinZoomSynckrBPFailedChromosomes, Set<Chromosome> withinZoomSynckrFragFailedChromosomes,
-                                               Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes, Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes,
-                                               Map<Integer, MatrixZoomData> allChrZoomData, int threadnum) throws IOException {
+    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, ListOfFloatArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
+                                                               ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
+        vec.multiplyEverythingBy(factor);
 
-        int i = chromosomeIndex.getAndIncrement();
-        while (i < chromosomeHandler.getChromosomeArrayWithoutAllByAll().length) {
-            Chromosome chr = chromosomeHandler.getChromosomeArrayWithoutAllByAll()[i];
-            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
+        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
 
-            if (zd == null) {
-                i = chromosomeIndex.getAndIncrement();
-                continue;
-            }
-            NormalizationCalculations nc = new NormalizationCalculations(zd);
-            if (!nc.isEnoughMemory()) {
-                System.err.println("Not enough memory, skipping " + chr);
-                i = chromosomeIndex.getAndIncrement();
-                continue;
-            }
-            allChrZoomData.put(chr.getIndex(), zd);
+        ev.addDistancesFromIterator(chrIdx, zd.getIteratorContainer(), vec);
 
-            if (weShouldBuildVC || weShouldBuildVCSqrt) {
-
-                buildVCOrVCSQRT(weShouldBuildVC && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC),
-                        weShouldBuildVCSqrt && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC_SQRT),
-                        chr, nc, zoom, withinZoomVCSumFactors, withinZoomVCVectors, withinZoomVCSQRTSumFactors, withinZoomVCSQRTVectors);
-            }
-            if (weShouldBuildKR && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
-                buildKR(chr, nc, zoom, withinZoomKRSumFactors, withinZoomKRVectors, withinZoomSynckrBPFailedChromosomes,
-                            withinZoomSynckrFragFailedChromosomes);
-            }
-            if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
-                    buildScale(chr, nc, zoom, withinZoomSCALESumFactors, withinZoomSCALEVectors, withinZoomSyncmmbaBPFailedChromosomes,
-                            withinZoomSyncmmbaFragFailedChromosomes);
-            }
-            i = chromosomeIndex.getAndIncrement();
-        }
     }
 
     protected void buildVCOrVCSQRT(boolean weShouldBuildVC, boolean weShouldBuildVCSqrt, Chromosome chr,
@@ -343,13 +308,48 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
         }
     }
 
-    protected static void updateExpectedValueCalculationForChr(final int chrIdx, double factor, ListOfFloatArrays vec, NormalizationType type, HiCZoom zoom, MatrixZoomData zd,
-                                                               ExpectedValueCalculation ev, List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
-        vec.multiplyEverythingBy(factor);
+    protected void runIndividualChromosomeCode(AtomicInteger chromosomeIndex,
+                                               Dataset ds, ChromosomeHandler chromosomeHandler, HiCZoom zoom, Map<NormalizationType, Integer> resolutionsToBuildTo,
+                                               Map<Integer, Double> withinZoomVCSumFactors, Map<Integer, Double> withinZoomVCSQRTSumFactors,
+                                               Map<Integer, Double> withinZoomKRSumFactors, Map<Integer, Double> withinZoomSCALESumFactors,
+                                               Map<Integer, ListOfFloatArrays> withinZoomVCVectors, Map<Integer, ListOfFloatArrays> withinZoomVCSQRTVectors,
+                                               Map<Integer, ListOfFloatArrays> withinZoomKRVectors, Map<Integer, ListOfFloatArrays> withinZoomSCALEVectors,
+                                               Set<Chromosome> withinZoomSynckrBPFailedChromosomes, Set<Chromosome> withinZoomSynckrFragFailedChromosomes,
+                                               Set<Chromosome> withinZoomSyncmmbaBPFailedChromosomes, Set<Chromosome> withinZoomSyncmmbaFragFailedChromosomes,
+                                               Map<Integer, MatrixZoomData> allChrZoomData, int threadnum) throws IOException {
 
-        updateNormVectorIndexWithVector(normVectorIndex, normVectorBuffers, vec, chrIdx, type, zoom);
+        int i = chromosomeIndex.getAndIncrement();
+        while (i < chromosomeHandler.getChromosomeArrayWithoutAllByAll().length) {
+            Chromosome chr = chromosomeHandler.getChromosomeArrayWithoutAllByAll()[i];
+            MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
 
-        ev.addDistancesFromIterator(chrIdx, zd.getContactRecordList(), vec);
+            if (zd == null) {
+                i = chromosomeIndex.getAndIncrement();
+                continue;
+            }
+            NormalizationCalculations nc = new NormalizationCalculations(zd.getIteratorContainer());
+            if (!nc.isEnoughMemory()) {
+                System.err.println("Not enough memory, skipping " + chr);
+                i = chromosomeIndex.getAndIncrement();
+                continue;
+            }
+            allChrZoomData.put(chr.getIndex(), zd);
 
+            if (weShouldBuildVC || weShouldBuildVCSqrt) {
+
+                buildVCOrVCSQRT(weShouldBuildVC && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC),
+                        weShouldBuildVCSqrt && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC_SQRT),
+                        chr, nc, zoom, withinZoomVCSumFactors, withinZoomVCVectors, withinZoomVCSQRTSumFactors, withinZoomVCSQRTVectors);
+            }
+            if (weShouldBuildKR && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.KR)) {
+                buildKR(chr, nc, zoom, withinZoomKRSumFactors, withinZoomKRVectors, withinZoomSynckrBPFailedChromosomes,
+                        withinZoomSynckrFragFailedChromosomes);
+            }
+            if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
+                buildScale(chr, nc, zoom, withinZoomSCALESumFactors, withinZoomSCALEVectors, withinZoomSyncmmbaBPFailedChromosomes,
+                        withinZoomSyncmmbaFragFailedChromosomes);
+            }
+            i = chromosomeIndex.getAndIncrement();
+        }
     }
 }
