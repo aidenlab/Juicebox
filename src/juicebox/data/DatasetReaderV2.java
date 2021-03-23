@@ -75,6 +75,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private boolean activeStatus = true;
     public static double[] globalTimeDiffThings = new double[5];
     private final IGVSeekableStreamFactory streamFactory = IGVSeekableStreamFactory.getInstance();
+    private final CompressionUtils compressionUtils = new CompressionUtils();
 
     public DatasetReaderV2(String path) throws IOException {
         super(path);
@@ -1113,7 +1114,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     private byte[] decompress(byte[] compressedBytes) {
-        CompressionUtils compressionUtils = new CompressionUtils();
         return compressionUtils.decompress(compressedBytes);
     }
 }
