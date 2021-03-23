@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -668,7 +668,7 @@ public class AssemblyScaffoldHandler {
         Collections.sort(idListToMerge);
 
         boolean altGoesFirst = false;
-        if (altIdListToMerge.contains(new Integer(idListToMerge.get(0)))) {
+        if (altIdListToMerge.contains(Integer.valueOf(idListToMerge.get(0)))) {
             altGoesFirst = true;
         }
 
@@ -685,7 +685,7 @@ public class AssemblyScaffoldHandler {
 
         for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
             List<Integer> superscaffold = listOfSuperscaffolds.get(i);
-            if (!idListToMerge.contains(new Integer(i))) {
+            if (!idListToMerge.contains(Integer.valueOf(i))) {
                 newSuperscaffolds.add(superscaffold);
             } else if (i == idListToMerge.get(0)) {
                 if (!altGoesFirst) {

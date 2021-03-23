@@ -22,8 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data;
+package juicebox.data.iterator;
 
+import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 

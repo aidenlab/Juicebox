@@ -31,7 +31,6 @@ import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.windowui.HiCZoom;
-import org.apache.commons.math.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;

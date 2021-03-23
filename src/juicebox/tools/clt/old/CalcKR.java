@@ -25,7 +25,8 @@
 package juicebox.tools.clt.old;
 
 import juicebox.data.ContactRecord;
-import juicebox.data.IteratorContainer;
+import juicebox.data.iterator.IteratorContainer;
+import juicebox.data.iterator.ListIteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.NormalizationCalculations;
@@ -79,7 +80,7 @@ public class CalcKR extends JuiceboxCLT {
             if (binX > maxBin) maxBin = binX;
             if (binY > maxBin) maxBin = binY;
         }
-        IteratorContainer ic = new IteratorContainer(readList, maxBin + 1);
+        IteratorContainer ic = new ListIteratorContainer(readList, maxBin + 1);
 
         NormalizationCalculations nc = new NormalizationCalculations(ic);
         for (float[] array : nc.getNorm(NormalizationHandler.KR).getValues()) {

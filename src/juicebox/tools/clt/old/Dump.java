@@ -30,6 +30,8 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.iterator.GWIteratorContainer;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;
@@ -101,7 +103,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         // Build a "whole-genome" matrix
-        IteratorContainer ic = new IteratorContainer(dataset, chromosomeHandler, zoom, includeIntra);
+        IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntra);
 
         if (ic.getNumberOfContactRecords() < 1) {
             System.err.println("No reads found at " + zoom + ". Include intra is " + includeIntra);

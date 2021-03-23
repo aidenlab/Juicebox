@@ -30,6 +30,8 @@ import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.iterator.GWIteratorContainer;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -152,7 +154,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         boolean includeIntraData = NormalizationHandler.isGenomeWideNormIntra(norm); // default INTER type
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
-        final IteratorContainer ic = new IteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
+        final IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
 
         NormalizationCalculations calculations = new NormalizationCalculations(ic);
         ListOfFloatArrays vector = calculations.getNorm(norm);

@@ -25,22 +25,16 @@
 package juicebox.tools.utils.norm;
 
 import juicebox.data.ContactRecord;
-import juicebox.data.IteratorContainer;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.broad.igv.Globals;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-
 import java.util.List;
 import java.util.Random;
 

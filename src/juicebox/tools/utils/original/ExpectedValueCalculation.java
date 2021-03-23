@@ -29,10 +29,10 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
-import juicebox.data.IteratorContainer;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 

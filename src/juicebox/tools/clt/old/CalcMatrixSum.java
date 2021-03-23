@@ -26,6 +26,7 @@ package juicebox.tools.clt.old;
 
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.MatrixTools;

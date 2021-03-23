@@ -26,8 +26,8 @@ package juicebox.tools.utils.norm;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
-import juicebox.data.IteratorContainer;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.utils.norm.final2.FinalScale;
 
 import java.util.Iterator;

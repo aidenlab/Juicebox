@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
