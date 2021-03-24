@@ -47,7 +47,7 @@ public class ListOfListGenerator {
     }
 
     private static IteratorContainer tryToCreateIteratorInRAM(IteratorContainer ic0) {
-        if (HiCGlobals.DONT_SAVE_CONTACT_RECORDS_IN_RAM) {
+        if (HiCGlobals.USE_ITERATOR_NOT_ALL_IN_RAM) {
             return ic0;
         }
 

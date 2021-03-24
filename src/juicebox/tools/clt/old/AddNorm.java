@@ -99,7 +99,7 @@ public class AddNorm extends JuiceboxCLT {
             printUsageAndExit();
         }
         noFragNorm = parser.getNoFragNormOption();
-        HiCGlobals.DONT_SAVE_CONTACT_RECORDS_IN_RAM = parser.getDontPutAllContactsIntoRAM();
+        HiCGlobals.USE_ITERATOR_NOT_ALL_IN_RAM = parser.getDontPutAllContactsIntoRAM();
         HiCGlobals.CHECK_RAM_USAGE = parser.shouldCheckRAMUsage();
         updateNumberOfCPUThreads(parser);
         usingMultiThreadedVersion = numCPUThreads > 1;
