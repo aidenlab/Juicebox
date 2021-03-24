@@ -33,6 +33,7 @@ import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,10 +48,9 @@ public class AddNorm extends JuiceboxCLT {
     private String file;
     private final List<NormalizationType> normalizationTypes = new ArrayList<>();
     private Map<NormalizationType, Integer> resolutionsToBuildTo;
-    protected static int numCPUThreads = 1;
 
     public AddNorm() {
-        super(getBasicUsage()+"\n"
+        super(getBasicUsage() + "\n"
                 + "           : -d use intra chromosome (diagonal) [false]\n"
                 + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
                 + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
@@ -58,6 +58,8 @@ public class AddNorm extends JuiceboxCLT {
                 + "           : -k normalizations to include\n"
                 + "           : -r resolutions for respective normalizations to build to\n"
                 + "           : -j number of CPU threads to use\n"
+                + "           : --conserve-ram will minimize RAM usage\n"
+                + "           : --check-ram-usage will check ram requirements prior to running"
         );
     }
 
@@ -73,6 +75,18 @@ public class AddNorm extends JuiceboxCLT {
         return map;
     }
 
+    public static void launch(String outputFile, List<NormalizationType> normalizationTypes, int genomeWide,
+                              boolean noFragNorm, int numCPUThreads,
+                              Map<NormalizationType, Integer> resolutionsToBuildTo) throws IOException {
+        NormalizationVectorUpdater updater;
+        if (numCPUThreads > 1) {
+            updater = new MultithreadedNormalizationVectorUpdater(numCPUThreads);
+        } else {
+            updater = new NormalizationVectorUpdater();
+        }
+        updater.updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
+    }
+
     @Override
     public void readArguments(String[] args, CommandLineParser parser) {
         if (parser.getHelpOption()) {
@@ -85,8 +99,10 @@ public class AddNorm extends JuiceboxCLT {
             printUsageAndExit();
         }
         noFragNorm = parser.getNoFragNormOption();
-        HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM = parser.getPutAllContactsIntoRAM();
-        HiCGlobals.DONT_CHECK_RAM = parser.getDontCheckRAM();
+        HiCGlobals.DONT_SAVE_CONTACT_RECORDS_IN_RAM = parser.getDontPutAllContactsIntoRAM();
+        HiCGlobals.CHECK_RAM_USAGE = parser.shouldCheckRAMUsage();
+        updateNumberOfCPUThreads(parser);
+        usingMultiThreadedVersion = numCPUThreads > 1;
 
         genomeWideResolution = parser.getGenomeWideOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
@@ -110,8 +126,6 @@ public class AddNorm extends JuiceboxCLT {
             }
         }
 
-        updateNumberOfCPUThreads(parser);
-
         file = args[1];
     }
 
@@ -121,29 +135,12 @@ public class AddNorm extends JuiceboxCLT {
         try {
             if (inputVectorFile != null) {
                 CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
-            }
-            else if (numCPUThreads==1){
-                (new NormalizationVectorUpdater()).updateHicFile(file, normalizationTypes, resolutionsToBuildTo, genomeWideResolution, noFragNorm);
-            }
-            else {
-                MultithreadedNormalizationVectorUpdater updater = new MultithreadedNormalizationVectorUpdater();
-                updater.setNumCPUThreads(numCPUThreads);
-                updater.updateHicFile(file,normalizationTypes,resolutionsToBuildTo, genomeWideResolution, noFragNorm);
+            } else {
+                launch(file, normalizationTypes, genomeWideResolution, noFragNorm,
+                        numCPUThreads, resolutionsToBuildTo);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    protected void updateNumberOfCPUThreads(CommandLineParser juicerParser) {
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else if (numThreads < 0) {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        } else {
-            numCPUThreads = 1;
-        }
-        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

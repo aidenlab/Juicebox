@@ -56,10 +56,9 @@ public class MultithreadedNormalizationVectorUpdater extends NormalizationVector
 
     protected static int numCPUThreads = 1;
 
-    public void setNumCPUThreads(int numCPUThreads) {
+    public MultithreadedNormalizationVectorUpdater(int numCPUThreads) {
         MultithreadedNormalizationVectorUpdater.numCPUThreads = numCPUThreads;
     }
-
 
     @Override
     public void updateHicFile(String path, List<NormalizationType> normalizationsToBuild,

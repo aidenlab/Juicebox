@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -38,6 +38,8 @@ public abstract class JuiceboxCLT {
     private static String usage;
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
+    protected static int numCPUThreads = 1;
+    protected boolean usingMultiThreadedVersion = false;
 
     protected JuiceboxCLT(String usage) {
         setUsage(usage);
@@ -75,6 +77,18 @@ public abstract class JuiceboxCLT {
                     " \"GW_VC\", \"INTER_KR\", \"INTER_VC\", or a custom added normalization.");
             System.exit(16);
         }
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
+        int numThreads = parser.getNumThreads();
+        if (numThreads > 0) {
+            numCPUThreads = numThreads;
+        } else if (numThreads < 0) {
+            numCPUThreads = Runtime.getRuntime().availableProcessors();
+        } else {
+            numCPUThreads = 1;
+        }
+        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }
 

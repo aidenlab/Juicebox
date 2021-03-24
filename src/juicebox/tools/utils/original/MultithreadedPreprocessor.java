@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -53,7 +53,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Long> matrixSizes = new ConcurrentHashMap<>();
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
-    private Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
+    private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
     protected static Map<Integer, List<long[]>> mndIndex = null;
     private final AtomicInteger chunkCounter = new AtomicInteger(0);
     private int totalChunks = 0;
@@ -66,12 +66,16 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final ConcurrentHashMap<Integer, Integer> chrPairBlockCapacities = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrPairMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrChunkMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Map<Integer, Pair<Pair<Integer,Integer>, MatrixPP>>> threadSpecificChrPairMatrices = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Map<Integer, Pair<Pair<Integer, Integer>, MatrixPP>>> threadSpecificChrPairMatrices = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, MatrixPP> finalChrMatrices = new ConcurrentHashMap<>();
 
 
-    public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler, double hicFileScalingFactor) {
+    public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler,
+                                     double hicFileScalingFactor, int numCPUThreads, String mndIndexFile) throws IOException {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
+
+        MultithreadedPreprocessor.numCPUThreads = numCPUThreads;
+        setMndIndex(mndIndexFile);
 
         chromosomeIndexes = new ConcurrentHashMap<>(chromosomeHandler.size(), (float) 0.75, numCPUThreads);
         for (int i = 0; i < chromosomeHandler.size(); i++) {
@@ -102,13 +106,11 @@ public class MultithreadedPreprocessor extends Preprocessor {
         this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(numCPUThreads, (float) 0.75, numCPUThreads);
     }
 
-    public void setNumCPUThreads(int numCPUThreads) {
-        MultithreadedPreprocessor.numCPUThreads = numCPUThreads;
-    }
-
-    public void setMndIndex(String mndIndexFile) {
+    public void setMndIndex(String mndIndexFile) throws IOException {
         if (mndIndexFile != null && mndIndexFile.length() > 1) {
             mndIndex = readMndIndex(mndIndexFile);
+        } else {
+            throw new IOException("No mndIndex provided");
         }
     }
 

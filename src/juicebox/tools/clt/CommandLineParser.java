@@ -53,8 +53,8 @@ public class CommandLineParser extends CmdLineParser {
     private final Option noFragNormOption = addBooleanOption('F', "no_fragment-normalization");
     private final Option randomizePositionOption = addBooleanOption("randomize_position");
     private final Option throwIntraFragOption = addBooleanOption("skip-intra-frag");
-    private final Option useMaxRAM = addBooleanOption("use-max-ram");
-    private final Option dontCheckMemory = addBooleanOption("dont-check-ram");
+    private final Option useMinRAM = addBooleanOption("conserve-ram");
+    private final Option checkMemory = addBooleanOption("check-ram-usage");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -137,12 +137,12 @@ public class CommandLineParser extends CmdLineParser {
         return optionToBoolean(throwIntraFragOption);
     }
 
-    public boolean getPutAllContactsIntoRAM() {
-        return optionToBoolean(useMaxRAM);
+    public boolean getDontPutAllContactsIntoRAM() {
+        return optionToBoolean(useMinRAM);
     }
 
-    public boolean getDontCheckRAM() {
-        return optionToBoolean(dontCheckMemory);
+    public boolean shouldCheckRAMUsage() {
+        return optionToBoolean(checkMemory);
     }
 
     /**

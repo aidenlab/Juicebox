@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.05.01";
+    public static final String versionNum = "2.05.04";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -96,8 +96,8 @@ public class HiCGlobals {
     public static boolean HACK_COLORSCALE_LINEAR = false;
 
     // for norm/pre, save contact records into memory
-    public static boolean SAVE_CONTACT_RECORDS_IN_RAM = false;
-    public static boolean DONT_CHECK_RAM = false;
+    public static boolean DONT_SAVE_CONTACT_RECORDS_IN_RAM = false;
+    public static boolean CHECK_RAM_USAGE = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

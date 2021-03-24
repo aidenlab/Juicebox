@@ -47,29 +47,29 @@ public class ListOfListGenerator {
     }
 
     private static IteratorContainer tryToCreateIteratorInRAM(IteratorContainer ic0) {
-        if (HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM) {
-            try {
-                // we should count once to ensure this is reasonable to do so memory-wise
-                boolean shouldFitInMemory;
-                if (HiCGlobals.DONT_CHECK_RAM) {
-                    shouldFitInMemory = true;
-                } else {
-                    shouldFitInMemory = checkMemory(ic0);
-                }
+        if (HiCGlobals.DONT_SAVE_CONTACT_RECORDS_IN_RAM) {
+            return ic0;
+        }
 
-                if (shouldFitInMemory) {
-                    List<List<ContactRecord>> allContactRecords = populateListOfLists(ic0);
-                    long numOfContactRecords = getTotalSize(allContactRecords);
-
-                    IteratorContainer newIC = new ListOfListIteratorContainer(allContactRecords,
-                            ic0.getMatrixSize(),
-                            numOfContactRecords);
-                    return newIC;
-                }
-            } catch (Exception e) {
-                System.err.println(e.getLocalizedMessage());
-                System.err.println("Will use default iterator");
+        try {
+            // we should count once to ensure this is reasonable to do so memory-wise
+            boolean shouldFitInMemory = true;
+            if (HiCGlobals.CHECK_RAM_USAGE) {
+                shouldFitInMemory = checkMemory(ic0);
             }
+
+            if (shouldFitInMemory) {
+                List<List<ContactRecord>> allContactRecords = populateListOfLists(ic0);
+                long numOfContactRecords = getTotalSize(allContactRecords);
+
+                IteratorContainer newIC = new ListOfListIteratorContainer(allContactRecords,
+                        ic0.getMatrixSize(),
+                        numOfContactRecords);
+                return newIC;
+            }
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            System.err.println("Will use default iterator");
         }
 
         return ic0;
