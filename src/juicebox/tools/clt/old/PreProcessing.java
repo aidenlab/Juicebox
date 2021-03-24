@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,8 +29,6 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.norm.NormalizationVectorUpdater;
-import juicebox.tools.utils.original.MatrixZoomDataPP;
 import juicebox.tools.utils.original.MultithreadedPreprocessor;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
@@ -50,7 +48,6 @@ public class PreProcessing extends JuiceboxCLT {
     private boolean noFragNorm = false;
 	private int genomeWide;
 	private final List<NormalizationType> normalizationTypes = new ArrayList<>();
-	protected static int numCPUThreads = 1;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -72,7 +69,9 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -k normalizations to include\n"
                 + "           : -j number of CPU threads to use\n"
                 + "           : --threads <int> number of threads \n"
-                + "           : --mndindex <filepath> to mnd chr block indices"
+                + "           : --mndindex <filepath> to mnd chr block indices\n"
+                + "           : --conserve-ram will minimize RAM usage\n"
+                + "           : --check-ram-usage will check ram requirements prior to running"
         );
     }
 
@@ -99,12 +98,19 @@ public class PreProcessing extends JuiceboxCLT {
         double hicFileScalingFactor = parser.getScalingOption();
 
         updateNumberOfCPUThreads(parser);
-        if (numCPUThreads == 1) {
+        if (numCPUThreads < 2) {
             preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+            usingMultiThreadedVersion = false;
         } else {
-            preprocessor = new MultithreadedPreprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-            ((MultithreadedPreprocessor) preprocessor).setNumCPUThreads(numCPUThreads);
-            ((MultithreadedPreprocessor) preprocessor).setMndIndex(parser.getMndIndexOption());
+            try {
+                preprocessor = new MultithreadedPreprocessor(new File(outputFile), genomeId, chromHandler,
+                        hicFileScalingFactor, numCPUThreads, parser.getMndIndexOption());
+                usingMultiThreadedVersion = true;
+            } catch (Exception e) {
+                System.err.println(e.getLocalizedMessage() + "\nUsing single threaded preprocessor");
+                preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+                usingMultiThreadedVersion = false;
+            }
         }
 
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
@@ -133,43 +139,33 @@ public class PreProcessing extends JuiceboxCLT {
         genomeWide = parser.getGenomeWideOption();
         noFragNorm = parser.getNoFragNormOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
+        HiCGlobals.USE_ITERATOR_NOT_ALL_IN_RAM = parser.getDontPutAllContactsIntoRAM();
+        HiCGlobals.CHECK_RAM_USAGE = parser.shouldCheckRAMUsage();
     }
 
     @Override
     public void run() {
         try {
             long currentTime = System.currentTimeMillis();
-            if (numCPUThreads == 1) {
-                preprocessor.preprocess(inputFile, outputFile, outputFile, null);
-            } else {
+            if (usingMultiThreadedVersion) {
                 preprocessor.preprocess(inputFile, null, null, null);
+            } else {
+                preprocessor.preprocess(inputFile, outputFile, outputFile, null);
             }
 
             if (HiCGlobals.printVerboseComments) {
-                System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                System.out.println("\nBinning contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
             if (!noNorm) {
                 Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
-                (new NormalizationVectorUpdater()).updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
+                AddNorm.launch(outputFile, normalizationTypes, genomeWide, noFragNorm, numCPUThreads, resolutionsToBuildTo);
             } else {
                 System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");
-                System.out.println("To run normalization, run: juicebox addNorm <hicfile>");
+                System.out.println("To run normalization, run: java -jar juicer_tools.jar addNorm <hicfile>");
             }
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(56);
         }
-    }
-
-    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
-        int numThreads = parser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else if (numThreads < 0) {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        } else {
-            numCPUThreads = 1;
-        }
-        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

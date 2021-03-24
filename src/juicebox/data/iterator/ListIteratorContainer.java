@@ -15,50 +15,39 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.data.iterator;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.data.ContactRecord;
 
+import java.util.Iterator;
+import java.util.List;
 
-public class AddGWNorm extends JuiceboxCLT {
+public class ListIteratorContainer extends IteratorContainer {
 
-    private String file;
-    private int genomeWideResolution = -100;
+    private final List<ContactRecord> readList;
 
-    public AddGWNorm() {
-        super("addGWNorm <input_HiC_file> <min resolution>");
+    public ListIteratorContainer(List<ContactRecord> readList, long matrixSize) {
+        super(matrixSize);
+        setNumberOfContactRecords(readList.size());
+        this.readList = readList;
     }
 
     @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.parseInt(args[2]);
-        } catch (NumberFormatException error) {
-            printUsageAndExit();
-        }
+    public Iterator<ContactRecord> getNewContactRecordIterator() {
+        return readList.iterator();
     }
 
     @Override
-    public void run() {
-        try {
-            System.err.println("Please use AddNorm to handle the addition of genomewide normalizations");
-            //GenomeWideNormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public boolean getIsThereEnoughMemoryForNormCalculation() {
+        // float is 4 bytes; one for each row (row sums)
+        // 12 bytes (2 ints, 1 float) for contact record
+        return 4 * getMatrixSize() + 12 * getNumberOfContactRecords() < Runtime.getRuntime().maxMemory();
     }
 }

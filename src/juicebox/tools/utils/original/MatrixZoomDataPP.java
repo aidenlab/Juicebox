@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -31,14 +31,12 @@ import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.windowui.HiCZoom;
-import org.apache.commons.math.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.*;
@@ -509,9 +507,9 @@ public class MatrixZoomDataPP {
         int startBlock =0, endBlock = 0;
         for (int l = 0; l < numCPUThreads; l++) {
             final int threadNum = l;
-            final int whichLos = numCPUThreads*whichZoom + threadNum;
-            final int numOfRecordsPerThread = 2 * (int) Math.floor((double) numRecords/numCPUThreads);
-            final int maxNumOfBlocksPerThread = (int) Math.floor((double) sortedBlockNumbers.length/numCPUThreads);
+            final int whichLos = numCPUThreads * whichZoom + threadNum;
+            final int numOfRecordsPerThread = 2 * (int) Math.floor(numRecords / numCPUThreads);
+            final int maxNumOfBlocksPerThread = (int) Math.floor((double) sortedBlockNumbers.length / numCPUThreads);
             if (l>0) {
                 startBlock = endBlock;
             }

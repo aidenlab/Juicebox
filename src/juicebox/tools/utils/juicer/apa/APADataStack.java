@@ -146,6 +146,9 @@ public class APADataStack {
             }
             MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
                     apaMatrices[i]);
+            MatrixTools.saveMatrixTextNumpy(
+                    (new File(subFolder, apaDataTitles[i] + ".npy")).getAbsolutePath(),
+                    apaMatrices[i].getData());
         }
 
         if (saveAllData) {

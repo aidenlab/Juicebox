@@ -420,8 +420,15 @@ public class MainWindow extends JFrame {
             setVisible(false);
             dispose();
             String autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" +
-                    (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] +
-                    ".review.autosave.assembly";
+                    System.nanoTime() + ".review.autosave.assembly";
+            try {
+                autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" +
+                        (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] +
+                        ".review.autosave.assembly";
+            } catch (Exception e) {
+                System.err.println("Unable to get desired file name");
+                System.err.println(e.getLocalizedMessage());
+            }
             File autoSaveFile = new File(autoSaveFileName);
             autoSaveFile.delete();
             System.out.println("Exiting Main Window");

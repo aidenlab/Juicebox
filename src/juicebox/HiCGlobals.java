@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 public class HiCGlobals {
 
     // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.04.06";
+    public static final String versionNum = "2.05.05";
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
@@ -50,7 +50,7 @@ public class HiCGlobals {
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String BACKUP_FILE_STEM = "unsaved_hic_annotations_backup_";
-  
+
     // for state saving
     public static File stateFile;
     public static File xmlSavedStatesFile;
@@ -84,7 +84,7 @@ public class HiCGlobals {
     public static boolean isAssemblyMatCheck = false;
 
     // whether instance was linked before mouse press or not
-    
+
     public static boolean phasing = false;
     public static boolean noSortInPhasing = false;
     public static boolean wasLinkedBeforeMousePress = false;
@@ -95,6 +95,9 @@ public class HiCGlobals {
     public static boolean HACK_COLORSCALE_EQUAL = false;
     public static boolean HACK_COLORSCALE_LINEAR = false;
 
+    // for norm/pre, save contact records into memory
+    public static boolean USE_ITERATOR_NOT_ALL_IN_RAM = false;
+    public static boolean CHECK_RAM_USAGE = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

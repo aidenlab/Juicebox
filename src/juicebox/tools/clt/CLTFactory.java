@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -43,7 +43,6 @@ public class CLTFactory {
 
     // Commenting some out because we're not going to release all these when we release CLT
     private final static String[] commandLineToolUsages = {
-            //        "addGWNorm",    "addGWNorm <input_HiC_file> <min resolution>",
             //        "addNorm",      "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
             //        "bigWig",       "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
             //        "binToPairs",   "binToPairs <input_HiC_file> <output_HiC_file>",
@@ -87,9 +86,7 @@ public class CLTFactory {
             return new CompareVectors();
         } else if (cmd.equals("validate")) {
             return new ValidateFile();
-        } else if (cmd.equals("addGWNorm".toLowerCase())) {
-            return new AddGWNorm();
-        } else if (cmd.equals("addNorm".toLowerCase())) {
+        } else if (cmd.equals("addnorm")) {
             return new AddNorm();
         } else if (cmd.equals("apa")) {
             return new APA();
@@ -97,19 +94,19 @@ public class CLTFactory {
             return new CompareLists();
         } else if (cmd.equals("arrowhead")) {
             return new Arrowhead();
-        } else if (cmd.equals("bigWig".toLowerCase())) {
+        } else if (cmd.equals("bigwig")) {
             return new BigWig();
-        } else if (cmd.equals("binToPairs".toLowerCase())) {
+        } else if (cmd.equals("bintopairs")) {
             return new BinToPairs();
-        //} else if (cmd.equals("booleanBalance".toLowerCase())) {
-        //    return new BooleanBalancing();
-        } else if (cmd.equals("bpToFrag".toLowerCase())) {
+            //} else if (cmd.equals("booleanBalance".toLowerCase())) {
+            //    return new BooleanBalancing();
+        } else if (cmd.equals("bptofrag")) {
             return new BPToFragment();
-        } else if (cmd.equals("calcKR".toLowerCase())) {
+        } else if (cmd.equals("calckr")) {
             return new CalcKR();
-        } else if (cmd.equals("calcMatrixSum".toLowerCase())) {
+        } else if (cmd.equals("calcmatrixsum")) {
             return new CalcMatrixSum();
-        } else if (cmd.equals("fragmentToBed".toLowerCase())) {
+        } else if (cmd.equals("fragmenttobed")) {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
@@ -117,7 +114,7 @@ public class CLTFactory {
             return new LoopDomains();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
-        } else if (cmd.equals("pairsToBin".toLowerCase())) {
+        } else if (cmd.equals("pairstobin")) {
             return new PairsToBin();
         } else if (cmd.equals("db")) {
             return new SQLDatabase();

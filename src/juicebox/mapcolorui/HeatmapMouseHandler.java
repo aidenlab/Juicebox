@@ -802,7 +802,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                     }
 
                     if (selectedSuperscaffolds.contains(tentativeSuperscaffoldId)) {
-                        selectedSuperscaffolds.remove(new Integer(tentativeSuperscaffoldId));
+                        selectedSuperscaffolds.remove(Integer.valueOf(tentativeSuperscaffoldId));
                         highlightedFeatures.remove(newSelectedSuperscaffold.getFeature2D());
                     } else if (selectedSuperscaffolds.contains(altTentativeSuperscaffoldId)) {
                         return;

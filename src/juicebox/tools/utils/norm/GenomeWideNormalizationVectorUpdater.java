@@ -24,12 +24,13 @@
 
 package juicebox.tools.utils.norm;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.data.iterator.IteratorContainer;
+import juicebox.data.iterator.ListOfListGenerator;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
@@ -38,9 +39,14 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
+    // todo remove
+    /*
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
@@ -85,11 +91,10 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
 
-            /*
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
-            if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
-            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
-            */
+            // if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
+            // if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
+
 
             // Loop through chromosomes
             for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
@@ -114,6 +119,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 normVectorBuffers, nviHeaderPosition);
         System.out.println("Finished normalization");
     }
+    */
 
 
     public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild,
@@ -152,16 +158,11 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         boolean includeIntraData = NormalizationHandler.isGenomeWideNormIntra(norm); // default INTER type
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
-        final List<List<ContactRecord>> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntraData);
+        final IteratorContainer ic = ListOfListGenerator.createForWholeGenome(dataset, chromosomeHandler, zoom,
+                includeIntraData);
 
-        int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            totalSize += c1.getLength() / resolution + 1;
-        }
-    
-        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
+        NormalizationCalculations calculations = new NormalizationCalculations(ic);
         ListOfFloatArrays vector = calculations.getNorm(norm);
-
         if (vector == null) {
             return null;
         }
@@ -175,19 +176,18 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null) continue;
 
-            for (List<ContactRecord> crList : zd.getContactRecordList()) {
-                for (ContactRecord cr : crList) {
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    final float vx = vector.get(x + addY);
-                    final float vy = vector.get(y + addY);
-                    if (isValidNormValue(vx) && isValidNormValue(vy)) {
-                        double value = cr.getCounts() / (vx * vy);
-                        expectedValueCalculation.addDistance(chrIdx, x, y, value);
-                    }
+            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            while (iterator.hasNext()) {
+                ContactRecord cr = iterator.next();
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                final float vx = vector.get(x + addY);
+                final float vy = vector.get(y + addY);
+                if (isValidNormValue(vx) && isValidNormValue(vy)) {
+                    double value = cr.getCounts() / (vx * vy);
+                    expectedValueCalculation.addDistance(chrIdx, x, y, value);
                 }
             }
-
             addY += chr.getLength() / resolution + 1;
         }
 
@@ -205,42 +205,5 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         }
 
         return new Pair<>(normVectorMap, expectedValueCalculation);
-    }
-
-    public static List<List<ContactRecord>> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler,
-                                                                     HiCZoom zoom, boolean includeIntra) {
-        List<List<ContactRecord>> recordArrayList = new ArrayList<>();
-        int addX = 0;
-        int addY = 0;
-        long maxPos = 0;
-        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
-            maxPos += c1.getLength() / zoom.getBinSize() + 1;
-        }
-        if (maxPos > Integer.MAX_VALUE) {
-            System.err.println("Max int size exceeded for genome wide normalization at " + zoom);
-        }
-
-        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
-            for (Chromosome c2 : handler.getChromosomeArrayWithoutAllByAll()) {
-                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
-                    if (zd != null) {
-                        for (List<ContactRecord> recordList : zd.getContactRecordList()) {
-                            List<ContactRecord> localList = new ArrayList<>();
-                            for (ContactRecord cr : recordList) {
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                localList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
-                            recordArrayList.add(localList);
-                        }
-                    }
-                }
-                addY += c2.getLength() / zoom.getBinSize() + 1;
-            }
-            addX += c1.getLength() / zoom.getBinSize() + 1;
-            addY = 0;
-        }
-        return recordArrayList;
     }
 }

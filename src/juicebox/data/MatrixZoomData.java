@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -32,6 +32,8 @@ import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.iterator.IteratorContainer;
+import juicebox.data.iterator.ListOfListGenerator;
 import juicebox.data.v9depth.LogDepth;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
@@ -80,11 +82,11 @@ public class MatrixZoomData {
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
     private final HashSet<NormalizationType> missingPearsonFiles;
-    DatasetReader reader;
-    private double averageCount = -1;
-    private List<List<ContactRecord>> localCacheOfRecords = null;
-    private long numberOfContactRecords = 0;
+    //private List<List<ContactRecord>> localCacheOfRecords = null;
     private final V9Depth v9Depth;
+    private double averageCount = -1;
+    protected DatasetReader reader;
+    private IteratorContainer iteratorContainer = null;
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -848,33 +850,32 @@ public class MatrixZoomData {
         // Compute O/E column vectors
         double[][] vectors = new double[dim][];
 
-        for (List<ContactRecord> recordList : getContactRecordList()) {
-            for (ContactRecord record : recordList) {
-                int i = record.getBinX();
-                int j = record.getBinY();
-                float counts = record.getCounts();
-                if (Float.isNaN(counts)) continue;
+        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord record = iterator.next();
+            int i = record.getBinX();
+            int j = record.getBinY();
+            float counts = record.getCounts();
+            if (Float.isNaN(counts)) continue;
 
-                int dist = Math.abs(i - j);
-                double expected = df.getExpectedValue(chr1.getIndex(), dist);
-                double oeValue = counts / expected;
+            int dist = Math.abs(i - j);
+            double expected = df.getExpectedValue(chr1.getIndex(), dist);
+            double oeValue = counts / expected;
 
-                double[] vi = vectors[i];
-                if (vi == null) {
-                    vi = new double[dim]; //zeroValue) ;
-                    vectors[i] = vi;
-                }
-                vi[j] = oeValue;
-
-
-                double[] vj = vectors[j];
-                if (vj == null) {
-                    vj = new double[dim]; // zeroValue) ;
-                    vectors[j] = vj;
-                }
-                vj[i] = oeValue;
-
+            double[] vi = vectors[i];
+            if (vi == null) {
+                vi = new double[dim]; //zeroValue) ;
+                vectors[i] = vi;
             }
+            vi[j] = oeValue;
+
+
+            double[] vj = vectors[j];
+            if (vj == null) {
+                vj = new double[dim]; // zeroValue) ;
+                vectors[j] = vj;
+            }
+            vj[i] = oeValue;
         }
 
         // Subtract row means
@@ -1243,41 +1244,19 @@ public class MatrixZoomData {
         this.averageCount = averageCount;
     }
 
-    public List<List<ContactRecord>> getContactRecordList() {
-        if (localCacheOfRecords == null || localCacheOfRecords.size() < 1) {
-            numberOfContactRecords = 0;
-            localCacheOfRecords = new ArrayList<>(3);
-            List<ContactRecord> currentList = new ArrayList<>(1000000);
-            int localCounter = 0;
-            int maxAllowed = 9 * (Integer.MAX_VALUE / 10);
-            Iterator<ContactRecord> iterator = new ContactRecordIterator(reader, this, blockCache);
-            while (iterator.hasNext()) {
-                ContactRecord cr = iterator.next();
-                currentList.add(cr);
-                numberOfContactRecords++;
-                localCounter++;
-                if (localCounter > maxAllowed) {
-                    // make new ArrayList
-                    localCacheOfRecords.add(currentList);
-                    localCounter = 0;
-                    currentList = new ArrayList<>();
-                }
-            }
-            if (localCounter > 0) { // add last list
-                localCacheOfRecords.add(currentList);
-            }
-        }
-        return localCacheOfRecords;
-    }
-
     public void clearCache() {
         blockCache.clear();
     }
 
-    public long getNumberOfContactRecords() {
-        if (numberOfContactRecords == 0) {
-            getContactRecordList();
+    private Iterator<ContactRecord> getNewContactRecordIterator() {
+        return getIteratorContainer().getNewContactRecordIterator();
+        //return new ContactRecordIterator(reader, this, blockCache);
+    }
+
+    public IteratorContainer getIteratorContainer() {
+        if (iteratorContainer == null) {
+            iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache);
         }
-        return numberOfContactRecords;
+        return iteratorContainer;
     }
 }

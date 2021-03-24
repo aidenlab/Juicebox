@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -53,6 +53,8 @@ public class CommandLineParser extends CmdLineParser {
     private final Option noFragNormOption = addBooleanOption('F', "no_fragment-normalization");
     private final Option randomizePositionOption = addBooleanOption("randomize_position");
     private final Option throwIntraFragOption = addBooleanOption("skip-intra-frag");
+    private final Option useMinRAM = addBooleanOption("conserve-ram");
+    private final Option checkMemory = addBooleanOption("check-ram-usage");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -133,6 +135,14 @@ public class CommandLineParser extends CmdLineParser {
 
     public boolean getThrowIntraFragOption() {
         return optionToBoolean(throwIntraFragOption);
+    }
+
+    public boolean getDontPutAllContactsIntoRAM() {
+        return optionToBoolean(useMinRAM);
+    }
+
+    public boolean shouldCheckRAMUsage() {
+        return optionToBoolean(checkMemory);
     }
 
     /**
