@@ -54,6 +54,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option randomizePositionOption = addBooleanOption("randomize_position");
     private final Option throwIntraFragOption = addBooleanOption("skip-intra-frag");
     private final Option useMaxRAM = addBooleanOption("use-max-ram");
+    private final Option dontCheckMemory = addBooleanOption("dont-check-ram");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -138,6 +139,10 @@ public class CommandLineParser extends CmdLineParser {
 
     public boolean getPutAllContactsIntoRAM() {
         return optionToBoolean(useMaxRAM);
+    }
+
+    public boolean getDontCheckRAM() {
+        return optionToBoolean(dontCheckMemory);
     }
 
     /**

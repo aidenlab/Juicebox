@@ -133,6 +133,7 @@ public class PreProcessing extends JuiceboxCLT {
         noFragNorm = parser.getNoFragNormOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM = parser.getPutAllContactsIntoRAM();
+        HiCGlobals.DONT_CHECK_RAM = parser.getDontCheckRAM();
     }
 
     @Override

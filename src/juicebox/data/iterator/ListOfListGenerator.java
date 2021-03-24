@@ -50,7 +50,13 @@ public class ListOfListGenerator {
         if (HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM) {
             try {
                 // we should count once to ensure this is reasonable to do so memory-wise
-                boolean shouldFitInMemory = checkMemory(ic0);
+                boolean shouldFitInMemory;
+                if (HiCGlobals.DONT_CHECK_RAM) {
+                    shouldFitInMemory = true;
+                } else {
+                    shouldFitInMemory = checkMemory(ic0);
+                }
+
                 if (shouldFitInMemory) {
                     List<List<ContactRecord>> allContactRecords = populateListOfLists(ic0);
                     long numOfContactRecords = getTotalSize(allContactRecords);

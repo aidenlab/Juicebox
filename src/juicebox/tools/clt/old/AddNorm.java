@@ -86,6 +86,8 @@ public class AddNorm extends JuiceboxCLT {
         }
         noFragNorm = parser.getNoFragNormOption();
         HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM = parser.getPutAllContactsIntoRAM();
+        HiCGlobals.DONT_CHECK_RAM = parser.getDontCheckRAM();
+
         genomeWideResolution = parser.getGenomeWideOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         resolutionsToBuildTo = defaultHashMapForResToBuildTo(normalizationTypes);
