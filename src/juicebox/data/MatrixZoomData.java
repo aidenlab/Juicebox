@@ -1255,7 +1255,7 @@ public class MatrixZoomData {
 
     public IteratorContainer getIteratorContainer() {
         if (iteratorContainer == null) {
-            iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache, false);
+            iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache);
         }
         return iteratorContainer;
     }

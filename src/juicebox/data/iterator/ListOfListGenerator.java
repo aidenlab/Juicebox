@@ -24,6 +24,7 @@
 
 package juicebox.data.iterator;
 
+import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.util.collections.LRUCache;
@@ -34,19 +35,19 @@ import java.util.List;
 
 public class ListOfListGenerator {
     public static IteratorContainer createFromZD(DatasetReader reader, MatrixZoomData matrixZoomData,
-                                                 LRUCache<String, Block> blockCache, boolean saveAllIntoRAM) {
+                                                 LRUCache<String, Block> blockCache) {
         IteratorContainer ic = new ZDIteratorContainer(reader, matrixZoomData, blockCache);
-        return tryToCreateIteratorInRAM(ic, saveAllIntoRAM);
+        return tryToCreateIteratorInRAM(ic);
     }
 
     public static IteratorContainer createForWholeGenome(Dataset dataset, ChromosomeHandler chromosomeHandler,
-                                                         HiCZoom zoom, boolean includeIntraData, boolean saveAllIntoRAM) {
+                                                         HiCZoom zoom, boolean includeIntraData) {
         IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
-        return tryToCreateIteratorInRAM(ic, saveAllIntoRAM);
+        return tryToCreateIteratorInRAM(ic);
     }
 
-    private static IteratorContainer tryToCreateIteratorInRAM(IteratorContainer ic0, boolean saveAllIntoRAM) {
-        if (saveAllIntoRAM) {
+    private static IteratorContainer tryToCreateIteratorInRAM(IteratorContainer ic0) {
+        if (HiCGlobals.SAVE_CONTACT_RECORDS_IN_RAM) {
             try {
                 // we should count once to ensure this is reasonable to do so memory-wise
                 boolean shouldFitInMemory = checkMemory(ic0);

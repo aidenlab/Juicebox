@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.norm;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
@@ -40,10 +39,14 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
     // todo remove
+    /*
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
@@ -88,11 +91,10 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
 
-            /*
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
-            if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
-            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
-            */
+            // if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
+            // if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
+
 
             // Loop through chromosomes
             for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
@@ -117,6 +119,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
                 normVectorBuffers, nviHeaderPosition);
         System.out.println("Finished normalization");
     }
+    */
 
 
     public static void updateHicFileForGWfromPreAddNormOnly(Dataset ds, HiCZoom zoom, List<NormalizationType> normalizationsToBuild,
@@ -156,7 +159,7 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
         final IteratorContainer ic = ListOfListGenerator.createForWholeGenome(dataset, chromosomeHandler, zoom,
-                includeIntraData, false);
+                includeIntraData);
 
         NormalizationCalculations calculations = new NormalizationCalculations(ic);
         ListOfFloatArrays vector = calculations.getNorm(norm);
