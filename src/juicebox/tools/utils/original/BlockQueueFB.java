@@ -36,9 +36,11 @@ class BlockQueueFB implements BlockQueue {
     final File file;
     BlockPP block;
     long filePosition;
+    long fileLength;
 
     BlockQueueFB(File file) {
         this.file = file;
+        fileLength = file.length();
         try {
             advance();
         } catch (IOException e) {
@@ -47,8 +49,7 @@ class BlockQueueFB implements BlockQueue {
     }
 
     public void advance() throws IOException {
-
-        if (filePosition >= file.length()) {
+        if (filePosition >= fileLength) {
             block = null;
             return;
         }
@@ -98,8 +99,9 @@ class BlockQueueFB implements BlockQueue {
      */
     void readFully(byte[] b, InputStream is) throws IOException {
         int len = b.length;
-        if (len < 0)
-            throw new IndexOutOfBoundsException();
+//      Condition 'len < 0' is always 'false'
+//      if (len < 0)
+//          throw new IndexOutOfBoundsException();
         int n = 0;
         while (n < len) {
             int count = is.read(b, n, len - n);
