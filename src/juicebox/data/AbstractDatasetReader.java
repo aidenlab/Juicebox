@@ -88,7 +88,6 @@ public abstract class AbstractDatasetReader implements DatasetReader {
         if (FileUtils.resourceExists(fullPath)) {
             System.out.println("Reading " + fullPath);
 
-
             // Lots of assumptions made here about structure of wig file
             BufferedReader br = null;
 

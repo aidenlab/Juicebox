@@ -115,10 +115,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             if (version > 8) {
                 // read NVI todo
-                nviHeaderPosition = position;
+                nviHeaderPosition = position; // todo use
                 long nvi = dis.readLong();
                 long nviSize = dis.readLong();
-                System.err.println(nvi + " " + nviSize);
                 position += 16;
             }
     
