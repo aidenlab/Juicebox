@@ -22,29 +22,29 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.common;
 
-public class AlignmentPairLong extends AlignmentPair {
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
-    private final String seq1;
-    private final String seq2;
-
-    public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
-                             boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2){
-        super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-        this.seq1 = seq1;
-        this.seq2 = seq2;
+public class ShellCommandRunner {
+    public static void runShellFile(String command, String filepath) {
+        Process p;
+        try {
+            String[] cmd = {command, filepath};
+            p = Runtime.getRuntime().exec(cmd);
+            p.waitFor();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            System.err.println("Unable to execute shell file: " + filepath);
+            System.err.println("Run this file in your shell and then start from normalization");
+            System.exit(45);
+        }
     }
-
-    public AlignmentPairLong(){
-        super();
-        seq1 = null;
-        seq2 = null;
-    }
-
-    public String getSeq1() { return seq1;}
-
-    public String getSeq2() { return seq2;}
-
 }
-
