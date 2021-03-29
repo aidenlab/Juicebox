@@ -37,7 +37,6 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.time.Instant;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -489,7 +488,6 @@ public class MatrixZoomDataPP {
 
     // Merge and write out blocks multithreaded.
     protected List<IndexEntry> mergeAndWriteBlocks(LittleEndianOutputStream[] losArray, Deflater compressor, int whichZoom, int numResolutions) throws IOException {
-        Instant A = Instant.now();
         DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
         Integer[] sortedBlockNumbers = new Integer[blockNumbers.size()];
         blockNumbers.toArray(sortedBlockNumbers);
@@ -499,7 +497,7 @@ public class MatrixZoomDataPP {
             threadSafeBlocks.put(entry.getKey(), entry.getValue());
         }
         int numCPUThreads = (losArray.length-1)/numResolutions;
-        Instant B = Instant.now();
+
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
         Map<Integer, Long> blockChunkSizes = new ConcurrentHashMap<>(numCPUThreads);
         Map<Integer, List<IndexEntry>> chunkBlockIndexes = new ConcurrentHashMap<>(numCPUThreads);
@@ -535,10 +533,7 @@ public class MatrixZoomDataPP {
                 @Override
                 public void run() {
                     try {
-                        Instant F = Instant.now();
                         writeBlockChunk(threadBlocks, threadSafeBlocks, losArray, whichLos, indexEntries, sampledData);
-                        Instant G = Instant.now();
-                        //System.err.println(chr1 + " " + chr2 + " " + "threadWriteTimes" + " " + whichZoom + " " + threadNum + " " + whichLos + " " + Duration.between(F,G).toMillis());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -556,7 +551,7 @@ public class MatrixZoomDataPP {
             } catch (InterruptedException e) {
             }
         }
-        Instant C = Instant.now();
+
         long adjust = 0;
         for (int i = 0; i < losArray.length; i++) {
             blockChunkSizes.put(i, losArray[i].getWrittenCount());
@@ -575,14 +570,14 @@ public class MatrixZoomDataPP {
             }
 
         }
-        Instant D = Instant.now();
+
         for (File f : tmpFiles) {
             boolean result = f.delete();
             if (!result) {
                 System.out.println("Error while deleting file");
             }
         }
-        Instant E = Instant.now();
+
         computeStats(sampledData);
         //System.err.println(chr1 + " " + chr2 + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + Duration.between(C,D).toMillis() + " " +
         //        Duration.between(D,E).toMillis());
@@ -595,7 +590,6 @@ public class MatrixZoomDataPP {
         compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
         //System.err.println(threadBlocks.length);
         for (int i = 0; i < threadBlocks.length; i++) {
-            Instant A = Instant.now();
             BlockPP currentBlock = null;
             int num = threadBlocks[i];
             if (threadSafeBlocks.get(num) != null ){
@@ -618,12 +612,10 @@ public class MatrixZoomDataPP {
                     currentBlock.merge(tmpBlock);
                 }
             }
-            Instant B = Instant.now();
+
             long position = losArray[threadNum+1].getWrittenCount();
             writeBlock(MatrixZoomDataPP.this, currentBlock, sampledData, losArray[threadNum+1], compressor);
             long size = losArray[threadNum+1].getWrittenCount() - position;
-            Instant C = Instant.now();
-            //System.err.println(chr1 + " " + chr2 + " " + threadNum + " " + num + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis());
 
             indexEntries.add(new IndexEntry(num, position, (int) size));
         }

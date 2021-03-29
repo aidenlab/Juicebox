@@ -31,8 +31,6 @@ import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.util.Pair;
 
 import java.io.*;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -384,9 +382,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         }
                         while (currentChunk < totalChunks) {
                             int currentChrPair = chunkCounterToChrPairMap.get(currentChunk);
-                            Instant A = Instant.now();
                             threadSpecificChrPairMatrices.get(currentChrPair).put(threadNum, processIndividualMatrixChunk(inputFile, currentChunk, currentChrPair, syncWrittenMatrices, localExpectedValueCalculations, threadNum));
-                            Instant B = Instant.now();
                             synchronized(finalChrMatrices) {
                                 if (!finalChrMatrices.containsKey(currentChrPair)) {
                                     int currentChr1 = chromosomePairIndex1.get(currentChrPair);
@@ -397,21 +393,19 @@ public class MultithreadedPreprocessor extends Preprocessor {
                                     finalChrMatrices.get(currentChrPair).mergeMatrices(threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getSecond());
                                 }
                             }
-                            Instant C = Instant.now();
+
                             for (int completedChunks = 0; completedChunks < threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getSecond(); completedChunks++) {
                                 completedChunksPerChrPair.get(currentChrPair).getAndIncrement();
                             }
-                            System.err.println(currentChrPair + " " + threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getSecond() + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + completedChunksPerChrPair.get(currentChrPair).get());
+                            //System.err.println(currentChrPair + " " + threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getSecond() + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + completedChunksPerChrPair.get(currentChrPair).get());
                             currentChunk = threadSpecificChrPairMatrices.get(currentChrPair).get(threadNum).getFirst().getFirst();
                             int currentAvailableThreads = chrPairAvailableThreads.get(currentChrPair).incrementAndGet();
                             if (completedChunksPerChrPair.get(currentChrPair).get() == numChunksPerChrPair.get(currentChrPair)) {
-                                Instant D = Instant.now();
                                 WriteIndividualMatrix(currentChrPair, currentAvailableThreads);
-                                Instant E = Instant.now();
                                 finalChrMatrices.remove(currentChrPair);
                                 threadSpecificChrPairMatrices.remove(currentChrPair);
                                 chrPairCompleted.get(currentChrPair).getAndIncrement();
-                                System.err.println(currentChrPair + " " + Duration.between(D,E).toMillis());
+                                //System.err.println(currentChrPair + " " + Duration.between(D,E).toMillis());
                             }
                             while (chrPairCompleted.get(currentChrPair).get() == 0) {
                                 try {

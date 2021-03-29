@@ -36,7 +36,6 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.tdf.BufferedByteWriter;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -153,29 +152,22 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             }
             if (noFrag && zoom.getUnit() == HiC.Unit.FRAG) continue;
 
-            Instant A = Instant.now();
-
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
                         normVectorIndices, normVectorBuffers, expectedValueCalculations);
             }
 
-            Instant B = Instant.now();
             //System.out.println("genomewide normalization: " + Duration.between(A,B).toMillis());
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
-            A = Instant.now();
-
             ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC);
             ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.VC_SQRT);
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.KR);
             ExpectedValueCalculation evSCALE = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationHandler.SCALE);
-            B = Instant.now();
-            //System.out.println("expected value calc initialization: " + Duration.between(A,B).toMillis());
 
             // Loop through chromosomes
             for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
