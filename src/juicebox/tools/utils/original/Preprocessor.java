@@ -305,7 +305,8 @@ public class Preprocessor {
     }
 
 
-    public void preprocess(final String inputFile, final String headerFile, final String footerFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
+    public void preprocess(final String inputFile, final String headerFile, final String footerFile,
+                           Map<Integer, List<long[]>> mndIndex) throws IOException {
         File file = new File(inputFile);
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");

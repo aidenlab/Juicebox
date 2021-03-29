@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -78,7 +78,8 @@ public class AsciiPairIterator implements PairIterator {
         advance();
     }
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex, ChromosomeHandler handler) throws IOException {
+    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals,
+                             long mndIndex, ChromosomeHandler handler) throws IOException {
         this.handler = handler;
         if (path.endsWith(".gz")) {
             System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
@@ -102,13 +103,9 @@ public class AsciiPairIterator implements PairIterator {
             System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
             System.exit(70);
         } else {
-            //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
             FileInputStream fis = new FileInputStream(path);
             fis.getChannel().position(mndIndex);
             this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
-            //FileChannel fc = FileChannel.open(new File(path).toPath(), StandardOpenOption.READ);
-            //fc.position(mndIndex);
-            //this.reader = new BufferedReader(Channels.newReader(fc, "US-ASCII"), HiCGlobals.bufferSize);
             this.mndStart = mndIndex;
             this.mndChunkSize = mndChunk;
             this.stopAfterChunk = true;
@@ -207,7 +204,8 @@ public class AsciiPairIterator implements PairIterator {
                         String chrom1 = handler.cleanUpName(getInternedString(tokens[2]));
                         String chrom2 = handler.cleanUpName(getInternedString(tokens[6]));
                         // some contigs will not be present in the chrom.sizes file
-                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        if (chromosomeOrdinals.containsKey(chrom1) &&
+                                chromosomeOrdinals.containsKey(chrom2)) {
                             int chr1 = chromosomeOrdinals.get(chrom1);
                             int chr2 = chromosomeOrdinals.get(chrom2);
                             int pos1 = Integer.parseInt(tokens[3]);
@@ -230,7 +228,8 @@ public class AsciiPairIterator implements PairIterator {
                         String chrom1 = handler.cleanUpName(getInternedString(tokens[1]));
                         String chrom2 = handler.cleanUpName(getInternedString(tokens[5]));
                         // some contigs will not be present in the chrom.sizes file
-                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        if (chromosomeOrdinals.containsKey(chrom1) &&
+                                chromosomeOrdinals.containsKey(chrom2)) {
                             int chr1 = chromosomeOrdinals.get(chrom1);
                             int chr2 = chromosomeOrdinals.get(chrom2);
                             int pos1 = Integer.parseInt(tokens[2]);
@@ -252,7 +251,8 @@ public class AsciiPairIterator implements PairIterator {
                     case DCIC: {
                         String chrom1 = handler.cleanUpName(getInternedString(tokens[1]));
                         String chrom2 = handler.cleanUpName(getInternedString(tokens[3]));
-                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        if (chromosomeOrdinals.containsKey(chrom1) &&
+                                chromosomeOrdinals.containsKey(chrom2)) {
                             int chr1 = chromosomeOrdinals.get(chrom1);
                             int chr2 = chromosomeOrdinals.get(chrom2);
                             int pos1 = Integer.parseInt(tokens[2]);
@@ -284,7 +284,8 @@ public class AsciiPairIterator implements PairIterator {
                         String chrom1 = handler.cleanUpName(getInternedString(tokens[1]));
                         String chrom2 = handler.cleanUpName(getInternedString(tokens[5]));
                         // some contigs will not be present in the chrom.sizes file
-                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        if (chromosomeOrdinals.containsKey(chrom1) &&
+                                chromosomeOrdinals.containsKey(chrom2)) {
                             int chr1 = chromosomeOrdinals.get(chrom1);
                             int chr2 = chromosomeOrdinals.get(chrom2);
                             int pos1 = Integer.parseInt(tokens[2]);

@@ -174,7 +174,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             System.err.println("Unable to read merged nodups index");
             System.exit(70);
         }
-        for (Map.Entry<Integer,String> entry : chromosomePairIndexes.entrySet()) {
+        for (Map.Entry<Integer, String> entry : chromosomePairIndexes.entrySet()) {
             String reverseName = entry.getValue().split("-")[1] + "-" + entry.getValue().split("-")[0];
             if (tempIndex.containsKey(entry.getValue())) {
                 mndIndex.put(entry.getKey(), tempIndex.get(entry.getValue()));
@@ -182,6 +182,12 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 mndIndex.put(entry.getKey(), tempIndex.get(reverseName));
             }
         }
+
+        if (mndIndex.isEmpty()) {
+            System.err.println("MNDIndex is empty or could not be read");
+            System.exit(43);
+        }
+
         return mndIndex;
     }
 
@@ -223,8 +229,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
             PairIterator iter = null;
             if (mndIndex == null) {
                 System.err.println("No index for merged nodups file.");
+                System.exit(67);
             } else {
-                iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chunkPositions.get(chrChunk)[0], (int) chunkPositions.get(chrChunk)[1], chromosomeHandler);
+                iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chunkPositions.get(chrChunk)[0],
+                        (int) chunkPositions.get(chrChunk)[1], chromosomeHandler);
             }
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();
@@ -444,20 +452,22 @@ public class MultithreadedPreprocessor extends Preprocessor {
             }
         }
 
-
         MatrixPP wholeGenomeMatrix = getInitialGenomeWideMatrixPP(chromosomeHandler);
 
         for (int i = 1; i < chromosomePairCounter; i++) {
             if (nonemptyChromosomePairs.containsKey(i)) {
                 if (wholeGenomeMatrixParts.containsKey(i)) {
-                    for (Map.Entry<Integer,MatrixPP> entry : wholeGenomeMatrixParts.get(i).entrySet()) {
+                    for (Map.Entry<Integer, MatrixPP> entry : wholeGenomeMatrixParts.get(i).entrySet()) {
                         wholeGenomeMatrix.mergeMatrices(entry.getValue());
                     }
                 }
             }
         }
 
-        LittleEndianOutputStream[] localLos = {new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(0)), HiCGlobals.bufferSize))};
+        // just making this more readable
+        FileOutputStream tempFOS = new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(0));
+        LittleEndianOutputStream tempLOS = new LittleEndianOutputStream(new BufferedOutputStream(tempFOS, HiCGlobals.bufferSize));
+        LittleEndianOutputStream[] localLos = {tempLOS};
         writeMatrix(wholeGenomeMatrix, localLos, getDefaultCompressor(), localMatrixPositions, 0, true);
         nonemptyChromosomePairs.put(0, 1);
 
@@ -516,13 +526,15 @@ public class MultithreadedPreprocessor extends Preprocessor {
     @Override
     // MatrixPP matrix, LittleEndianOutputStream los, Deflater compressor
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] localLos,
-                                                                  Deflater localCompressor, Map<String, IndexEntry> localMatrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
+                                                                  Deflater localCompressor, Map<String, IndexEntry> localMatrixPositions,
+                                                                  int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
-        Pair<Map<Long, List<IndexEntry>>, Long> localBlockIndexes = super.writeMatrix(matrix, localLos, localCompressor, localMatrixPositions, chromosomePairIndex, true);
+        Pair<Map<Long, List<IndexEntry>>, Long> localBlockIndexes = super.writeMatrix(matrix, localLos, localCompressor,
+                localMatrixPositions, chromosomePairIndex, true);
 
         chromosomePairBlockIndexes.put(chromosomePairIndex, localBlockIndexes.getFirst());
         long size = 0 - localBlockIndexes.getSecond();
-        for (int i = 0; i < localLos.length; i++ ) {
+        for (int i = 0; i < localLos.length; i++) {
             size += localLos[i].getWrittenCount();
             localLos[i].close();
         }

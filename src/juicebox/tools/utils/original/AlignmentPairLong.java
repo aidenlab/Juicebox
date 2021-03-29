@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -29,7 +29,6 @@ public class AlignmentPairLong extends AlignmentPair {
     private final String seq1;
     private final String seq2;
 
-
     public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
                              boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2){
         super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
@@ -39,12 +38,6 @@ public class AlignmentPairLong extends AlignmentPair {
 
     public AlignmentPairLong(){
         super();
-        seq1 = null;
-        seq2 = null;
-    }
-
-    public AlignmentPairLong(boolean isHeaderLine){
-        super(isHeaderLine);
         seq1 = null;
         seq2 = null;
     }
