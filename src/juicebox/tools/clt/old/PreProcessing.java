@@ -29,6 +29,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.common.ShellCommandRunner;
 import juicebox.tools.utils.original.MultithreadedPreprocessor;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
@@ -46,11 +47,12 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
     private boolean noNorm = false;
     private boolean noFragNorm = false;
-	private int genomeWide;
-	private final List<NormalizationType> normalizationTypes = new ArrayList<>();
+    private int genomeWide;
+    private String shell = "sh";
+    private final List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public PreProcessing() {
-        super(getBasicUsage()+"\n"
+        super(getBasicUsage() + "\n"
                 + "           : -d only calculate intra chromosome (diagonal) [false]\n"
                 + "           : -f <restriction site file> calculate fragment map\n"
                 + "           : -m <int> only write cells with count above threshold m [0]\n"
@@ -71,7 +73,8 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : --threads <int> number of threads \n"
                 + "           : --mndindex <filepath> to mnd chr block indices\n"
                 + "           : --conserve-ram will minimize RAM usage\n"
-                + "           : --check-ram-usage will check ram requirements prior to running"
+                + "           : --check-ram-usage will check ram requirements prior to running\n"
+                + "           : --shell how to execute shell (sh, bash, zsh, etc); default: sh"
         );
     }
 
@@ -135,6 +138,10 @@ public class PreProcessing extends JuiceboxCLT {
             Preprocessor.BLOCK_CAPACITY = blockCapacity;
         }
 
+        String customShell = parser.getShellOption();
+        if (customShell != null && customShell.length() > 0) {
+            shell = customShell;
+        }
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();
         noFragNorm = parser.getNoFragNormOption();
@@ -149,6 +156,7 @@ public class PreProcessing extends JuiceboxCLT {
             long currentTime = System.currentTimeMillis();
             if (usingMultiThreadedVersion) {
                 preprocessor.preprocess(inputFile, null, null, null);
+                ShellCommandRunner.runShellFile(shell, outputFile + MultithreadedPreprocessor.CAT_SCRIPT);
             } else {
                 preprocessor.preprocess(inputFile, outputFile, outputFile, null);
             }
@@ -156,6 +164,7 @@ public class PreProcessing extends JuiceboxCLT {
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nBinning contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
+
             if (!noNorm) {
                 Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
                 AddNorm.launch(outputFile, normalizationTypes, genomeWide, noFragNorm, numCPUThreads, resolutionsToBuildTo);

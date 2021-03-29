@@ -22,13 +22,29 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.utils.common;
 
-/**
- * Created for testing multiple CLTs at once
- * Basically scratch space
- */
-class AggregateProcessing {
-    public static void main(String[] argv) throws Exception {
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+public class ShellCommandRunner {
+    public static void runShellFile(String command, String filepath) {
+        Process p;
+        try {
+            String[] cmd = {command, filepath};
+            p = Runtime.getRuntime().exec(cmd);
+            p.waitFor();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            System.err.println("Unable to execute shell file: " + filepath);
+            System.err.println("Run this file in your shell and then start from normalization");
+            System.exit(45);
+        }
     }
 }

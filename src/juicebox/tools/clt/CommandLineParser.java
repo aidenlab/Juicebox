@@ -66,6 +66,7 @@ public class CommandLineParser extends CmdLineParser {
     protected final Option normalizationTypeOption = addStringOption('k', "normalization");
     private final Option mndIndexOption = addStringOption('i', "mndindex");
     private final Option ligationOption = addStringOption("ligation");
+    private final Option shellOption = addStringOption("shell");
 
     // ints
     private final Option blockCapacityOption = addIntegerOption("block-capacity");
@@ -175,9 +176,17 @@ public class CommandLineParser extends CmdLineParser {
         return optionToString(expectedVectorOption);
     }
 
-    public String getMndIndexOption() { return optionToString(mndIndexOption);}
+    public String getMndIndexOption() {
+        return optionToString(mndIndexOption);
+    }
 
-    public String getLigationOption() { return optionToString(ligationOption);}
+    public String getLigationOption() {
+        return optionToString(ligationOption);
+    }
+
+    public String getShellOption() {
+        return optionToString(shellOption);
+    }
 
     public Alignment getAlignmentOption() {
         int alignmentInt = optionToInt(alignmentFilterOption);
