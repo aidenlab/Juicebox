@@ -140,16 +140,13 @@ public class HiC {
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
-            switch (trackToRemove.getName()) {
-                case eigString:
-                    eigenvectorTrack = null;
-                    break;
-                case ctrlEigString:
-                    controlEigenvectorTrack = null;
-                    break;
-                default:
-                    trackManager.removeTrack(trackToRemove);
-                    break;
+            String name = trackToRemove.getName();
+            if (name.equalsIgnoreCase(eigString)) {
+                eigenvectorTrack = null;
+            } else if (name.equalsIgnoreCase(ctrlEigString)) {
+                controlEigenvectorTrack = null;
+            } else {
+                trackManager.removeTrack(trackToRemove);
             }
         }
         clearFeatures();
@@ -828,25 +825,20 @@ public class HiC {
         int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition(genomeX);
         int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition(genomeY);
 
-        switch (zoomCallType) {
-            case INITIAL:
-            case STANDARD:
-                if (storeZoomAction || chromosomesChanged) {
-                    center(binX, binY);
-                } else if (preZoomHiCZoom != null && getCursorPoint() != null) {
-                    Point standardUnzoomCoordinates = computeStandardUnzoomCoordinates(preZoomMatrix, preZoomXContext,
-                            preZoomYContext, newZD, preZoomHiCZoom, preZoomScaleFactor);
-                    center(standardUnzoomCoordinates.getX(), standardUnzoomCoordinates.getY());
-                }
-                break;
-            case DRAG:
-                xContext.setBinOrigin(binX);
-                yContext.setBinOrigin(binY);
-                break;
-            case DIRECT:
-                xContext.setBinOrigin(genomeX);
-                yContext.setBinOrigin(genomeY);
-                break;
+        if (zoomCallType == ZoomCallType.INITIAL || zoomCallType == ZoomCallType.STANDARD) {
+            if (storeZoomAction || chromosomesChanged) {
+                center(binX, binY);
+            } else if (preZoomHiCZoom != null && getCursorPoint() != null) {
+                Point standardUnzoomCoordinates = computeStandardUnzoomCoordinates(preZoomMatrix, preZoomXContext,
+                        preZoomYContext, newZD, preZoomHiCZoom, preZoomScaleFactor);
+                center(standardUnzoomCoordinates.getX(), standardUnzoomCoordinates.getY());
+            }
+        } else if (zoomCallType == ZoomCallType.DRAG) {
+            xContext.setBinOrigin(binX);
+            yContext.setBinOrigin(binY);
+        } else if (zoomCallType == ZoomCallType.DIRECT) {
+            xContext.setBinOrigin(genomeX);
+            yContext.setBinOrigin(genomeY);
         }
 
         // Notify HeatmapPanel render that zoom has changed. Render should update zoom slider once with previous range values

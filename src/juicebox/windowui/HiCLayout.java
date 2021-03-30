@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -84,28 +84,21 @@ public class HiCLayout implements LayoutManager2 {
             }
 
             /* Assign the component to one of the known regions of the layout.
-            */
-            switch (name) {
-                case CENTER:
-                    center = comp;
-                    break;
-                case NORTH:
-                    north = comp;
-                    break;
-                case SOUTH:
-                    south = comp;
-                    break;
-                case EAST:
-                    east = comp;
-                    break;
-                case WEST:
-                    west = comp;
-                    break;
-                case NORTH_WEST:
-                    northwest = comp;
-                    break;
-                default:
-                    throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
+             */
+            if (name.equalsIgnoreCase(CENTER)) {
+                center = comp;
+            } else if (name.equalsIgnoreCase(NORTH)) {
+                north = comp;
+            } else if (name.equalsIgnoreCase(SOUTH)) {
+                south = comp;
+            } else if (name.equalsIgnoreCase(EAST)) {
+                east = comp;
+            } else if (name.equalsIgnoreCase(WEST)) {
+                west = comp;
+            } else if (name.equalsIgnoreCase(NORTH_WEST)) {
+                northwest = comp;
+            } else {
+                throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
             }
         }
     }
@@ -375,26 +368,20 @@ public class HiCLayout implements LayoutManager2 {
     private Component getChild(String key, boolean ltr) {
         Component result = null;
 
-        switch (key) {
-            case NORTH:
-                result = north;
-                break;
-            case SOUTH:
-                result = south;
-                break;
-            case WEST:
-                result = west;
-                break;
-            case EAST:
-                result = east;
-                break;
-            case CENTER:
-                result = center;
-                break;
-            case NORTH_WEST:
-                result = northwest;
-                break;
+        if (key.equalsIgnoreCase(NORTH)) {
+            result = north;
+        } else if (key.equalsIgnoreCase(SOUTH)) {
+            result = south;
+        } else if (key.equalsIgnoreCase(WEST)) {
+            result = west;
+        } else if (key.equalsIgnoreCase(EAST)) {
+            result = east;
+        } else if (key.equalsIgnoreCase(CENTER)) {
+            result = center;
+        } else if (key.equalsIgnoreCase(NORTH_WEST)) {
+            result = northwest;
         }
+
         if (result != null && !result.isVisible()) {
             result = null;
         }

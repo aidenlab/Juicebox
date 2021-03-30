@@ -150,73 +150,13 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         //Expected format 1: <chr>:<start>-<end>:<resolution>
         //Expected format 2: <chr>:<midpt>:<resolution>
 
-//         Previouly:
-//        String delimiters = "\\s+|:\\s*|\\-\\s*";
-//        String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
-//        String[] topChrTokens = positionChrTop.getText().split(delimiters);
-//         TODO: probably need to rewrite this whole bit, this is temporary ugly workaround
+        List<String[]> resultLeft = parse(positionChrLeft);
+        String[] leftChrTokens = resultLeft.get(0);
+        String[] leftDashChrTokens = resultLeft.get(1);
 
-        String dashDelimiters = "\\s+|\\-\\s*";
-
-
-        String[] tmpLeftChrTokens = positionChrLeft.getText().split(":");
-        String[] leftChrTokens = new String[0];
-        String[] leftDashChrTokens = new String[0];
-
-        switch (tmpLeftChrTokens.length) {
-            case 1:
-                leftChrTokens = tmpLeftChrTokens;
-                break;
-            case 2:
-                leftDashChrTokens = positionChrLeft.getText().substring(tmpLeftChrTokens[0].length() + 1).split(dashDelimiters);
-                leftChrTokens = new String[leftDashChrTokens.length + 1];
-                leftChrTokens[0] = tmpLeftChrTokens[0];
-                for (int i = 0; i < leftDashChrTokens.length; i++) {
-                    leftChrTokens[i + 1] = leftDashChrTokens[i];
-                }
-                break;
-            case 3:
-                leftDashChrTokens = positionChrLeft.getText().substring(tmpLeftChrTokens[0].length() + 1, tmpLeftChrTokens[0].length() + tmpLeftChrTokens[1].length() + 1).split(dashDelimiters);
-                leftChrTokens = new String[leftDashChrTokens.length + 2];
-                leftChrTokens[0] = tmpLeftChrTokens[0];
-                int i;
-                for (i = 0; i < leftDashChrTokens.length; i++) {
-                    leftChrTokens[i + 1] = leftDashChrTokens[i];
-                }
-                System.out.println(i);
-                leftChrTokens[i + 1] = tmpLeftChrTokens[2];
-                break;
-            default:
-        }
-
-        String[] tmpTopChrTokens = positionChrTop.getText().split(":");
-        String[] topChrTokens = new String[0];
-        String[] topDashChrTokens = new String[0];
-
-        switch (tmpTopChrTokens.length) {
-            case 1:
-                topChrTokens = tmpTopChrTokens;
-                break;
-            case 2:
-                topDashChrTokens = positionChrTop.getText().substring(tmpTopChrTokens[0].length() + 1).split(dashDelimiters);
-                topChrTokens = new String[topDashChrTokens.length + 1];
-                topChrTokens[0] = tmpTopChrTokens[0];
-                for (int i = 0; i < topDashChrTokens.length; i++) {
-                    topChrTokens[i + 1] = topDashChrTokens[i];
-                }
-                break;
-            case 3:
-                topDashChrTokens = positionChrTop.getText().substring(tmpTopChrTokens[0].length() + 1, tmpTopChrTokens[0].length() + tmpTopChrTokens[1].length() + 1).split(dashDelimiters);
-                topChrTokens = new String[topDashChrTokens.length + 2];
-                topChrTokens[0] = tmpTopChrTokens[0];
-                int i;
-                for (i = 0; i < topDashChrTokens.length; i++) {
-                    topChrTokens[i + 1] = topDashChrTokens[i];
-                }
-                topChrTokens[i + 1] = tmpTopChrTokens[2];
-                break;
-            default:
-        }
+        List<String[]> resultTop = parse(positionChrTop);
+        String[] topChrTokens = resultTop.get(0);
+        String[] topDashChrTokens = resultTop.get(1);
 
         if (topChrTokens.length == 1 || leftChrTokens.length == 1) {
             parseGenePositionText();
@@ -298,6 +238,39 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, Math.max(topChrPositions[2], 0),
                 Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto", true);
 
+    }
+
+    private List<String[]> parse(JTextField textField) {
+        String dashDelimiters = "\\s+|\\-\\s*";
+        String[] tmpChrTokens = textField.getText().split(":");
+        String[] chrTokens = new String[0];
+        String[] dashChrTokens = new String[0];
+
+        if (tmpChrTokens.length == 1) {
+            chrTokens = tmpChrTokens;
+        } else if (tmpChrTokens.length == 2) {
+            dashChrTokens = textField.getText().substring(tmpChrTokens[0].length() + 1).split(dashDelimiters);
+            chrTokens = new String[dashChrTokens.length + 1];
+            chrTokens[0] = tmpChrTokens[0];
+            for (int i = 0; i < dashChrTokens.length; i++) {
+                chrTokens[i + 1] = dashChrTokens[i];
+            }
+        } else if (tmpChrTokens.length == 3) {
+            dashChrTokens = textField.getText().substring(tmpChrTokens[0].length() + 1, tmpChrTokens[0].length() + tmpChrTokens[1].length() + 1).split(dashDelimiters);
+            chrTokens = new String[dashChrTokens.length + 2];
+            chrTokens[0] = tmpChrTokens[0];
+            int i;
+            for (i = 0; i < dashChrTokens.length; i++) {
+                chrTokens[i + 1] = dashChrTokens[i];
+            }
+            System.out.println(i);
+            chrTokens[i + 1] = tmpChrTokens[2];
+        }
+
+        List<String[]> result = new ArrayList<>();
+        result.add(chrTokens);
+        result.add(dashChrTokens);
+        return result;
     }
 
     private int[] extractResolutionParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) {

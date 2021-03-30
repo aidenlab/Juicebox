@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -318,18 +318,14 @@ public class Feature2DList {
                 if (formattedOutput) {
                     StringBuilder header = new StringBuilder(Feature2D.genericHeader);
                     final ArrayList<String> outputKeys = new ArrayList<>();
-                    switch (listFormat) {
-                        case ENRICHED:
-                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
-                                    "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
-                            break;
-                        case FINAL:
-                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
-                                    "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
-                            break;
-                        case ARROWHEAD:
-                            outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
-                            break;
+                    if (listFormat == ListFormat.ENRICHED) {
+                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
+                    } else if (listFormat == ListFormat.FINAL) {
+                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
+                    } else if (listFormat == ListFormat.ARROWHEAD) {
+                        outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                     }
                     for (String key : outputKeys) {
                         header.append("\t").append(key);

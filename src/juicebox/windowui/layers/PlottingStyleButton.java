@@ -63,25 +63,21 @@ public class PlottingStyleButton extends JButton {
     }
 
     public void setCurrentState(FeatureRenderer.PlottingOption state) {
-        switch (state) {
-            case ONLY_LOWER_LEFT:
-                setIcon(iconActive2);
-                setRolloverIcon(iconTransition3);
-                setPressedIcon(iconActive3);
-                setDisabledIcon(iconInactive2);
-                break;
-            case ONLY_UPPER_RIGHT:
-                setIcon(iconActive3);
-                setRolloverIcon(iconTransition1);
-                setPressedIcon(iconActive1);
-                setDisabledIcon(iconInactive3);
-                break;
-            case EVERYTHING:
-                setIcon(iconActive1);
-                setRolloverIcon(iconTransition2);
-                setPressedIcon(iconActive2);
-                setDisabledIcon(iconInactive1);
-                break;
+        if (state == FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT) {
+            setIcon(iconActive2);
+            setRolloverIcon(iconTransition3);
+            setPressedIcon(iconActive3);
+            setDisabledIcon(iconInactive2);
+        } else if (state == FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT) {
+            setIcon(iconActive3);
+            setRolloverIcon(iconTransition1);
+            setPressedIcon(iconActive1);
+            setDisabledIcon(iconInactive3);
+        } else if (state == FeatureRenderer.PlottingOption.EVERYTHING) {
+            setIcon(iconActive1);
+            setRolloverIcon(iconTransition2);
+            setPressedIcon(iconActive2);
+            setDisabledIcon(iconInactive1);
         }
     }
 }

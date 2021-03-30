@@ -29,7 +29,6 @@ import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
 import juicebox.data.iterator.IteratorContainer;
-import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -261,33 +260,21 @@ public class NormalizationCalculations {
 
     public ListOfFloatArrays getNorm(NormalizationType normOption) {
         ListOfFloatArrays norm;
-        switch (normOption.getLabel().toUpperCase()) {
-            case NormalizationHandler.strKR:
-            case NormalizationHandler.strGW_KR:
-            case NormalizationHandler.strINTER_KR:
-                norm = computeKR();
-                break;
-            case NormalizationHandler.strVC:
-            case NormalizationHandler.strVC_SQRT:
-            case NormalizationHandler.strGW_VC:
-            case NormalizationHandler.strINTER_VC:
-                norm = computeVC();
-                break;
-            case NormalizationHandler.strSCALE:
-            case NormalizationHandler.strGW_SCALE:
-            case NormalizationHandler.strINTER_SCALE:
-                norm = computeMMBA();
-                break;
-            case NormalizationHandler.strNONE:
-                return new ListOfFloatArrays(matrixSize, 1);
-            default:
-                System.err.println("Not supported for normalization " + normOption);
-                return null;
+        if (normOption.usesKR()) {
+            norm = computeKR();
+        } else if (normOption.usesVC()) {
+            norm = computeVC();
+        } else if (normOption.usesSCALE()) {
+            norm = computeMMBA();
+        } else if (normOption.isNONE()) {
+            return new ListOfFloatArrays(matrixSize, 1);
+        } else {
+            System.err.println("Not supported for normalization " + normOption);
+            return null;
         }
-        
+
         if (norm != null && norm.getLength() > 0) {
             double factor = getSumFactor(norm);
-            System.out.println();
             norm.multiplyEverythingBy(factor);
         }
         return norm;

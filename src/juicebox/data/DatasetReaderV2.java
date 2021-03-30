@@ -1005,7 +1005,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                     int binXOffset = dis.readInt();
                     int binYOffset = dis.readInt();
-    
+
                     boolean useShort = dis.readByte() == 0;
                     boolean useShortBinX = true, useShortBinY = true;
                     if (version > 8) {
@@ -1014,88 +1014,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     }
 
                     byte type = dis.readByte();
+                    BinReader.handleBinType(dis, type, binXOffset, binYOffset, records,
+                            useShortBinX, useShortBinY, useShort);
 
-                    switch (type) {
-                        case 1:
-                            if (useShortBinX && useShortBinY) {
-                                // List-of-rows representation
-                                int rowCount = dis.readShort();
-                                for (int i = 0; i < rowCount; i++) {
-                                    int binY = binYOffset + dis.readShort();
-                                    int colCount = dis.readShort();
-                                    for (int j = 0; j < colCount; j++) {
-                                        int binX = binXOffset + dis.readShort();
-                                        float counts = useShort ? dis.readShort() : dis.readFloat();
-                                        records.add(new ContactRecord(binX, binY, counts));
-                                    }
-                                }
-                            } else if (useShortBinX && !useShortBinY) {
-                                // List-of-rows representation
-                                int rowCount = dis.readInt();
-                                for (int i = 0; i < rowCount; i++) {
-                                    int binY = binYOffset + dis.readInt();
-                                    int colCount = dis.readShort();
-                                    for (int j = 0; j < colCount; j++) {
-                                        int binX = binXOffset + dis.readShort();
-                                        float counts = useShort ? dis.readShort() : dis.readFloat();
-                                        records.add(new ContactRecord(binX, binY, counts));
-                                    }
-                                }
-                            } else if (!useShortBinX && useShortBinY) {
-                                // List-of-rows representation
-                                int rowCount = dis.readShort();
-                                for (int i = 0; i < rowCount; i++) {
-                                    int binY = binYOffset + dis.readShort();
-                                    int colCount = dis.readInt();
-                                    for (int j = 0; j < colCount; j++) {
-                                        int binX = binXOffset + dis.readInt();
-                                        float counts = useShort ? dis.readShort() : dis.readFloat();
-                                        records.add(new ContactRecord(binX, binY, counts));
-                                    }
-                                }
-                            } else {
-                                // List-of-rows representation
-                                int rowCount = dis.readInt();
-                                for (int i = 0; i < rowCount; i++) {
-                                    int binY = binYOffset + dis.readInt();
-                                    int colCount = dis.readInt();
-                                    for (int j = 0; j < colCount; j++) {
-                                        int binX = binXOffset + dis.readInt();
-                                        float counts = useShort ? dis.readShort() : dis.readFloat();
-                                        records.add(new ContactRecord(binX, binY, counts));
-                                    }
-                                }
-                            }
-                            break;
-                        case 2:
-        
-                            int nPts = dis.readInt();
-                            int w = dis.readShort();
-        
-                            for (int i = 0; i < nPts; i++) {
-                                //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                                int row = i / w;
-                                int col = i - row * w;
-                                int bin1 = binXOffset + col;
-                                int bin2 = binYOffset + row;
-
-                                if (useShort) {
-                                    short counts = dis.readShort();
-                                    if (counts != Short.MIN_VALUE) {
-                                        records.add(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                } else {
-                                    float counts = dis.readFloat();
-                                    if (!Float.isNaN(counts)) {
-                                        records.add(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                }
-                            }
-
-                            break;
-                        default:
-                            throw new RuntimeException("Unknown block type: " + type);
-                    }
                 }
                 b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationHandler.NONE));
                 timeDiffThings[5] = System.currentTimeMillis();
