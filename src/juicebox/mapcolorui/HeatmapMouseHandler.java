@@ -1066,91 +1066,86 @@ public class HeatmapMouseHandler extends MouseAdapter {
         double deltaX_d = e.getX() - lastMousePoint.x;
         double deltaY_d = e.getY() - lastMousePoint.y;
 
-        switch (dragMode) {
-            case ZOOM:
-                lastRectangle = zoomRectangle;
+        if (dragMode == DragMode.ZOOM) {
+            lastRectangle = zoomRectangle;
 
-                if (deltaX == 0 || deltaY == 0) {
-                    return;
-                }
+            if (deltaX == 0 || deltaY == 0) {
+                return;
+            }
 
-                // Constrain aspect ratio of zoom rectangle to that of panel
-                double aspectRatio = (double) parent.getWidth() / parent.getHeight();
-                if (deltaX * aspectRatio > deltaY) {
-                    deltaY = (int) (deltaX / aspectRatio);
-                } else {
-                    deltaX = (int) (deltaY * aspectRatio);
-                }
+            // Constrain aspect ratio of zoom rectangle to that of panel
+            double aspectRatio = (double) parent.getWidth() / parent.getHeight();
+            if (deltaX * aspectRatio > deltaY) {
+                deltaY = (int) (deltaX / aspectRatio);
+            } else {
+                deltaX = (int) (deltaY * aspectRatio);
+            }
 
-                x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
-                y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
-                zoomRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+            x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
+            y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
+            zoomRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
-                damageRect = lastRectangle == null ? zoomRectangle : zoomRectangle.union(lastRectangle);
-                damageRect.x--;
-                damageRect.y--;
-                damageRect.width += 2;
-                damageRect.height += 2;
-                parent.paintImmediately(damageRect);
+            damageRect = lastRectangle == null ? zoomRectangle : zoomRectangle.union(lastRectangle);
+            damageRect.x--;
+            damageRect.y--;
+            damageRect.width += 2;
+            damageRect.height += 2;
+            parent.paintImmediately(damageRect);
+        } else if (dragMode == DragMode.ANNOTATE) {
+            lastRectangle = annotateRectangle;
 
-                break;
-            case ANNOTATE:
-                lastRectangle = annotateRectangle;
+            if (deltaX_d == 0 || deltaY_d == 0) {
+                return;
+            }
 
-                if (deltaX_d == 0 || deltaY_d == 0) {
-                    return;
-                }
+            x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
+            y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
+            annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
-                x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
-                y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
-                annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+            damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+            superAdapter.getActiveLayerHandler().updateSelectionRegion(damageRect);
+            damageRect.x--;
+            damageRect.y--;
+            damageRect.width += 2;
+            damageRect.height += 2;
+            parent.paintImmediately(damageRect);
+        } else if (dragMode == DragMode.RESIZE) {
+            if (deltaX_d == 0 || deltaY_d == 0) {
+                return;
+            }
 
-                damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-                superAdapter.getActiveLayerHandler().updateSelectionRegion(damageRect);
-                damageRect.x--;
-                damageRect.y--;
-                damageRect.width += 2;
-                damageRect.height += 2;
-                parent.paintImmediately(damageRect);
-                break;
-            case RESIZE:
-                if (deltaX_d == 0 || deltaY_d == 0) {
-                    return;
-                }
+            lastRectangle = annotateRectangle;
+            double rectX;
+            double rectY;
 
-                lastRectangle = annotateRectangle;
-                double rectX;
-                double rectY;
+            // Resizing upper left corner
+            if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                rectX = annotateRectangle.getX() + annotateRectangle.getWidth();
+                rectY = annotateRectangle.getY() + annotateRectangle.getHeight();
+                // Resizing lower right corner
+            } else {
+                rectX = annotateRectangle.getX();
+                rectY = annotateRectangle.getY();
+            }
+            deltaX_d = e.getX() - rectX;
+            deltaY_d = e.getY() - rectY;
 
-                // Resizing upper left corner
-                if (adjustAnnotation == AdjustAnnotation.LEFT) {
-                    rectX = annotateRectangle.getX() + annotateRectangle.getWidth();
-                    rectY = annotateRectangle.getY() + annotateRectangle.getHeight();
-                    // Resizing lower right corner
-                } else {
-                    rectX = annotateRectangle.getX();
-                    rectY = annotateRectangle.getY();
-                }
-                deltaX_d = e.getX() - rectX;
-                deltaY_d = e.getY() - rectY;
+            x_d = deltaX_d > 0 ? rectX : rectX + deltaX_d;
+            y_d = deltaY_d > 0 ? rectY : rectY + deltaY_d;
 
-                x_d = deltaX_d > 0 ? rectX : rectX + deltaX_d;
-                y_d = deltaY_d > 0 ? rectY : rectY + deltaY_d;
+            annotateRectangle = new Rectangle((int) x_d, (int) y_d, (int) Math.abs(deltaX_d), (int) Math.abs(deltaY_d));
+            damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+            damageRect.width += 1;
+            damageRect.height += 1;
+            parent.paintImmediately(damageRect);
+            superAdapter.getActiveLayerHandler().updateSelectionRegion(damageRect);
+            changedSize = true;
+        } else {
+            lastMousePoint = e.getPoint();    // Always save the last Point
 
-                annotateRectangle = new Rectangle((int) x_d, (int) y_d, (int) Math.abs(deltaX_d), (int) Math.abs(deltaY_d));
-                damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-                damageRect.width += 1;
-                damageRect.height += 1;
-                parent.paintImmediately(damageRect);
-                superAdapter.getActiveLayerHandler().updateSelectionRegion(damageRect);
-                changedSize = true;
-                break;
-            default:
-                lastMousePoint = e.getPoint();    // Always save the last Point
-
-                double deltaXBins = -deltaX / hic.getScaleFactor();
-                double deltaYBins = -deltaY / hic.getScaleFactor();
-                hic.moveBy(deltaXBins, deltaYBins);
+            double deltaXBins = -deltaX / hic.getScaleFactor();
+            double deltaYBins = -deltaY / hic.getScaleFactor();
+            hic.moveBy(deltaXBins, deltaYBins);
         }
     }
 
@@ -1760,33 +1755,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
                 if (!selectedFeatures.isEmpty()) {
                     Collections.sort(selectedFeatures);
-                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(selectedFeatures.get(0).tooltipText());
-                    txt.append("</span>");
-                    switch (selectedFeatures.size()) {
-                        case 1:
-                            break;
-                        case 2:
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
-                            txt.append("</span>");
-                            break;
-                        case 3:
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append(selectedFeatures.get(1).tooltipText());
-                            txt.append("</span>");
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
-                            txt.append("</span>");
-                            break;
-                        default:
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append("...");
-                            txt.append("</span>");
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append(selectedFeatures.get(selectedFeatures.size() - 1).tooltipText());
-                            txt.append("</span>");
-                    }
+                    appendWithSpan(txt, selectedFeatures);
                 } else {
                     for (Feature2DGuiContainer loop : allFeaturePairs) {
                         if (loop.getRectangle().contains(x, y)) {
@@ -1826,6 +1795,25 @@ public class HeatmapMouseHandler extends MouseAdapter {
         }
 
         return null;
+    }
+
+    private void appendWithSpan(StringBuilder txt, List<Feature2D> selectedFeatures) {
+        int numFeatures = selectedFeatures.size();
+        for (int i = 0; i < Math.min(numFeatures, 3); i++) {
+            appendSectionWithSpan(txt, selectedFeatures.get(i).tooltipText());
+        }
+        if (numFeatures == 3) {
+            appendSectionWithSpan(txt, selectedFeatures.get(2).tooltipText());
+        } else if (numFeatures > 3) {
+            appendSectionWithSpan(txt, "...");
+            appendSectionWithSpan(txt, selectedFeatures.get(numFeatures - 1).tooltipText());
+        }
+    }
+
+    private void appendSectionWithSpan(StringBuilder txt, String content) {
+        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+        txt.append(content);
+        txt.append("</span>");
     }
 
     private Chromosome getChromFromBoundaries(long[] chromosomeBoundaries, long genomeStart) {

@@ -439,13 +439,11 @@ class RangeSliderUI extends BasicSliderUI {
 
             // Handle lower thumb pressed.
             if (lowerPressed && !colorIsOE) {
-                switch (slider.getOrientation()) {
-                    case JSlider.VERTICAL:
-                        offset = currentMouseY - thumbRect.y;
-                        break;
-                    case JSlider.HORIZONTAL:
-                        offset = currentMouseX - thumbRect.x;
-                        break;
+                int orientation = slider.getOrientation();
+                if (orientation == SwingConstants.VERTICAL) {
+                    offset = currentMouseY - thumbRect.y;
+                } else if (orientation == SwingConstants.HORIZONTAL) {
+                    offset = currentMouseX - thumbRect.x;
                 }
                 upperThumbSelected = false;
                 lowerDragging = true;
@@ -455,14 +453,13 @@ class RangeSliderUI extends BasicSliderUI {
 
             // Handle upper thumb pressed.
             if (upperPressed) {
-                switch (slider.getOrientation()) {
-                    case JSlider.VERTICAL:
-                        offset = currentMouseY - upperThumbRect.y;
-                        break;
-                    case JSlider.HORIZONTAL:
-                        offset = currentMouseX - upperThumbRect.x;
-                        break;
+                int orientation = slider.getOrientation();
+                if (orientation == SwingConstants.VERTICAL) {
+                    offset = currentMouseY - upperThumbRect.y;
+                } else if (orientation == SwingConstants.HORIZONTAL) {
+                    offset = currentMouseX - upperThumbRect.x;
                 }
+
                 upperThumbSelected = true;
                 upperDragging = true;
                 return;
@@ -513,71 +510,65 @@ class RangeSliderUI extends BasicSliderUI {
         private void moveLowerThumb() {
             int thumbMiddle;
 
-            switch (slider.getOrientation()) {
-                case JSlider.VERTICAL:
-                    int halfThumbHeight = thumbRect.height / 2;
-                    int thumbTop = currentMouseY - offset;
-                    int trackTop = trackRect.y;
-                    int trackBottom = trackRect.y + (trackRect.height - 1);
-                    int vMax = yPositionForValue(slider.getValue() + slider.getExtent());
+            int orientation = slider.getOrientation();
+            if (orientation == SwingConstants.VERTICAL) {
+                int halfThumbHeight = thumbRect.height / 2;
+                int thumbTop = currentMouseY - offset;
+                int trackTop = trackRect.y;
+                int trackBottom = trackRect.y + (trackRect.height - 1);
+                int vMax = yPositionForValue(slider.getValue() + slider.getExtent());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackBottom = vMax;
+                // Apply bounds to thumb position.
+                if (drawInverted()) {
+                    trackBottom = vMax;
+                } else {
+                    trackTop = vMax;
+                }
+                thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
+                thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
+
+                setThumbLocation(thumbRect.x, thumbTop);
+
+                // Update slider value.
+                thumbMiddle = thumbTop + halfThumbHeight;
+                slider.setValue(valueForYPosition(thumbMiddle));
+            } else if (orientation == SwingConstants.HORIZONTAL) {
+                int halfThumbWidth = thumbRect.width / 2;
+                int thumbLeft = currentMouseX - offset;
+                int trackLeft = trackRect.x;
+                int trackRight = trackRect.x + (trackRect.width - 1);
+                int hMax = xPositionForValue(slider.getValue() + slider.getExtent());
+
+                thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
+                thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
+
+                // Apply bounds to thumb position.
+                if (drawInverted()) {
+                    thumbLeft = Math.max(thumbLeft, hMax);
+                } else {
+                    thumbLeft = Math.min(thumbLeft, hMax);
+                }
+
+                if (colorIsOE) {
+                    int midpoint = (trackRight - trackLeft) / 2 + trackLeft;
+                    thumbLeft = Math.min(thumbLeft, midpoint - halfThumbWidth);
+                }
+
+                setThumbLocation(thumbLeft, thumbRect.y);
+
+                // Update slider value.
+                thumbMiddle = thumbLeft + halfThumbWidth;
+                slider.setValue(valueForXPosition(thumbMiddle));
+
+                if (colorIsOE) {
+                    int val = ((RangeSlider) slider).getLowerValue();
+                    if (val == 0) {
+                        ((RangeSlider) slider).setLowerValue(-1);
+                        ((RangeSlider) slider).setUpperValue(1);
                     } else {
-                        trackTop = vMax;
+                        ((RangeSlider) slider).setUpperValue(-val);
                     }
-                    thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
-                    thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
-
-                    setThumbLocation(thumbRect.x, thumbTop);
-
-                    // Update slider value.
-                    thumbMiddle = thumbTop + halfThumbHeight;
-                    slider.setValue(valueForYPosition(thumbMiddle));
-                    break;
-
-                case JSlider.HORIZONTAL:
-                    int halfThumbWidth = thumbRect.width / 2;
-                    int thumbLeft = currentMouseX - offset;
-                    int trackLeft = trackRect.x;
-                    int trackRight = trackRect.x + (trackRect.width - 1);
-                    int hMax = xPositionForValue(slider.getValue() + slider.getExtent());
-
-                    thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
-                    thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
-
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        thumbLeft = Math.max(thumbLeft, hMax);
-                    } else {
-                        thumbLeft = Math.min(thumbLeft, hMax);
-                    }
-
-                    if (colorIsOE) {
-                        int midpoint = (trackRight - trackLeft) / 2 + trackLeft;
-                        thumbLeft = Math.min(thumbLeft, midpoint - halfThumbWidth);
-                    }
-
-                    setThumbLocation(thumbLeft, thumbRect.y);
-
-                    // Update slider value.
-                    thumbMiddle = thumbLeft + halfThumbWidth;
-                    slider.setValue(valueForXPosition(thumbMiddle));
-
-                    if (colorIsOE) {
-                        int val = ((RangeSlider) slider).getLowerValue();
-                        if (val == 0) {
-                            ((RangeSlider) slider).setLowerValue(-1);
-                            ((RangeSlider) slider).setUpperValue(1);
-                        } else {
-                            ((RangeSlider) slider).setUpperValue(-val);
-                        }
-                    }
-
-                    break;
-
-                default:
+                }
             }
         }
 
@@ -588,69 +579,63 @@ class RangeSliderUI extends BasicSliderUI {
         private void moveUpperThumb() {
             int thumbMiddle;
 
-            switch (slider.getOrientation()) {
-                case JSlider.VERTICAL:
-                    int halfThumbHeight = thumbRect.height / 2;
-                    int thumbTop = currentMouseY - offset;
-                    int trackTop = trackRect.y;
-                    int trackBottom = trackRect.y + (trackRect.height - 1);
-                    int vMin = yPositionForValue(slider.getValue());
+            int orientation = slider.getOrientation();
+            if (orientation == SwingConstants.VERTICAL) {
+                int halfThumbHeight = thumbRect.height / 2;
+                int thumbTop = currentMouseY - offset;
+                int trackTop = trackRect.y;
+                int trackBottom = trackRect.y + (trackRect.height - 1);
+                int vMin = yPositionForValue(slider.getValue());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackTop = vMin;
-                    } else {
-                        trackBottom = vMin;
+                // Apply bounds to thumb position.
+                if (drawInverted()) {
+                    trackTop = vMin;
+                } else {
+                    trackBottom = vMin;
+                }
+                thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
+                thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
+
+                setUpperThumbLocation(thumbRect.x, thumbTop);
+
+                // Update slider extent.
+                thumbMiddle = thumbTop + halfThumbHeight;
+                slider.setExtent(valueForYPosition(thumbMiddle) - slider.getValue());
+            } else if (orientation == SwingConstants.HORIZONTAL) {
+                int halfThumbWidth = thumbRect.width / 2;
+                int thumbLeft = currentMouseX - offset;
+                int trackLeft = trackRect.x;
+                int trackRight = trackRect.x + (trackRect.width - 1);
+                int hMin = xPositionForValue(slider.getValue());
+
+                // Apply bounds to thumb position.
+                if (drawInverted()) {
+                    trackRight = hMin;
+                } else {
+                    trackLeft = hMin;
+                }
+                thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
+                thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
+
+                if (colorIsOE) {
+                    int midpoint = (trackRight - trackLeft) / 2 + trackLeft;
+                    thumbLeft = Math.max(thumbLeft, midpoint - halfThumbWidth);
+                }
+
+                setUpperThumbLocation(thumbLeft, thumbRect.y);
+
+                // Update slider extent.
+                thumbMiddle = thumbLeft + halfThumbWidth;
+                slider.setExtent(valueForXPosition(thumbMiddle) - slider.getValue());
+
+                if (colorIsOE) {
+                    int val = ((RangeSlider) slider).getUpperValue();
+                    if (val == 0) {
+                        val = 1;
+                        ((RangeSlider) slider).setUpperValue(val);
                     }
-                    thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
-                    thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
-
-                    setUpperThumbLocation(thumbRect.x, thumbTop);
-
-                    // Update slider extent.
-                    thumbMiddle = thumbTop + halfThumbHeight;
-                    slider.setExtent(valueForYPosition(thumbMiddle) - slider.getValue());
-                    break;
-
-                case JSlider.HORIZONTAL:
-                    int halfThumbWidth = thumbRect.width / 2;
-                    int thumbLeft = currentMouseX - offset;
-                    int trackLeft = trackRect.x;
-                    int trackRight = trackRect.x + (trackRect.width - 1);
-                    int hMin = xPositionForValue(slider.getValue());
-
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackRight = hMin;
-                    } else {
-                        trackLeft = hMin;
-                    }
-                    thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
-                    thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
-
-                    if (colorIsOE) {
-                        int midpoint = (trackRight - trackLeft) / 2 + trackLeft;
-                        thumbLeft = Math.max(thumbLeft, midpoint - halfThumbWidth);
-                    }
-
-                    setUpperThumbLocation(thumbLeft, thumbRect.y);
-
-                    // Update slider extent.
-                    thumbMiddle = thumbLeft + halfThumbWidth;
-                    slider.setExtent(valueForXPosition(thumbMiddle) - slider.getValue());
-
-                    if (colorIsOE) {
-                        int val = ((RangeSlider) slider).getUpperValue();
-                        if (val == 0) {
-                            val = 1;
-                            ((RangeSlider) slider).setUpperValue(val);
-                        }
-                        ((RangeSlider) slider).setLowerValue(-val);
-                    }
-
-                    break;
-
-                default:
+                    ((RangeSlider) slider).setLowerValue(-val);
+                }
             }
         }
     }

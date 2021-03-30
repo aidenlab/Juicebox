@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -40,6 +40,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,41 +186,23 @@ public class Feature2DParser {
         String[] tmpHeaders = Globals.tabPattern.split(line.replaceAll("#", "").trim());
         String[] headers = new String[tmpHeaders.length];
 
-        for (int i=0; i<tmpHeaders.length; i++) {
-            switch (tmpHeaders[i]) {
-                case "o":
-                    headers[i] = "observed";
-                    break;
-                case "e_bl":
-                    headers[i] = "expectedBL";
-                    break;
-                case "e_donut":
-                    headers[i] = "expectedDonut";
-                    break;
-                case "e_h":
-                    headers[i] = "expectedH";
-                    break;
-                case "e_v":
-                    headers[i] = "expectedV";
-                    break;
-                case "fdr_bl":
-                    headers[i] = "fdrBL";
-                    break;
-                case "fdr_donut":
-                    headers[i] = "fdrDonut";
-                    break;
-                case "fdr_h":
-                    headers[i] = "fdrH";
-                    break;
-                case "fdr_v":
-                    headers[i] = "fdrV";
-                    break;
-                case "num_collapsed":
-                    headers[i] = "numCollapsed";
-                    break;
-                default:
-                    headers[i] = tmpHeaders[i];
-                    break;
+        Map<String, String> translator = new HashMap<>();
+        translator.put("o", "observed");
+        translator.put("e_bl", "expectedBL");
+        translator.put("e_donut", "expectedDonut");
+        translator.put("e_h", "expectedH");
+        translator.put("e_v", "expectedV");
+        translator.put("fdr_bl", "fdrBL");
+        translator.put("fdr_donut", "fdrDonut");
+        translator.put("fdr_h", "fdrH");
+        translator.put("fdr_v", "fdrV");
+        translator.put("num_collapsed", "numCollapsed");
+
+        for (int i = 0; i < tmpHeaders.length; i++) {
+            if (translator.containsKey(tmpHeaders[i])) {
+                headers[i] = translator.get(tmpHeaders[i]);
+            } else {
+                headers[i] = tmpHeaders[i];
             }
         }
         return headers;

@@ -36,7 +36,6 @@ public class NormalizationType {
 	private final String description;
 	
 	public NormalizationType(String label, String description) {
-
         this.label = label.toUpperCase();
         String description2 = description;
         if (label.endsWith("SCALE")) {
@@ -66,13 +65,29 @@ public class NormalizationType {
             return true;
         } else if (obj instanceof NormalizationType) {
             NormalizationType norm2 = (NormalizationType) obj;
-            return label.equalsIgnoreCase(norm2.getLabel());
+            return label.equals(norm2.getLabel());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-		return Objects.hash(label.hashCode(), description.hashCode());
+        return Objects.hash(label.hashCode(), description.hashCode());
+    }
+
+    public boolean usesKR() {
+        return label.contains("KR");
+    }
+
+    public boolean usesVC() {
+        return label.contains("VC");
+    }
+
+    public boolean usesSCALE() {
+        return label.contains("SCALE");
+    }
+
+    public boolean isNONE() {
+        return label.equals("NONE");
     }
 }

@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -83,40 +83,16 @@ public class FeatureRenderer {
                 int w = (int) rect.getWidth();
                 int h = (int) rect.getHeight();
 
-                if (feature.isOnDiagonal()) {
-                    // contact domains
-                    switch (enablePlottingOption) {
-                        case ONLY_LOWER_LEFT:
-                            g2.drawLine(x, y, x, y + h);
-                            g2.drawLine(x, y + h, x + w, y + h);
-                            if (w > 5) {
-                                g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
-                                g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
-                            }
-                            break;
-                        case ONLY_UPPER_RIGHT:
-                            g2.drawLine(x, y, x + w, y);
-                            g2.drawLine(x + w, y, x + w, y + h);
-                            if (w > 5) {
-                                g2.drawLine(x + 1, y + 1, x + w + 1, y + 1);
-                                g2.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
-                            }
-                            break;
-                        case EVERYTHING:
-                            g2.drawRect(x, y, w, h);
-                            if (w > 5) {
-                                g2.drawRect(x + 1, y + 1, w - 2, h - 2);
-                            }
-                            break;
+                if (feature.isOnDiagonal()) { // contact domains
+                    if (enablePlottingOption == PlottingOption.ONLY_LOWER_LEFT) {
+                        plotInLowerLeft(g2, x, y, w, h);
+                    } else if (enablePlottingOption == PlottingOption.ONLY_UPPER_RIGHT) {
+                        plotInUpperRight(g2, x, y, w, h);
+                    } else if (enablePlottingOption == PlottingOption.EVERYTHING) {
+                        plotSimple(g2, x, y, w, h);
                     }
                 } else {
-                    // loops, other features, etc
-                    g2.drawRect(x, y, w, h);
-                    if (w > 5) {
-                        g2.drawRect(x + 1, y + 1, w - 2, h - 2);
-                    } else {
-                        g2.drawRect(x - 1, y - 1, w + 2, h + 2);
-                    }
+                    plotSimple(g2, x, y, w, h);
                 }
             }
         }
@@ -149,14 +125,40 @@ public class FeatureRenderer {
         }
     }
 
+    private static void plotSimple(Graphics2D g2, int x, int y, int w, int h) {
+        g2.drawRect(x, y, w, h);
+        if (w > 5) {
+            g2.drawRect(x + 1, y + 1, w - 2, h - 2);
+        } else {
+            g2.drawRect(x - 1, y - 1, w + 2, h + 2);
+        }
+    }
+
+    private static void plotInUpperRight(Graphics2D g2, int x, int y, int w, int h) {
+        g2.drawLine(x, y, x + w, y);
+        g2.drawLine(x + w, y, x + w, y + h);
+        if (w > 5) {
+            g2.drawLine(x + 1, y + 1, x + w + 1, y + 1);
+            g2.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
+        }
+    }
+
+    private static void plotInLowerLeft(Graphics2D g2, int x, int y, int w, int h) {
+        g2.drawLine(x, y, x, y + h);
+        g2.drawLine(x, y + h, x + w, y + h);
+        if (w > 5) {
+            g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
+            g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
+        }
+    }
+
     public static PlottingOption getNextState(PlottingOption state) {
-        switch (state) {
-            case ONLY_LOWER_LEFT:
-                return FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
-            case ONLY_UPPER_RIGHT:
-                return FeatureRenderer.PlottingOption.EVERYTHING;
-            case EVERYTHING:
-                return FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
+        if (state == PlottingOption.ONLY_LOWER_LEFT) {
+            return FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
+        } else if (state == PlottingOption.ONLY_UPPER_RIGHT) {
+            return FeatureRenderer.PlottingOption.EVERYTHING;
+        } else if (state == PlottingOption.EVERYTHING) {
+            return FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
         }
         return FeatureRenderer.PlottingOption.EVERYTHING;
     }

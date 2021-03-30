@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -163,45 +163,30 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
             if (!lastMouseEvent.isShiftDown()) {
                 List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
 
-                switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
-                    case REGROUP:
-                        AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
-                        heatmapPanel.repaint();
-                        try {
-                            Robot bot = new Robot();
-                            bot.mouseMove(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y);
-                        } catch (AWTException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-
-                    case PASTEBOTTOM:
-                        heatmapPanel.moveSelectionToEnd(); // TODO fix this so that highlight moves with translated selection
-                        heatmapPanel.repaint(); // moveSelectionToEnd already handles removeSelection
-                        break;
-
-                    case PASTETOP:
-                        AssemblyOperationExecutor.moveSelection(superAdapter,
+                HeatmapMouseHandler.PromptedAssemblyAction action = heatmapPanel.getPromptedAssemblyActionOnClick();
+                if (action == HeatmapMouseHandler.PromptedAssemblyAction.REGROUP) {
+                    AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
+                    heatmapPanel.repaint();
+                    try {
+                        Robot bot = new Robot();
+                        bot.mouseMove(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y);
+                    } catch (AWTException e) {
+                        e.printStackTrace();
+                    }
+                } else if (action == HeatmapMouseHandler.PromptedAssemblyAction.PASTEBOTTOM) {
+                    heatmapPanel.moveSelectionToEnd(); // TODO fix this so that highlight moves with translated selection
+                    heatmapPanel.repaint(); // moveSelectionToEnd already handles removeSelection
+                } else if (action == HeatmapMouseHandler.PromptedAssemblyAction.PASTETOP) {
+                    AssemblyOperationExecutor.moveSelection(superAdapter,
                             selectedFeatures,
                             null);
-                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
-                        heatmapPanel.repaint();
-                        break;
-
-                    case PASTE:
-                        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
-                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
-                        heatmapPanel.repaint();
-                        break;
-
-                    case INVERT:
-                        AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
-                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
-                        heatmapPanel.repaint();
-                        break;
-                    //case CUT is processed on mousePressed and mouseReleased
-                    default:
-                        break;
+                    removeAndRepaint();  // TODO fix this so that highlight moves with translated selection
+                } else if (action == HeatmapMouseHandler.PromptedAssemblyAction.PASTE) {
+                    AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
+                    removeAndRepaint();  // TODO fix this so that highlight moves with translated selection
+                } else if (action == HeatmapMouseHandler.PromptedAssemblyAction.INVERT) {
+                    AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
+                    removeAndRepaint(); // TODO fix this so that highlight moves with translated selection
                 }
             }
         }
@@ -213,6 +198,11 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
                 System.err.println("Unable to print assembly state");
             }
         }
+    }
+
+    private void removeAndRepaint() {
+        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+        heatmapPanel.repaint();
     }
 
     private void doubleClick(MouseEvent lastMouseEvent) {

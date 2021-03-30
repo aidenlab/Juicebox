@@ -85,7 +85,6 @@ public class MatrixZoomDataPP {
         this.blockNumRecords = new ConcurrentHashMap<>(BLOCK_CAPACITY);
         this.countThreshold = countThreshold;
 
-        this.sum = 0;
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.binSize = binSize;
@@ -113,7 +112,6 @@ public class MatrixZoomDataPP {
         this.blockNumRecords = new ConcurrentHashMap<>(BLOCK_CAPACITY);
         this.countThreshold = countThreshold;
 
-        this.sum = 0;
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.binSize = binSize;
@@ -466,7 +464,7 @@ public class MatrixZoomDataPP {
 
             // Output block
             long position = los.getWrittenCount();
-            writeBlock(this, currentBlock, sampledData, los, compressor);
+            writeBlock(currentBlock, sampledData, los, compressor);
             long size = los.getWrittenCount() - position;
 
             indexEntries.add(new IndexEntry(num, position, (int) size));
@@ -487,16 +485,16 @@ public class MatrixZoomDataPP {
     }
 
     // Merge and write out blocks multithreaded.
-    protected List<IndexEntry> mergeAndWriteBlocks(LittleEndianOutputStream[] losArray, Deflater compressor, int whichZoom, int numResolutions) throws IOException {
+    protected List<IndexEntry> mergeAndWriteBlocks(LittleEndianOutputStream[] losArray, Deflater compressor, int whichZoom, int numResolutions) {
         DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
         Integer[] sortedBlockNumbers = new Integer[blockNumbers.size()];
         blockNumbers.toArray(sortedBlockNumbers);
         Arrays.sort(sortedBlockNumbers);
         Map<Integer, BlockPP> threadSafeBlocks = new ConcurrentHashMap<>(blocks.size());
-        for (Map.Entry<Integer,BlockPP> entry : blocks.entrySet()) {
+        for (Map.Entry<Integer, BlockPP> entry : blocks.entrySet()) {
             threadSafeBlocks.put(entry.getKey(), entry.getValue());
         }
-        int numCPUThreads = (losArray.length-1)/numResolutions;
+        int numCPUThreads = (losArray.length - 1) / numResolutions;
 
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
         Map<Integer, Long> blockChunkSizes = new ConcurrentHashMap<>(numCPUThreads);
@@ -512,10 +510,11 @@ public class MatrixZoomDataPP {
                 startBlock = endBlock;
             }
             int numOfRecords = 0;
-            for (int i = startBlock; i<sortedBlockNumbers.length; i++) {
-                numOfRecords+=blockNumRecords.get(sortedBlockNumbers[i]);
-                if (numOfRecords > numOfRecordsPerThread || i-startBlock > maxNumOfBlocksPerThread) {
-                    endBlock = Math.min(i, sortedBlockNumbers.length);
+            for (int i = startBlock; i < sortedBlockNumbers.length; i++) {
+                numOfRecords += blockNumRecords.get(sortedBlockNumbers[i]);
+                if (numOfRecords > numOfRecordsPerThread || i - startBlock > maxNumOfBlocksPerThread) {
+                    endBlock = i; // i always less than sortedBlockNumbers.length from for loop
+                    //endBlock = Math.min(i, sortedBlockNumbers.length);
                     break;
                 }
             }
@@ -579,8 +578,6 @@ public class MatrixZoomDataPP {
         }
 
         computeStats(sampledData);
-        //System.err.println(chr1 + " " + chr2 + " " + Duration.between(A,B).toMillis() + " " + Duration.between(B,C).toMillis() + " " + Duration.between(C,D).toMillis() + " " +
-        //        Duration.between(D,E).toMillis());
         return finalIndexEntries;
     }
 
@@ -593,39 +590,44 @@ public class MatrixZoomDataPP {
             BlockPP currentBlock = null;
             int num = threadBlocks[i];
             if (threadSafeBlocks.get(num) != null ){
-                //System.err.println("test1");
                 currentBlock = threadSafeBlocks.get(num);
                 if (tmpFilesByBlockNumber.get(num) != null) {
                     for (Map.Entry<File, Long> entry : tmpFilesByBlockNumber.get(num).entrySet()) {
-                        BlockPP tmpBlock = readTmpBlock(entry.getKey(),entry.getValue());
-                        currentBlock.merge(tmpBlock);
+                        readAndMerge(currentBlock, entry);
                     }
                 }
             } else if (tmpFilesByBlockNumber.get(num) != null) {
-                //System.err.println("test2");
                 Iterator<Map.Entry<File, Long>> iter = tmpFilesByBlockNumber.get(num).entrySet().iterator();
-                Map.Entry<File, Long> firstEntry = iter.next();
-                currentBlock = readTmpBlock(firstEntry.getKey(), firstEntry.getValue());
-                while (iter.hasNext()) {
-                    Map.Entry<File, Long> entry = iter.next();
-                    BlockPP tmpBlock = readTmpBlock(entry.getKey(),entry.getValue());
-                    currentBlock.merge(tmpBlock);
+                if (iter.hasNext()) {
+                    Map.Entry<File, Long> firstEntry = iter.next();
+                    currentBlock = readTmpBlock(firstEntry.getKey(), firstEntry.getValue());
+                    if (currentBlock != null) {
+                        while (iter.hasNext()) {
+                            readAndMerge(currentBlock, iter.next());
+                        }
+                    }
                 }
             }
 
-            long position = losArray[threadNum+1].getWrittenCount();
-            writeBlock(MatrixZoomDataPP.this, currentBlock, sampledData, losArray[threadNum+1], compressor);
-            long size = losArray[threadNum+1].getWrittenCount() - position;
+            if (currentBlock != null) {
+                long position = losArray[threadNum + 1].getWrittenCount();
+                writeBlock(currentBlock, sampledData, losArray[threadNum + 1], compressor);
+                long size = losArray[threadNum + 1].getWrittenCount() - position;
+                indexEntries.add(new IndexEntry(num, position, (int) size));
+            }
+        }
+    }
 
-            indexEntries.add(new IndexEntry(num, position, (int) size));
+    private void readAndMerge(BlockPP currentBlock, Map.Entry<File, Long> entry) throws IOException {
+        BlockPP tmpBlock = readTmpBlock(entry.getKey(), entry.getValue());
+        if (tmpBlock != null) {
+            currentBlock.merge(tmpBlock);
         }
     }
 
     private BlockPP readTmpBlock(File file, long filePosition) throws IOException {
-        BlockPP block;
         if (filePosition >= file.length()) {
-            block = null;
-            return block;
+            return null;
         }
 
         FileInputStream fis = null;
@@ -633,7 +635,6 @@ public class MatrixZoomDataPP {
         try {
             fis = new FileInputStream(file);
             fis.getChannel().position(filePosition);
-
 
             LittleEndianInputStream lis = new LittleEndianInputStream(fis);
             int blockNumber = lis.readInt();
@@ -654,7 +655,6 @@ public class MatrixZoomDataPP {
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             lis = new LittleEndianInputStream(bis);
 
-
             Map<Point, ContactCount> contactRecordMap = new HashMap<>(nRecords);
             for (int i = 0; i < nRecords; i++) {
                 int x = lis.readInt();
@@ -663,10 +663,8 @@ public class MatrixZoomDataPP {
                 ContactCount rec = new ContactCount(v);
                 contactRecordMap.put(new Point(x, y), rec);
             }
-            block = new BlockPP(blockNumber, contactRecordMap);
-            return block;
-
-        } finally{
+            return new BlockPP(blockNumber, contactRecordMap);
+        } finally {
             if (fis != null) fis.close();
         }
     }
@@ -717,18 +715,17 @@ public class MatrixZoomDataPP {
             if (!blockNumRecords.containsKey(blockNumber)) {
                 blockNumRecords.put(blockNumber, otherMatrixZoom.blockNumRecords.get(blockNumber));
             } else {
-                blockNumRecords.put(blockNumber, blockNumRecords.get(blockNumber)+otherMatrixZoom.blockNumRecords.get(blockNumber));
+                blockNumRecords.put(blockNumber, blockNumRecords.get(blockNumber) + otherMatrixZoom.blockNumRecords.get(blockNumber));
             }
         }
 
-        for (File file : otherMatrixZoom.tmpFiles) {
-            tmpFiles.add(file);
-        }
+        tmpFiles.addAll(otherMatrixZoom.tmpFiles);
+
         for (Map.Entry<Integer, Map<File, Long>> entry : otherMatrixZoom.tmpFilesByBlockNumber.entrySet()) {
             if (!tmpFilesByBlockNumber.containsKey(entry.getKey())) {
-                tmpFilesByBlockNumber.put(entry.getKey(),entry.getValue());
+                tmpFilesByBlockNumber.put(entry.getKey(), entry.getValue());
             } else {
-                for (Map.Entry<File,Long> tmpFile : entry.getValue().entrySet()) {
+                for (Map.Entry<File, Long> tmpFile : entry.getValue().entrySet()) {
                     tmpFilesByBlockNumber.get(entry.getKey()).put(tmpFile.getKey(), tmpFile.getValue());
                 }
             }
@@ -739,12 +736,11 @@ public class MatrixZoomDataPP {
     /**
      * Note -- compressed
      *
-     * @param zd          Matrix zoom data
      * @param block       Block to write
      * @param sampledData Array to hold a sample of the data (to compute statistics)
      * @throws IOException
      */
-    protected void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData, LittleEndianOutputStream los, Deflater compressor) throws IOException {
+    protected void writeBlock(BlockPP block, DownsampledDoubleArrayList sampledData, LittleEndianOutputStream los, Deflater compressor) throws IOException {
 
         final Map<Point, ContactCount> records = block.getContactRecordMap();//   getContactRecords();
 
@@ -764,10 +760,7 @@ public class MatrixZoomDataPP {
         }
         BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 12);
         buffer.putInt(nRecords);
-        synchronized(zd) {
-            zd.cellCount += nRecords;
-        }
-
+        incrementCellCount(nRecords);
 
         // Find extents of occupied cells
         int binXOffset = Integer.MAX_VALUE;
@@ -888,15 +881,12 @@ public class MatrixZoomDataPP {
                     synchronized(sampledData) {
                         sampledData.add(counts);
                     }
-                    synchronized(zd) {
-                        zd.sum += counts;
-                    }
+                    incrementSum(counts);
                 }
             }
 
         } else {
             buffer.put((byte) 2);  // Dense matrix
-
 
             buffer.putInt(nDensePts);
             buffer.putShort(w);
@@ -924,9 +914,7 @@ public class MatrixZoomDataPP {
                 synchronized(sampledData) {
                     sampledData.add(counts);
                 }
-                synchronized(zd) {
-                    zd.sum += counts;
-                }
+                incrementSum(counts);
             }
         }
 
@@ -935,6 +923,14 @@ public class MatrixZoomDataPP {
         byte[] compressedBytes = compress(bytes, compressor);
         los.write(compressedBytes);
 
+    }
+
+    private synchronized void incrementSum(float counts) {
+        sum += counts;
+    }
+
+    private synchronized void incrementCellCount(int nRecords) {
+        cellCount += nRecords;
     }
 
     /**

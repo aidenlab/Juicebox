@@ -93,16 +93,13 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     private String getFeatureName() {
-        switch (featureType) {
-            case PEAK:
-                return "Peak";
-            case DOMAIN:
-                return "Contact Domain";
-            case GENERIC:
-            case NONE:
-            default:
-                return "Feature";
+        if (featureType == FeatureType.PEAK) {
+            return "Peak";
         }
+        if (featureType == FeatureType.DOMAIN) {
+            return "Contact Domain";
+        }
+        return "Feature";
     }
 
     public String getChr1() {
