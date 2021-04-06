@@ -95,25 +95,9 @@ public class HeatmapMouseHandler extends MouseAdapter {
     private Feature2DGuiContainer currentUpstreamFeature = null;
     private Feature2DGuiContainer currentDownstreamFeature = null;
     private boolean showFeatureHighlight = true;
-
-    public List<Feature2D> getHighlightedFeature() {
-        return highlightedFeatures;
-    }
-
     private boolean activelyEditingAssembly = false;
     private Feature2D debrisFeature = null;
     private Feature2D tempSelectedGroup = null;
-
-    public void eraseHighlightedFeatures() {
-        highlightedFeatures.clear();
-        hic.setHighlightedFeatures(new ArrayList<>());
-    }
-
-    public void clearSelectedFeatures() {
-        selectedSuperscaffolds.clear();
-        updateSelectedFeatures(false);
-        selectedFeatures.clear();
-    }
 
     public HeatmapMouseHandler(HiC hic, SuperAdapter superAdapter, HeatmapPanel parent) {
         this.hic = hic;
@@ -124,6 +108,21 @@ public class HeatmapMouseHandler extends MouseAdapter {
             heatmapMouseBot = new Robot();
         } catch (AWTException ignored) {
         }
+    }
+
+    public List<Feature2D> getHighlightedFeature() {
+        return highlightedFeatures;
+    }
+
+    public void eraseHighlightedFeatures() {
+        highlightedFeatures.clear();
+        hic.setHighlightedFeatures(new ArrayList<>());
+    }
+
+    public void clearSelectedFeatures() {
+        selectedSuperscaffolds.clear();
+        updateSelectedFeatures(false);
+        selectedFeatures.clear();
     }
 
     public boolean getIsActivelyEditingAssembly() {
@@ -838,6 +837,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 // New annotation is added (not single click) and new feature from custom annotation
 
                 updateSelectedFeatures(false);
+                highlightedFeatures.clear();
                 List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
                 // selects superscaffold
@@ -1531,8 +1531,6 @@ public class HeatmapMouseHandler extends MouseAdapter {
         return null;
     }
 
-    public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
-
     private String toolTipText(int x, int y) {
         // Update popup text
         final MatrixZoomData zd;
@@ -2034,6 +2032,8 @@ public class HeatmapMouseHandler extends MouseAdapter {
     public Feature2DGuiContainer getCurrentDownstreamFeature() {
         return this.currentDownstreamFeature;
     }
+
+    public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE, PASTETOP, PASTEBOTTOM}
 
     private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
