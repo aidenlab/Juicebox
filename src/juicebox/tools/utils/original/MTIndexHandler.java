@@ -75,7 +75,7 @@ public class MTIndexHandler {
                 mndIndex.put(entry.getKey(), tempIndex.get(entry.getValue()));
             } else if (tempIndex.containsKey(reverseName)) {
                 mndIndex.put(entry.getKey(), tempIndex.get(reverseName));
-            } else {
+            } else if (!reverseName.equalsIgnoreCase("all")) {
                 System.err.println("Unable to find " + entry.getValue() + "  or  " + reverseName);
             }
         }
