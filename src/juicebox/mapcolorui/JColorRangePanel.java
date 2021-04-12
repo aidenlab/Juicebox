@@ -154,9 +154,9 @@ public class JColorRangePanel extends JPanel {
                     if (hic != null && hic.getZd() != null && hic.getDisplayOption() != null) {
                         key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption(), hic.getObsNormalizationType(), hic.getControlNormalizationType());
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e2) {
                     if (HiCGlobals.printVerboseComments) {
-                        ignored.printStackTrace();
+                        e2.printStackTrace();
                     }
                 }
 

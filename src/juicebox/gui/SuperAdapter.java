@@ -732,12 +732,11 @@ public class SuperAdapter {
         if (isForControl) {
             String value = (String) mainViewPanel.getControlNormalizationComboBox().getSelectedItem();
             hic.setControlNormalizationType(value);
-            refreshMainOnly();
         } else {
             String value = (String) mainViewPanel.getObservedNormalizationComboBox().getSelectedItem();
             hic.setObsNormalizationType(value);
-            refreshMainOnly();
         }
+        refreshMainOnly();
     }
 
     public MainViewPanel getMainViewPanel() {
@@ -933,12 +932,10 @@ public class SuperAdapter {
 
     public void setLayersPanelVisible(boolean status) {
         this.layerPanelIsVisible = status;
-        if (layersPanel != null) {
-            layersPanel.setVisible(status);
-        } else {
+        if (layersPanel == null) {
             if (status) layersPanel = new LayersPanel(this);
-            layersPanel.setVisible(status);
         }
+        layersPanel.setVisible(status);
         setLayersPanelGUIControllersSelected(status);
     }
 

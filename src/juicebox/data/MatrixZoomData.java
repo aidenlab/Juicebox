@@ -1060,12 +1060,6 @@ public class MatrixZoomData {
                 }
             }
 
-            if (usePrintWriter) {
-                printWriter.close();
-            }
-            else {
-                les.close();
-            }
         }
         else {
             int maxX = 0;
@@ -1153,15 +1147,15 @@ public class MatrixZoomData {
                         les.writeFloat(matrix[i][j]);
 
                     }
-    
+
                 }
             }
-    
-            if (usePrintWriter) {
-                printWriter.close();
-            } else {
-                les.close();
-            }
+
+        }
+        if (usePrintWriter) {
+            printWriter.close();
+        } else {
+            les.close();
         }
     }
     

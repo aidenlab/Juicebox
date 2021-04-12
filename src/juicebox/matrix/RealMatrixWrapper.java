@@ -85,8 +85,8 @@ public class RealMatrixWrapper implements BasicMatrix {
             for (int j = 0; j < matrix.getColumnDimension(); j++) {
                 double value = matrix.getEntry(i, j);
                 if (!Double.isNaN(value) && value != 1) {
-                    min = value < min ? value : min;
-                    max = value > max ? value : max;
+                    min = Math.min(value, min);
+                    max = Math.max(value, max);
                     flattenedDataStats.addValue(value);
                 }
             }

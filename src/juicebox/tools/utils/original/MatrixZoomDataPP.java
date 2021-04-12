@@ -548,6 +548,7 @@ public class MatrixZoomDataPP {
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
+                System.err.println(e.getLocalizedMessage());
             }
         }
 

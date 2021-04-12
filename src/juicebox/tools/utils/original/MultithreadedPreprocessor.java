@@ -355,6 +355,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
                                 try {
                                     Thread.sleep(1000);
                                 } catch (InterruptedException e) {
+                                    System.err.println(e.getLocalizedMessage());
                                 }
                             }
 
@@ -374,6 +375,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
+                System.err.println(e.getLocalizedMessage());
             }
         }
 

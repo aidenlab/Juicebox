@@ -168,6 +168,7 @@ public class MainWindow extends JFrame {
             }
 
         } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
         }
 
     }

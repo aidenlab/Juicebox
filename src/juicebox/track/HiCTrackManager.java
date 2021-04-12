@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -76,7 +76,6 @@ public class HiCTrackManager {
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             controlCoverageTracks.put(no, track);
             loadedTracks.add(track);
-            superAdapter.updateTrackPanel();
         } else {
             if (coverageTracks.containsKey(no)) return; // Already loaded
             HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
@@ -84,8 +83,8 @@ public class HiCTrackManager {
             HiCDataTrack track = new HiCDataTrack(hic, locator, source);
             coverageTracks.put(no, track);
             loadedTracks.add(track);
-            superAdapter.updateTrackPanel();
         }
+        superAdapter.updateTrackPanel();
     }
 
     public void unsafeTrackLoad(final List<ResourceLocator> locators) {

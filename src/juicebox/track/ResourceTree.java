@@ -888,7 +888,7 @@ public class ResourceTree {
 
         public Object getCellEditorValue() {
 
-            DataResource resource = null;
+            CheckableResource resource = null;
             TreePath treePath = tree.getEditingPath();
             if (treePath != null) {
 
@@ -915,13 +915,13 @@ public class ResourceTree {
                     // Check/Uncheck the selected node. This code ONLY handles
                     // the clicked node. Not it's ancestors or decendants.
                     if (isChecked) {
-                        ((CheckableResource) resource).setSelected(true);
+                        resource.setSelected(true);
                     } else {
 
                         // See if we are allowed to unchecking this specific
                         // node - if not, it won't be done. This does not
                         // prevent it's children from being unchecked.
-                        uncheckCurrentNodeIfAllowed((CheckableResource) resource,
+                        uncheckCurrentNodeIfAllowed(resource,
                                 treeNode);
                     }
 
@@ -954,7 +954,7 @@ public class ResourceTree {
 
                         // If not a leaf check/uncheck ancestors
                         checkOrUncheckParentNodesRecursively(treeNode,
-                                ((CheckableResource) resource).isSelected());
+                                resource.isSelected());
                     } else { // it must be a leaf - so check up the tree
                         checkOrUncheckParentNodesRecursively(treeNode, checkRelatives);
                     }

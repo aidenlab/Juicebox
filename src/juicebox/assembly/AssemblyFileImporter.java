@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,7 +25,6 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
-import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
 
 import java.io.File;
@@ -47,7 +46,7 @@ public class AssemblyFileImporter {
 
     //private int bundleSize=15000; //user-defined presumably
     private boolean needsBundling = false;
-    private int bundleSize = 0; //temporary? bundle everything you can
+    private final int bundleSize = 0; //temporary? bundle everything you can
     private List<Scaffold> listOfScaffolds;
     private List<List<Integer>> listOfSuperscaffolds;
     private AssemblyScaffoldHandler assemblyScaffoldHandler;
@@ -174,12 +173,10 @@ public class AssemblyFileImporter {
                         start = 0;
                         continue;
                     }
-                    if (start > 0 && i == prev + 1) {
-                        prev = i;
-                    } else {
+                    if (start <= 0 || i != prev + 1) {
                         start = i;
-                        prev = i;
                     }
+                    prev = i;
                 }
             }
 

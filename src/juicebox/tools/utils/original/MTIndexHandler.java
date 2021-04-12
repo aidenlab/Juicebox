@@ -48,15 +48,16 @@ public class MTIndexHandler {
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 String[] nextEntry = nextLine.split(",");
-                if (nextEntry.length > 4 || nextEntry.length < 4) {
-                    System.err.println("Improperly formatted merged nodups index");
-                    System.exit(70);
-                } else {
+                if (nextEntry.length == 4) {
+                    // todo should probably just check if tempIndex.contains(nextEntry[0])
                     if (tempIndex.get(nextEntry[0]) == null) {
                         tempIndex.put(nextEntry[0], new ArrayList<>());
                     }
                     long[] indexEntry = new long[]{Long.parseLong(nextEntry[2]), Long.parseLong(nextEntry[3])};
                     tempIndex.get(nextEntry[0]).add(indexEntry);
+                } else {
+                    System.err.println("Improperly formatted merged nodups index: " + nextLine);
+                    System.exit(70);
                 }
             }
             if (tempIndex.isEmpty()) {

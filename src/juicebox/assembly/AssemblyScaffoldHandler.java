@@ -507,7 +507,7 @@ public class AssemblyScaffoldHandler {
                 } else {
                     shiftSuperscaffold++;
                 }
-            } else if (gid1 != gid2 && i > gid1 && i < gid2) {
+            } else if (i > gid1 && i < gid2) { //gid1 != gid2 is covered/inherent to the condition
                 tempSuperscaffolds.add(listOfSuperscaffolds.get(i));
                 shiftSuperscaffold++;
             } else if (gid1 != gid2 && i == gid2) {
@@ -655,9 +655,7 @@ public class AssemblyScaffoldHandler {
         List<Integer> altIdListToMerge = new ArrayList<>();
 
         for (int i : idListToMerge) {
-            for (int j : listOfSuperscaffolds.get(i)) {
-                newSuperscaffold.add(j);
-            }
+            newSuperscaffold.addAll(listOfSuperscaffolds.get(i));
             if (i % 2 == 0) {
                 altIdListToMerge.add(i + 1);
             } else {
@@ -668,7 +666,7 @@ public class AssemblyScaffoldHandler {
         Collections.sort(idListToMerge);
 
         boolean altGoesFirst = false;
-        if (altIdListToMerge.contains(Integer.valueOf(idListToMerge.get(0)))) {
+        if (altIdListToMerge.contains(idListToMerge.get(0))) {
             altGoesFirst = true;
         }
 
@@ -695,8 +693,7 @@ public class AssemblyScaffoldHandler {
                     newSuperscaffolds.add(newAltSuperscaffold);
                     newSuperscaffolds.add(newSuperscaffold);
                 }
-            } else
-                continue;
+            }
         }
 
         listOfSuperscaffolds.clear();
@@ -828,11 +825,7 @@ public class AssemblyScaffoldHandler {
         Scaffold tmp = new Scaffold("tmp", 1, 1);
         tmp.setCurrentStart(genomicPos1);
         int idx1 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
-        if (-idx1 - 2 < 0) {
-            idx1 = 0;
-        } else {
-            idx1 = -idx1 - 2;
-        }
+        idx1 = Math.max(-idx1 - 2, 0);
         tmp.setCurrentStart(genomicPos2);
         int idx2 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
         if (-idx2 - 2 < 0) {
