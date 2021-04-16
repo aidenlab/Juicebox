@@ -306,7 +306,7 @@ public class Preprocessor {
 
 
     public void preprocess(final String inputFile, final String headerFile, final String footerFile,
-                           Map<Integer, List<long[]>> mndIndex) throws IOException {
+                           Map<Integer, List<Chunk>> mndIndex) throws IOException {
         File file = new File(inputFile);
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
@@ -674,7 +674,7 @@ public class Preprocessor {
         }
     }
 
-    protected void writeBody(String inputFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, List<Chunk>> mndIndex) throws IOException {
 
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);

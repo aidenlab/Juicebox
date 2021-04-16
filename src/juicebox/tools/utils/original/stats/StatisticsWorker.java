@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,47 +15,41 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.original.stats;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.tools.utils.original.AlignmentPair;
 import juicebox.tools.utils.original.AlignmentPairLong;
-import juicebox.tools.utils.original.AsciiPairIterator;
 import juicebox.tools.utils.original.FragmentCalculation;
 
-import java.io.*;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class StatisticsWorker {
+    protected static final int posDistThreshold = 20000;
+    protected static final int distThreshold = 2000;
+    protected static final int mapqValThreshold = 200;
+    protected static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
     //variables for getting parameters of input file, flags set to default initially
-    private String outFile;
-    private long mndIndexStart = -1L;
-    private final String siteFile;
-    private final String inFile;
-    private final String danglingJunction;
-    private final String ligationJunction;
-    private final List<String> statsFiles;
-    private final List<Integer> mapqThresholds;
-    private final FragmentCalculation chromosomes;
-    private final ChromosomeHandler localHandler;
-    private final StatisticsContainer resultsContainer;
+    protected final String siteFile;
+    protected final String inFile;
+    protected final String danglingJunction;
+    protected final String ligationJunction;
+    protected final List<String> statsFiles;
+    protected final List<Integer> mapqThresholds;
+    protected final FragmentCalculation fragmentCalculation;
+    protected final ChromosomeHandler localHandler;
+    protected final StatisticsContainer resultsContainer;
 
-    private static final int posDistThreshold = 20000;
-    private static final int distThreshold = 2000;
-    private static final int mapqValThreshold = 200;
-    private static final long[] bins = {10,12,15,19,23,28,35,43,53,66,81,100,123,152,187,231,285,351,433,534,658,811,1000,1233,1520,1874,2310,2848,3511,4329,5337,6579,8111,10000,12328,15199,18738,23101,28480,35112,43288,53367,65793,81113,100000,123285,151991,187382,231013,284804,351119,432876,533670,657933,811131,1000000,1232847,1519911,1873817,2310130,2848036,3511192,4328761,5336699,6579332,8111308,10000000,12328467,15199111,18738174,23101297,28480359,35111917,43287613,53366992,65793322,81113083,100000000,123284674,151991108,187381742,231012970,284803587,351119173,432876128,533669923,657933225,811130831,1000000000,1232846739,1519911083,1873817423,2310129700L,2848035868L,3511191734L,4328761281L,5336699231L,6579332247L,8111308308L,10000000000L};
-
-    public StatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds, String ligationJunction,
-                            String inFile, ChromosomeHandler localHandler, FragmentCalculation chromosomes){
+    public StatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds,
+                            String ligationJunction, String inFile, ChromosomeHandler localHandler,
+                            FragmentCalculation fragmentCalculation) {
         //default constructor for non-multithreading inputs, no mnd-indexing
         this.inFile = inFile;
         this.siteFile = siteFile;
@@ -63,58 +57,16 @@ public class StatisticsWorker {
         this.mapqThresholds = mapqThresholds;
         this.ligationJunction = ligationJunction;
         this.localHandler = localHandler;
-        this.chromosomes = chromosomes;
+        this.fragmentCalculation = fragmentCalculation;
         this.resultsContainer = new StatisticsContainer();
-
-        this.danglingJunction = ligationJunction.substring(ligationJunction.length()/2);
+        this.danglingJunction = ligationJunction.substring(ligationJunction.length() / 2);
     }
 
-    public StatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds, String ligationJunction,
-                            String inFile, ChromosomeHandler localHandler, Long mndIndexStart, FragmentCalculation chromosomes){
-        //constructor for multithreaded, get command line inputs
-        this(siteFile, statsFiles, mapqThresholds, ligationJunction, inFile, localHandler, chromosomes);
-        this.mndIndexStart = mndIndexStart;
-    }
-
-    public StatisticsContainer getResultsContainer(){
+    public StatisticsContainer getResultsContainer() {
         return resultsContainer;
     }
 
-    public void infileStatistics(){
-        //read in infile and calculate statistics
-        try {
-            //create index for AsciiIterator
-            Map<String, Integer> chromosomeIndexes = new HashMap<>();
-            for (int i = 0; i < localHandler.size(); i++) {
-                chromosomeIndexes.put(localHandler.getChromosomeFromIndex(i).getName(), i);
-            }
-            //iterate through input file
-            AsciiPairIterator files;
-            if (mndIndexStart<0) {
-                        files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
-                        while(files.hasNext()){
-                            processSingleEntry(files.next(), "", false);
-                        }
-            } else {
-                files = new AsciiPairIterator(inFile, chromosomeIndexes, mndIndexStart, localHandler);
-                if(files.hasNext()) {
-                    AlignmentPairLong firstPair = (AlignmentPairLong) files.next();
-                    String previousBlock = firstPair.getChr1() + "_" + firstPair.getChr2();
-                    processSingleEntry(firstPair, previousBlock, true);
-                    while (files.hasNext()) {
-                        AlignmentPairLong pair = (AlignmentPairLong) files.next();
-                        if (processSingleEntry(pair, previousBlock, true)) {
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private boolean processSingleEntry(AlignmentPair pair, String blockKey, boolean multithread) {
+    protected boolean processSingleEntry(AlignmentPair pair, String blockKey, boolean multithread) {
         int chr1, chr2, pos1, pos2, frag1, frag2, mapq1, mapq2;
         boolean str1, str2;
         chr1 = pair.getChr1();
@@ -306,6 +258,7 @@ public class StatisticsWorker {
         return false;
     }
 
+    /*
     private void fragmentSearch() {
         try {
             BufferedReader files = new BufferedReader(new FileReader(inFile));
@@ -313,8 +266,8 @@ public class StatisticsWorker {
             String file = files.readLine();
             while (file != null) {
                 String[] record = file.split("\\s+");
-                int indexOne = FragmentCalculation.binarySearch(chromosomes.getSites(localHandler.cleanUpName(record[1])),Integer.parseInt(record[2]));
-                int indexTwo = FragmentCalculation.binarySearch(chromosomes.getSites(localHandler.cleanUpName(record[4])),Integer.parseInt(record[5]));
+                int indexOne = FragmentCalculation.binarySearch(fragmentCalculation.getSites(localHandler.cleanUpName(record[1])),Integer.parseInt(record[2]));
+                int indexTwo = FragmentCalculation.binarySearch(fragmentCalculation.getSites(localHandler.cleanUpName(record[4])),Integer.parseInt(record[5]));
                 fragOut.write(record[0] + " " + record[1] + " " + record[2] + " " + indexOne + " ");
                 fragOut.write(record[3] + " " + record[4] + " " + record[5] + " " + indexTwo + " ");
                 for (int i = 6; i < record.length; i++) {
@@ -330,6 +283,7 @@ public class StatisticsWorker {
             error.printStackTrace();
         }
     }
+    */
     
     private int distHindIII(boolean strand, int chr, int pos, int frag, boolean rep, int index){
         //Find distance to nearest HindIII restriction site
@@ -337,7 +291,7 @@ public class StatisticsWorker {
         //get distance to each end of HindIII fragment
         int dist1;
         int dist2;
-        int arr = chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName()).length;
+        int arr = fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName()).length;
         if(frag>=arr){
             return 0;
         }
@@ -345,10 +299,11 @@ public class StatisticsWorker {
             //# first fragment, distance is position
             dist1 = pos;
         }
-        else{
-            dist1 = Math.abs(pos - chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag-1]);}
+        else {
+            dist1 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag - 1]);
+        }
 
-        dist2 = Math.abs(pos - chromosomes.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag]);
+        dist2 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag]);
         //get minimum value -- if (dist1 <= dist2), it's dist1, else dist2
         int retVal = Math.min(dist1,dist2);
         //get which end of the fragment this is, 3' or 5' (depends on strand)

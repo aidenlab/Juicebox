@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -46,15 +46,17 @@ public class LibraryComplexity extends JuiceboxCLT {
     private long opticalDups = 0;
     private long totalReadPairs = 0;
     private String fileName = "inter.txt";
-    private boolean filesNotYetCounted = true;
+    private final boolean filesAlreadyCounted;
 
-    public LibraryComplexity() {
+    public LibraryComplexity(String command) {
         super(getUsage());
+        filesAlreadyCounted = command.contains("fast");
     }
 
     private static String getUsage() {
         return "LibraryComplexity <directory> <output file>\n" +
-                "\tLibraryComplexity <unique> <pcr> <opt>";
+                "FastLibraryComplexity <file> <output file>\n" +
+                "FastLibraryComplexity <unique> <pcr> <opt>";
     }
 
     /**
@@ -119,23 +121,45 @@ public class LibraryComplexity extends JuiceboxCLT {
             System.exit(0);
         }
 
-        if (args.length == 3 || args.length == 2) {
-            localWorkingDirectory = args[1];
-
-            if (args.length == 3) fileName = args[2];
-
-
-        } else {
-            try {
-                uniqueReadPairs = Integer.parseInt(args[1]);
-                readPairs = Integer.parseInt(args[2]);
-                opticalDups = Integer.parseInt(args[3]);
-                filesNotYetCounted = false;
-            } catch (NumberFormatException error) {
-                System.err.println("When called with three arguments, must be integers");
-                System.exit(1);
+        if (filesAlreadyCounted) {
+            if (args.length == 4) {
+                try {
+                    determineCountsFromInput(args);
+                } catch (NumberFormatException error) {
+                    System.err.println("When called with three arguments, must be integers");
+                    System.exit(1);
+                }
+            } else {
+                try {
+                    determineCountsFromFile(args[1]);
+                    if (args.length == 3) fileName = args[2];
+                } catch (Exception error) {
+                    System.err.println(error.getLocalizedMessage());
+                    System.exit(1);
+                }
             }
+        } else if (args.length == 3 || args.length == 2) {
+            localWorkingDirectory = args[1];
+            if (args.length == 3) fileName = args[2];
         }
+    }
+
+    private void determineCountsFromFile(String file) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        readPairs = Long.parseLong(reader.readLine());
+        uniqueReadPairs = Long.parseLong(reader.readLine());
+        try {
+            opticalDups = Long.parseLong(reader.readLine());
+        } catch (Exception e) {
+            opticalDups = 0L;
+        }
+        reader.close();
+    }
+
+    private void determineCountsFromInput(String[] args) throws NumberFormatException {
+        uniqueReadPairs = Long.parseLong(args[1]);
+        readPairs = Long.parseLong(args[2]);
+        opticalDups = Long.parseLong(args[3]);
     }
 
     @Override
@@ -143,7 +167,7 @@ public class LibraryComplexity extends JuiceboxCLT {
 
         NumberFormat nf = NumberFormat.getInstance(Locale.US);
 
-        if (filesNotYetCounted) {
+        if (!filesAlreadyCounted) {
             final AtomicBoolean somethingFailed = new AtomicBoolean(false);
 
             try {

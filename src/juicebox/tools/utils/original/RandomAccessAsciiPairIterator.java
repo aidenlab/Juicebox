@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public class RandomAccessAsciiPairIterator extends AsciiPairIterator {
     public RandomAccessAsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex, int mndChunk, ChromosomeHandler handler) throws IOException {
-        super(path, chromosomeOrdinals, mndIndex, mndChunk, handler);
+        super(path, chromosomeOrdinals, new Chunk(mndIndex, mndChunk), handler);
     }
 
     /*

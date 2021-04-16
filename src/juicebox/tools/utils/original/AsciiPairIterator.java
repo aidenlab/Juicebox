@@ -76,33 +76,18 @@ public class AsciiPairIterator implements PairIterator {
         advance();
     }
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals,
-                             long mndIndex, ChromosomeHandler handler) throws IOException {
+    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, Chunk chunk,
+                             ChromosomeHandler handler) throws IOException {
         this.handler = handler;
         if (path.endsWith(".gz")) {
             System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
             System.exit(70);
         } else {
             FileInputStream fis = new FileInputStream(path);
-            fis.getChannel().position(mndIndex);
+            fis.getChannel().position(chunk.mndIndex);
             this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
-        }
-        this.chromosomeOrdinals = chromosomeOrdinals;
-        advance();
-    }
-
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, long mndIndex,
-                             int mndChunk, ChromosomeHandler handler) throws IOException {
-        this.handler = handler;
-        if (path.endsWith(".gz")) {
-            System.err.println("Multithreading with indexed mnd currently only works with unzipped mnd");
-            System.exit(70);
-        } else {
-            FileInputStream fis = new FileInputStream(path);
-            fis.getChannel().position(mndIndex);
-            this.reader = new BufferedReader(new InputStreamReader(fis), HiCGlobals.bufferSize);
-            this.mndStart = mndIndex;
-            this.mndChunkSize = mndChunk;
+            this.mndStart = chunk.mndIndex;
+            this.mndChunkSize = chunk.mndChunk;
             this.stopAfterChunk = true;
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
