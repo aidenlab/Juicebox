@@ -46,7 +46,7 @@ public class Statistics extends JuiceboxCLT {
 
     private int numThreads;
     private String siteFile;
-    private String ligationJunction;
+    private String ligationJunction = "GATCGATC";
     private String inFile;
     private String mndIndexFile;
     private ChromosomeHandler localHandler;
@@ -134,7 +134,7 @@ public class Statistics extends JuiceboxCLT {
             }
         }
         String ligJunc = parser.getLigationOption();
-        if (ligJunc != null) {
+        if (ligJunc != null && ligJunc.length() > 1) {
             ligationJunction = ligJunc;
         }
         //multithreading flags
