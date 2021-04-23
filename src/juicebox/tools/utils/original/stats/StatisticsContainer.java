@@ -171,38 +171,19 @@ public class StatisticsContainer {
             if (statFile.exists()) {
                 try {
                     BufferedWriter statsOut = new BufferedWriter(new FileWriter(statFile, true));
-                    if (unique == 0) {
-                        unique++;
-                    }
-                    if(sequencedReadsGiven) {
-                        //statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (" + percentify(intraFragment[i],reads) + " / " + percentify(intraFragment[i],unique) + ")\n");
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (" + percentify(underMapQ[i], reads) + " / " + percentify(underMapQ[i], unique) + ")\n");
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (" + percentify(totalCurrent[i], reads) + " / " + percentify(totalCurrent[i], unique) + ")\n");
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (" + percentify(ligation[i], reads) + " / " + percentify(ligation[i], unique) + ")\n");
-                        appendPairTypeStatsOutputToFile(i, statsOut);
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (" + percentify(inter[i], reads) + " / " + percentify(inter[i], unique) + ")\n");
-                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " (" + percentify(intra[i], reads) + " / " + percentify(intra[i], unique) + ")\n");
-                        statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  <500BP: " + commify(fiveHundredBPRes[i]) + " (" + percentify(fiveHundredBPRes[i], reads) + " / " + percentify(fiveHundredBPRes[i], unique) + ")\n");
-                        statsOut.write("  500BP-5kB: " + commify(fiveKBRes[i]) + " (" + percentify(fiveKBRes[i], reads) + " / " + percentify(fiveKBRes[i], unique) + ")\n");
-                        statsOut.write("  5kB-20kB: " + commify(twentyKBRes[i]) + " (" + percentify(twentyKBRes[i], reads) + " / " + percentify(twentyKBRes[i], unique) + ")\n");
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (" + percentify(large[i], reads) + " / " + percentify(large[i], unique) + ")\n");
-                    }
-                    else {
-                        //statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " ((" + percentify(intraFragment[i],unique) + ")\n");
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " ((" + percentify(underMapQ[i], unique) + ")\n");
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " ((" + percentify(totalCurrent[i], unique) + ")\n");
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " ((" + percentify(ligation[i], unique) + ")\n");
-                        appendPairTypeStatsOutputToFile(i, statsOut);
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " ((" + percentify(inter[i], unique) + ")\n");
-                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " ((" + percentify(intra[i], unique) + ")\n");
-                        statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  <500BP: " + commify(fiveHundredBPRes[i]) + " ((" + percentify(fiveHundredBPRes[i], unique) + ")\n");
-                        statsOut.write("  500BP-5kB: " + commify(fiveKBRes[i]) + " ((" + percentify(fiveKBRes[i], unique) + ")\n");
-                        statsOut.write("  5kB-20kB: " + commify(twentyKBRes[i]) + " ((" + percentify(twentyKBRes[i], unique) + ")\n");
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " ((" + percentify(large[i], unique) + ")\n");
-                    }
-
+                    if (unique == 0) unique = 1;
+                    writeOut(statsOut, "Intra-fragment Reads: ", sequencedReadsGiven, intraFragment[i], reads, unique, true);
+                    writeOut(statsOut, "Below MAPQ Threshold: ", sequencedReadsGiven, underMapQ[i], reads, unique, false);
+                    writeOut(statsOut, "Hi-C Contacts: ", sequencedReadsGiven, totalCurrent[i], reads, unique, false);
+                    writeOut(statsOut, " Ligation Motif Present: ", sequencedReadsGiven, ligation[i], reads, unique, true);
+                    appendPairTypeStatsOutputToFile(i, statsOut);
+                    writeOut(statsOut, "Inter-chromosomal: ", sequencedReadsGiven, inter[i], reads, unique, false);
+                    writeOut(statsOut, "Intra-chromosomal: ", sequencedReadsGiven, intra[i], reads, unique, false);
+                    statsOut.write("Short Range (<20Kb):\n");
+                    writeOut(statsOut, "  <500BP: ", sequencedReadsGiven, fiveHundredBPRes[i], reads, unique, false);
+                    writeOut(statsOut, "  500BP-5kB: ", sequencedReadsGiven, fiveKBRes[i], reads, unique, false);
+                    writeOut(statsOut, "  5kB-20kB: ", sequencedReadsGiven, twentyKBRes[i], reads, unique, false);
+                    writeOut(statsOut, "Long Range (>20Kb): ", sequencedReadsGiven, large[i], reads, unique, false);
                     statsOut.close();
                 } catch (IOException error) {
                     error.printStackTrace();
@@ -216,16 +197,29 @@ public class StatisticsContainer {
             statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i], threePrimeEnd[i] + fivePrimeEnd[i]));
             statsOut.write(" - " + wholePercentify(fivePrimeEnd[i], threePrimeEnd[i] + fivePrimeEnd[i]) + "\n");
         } else {
-            statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
+            statsOut.write(" 3' Bias (Long Range): N/A\n");
         }
         if (large[i] > 0) {
-            statsOut.write(" Convergence of L-I-O-R (bp): " + bins[convergenceIndices.get(i)]);
             statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i], large[i]));
             statsOut.write(" - " + wholePercentify(inner[i], large[i]));
             statsOut.write(" - " + wholePercentify(outer[i], large[i]));
             statsOut.write(" - " + wholePercentify(right[i], large[i]) + "\n");
+            statsOut.write(" L-I-O-R Convergence: " + bins[convergenceIndices.get(i)]);
         } else {
-            statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
+            statsOut.write(" Pair Type %(L-I-O-R): N/A\n");
+        }
+    }
+
+    private void writeOut(BufferedWriter statsOut, String description, boolean sequencedReadsGiven, long value,
+                          long reads, long unique, boolean checkNA) throws IOException {
+        if (!checkNA || value > 0) {
+            if (sequencedReadsGiven) {
+                statsOut.write(description + commify(value) + " (" + percentify(value, reads) + " / " + percentify(value, unique) + ")\n");
+            } else {
+                statsOut.write(description + commify(value) + " ((" + percentify(value, unique) + ")\n");
+            }
+        } else {
+            statsOut.write(description + "N/A\n");
         }
     }
 
