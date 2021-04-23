@@ -146,10 +146,10 @@ public class LibraryComplexity extends JuiceboxCLT {
 
     private void determineCountsFromFile(String file) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
-        readPairs = Long.parseLong(reader.readLine());
-        uniqueReadPairs = Long.parseLong(reader.readLine());
+        readPairs = Long.parseLong(reader.readLine().trim());
+        uniqueReadPairs = Long.parseLong(reader.readLine().trim());
         try {
-            opticalDups = Long.parseLong(reader.readLine());
+            opticalDups = Long.parseLong(reader.readLine().trim());
         } catch (Exception e) {
             opticalDups = 0L;
         }
