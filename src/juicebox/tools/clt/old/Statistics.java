@@ -146,21 +146,21 @@ public class Statistics extends JuiceboxCLT {
     public void run() {
         setMndIndex(localHandler);
         readSiteFile();
+        StatisticsContainer container;
         if (mndChunks.size() < 2 || numThreads == 1) {
             LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,
                     ligationJunction, inFile, localHandler, fragmentCalculation);
             runner.infileStatistics();
-            runner.getResultsContainer().outputStatsFile(statsFiles);
-            runner.getResultsContainer().writeHistFile(statsFiles);
-
+            container = runner.getResultsContainer();
         } else {
-            StatisticsContainer mergedContainer = new StatisticsContainer();
-            ParallelStatistics pStats = new ParallelStatistics(numThreads, mergedContainer,
+            container = new StatisticsContainer();
+            ParallelStatistics pStats = new ParallelStatistics(numThreads, container,
                     mndChunks, siteFile, statsFiles, mapqThresholds,
                     ligationJunction, inFile, localHandler, fragmentCalculation);
             pStats.launchThreads();
-            mergedContainer.outputStatsFile(statsFiles);
-            mergedContainer.writeHistFile(statsFiles);
         }
+        container.outputStatsFile(statsFiles);
+        container.calculateConvergence(statsFiles.size());
+        container.writeHistFile(statsFiles);
     }
 }

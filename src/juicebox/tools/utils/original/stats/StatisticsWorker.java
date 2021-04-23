@@ -32,7 +32,9 @@ import juicebox.tools.utils.original.FragmentCalculation;
 import java.util.List;
 
 public class StatisticsWorker {
-    protected static final int posDistThreshold = 20000;
+    protected static final int TWENTY_KB = 20000;
+    protected static final int FIVE_HUNDRED_BP = 500;
+    protected static final int FIVE_KB = 5000;
     protected static final int distThreshold = 2000;
     protected static final int mapqValThreshold = 200;
     protected static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
@@ -122,12 +124,12 @@ public class StatisticsWorker {
                     //determine right/left/inner/outer ordering of chromosomes/strands
                     if (str1 == str2) {
                         if (str1) {
-                            if (posDist >= posDistThreshold) {
+                            if (posDist >= TWENTY_KB) {
                                 resultsContainer.right[ind]++;
                             }
                             resultsContainer.rightM.get(ind).put(histDist, resultsContainer.rightM.get(ind).getOrDefault(histDist, 0L) + 1);
                         } else {
-                            if (posDist >= posDistThreshold) {
+                            if (posDist >= TWENTY_KB) {
                                 resultsContainer.left[ind]++;
                             }
                             resultsContainer.leftM.get(ind).put(histDist, resultsContainer.leftM.get(ind).getOrDefault(histDist, 0L) + 1);
@@ -135,24 +137,24 @@ public class StatisticsWorker {
                     } else {
                         if (str1) {
                             if (pos1 < pos2) {
-                                if (posDist >= posDistThreshold) {
+                                if (posDist >= TWENTY_KB) {
                                     resultsContainer.inner[ind]++;
                                 }
                                 resultsContainer.innerM.get(ind).put(histDist, resultsContainer.innerM.get(ind).getOrDefault(histDist, 0L) + 1);
                             } else {
-                                if (posDist >= posDistThreshold) {
+                                if (posDist >= TWENTY_KB) {
                                     resultsContainer.outer[ind]++;
                                 }
                                 resultsContainer.outerM.get(ind).put(histDist, resultsContainer.outerM.get(ind).getOrDefault(histDist, 0L) + 1);
                             }
                         } else {
                             if (pos1 < pos2) {
-                                if (posDist >= posDistThreshold) {
+                                if (posDist >= TWENTY_KB) {
                                     resultsContainer.outer[ind]++;
                                 }
                                 resultsContainer.outerM.get(ind).put(histDist, resultsContainer.outerM.get(ind).getOrDefault(histDist, 0L) + 1);
                             } else {
-                                if (posDist >= posDistThreshold) {
+                                if (posDist >= TWENTY_KB) {
                                     resultsContainer.inner[ind]++;
                                 }
                                 resultsContainer.innerM.get(ind).put(histDist, resultsContainer.innerM.get(ind).getOrDefault(histDist, 0L) + 1);
@@ -160,30 +162,20 @@ public class StatisticsWorker {
                         }
                     }
                     //intra reads less than 20KB apart
-                    if (posDist < 10) {
-                        resultsContainer.verySmall[ind]++;
+                    if (posDist < FIVE_HUNDRED_BP) {
+                        resultsContainer.fiveHundredBPRes[ind]++;
                         if (isDangling) {
-                            resultsContainer.verySmallDangling[ind]++;
+                            resultsContainer.fiveHundredBPResDangling[ind]++;
                         }
-                    } else if (posDist < 1000) {
-                        resultsContainer.oneKBRes[ind]++;
-                        if (isDangling) {
-                            resultsContainer.oneKBResDangling[ind]++;
-                        }
-                    } else if (posDist < 2000) {
-                        resultsContainer.twoKBRes[ind]++;
-                        if (isDangling) {
-                            resultsContainer.twoKBResDangling[ind]++;
-                        }
-                    } else if (posDist < 5000) {
+                    } else if (posDist < FIVE_KB) {
                         resultsContainer.fiveKBRes[ind]++;
                         if (isDangling) {
                             resultsContainer.fiveKBResDangling[ind]++;
                         }
-                    } else if (posDist < posDistThreshold) {
-                        resultsContainer.small[ind]++;
+                    } else if (posDist < TWENTY_KB) {
+                        resultsContainer.twentyKBRes[ind]++;
                         if (isDangling) {
-                            resultsContainer.smallDangling[ind]++;
+                            resultsContainer.twentyKBResDangling[ind]++;
                         }
                     } else {
                         resultsContainer.large[ind]++;
@@ -219,7 +211,7 @@ public class StatisticsWorker {
                 }
                 //determine distance from nearest HindIII site, add to histogram
                 if (!siteFile.contains("none")) {
-                    boolean report = ((chr1 != chr2) || (posDist >= posDistThreshold));
+                    boolean report = ((chr1 != chr2) || (posDist >= TWENTY_KB));
                     int dist = distHindIII(str1, chr1, pos1, frag1, report, ind);
                     if (dist <= distThreshold) {
                         resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
@@ -242,7 +234,7 @@ public class StatisticsWorker {
                         } //$record[13] =~ m/^$danglingJunction/
                         if (dist == 1) {
                             if (chr1 == chr2) {
-                                if (posDist < posDistThreshold) {
+                                if (posDist < TWENTY_KB) {
                                     resultsContainer.trueDanglingIntraSmall[ind]++;
                                 } else {
                                     resultsContainer.trueDanglingIntraLarge[ind]++;

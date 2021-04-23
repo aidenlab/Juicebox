@@ -38,7 +38,9 @@ public class StatisticsContainer {
     public final List<Map<Integer, Long>> outerM = new ArrayList<>();
     public final List<Map<Integer, Long>> rightM = new ArrayList<>();
     public final List<Map<Integer, Long>> leftM = new ArrayList<>();
-    
+    private final static float CONVERGENCE_THRESHOLD = 0.01f;
+    private final List<Integer> convergenceIndices = new ArrayList<>();
+
     public long unique = 0;
     public long[] intraFragment = new long[2];
     public long[] threePrimeEnd = new long[2];
@@ -51,28 +53,24 @@ public class StatisticsContainer {
     public long[] right = new long[2];
     public long[] intra = new long[2];
     public long[] inter = new long[2];
-    public long[] small = new long[2];
-    public long[] large = new long[2];
-    public long[] verySmall = new long[2];
-    public long[] verySmallDangling = new long[2];
-    public long[] smallDangling = new long[2];
-    public long[] largeDangling = new long[2];
+
     public long[] interDangling = new long[2];
     public long[] trueDanglingIntraSmall = new long[2];
     public long[] trueDanglingIntraLarge = new long[2];
     public long[] trueDanglingInter = new long[2];
     public long[] totalCurrent = new long[2];
     public long[] underMapQ = new long[2];
-    
-    public long[] oneKBRes = new long[2];
-    public long[] twoKBRes = new long[2];
+    public long[] fiveHundredBPRes = new long[2];
+    public long[] fiveHundredBPResDangling = new long[2];
     public long[] fiveKBRes = new long[2];
-    public long[] oneKBResDangling = new long[2];
-    public long[] twoKBResDangling = new long[2];
     public long[] fiveKBResDangling = new long[2];
-    
+    public long[] twentyKBRes = new long[2];
+    public long[] twentyKBResDangling = new long[2];
+    public long[] large = new long[2];
+    public long[] largeDangling = new long[2];
+
     private static final long[] bins = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231, 285, 351, 433, 534, 658, 811, 1000, 1233, 1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112, 43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670, 657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699, 6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613, 53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587, 351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083, 1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L, 10000000000L};
-    
+
     public StatisticsContainer() {
         for (int i = 0; i < 2; i++) {
             hindIII.add(new HashMap<>());
@@ -119,16 +117,12 @@ public class StatisticsContainer {
             intra[i] += individualContainer.intra[i];
             inter[i] += individualContainer.inter[i];
             large[i] += individualContainer.large[i];
-            small[i] += individualContainer.small[i];
+            twentyKBRes[i] += individualContainer.twentyKBRes[i];
             fiveKBRes[i] += individualContainer.fiveKBRes[i];
-            twoKBRes[i] += individualContainer.twoKBRes[i];
-            oneKBRes[i] += individualContainer.oneKBRes[i];
-            verySmall[i] += individualContainer.verySmall[i];
-            verySmallDangling[i] += individualContainer.verySmallDangling[i];
-            oneKBResDangling[i]+= individualContainer.oneKBResDangling[i];
-            twoKBResDangling[i]+= individualContainer.twoKBResDangling[i];
-            fiveKBResDangling[i]+= individualContainer.fiveKBResDangling[i];
-            smallDangling[i] += individualContainer.smallDangling[i];
+            fiveHundredBPRes[i] += individualContainer.fiveHundredBPRes[i];
+            fiveHundredBPResDangling[i] += individualContainer.fiveHundredBPResDangling[i];
+            fiveKBResDangling[i] += individualContainer.fiveKBResDangling[i];
+            twentyKBResDangling[i] += individualContainer.twentyKBResDangling[i];
             largeDangling[i] += individualContainer.largeDangling[i];
             interDangling[i] += individualContainer.interDangling[i];
             trueDanglingIntraSmall[i] += individualContainer.trueDanglingIntraSmall[i];
@@ -181,62 +175,32 @@ public class StatisticsContainer {
                         unique++;
                     }
                     if(sequencedReadsGiven) {
-                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (" + percentify(intraFragment[i],reads) + " / " + percentify(intraFragment[i],unique) + ")\n");
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (" + percentify(underMapQ[i],reads) + " / " + percentify(underMapQ[i],unique)  + ")\n");
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (" + percentify(totalCurrent[i],reads) + " / " + percentify(totalCurrent[i],unique)  + ")\n");
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (" + percentify(ligation[i],reads) + " / " + percentify(ligation[i],unique)  + ")\n");
-                        if ((fivePrimeEnd[i] + threePrimeEnd[i]) > 0) {
-                            statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]));
-                            statsOut.write(" - " + wholePercentify(fivePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]) + "\n");
-                        } else {
-                            statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
-                        }
-                        if (large[i] > 0) {
-                            statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(inner[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(outer[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(right[i],large[i])+ "\n");
-                        } else {
-                            statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
-                        }
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (" + percentify(inter[i],reads) + " / " + percentify(inter[i],unique)  + ")\n");
-                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " (" + percentify(intra[i],reads) + " / " + percentify(intra[i],unique)  + ")\n");
+                        //statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " (" + percentify(intraFragment[i],reads) + " / " + percentify(intraFragment[i],unique) + ")\n");
+                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " (" + percentify(underMapQ[i], reads) + " / " + percentify(underMapQ[i], unique) + ")\n");
+                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " (" + percentify(totalCurrent[i], reads) + " / " + percentify(totalCurrent[i], unique) + ")\n");
+                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " (" + percentify(ligation[i], reads) + " / " + percentify(ligation[i], unique) + ")\n");
+                        appendPairTypeStatsOutputToFile(i, statsOut);
+                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " (" + percentify(inter[i], reads) + " / " + percentify(inter[i], unique) + ")\n");
+                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " (" + percentify(intra[i], reads) + " / " + percentify(intra[i], unique) + ")\n");
                         statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  <10B: " + commify(verySmall[i]) + " (" + percentify(verySmall[i],reads) + " / " + percentify(verySmall[i],unique)  + ")\n");
-                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + " (" + percentify(oneKBRes[i],reads) + " / " + percentify(oneKBRes[i],unique)  + ")\n");
-                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + " (" + percentify(twoKBRes[i],reads) + " / " + percentify(twoKBRes[i],unique)  + ")\n");
-                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + " (" + percentify(fiveKBRes[i],reads) + " / " + percentify(fiveKBRes[i],unique)  + ")\n");
-                        statsOut.write("  5kB-20kB: " + commify(small[i]) + " (" + percentify(small[i],reads) + " / " + percentify(small[i],unique)  + ")\n");
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (" + percentify(large[i],reads) + " / " + percentify(large[i],unique)  + ")\n");
+                        statsOut.write("  <500BP: " + commify(fiveHundredBPRes[i]) + " (" + percentify(fiveHundredBPRes[i], reads) + " / " + percentify(fiveHundredBPRes[i], unique) + ")\n");
+                        statsOut.write("  500BP-5kB: " + commify(fiveKBRes[i]) + " (" + percentify(fiveKBRes[i], reads) + " / " + percentify(fiveKBRes[i], unique) + ")\n");
+                        statsOut.write("  5kB-20kB: " + commify(twentyKBRes[i]) + " (" + percentify(twentyKBRes[i], reads) + " / " + percentify(twentyKBRes[i], unique) + ")\n");
+                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " (" + percentify(large[i], reads) + " / " + percentify(large[i], unique) + ")\n");
                     }
-                    else{
-                        statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " ((" + percentify(intraFragment[i],unique) + ")\n");
-                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " ((" + percentify(underMapQ[i],unique) + ")\n");
-                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " ((" + percentify(totalCurrent[i],unique) + ")\n");
-                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " ((" + percentify(ligation[i],unique) + ")\n");
-                        if ((fivePrimeEnd[i] + threePrimeEnd[i]) > 0) {
-                            statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]));
-                            statsOut.write(" - " + wholePercentify(fivePrimeEnd[i],threePrimeEnd[i]+fivePrimeEnd[i]) + "\n");
-                        } else {
-                            statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
-                        }
-                        if (large[i] > 0) {
-                            statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(inner[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(outer[i],large[i]));
-                            statsOut.write(" - " + wholePercentify(right[i],large[i])+ "\n");
-                        } else {
-                            statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
-                        }
-                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " ((" + percentify(inter[i],unique) + ")\n");
-                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " ((" + percentify(intra[i],unique) + ")\n");
+                    else {
+                        //statsOut.write("Intra-fragment Reads: " + commify(intraFragment[i]) + " ((" + percentify(intraFragment[i],unique) + ")\n");
+                        statsOut.write("Below MAPQ Threshold: " + commify(underMapQ[i]) + " ((" + percentify(underMapQ[i], unique) + ")\n");
+                        statsOut.write("Hi-C Contacts: " + commify(totalCurrent[i]) + " ((" + percentify(totalCurrent[i], unique) + ")\n");
+                        statsOut.write(" Ligation Motif Present: " + commify(ligation[i]) + " ((" + percentify(ligation[i], unique) + ")\n");
+                        appendPairTypeStatsOutputToFile(i, statsOut);
+                        statsOut.write("Inter-chromosomal: " + commify(inter[i]) + " ((" + percentify(inter[i], unique) + ")\n");
+                        statsOut.write("Intra-chromosomal: " + commify(intra[i]) + " ((" + percentify(intra[i], unique) + ")\n");
                         statsOut.write("Short Range (<20Kb): \n");
-                        statsOut.write("  <10B: " + commify(verySmall[i]) + " ((" + percentify(verySmall[i],unique) + ")\n");
-                        statsOut.write("  10B-1kB: " + commify(oneKBRes[i]) + " ((" + percentify(oneKBRes[i],unique) + ")\n");
-                        statsOut.write("  1kB-2kB: " + commify(twoKBRes[i]) + " ((" + percentify(twoKBRes[i],unique) + ")\n");
-                        statsOut.write("  2kB-5kB: " + commify(fiveKBRes[i]) + " ((" + percentify(fiveKBRes[i],unique) + ")\n");
-                        statsOut.write("  5kB-20kB: " + commify(small[i]) + " ((" + percentify(small[i],unique) + ")\n");
-                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " ((" + percentify(large[i],unique) + ")\n");
+                        statsOut.write("  <500BP: " + commify(fiveHundredBPRes[i]) + " ((" + percentify(fiveHundredBPRes[i], unique) + ")\n");
+                        statsOut.write("  500BP-5kB: " + commify(fiveKBRes[i]) + " ((" + percentify(fiveKBRes[i], unique) + ")\n");
+                        statsOut.write("  5kB-20kB: " + commify(twentyKBRes[i]) + " ((" + percentify(twentyKBRes[i], unique) + ")\n");
+                        statsOut.write("Long Range (>20Kb): " + commify(large[i]) + " ((" + percentify(large[i], unique) + ")\n");
                     }
 
                     statsOut.close();
@@ -244,6 +208,24 @@ public class StatisticsContainer {
                     error.printStackTrace();
                 }
             }
+        }
+    }
+
+    void appendPairTypeStatsOutputToFile(int i, BufferedWriter statsOut) throws IOException {
+        if ((fivePrimeEnd[i] + threePrimeEnd[i]) > 0) {
+            statsOut.write(" 3' Bias (Long Range): " + wholePercentify(threePrimeEnd[i], threePrimeEnd[i] + fivePrimeEnd[i]));
+            statsOut.write(" - " + wholePercentify(fivePrimeEnd[i], threePrimeEnd[i] + fivePrimeEnd[i]) + "\n");
+        } else {
+            statsOut.write(" 3' Bias (Long Range): 0\\% \\- 0\\%\n");
+        }
+        if (large[i] > 0) {
+            statsOut.write(" Convergence of L-I-O-R (bp): " + bins[convergenceIndices.get(i)]);
+            statsOut.write(" Pair Type %(L-I-O-R): " + wholePercentify(left[i], large[i]));
+            statsOut.write(" - " + wholePercentify(inner[i], large[i]));
+            statsOut.write(" - " + wholePercentify(outer[i], large[i]));
+            statsOut.write(" - " + wholePercentify(right[i], large[i]) + "\n");
+        } else {
+            statsOut.write(" Pair Type %(L-I-O-R): 0\\% - 0\\% - 0\\% - 0\\%\n");
         }
     }
 
@@ -295,5 +277,52 @@ public class StatisticsContainer {
                 }
             }
         }
+    }
+
+
+    public void calculateConvergence(int numMapQs) {
+        convergenceIndices.clear();
+        for (int q = 0; q < numMapQs; q++) {
+            int index = -1;
+            double error;
+            boolean convergenceNotMaintained = true;
+            do {
+                index++;
+                error = getConvergenceError(q, index);
+                if (error < CONVERGENCE_THRESHOLD) {
+                    convergenceNotMaintained = !confirmConvergenceMaintained(q, index, bins.length, 10);
+                }
+            } while ((error >= CONVERGENCE_THRESHOLD || convergenceNotMaintained)
+                    && index < bins.length - 1);
+            convergenceIndices.add(index);
+        }
+    }
+
+    private boolean confirmConvergenceMaintained(int q, int index, int maxIndex, int numToCheck) {
+        boolean convergenceMaintained = true;
+        for (int i = index; i < Math.min(i + numToCheck, maxIndex); i++) {
+            double error = getConvergenceError(q, i);
+            convergenceMaintained &= (error < CONVERGENCE_THRESHOLD);
+        }
+        return convergenceMaintained;
+    }
+
+    private double getConvergenceError(int q, int i) {
+        long[] vals = new long[]{
+                innerM.get(q).getOrDefault(i, 0L),
+                outerM.get(q).getOrDefault(i, 0L),
+                rightM.get(q).getOrDefault(i, 0L),
+                leftM.get(q).getOrDefault(i, 0L)};
+        double total = 0.0;
+        for (long val : vals) {
+            total += val;
+        }
+        double logAvg = Math.log(total / 4);
+
+        double error = 0;
+        for (long val : vals) {
+            error = Math.max(error, Math.abs((logAvg - Math.log(val)) / logAvg));
+        }
+        return error;
     }
 }
