@@ -159,8 +159,8 @@ public class Statistics extends JuiceboxCLT {
                     ligationJunction, inFile, localHandler, fragmentCalculation);
             pStats.launchThreads();
         }
-        container.outputStatsFile(statsFiles);
         container.calculateConvergence(statsFiles.size());
+        container.outputStatsFile(statsFiles);
         container.writeHistFile(statsFiles);
     }
 }
