@@ -585,7 +585,7 @@ public class Preprocessor {
         try {
             iter = (file.endsWith(".bin")) ?
                     new BinPairIterator(file) :
-                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler);
+                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
 
             while (iter.hasNext()) {
                 totalRead++;
@@ -681,7 +681,7 @@ public class Preprocessor {
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler);
+                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler, false);
 
         Set<String> writtenMatrices = Collections.synchronizedSet(new HashSet<>());
 

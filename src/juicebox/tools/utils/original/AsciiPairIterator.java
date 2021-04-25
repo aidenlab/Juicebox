@@ -61,9 +61,12 @@ public class AsciiPairIterator implements PairIterator {
     private int mndChunkSize = 0;
     private int mndChunkCounter = 0;
     private boolean stopAfterChunk = false;
+    private final boolean allowNewChroms;
+    private int chromCounter = -1;
     //CharMatcher.anyOf(";,.")
 
-    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, ChromosomeHandler handler) throws IOException {
+    public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals, ChromosomeHandler handler,
+                             boolean allowNewChroms) throws IOException {
         this.handler = handler;
         if (path.endsWith(".gz")) {
             InputStream gzipStream = new GZIPInputStream(new FileInputStream(path));
@@ -73,6 +76,8 @@ public class AsciiPairIterator implements PairIterator {
             this.reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
+        this.allowNewChroms = allowNewChroms;
+        updateChromCounter();
         advance();
     }
 
@@ -91,6 +96,7 @@ public class AsciiPairIterator implements PairIterator {
             this.stopAfterChunk = true;
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
+        allowNewChroms = false;
         advance();
     }
 
@@ -193,8 +199,31 @@ public class AsciiPairIterator implements PairIterator {
     }
 
     private boolean isValid(String chrom1, String chrom2) {
-        return chromosomeOrdinals.containsKey(chrom1) &&
-                chromosomeOrdinals.containsKey(chrom2);
+        if (chromosomeOrdinals.containsKey(chrom1) &&
+                chromosomeOrdinals.containsKey(chrom2)) {
+            return true;
+        }
+
+        if (allowNewChroms) {
+            updateOrdinalsMap(chrom1);
+            updateOrdinalsMap(chrom2);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateOrdinalsMap(String chrom) {
+        if (!chromosomeOrdinals.containsKey(chrom)) {
+            chromosomeOrdinals.put(chrom, chromCounter++);
+        }
+    }
+
+    private void updateChromCounter() {
+        for (Integer val : chromosomeOrdinals.values()) {
+            chromCounter = Math.max(chromCounter, val);
+        }
+        chromCounter++;
     }
 
     private AlignmentPair parseShortFormat(String[] tokens, boolean includeScore) {

@@ -48,7 +48,7 @@ public class LoneStatisticsWorker extends StatisticsWorker {
                 chromosomeIndexes.put(localHandler.getChromosomeFromIndex(i).getName(), i);
             }
             //iterate through input file
-            AsciiPairIterator files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler);
+            AsciiPairIterator files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler, true);
             while (files.hasNext()) {
                 processSingleEntry(files.next(), "", false);
             }
