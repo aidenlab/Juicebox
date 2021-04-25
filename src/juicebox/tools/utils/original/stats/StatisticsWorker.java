@@ -86,17 +86,16 @@ public class StatisticsWorker {
         mapq2 = pair.getMapq2();
         str1 = pair.getStrand1();
         str2 = pair.getStrand2();
-        boolean isShort = mapq1 == 1000 && mapq2 == 1000;
 
         resultsContainer.unique++;
         //don't count as Hi-C contact if fails mapq or intra fragment test
         for(int ind=0; ind<statsFiles.size(); ind++) {
-            boolean countMe = true;
+            boolean countMe = pair.isValid();
             //if(null||null) {do nothing}
             if ((chr1 == chr2) && (frag1 == frag2)) {
                 resultsContainer.intraFragment[ind]++;
                 countMe = false;
-            } else if (!isShort && mapq1 >= 0 && mapq2 >= 0) {
+            } else if (!pair.isShort() && mapq1 >= 0 && mapq2 >= 0) {
                 int mapqValue = Math.min(mapq1, mapq2);
                 if (mapqValue < mapqThresholds.get(ind)) {
                     resultsContainer.underMapQ[ind]++;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -47,6 +47,7 @@ public class AlignmentPair {
     private float score = 1.0f;  // The score (or count)
     private boolean isContigPair = false;
     private boolean isHeaderLine = false;
+    private boolean isValidForStats = true;
 
 
     public AlignmentPair(boolean strand1, int chr1, int pos1, int frag1, int mapq1, boolean strand2, int chr2, int pos2, int frag2, int mapq2) {
@@ -67,12 +68,14 @@ public class AlignmentPair {
     public AlignmentPair() {
         this(false, -1, -1, -1, -1, false, -1, -1, -1, -1);
         this.isContigPair = true;
+        this.isValidForStats = false;
     }
 
     public AlignmentPair(boolean isHeaderLine) {
         this(false, -1, -1, -1, -1, false, -1, -1, -1, -1);
         this.isContigPair = false;
         this.isHeaderLine = isHeaderLine;
+        this.isValidForStats = false;
     }
 
 
@@ -143,4 +146,11 @@ public class AlignmentPair {
         return this.isContigPair;
     }
 
+    public boolean isValid() {
+        return isValidForStats;
+    }
+
+    public boolean isShort() {
+        return mapq1 == 1000 && mapq2 == 1000;
+    }
 }
