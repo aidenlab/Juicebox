@@ -122,8 +122,11 @@ public class Statistics extends JuiceboxCLT {
             int mapqThreshold = mapQT.get(0) > 0 ? mapQT.get(0) : 1;
             mapqThresholds.add(mapqThreshold);
 
-            if (mapQT.size() == 2) {
-                mapqThreshold = mapQT.get(1) > 0 ? mapQT.get(1) : 30;
+            if (statsFiles.size() == 2) {
+                mapqThreshold = 30;
+                if (mapQT.size() == 2) {
+                    mapqThreshold = mapQT.get(1) > 0 ? mapQT.get(1) : 30;
+                }
                 mapqThresholds.add(mapqThreshold);
             }
         }

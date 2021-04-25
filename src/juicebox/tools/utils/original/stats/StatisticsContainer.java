@@ -173,7 +173,7 @@ public class StatisticsContainer {
                     BufferedWriter statsOut = new BufferedWriter(new FileWriter(statFile, true));
                     if (unique == 0) unique = 1;
                     writeOut(statsOut, "Intra-fragment Reads: ", sequencedReadsGiven, intraFragment[i], reads, unique, true);
-                    writeOut(statsOut, "Below MAPQ Threshold: ", sequencedReadsGiven, underMapQ[i], reads, unique, false);
+                    writeOut(statsOut, "Below MAPQ Threshold: ", sequencedReadsGiven, underMapQ[i], reads, unique, true);
                     writeOut(statsOut, "Hi-C Contacts: ", sequencedReadsGiven, totalCurrent[i], reads, unique, false);
                     writeOut(statsOut, " Ligation Motif Present: ", sequencedReadsGiven, ligation[i], reads, unique, true);
                     appendPairTypeStatsOutputToFile(i, statsOut);

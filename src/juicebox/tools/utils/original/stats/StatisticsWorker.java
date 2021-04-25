@@ -75,7 +75,7 @@ public class StatisticsWorker {
         chr1 = pair.getChr1();
         chr2 = pair.getChr2();
         String currentBlock = chr1 + "_" + chr2;
-        if (!currentBlock.equals(blockKey) && multithread) {
+        if (multithread && !currentBlock.equals(blockKey)) {
             return true;
         }
         pos1 = pair.getPos1();
@@ -86,6 +86,7 @@ public class StatisticsWorker {
         mapq2 = pair.getMapq2();
         str1 = pair.getStrand1();
         str2 = pair.getStrand2();
+        boolean isShort = mapq1 == 1000 && mapq2 == 1000;
 
         resultsContainer.unique++;
         //don't count as Hi-C contact if fails mapq or intra fragment test
@@ -95,7 +96,7 @@ public class StatisticsWorker {
             if ((chr1 == chr2) && (frag1 == frag2)) {
                 resultsContainer.intraFragment[ind]++;
                 countMe = false;
-            } else if (mapq1 >= 0 && mapq2 >= 0) {
+            } else if (!isShort && mapq1 >= 0 && mapq2 >= 0) {
                 int mapqValue = Math.min(mapq1, mapq2);
                 if (mapqValue < mapqThresholds.get(ind)) {
                     resultsContainer.underMapQ[ind]++;
