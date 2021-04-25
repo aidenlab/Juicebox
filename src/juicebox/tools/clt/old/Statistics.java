@@ -46,7 +46,7 @@ public class Statistics extends JuiceboxCLT {
 
     private int numThreads;
     private String siteFile;
-    private String ligationJunction = "GATCGATC";
+    private String ligationJunction = "none";
     private String inFile;
     private String mndIndexFile;
     private ChromosomeHandler localHandler;
