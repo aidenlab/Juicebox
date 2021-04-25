@@ -39,6 +39,7 @@ public class StatisticsContainer {
     public final List<Map<Integer, Long>> rightM = new ArrayList<>();
     public final List<Map<Integer, Long>> leftM = new ArrayList<>();
     private final static float CONVERGENCE_THRESHOLD = 0.01f;
+    private final static int CONVERGENCE_REGION = 3;
     private final List<Integer> convergenceIndices = new ArrayList<>();
 
     public long unique = 0;
@@ -204,7 +205,7 @@ public class StatisticsContainer {
             statsOut.write(" - " + wholePercentify(inner[i], large[i]));
             statsOut.write(" - " + wholePercentify(outer[i], large[i]));
             statsOut.write(" - " + wholePercentify(right[i], large[i]) + "\n");
-            statsOut.write(" L-I-O-R Convergence: " + bins[convergenceIndices.get(i)]);
+            statsOut.write(" L-I-O-R Convergence: " + bins[convergenceIndices.get(i)] + "\n");
         } else {
             statsOut.write(" Pair Type %(L-I-O-R): N/A\n");
         }
@@ -278,23 +279,20 @@ public class StatisticsContainer {
         convergenceIndices.clear();
         for (int q = 0; q < numMapQs; q++) {
             int index = -1;
-            double error;
-            boolean convergenceNotMaintained = true;
-            do {
+            boolean solutionFound = false;
+            while (!solutionFound && index < bins.length - 1) {
                 index++;
-                error = getConvergenceError(q, index);
-                if (error < CONVERGENCE_THRESHOLD) {
-                    convergenceNotMaintained = !confirmConvergenceMaintained(q, index, bins.length, 10);
+                if (getConvergenceError(q, index) < CONVERGENCE_THRESHOLD) {
+                    solutionFound = confirmConvergenceMaintained(q, index + 1, bins.length);
                 }
-            } while ((error >= CONVERGENCE_THRESHOLD || convergenceNotMaintained)
-                    && index < bins.length - 1);
+            }
             convergenceIndices.add(index);
         }
     }
 
-    private boolean confirmConvergenceMaintained(int q, int index, int maxIndex, int numToCheck) {
+    private boolean confirmConvergenceMaintained(int q, int startIndex, int maxIndex) {
         boolean convergenceMaintained = true;
-        for (int i = index; i < Math.min(i + numToCheck, maxIndex); i++) {
+        for (int i = startIndex; i < Math.min(startIndex + CONVERGENCE_REGION, maxIndex); i++) {
             double error = getConvergenceError(q, i);
             convergenceMaintained &= (error < CONVERGENCE_THRESHOLD);
         }
@@ -311,11 +309,13 @@ public class StatisticsContainer {
         for (long val : vals) {
             total += val;
         }
-        double logAvg = Math.log(total / 4);
+        if (total < 1) return 1e3;
 
+        double logAvg = Math.log(total / 4.0);
         double error = 0;
         for (long val : vals) {
-            error = Math.max(error, Math.abs((logAvg - Math.log(val)) / logAvg));
+            double tempErr = (logAvg - Math.log(val)) / logAvg;
+            error = Math.max(error, Math.abs(tempErr));
         }
         return error;
     }
