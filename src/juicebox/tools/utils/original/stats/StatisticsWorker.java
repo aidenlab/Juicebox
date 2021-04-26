@@ -180,14 +180,18 @@ public class StatisticsWorker {
                 }
                 //determine distance from nearest HindIII site, add to histogram
                 if (!siteFile.contains("none") && fragmentCalculation != null) {
-                    boolean report = ((chr1 != chr2) || (posDist >= TWENTY_KB));
-                    int dist = distHindIII(str1, chr1, pos1, frag1, report, ind);
-                    if (dist <= distThreshold) {
-                        resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
-                    }
-                    dist = distHindIII(str2, chr2, pos2, frag2, report, ind);
-                    if (dist <= distThreshold) {
-                        resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
+                    try {
+                        boolean report = ((chr1 != chr2) || (posDist >= TWENTY_KB));
+                        int dist = distHindIII(str1, chr1, pos1, frag1, report, ind);
+                        if (dist <= distThreshold) {
+                            resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
+                        }
+                        dist = distHindIII(str2, chr2, pos2, frag2, report, ind);
+                        if (dist <= distThreshold) {
+                            resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
+                        }
+                    } catch (Exception e) {
+                        // do nothing, fail gracefully; likely a chromosome issue
                     }
                 }
                 if (pair instanceof AlignmentPairLong && fragmentCalculation != null) {
@@ -195,22 +199,26 @@ public class StatisticsWorker {
                     String seq1 = longPair.getSeq1();
                     String seq2 = longPair.getSeq2();
                     if (isDangling) {
-                        int dist;
-                        if (seq1.startsWith(danglingJunction)) {
-                            dist = distHindIII(str1, chr1, pos1, frag1, true, ind);
-                        } else {
-                            dist = distHindIII(str2, chr2, pos2, frag2, true, ind);
-                        } //$record[13] =~ m/^$danglingJunction/
-                        if (dist == 1) {
-                            if (chr1 == chr2) {
-                                if (posDist < TWENTY_KB) {
-                                    resultsContainer.trueDanglingIntraSmall[ind]++;
-                                } else {
-                                    resultsContainer.trueDanglingIntraLarge[ind]++;
-                                }
+                        try {
+                            int dist;
+                            if (seq1.startsWith(danglingJunction)) {
+                                dist = distHindIII(str1, chr1, pos1, frag1, true, ind);
                             } else {
-                                resultsContainer.trueDanglingInter[ind]++;
+                                dist = distHindIII(str2, chr2, pos2, frag2, true, ind);
+                            } //$record[13] =~ m/^$danglingJunction/
+                            if (dist == 1) {
+                                if (chr1 == chr2) {
+                                    if (posDist < TWENTY_KB) {
+                                        resultsContainer.trueDanglingIntraSmall[ind]++;
+                                    } else {
+                                        resultsContainer.trueDanglingIntraLarge[ind]++;
+                                    }
+                                } else {
+                                    resultsContainer.trueDanglingInter[ind]++;
+                                }
                             }
+                        } catch (Exception e) {
+                            // do nothing, fail gracefully; likely a chromosome issue
                         }
                     }
                 }
