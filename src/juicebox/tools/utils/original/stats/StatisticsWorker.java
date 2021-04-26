@@ -179,7 +179,7 @@ public class StatisticsWorker {
                     }
                 }
                 //determine distance from nearest HindIII site, add to histogram
-                if (!siteFile.contains("none")) {
+                if (!siteFile.contains("none") && fragmentCalculation != null) {
                     boolean report = ((chr1 != chr2) || (posDist >= TWENTY_KB));
                     int dist = distHindIII(str1, chr1, pos1, frag1, report, ind);
                     if (dist <= distThreshold) {
@@ -190,7 +190,7 @@ public class StatisticsWorker {
                         resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
                     }
                 }
-                if (pair instanceof AlignmentPairLong) {
+                if (pair instanceof AlignmentPairLong && fragmentCalculation != null) {
                     AlignmentPairLong longPair = (AlignmentPairLong) pair;
                     String seq1 = longPair.getSeq1();
                     String seq2 = longPair.getSeq2();

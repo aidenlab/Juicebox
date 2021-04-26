@@ -35,7 +35,6 @@ import juicebox.tools.utils.original.stats.LoneStatisticsWorker;
 import juicebox.tools.utils.original.stats.ParallelStatistics;
 import juicebox.tools.utils.original.stats.StatisticsContainer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,16 +87,13 @@ public class Statistics extends JuiceboxCLT {
         }
     }
 
-    public void readSiteFile() {
+    private FragmentCalculation readSiteFile(String siteFile, ChromosomeHandler handler) {
         //read in restriction site file and store as multidimensional array q
         if (!siteFile.contains("none")) {
             //if restriction enzyme exists, find the RE distance//
-            try {
-                fragmentCalculation = FragmentCalculation.readFragments(siteFile, localHandler);
-            } catch (IOException error) {
-                error.printStackTrace();
-            }
+            return FragmentCalculation.readFragments(siteFile, handler, "Stats");
         }
+        return null;
     }
 
     @Override
@@ -106,7 +102,7 @@ public class Statistics extends JuiceboxCLT {
             printUsageAndExit();
         }
         //set required arguments to variables
-        siteFile = args[1].toLowerCase();
+        siteFile = args[1];
         statsFiles.add(args[2]);
         if (args.length == 6) {// two map q values,input text files
             statsFiles.add(args[3]);
@@ -148,7 +144,7 @@ public class Statistics extends JuiceboxCLT {
     @Override
     public void run() {
         setMndIndex(localHandler);
-        readSiteFile();
+        readSiteFile(siteFile, localHandler);
         StatisticsContainer container;
         if (mndChunks.size() < 2 || numThreads == 1) {
             LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,

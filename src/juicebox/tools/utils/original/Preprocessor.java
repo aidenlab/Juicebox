@@ -318,12 +318,7 @@ public class Preprocessor {
             StringBuilder graphs = null;
             StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
             if (fragmentFileName != null) {
-                try {
-                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
-                } catch (Exception e) {
-                    System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
-                    fragmentCalculation = null;
-                }
+                fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler, "Pre");
             } else {
                 System.out.println("Not including fragment map");
             }
@@ -333,7 +328,7 @@ public class Preprocessor {
                     fragmentCalculationsForRandomization = new ArrayList<>();
                     for (String fragmentFileName : randomizeFragMapFiles) {
                         try {
-                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler, "PreWithRand");
                             fragmentCalculationsForRandomization.add(fragmentCalculation);
                             System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
