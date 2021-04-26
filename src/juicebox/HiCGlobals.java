@@ -36,9 +36,7 @@ import java.util.concurrent.Executors;
  */
 public class HiCGlobals {
 
-    // Juicebox version (for display and header purposes only)
-    public static final String versionNum = "2.06.23";
-    // Juicebox title
+    public static final String versionNum = "2.06.24";
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
     // MainWindow variables
@@ -63,11 +61,8 @@ public class HiCGlobals {
     public static final int writingVersion = 9;
     public static final int bufferSize = 2097152;
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static final Color HIGHLIGHT_COLOR = Color.BLACK;
-    public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static final Color diffGrayColor = new Color(238, 238, 238);
     // for state saving
-    public static Color HIC_MAP_COLOR = Color.RED;
     public static int MAX_PEARSON_ZOOM = 500000;
     // implement Map scaling with this global variable
     public static double hicMapScale = 1;

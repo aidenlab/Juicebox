@@ -237,8 +237,8 @@ public class StatisticsContainer {
     }
 
     private void attemptMapqCorrection(boolean[] valsWereGiven, long[] valsFound, long[] underMapQ, long unique, int i) {
-        if (underMapQ[i] < 1 && valsWereGiven[SEQ_INDEX]) {
-            underMapQ[i] = valsFound[SEQ_INDEX] - unique;
+        if (underMapQ[i] < 1 && valsWereGiven[UNIQUE_INDEX]) {
+            underMapQ[i] = valsFound[UNIQUE_INDEX] - unique;
         }
     }
 
