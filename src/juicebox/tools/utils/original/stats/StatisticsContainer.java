@@ -24,11 +24,19 @@
 
 package juicebox.tools.utils.original.stats;
 
+import juicebox.tools.clt.old.LibraryComplexity;
+
 import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 
 public class StatisticsContainer {
+
+    private final static float CONVERGENCE_THRESHOLD = 0.01f;
+    private final static int CONVERGENCE_REGION = 3;
+    private final static int SEQ_INDEX = 0, DUPS_INDEX = 1, UNIQUE_INDEX = 2, LC_INDEX = 3, NUM_TO_READ = 4;
+    private final NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+
     //Variables for calculating statistics
     public final List<Map<Integer, Long>> hindIII = new ArrayList<>();
     public final List<Map<Integer, Long>> mapQ = new ArrayList<>();
@@ -38,8 +46,6 @@ public class StatisticsContainer {
     public final List<Map<Integer, Long>> outerM = new ArrayList<>();
     public final List<Map<Integer, Long>> rightM = new ArrayList<>();
     public final List<Map<Integer, Long>> leftM = new ArrayList<>();
-    private final static float CONVERGENCE_THRESHOLD = 0.01f;
-    private final static int CONVERGENCE_REGION = 3;
     private final List<Integer> convergenceIndices = new ArrayList<>();
 
     public long unique = 0;
@@ -135,7 +141,7 @@ public class StatisticsContainer {
     }
     
     private String commify(long value) {
-        return NumberFormat.getNumberInstance(Locale.US).format(value);
+        return nf.format(value);
     }
     
     private String percentify(long num, long total) {
@@ -148,48 +154,84 @@ public class StatisticsContainer {
     
     public void outputStatsFile(List<String> statsFiles) {
         for (int i = 0; i < statsFiles.size(); i++) {
-            boolean sequencedReadsGiven = false;
-            long reads = 1L;
+            boolean[] valsWereFound = new boolean[NUM_TO_READ];
+            long[] valsFound = new long[NUM_TO_READ]; // seqReads, duplicates
             File statFile = new File(statsFiles.get(i));
             //output statistics file for first mapq calculation
-            if (statFile.exists()) {
-                try {
-                    BufferedReader stats = new BufferedReader(new FileReader(statFile));
-                    String statsData = stats.readLine();
-                    while (statsData != null) {
-                        if (statsData.contains("Sequenced")) {
-                            sequencedReadsGiven = true;
-                            String[] tokens = statsData.split(":");
-                            reads = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
-                        }
-                        statsData = stats.readLine();
-                    }
-                    stats.close();
-                } catch (IOException error) {
-                    error.printStackTrace();
-                }
-            }
+            attempReadingDataFromExistingFile(valsWereFound, valsFound, statFile);
+
             if (statFile.exists()) {
                 try {
                     BufferedWriter statsOut = new BufferedWriter(new FileWriter(statFile, true));
+                    writeLibComplexityIfNeeded(valsWereFound, valsFound, statsOut);
                     if (unique == 0) unique = 1;
-                    writeOut(statsOut, "Intra-fragment Reads: ", sequencedReadsGiven, intraFragment[i], reads, unique, true);
-                    writeOut(statsOut, "Below MAPQ Threshold: ", sequencedReadsGiven, underMapQ[i], reads, unique, true);
-                    writeOut(statsOut, "Hi-C Contacts: ", sequencedReadsGiven, totalCurrent[i], reads, unique, false);
-                    writeOut(statsOut, " Ligation Motif Present: ", sequencedReadsGiven, ligation[i], reads, unique, true);
+                    writeOut(statsOut, "Intra-fragment Reads: ", valsWereFound, intraFragment[i], valsFound, unique, true);
+                    attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
+                    writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
+                    writeOut(statsOut, "Hi-C Contacts: ", valsWereFound, totalCurrent[i], valsFound, unique, false);
+                    writeOut(statsOut, " Ligation Motif Present: ", valsWereFound, ligation[i], valsFound, unique, true);
                     appendPairTypeStatsOutputToFile(i, statsOut);
-                    writeOut(statsOut, "Inter-chromosomal: ", sequencedReadsGiven, inter[i], reads, unique, false);
-                    writeOut(statsOut, "Intra-chromosomal: ", sequencedReadsGiven, intra[i], reads, unique, false);
+                    writeOut(statsOut, "Inter-chromosomal: ", valsWereFound, inter[i], valsFound, unique, false);
+                    writeOut(statsOut, "Intra-chromosomal: ", valsWereFound, intra[i], valsFound, unique, false);
                     statsOut.write("Short Range (<20Kb):\n");
-                    writeOut(statsOut, "  <500BP: ", sequencedReadsGiven, fiveHundredBPRes[i], reads, unique, false);
-                    writeOut(statsOut, "  500BP-5kB: ", sequencedReadsGiven, fiveKBRes[i], reads, unique, false);
-                    writeOut(statsOut, "  5kB-20kB: ", sequencedReadsGiven, twentyKBRes[i], reads, unique, false);
-                    writeOut(statsOut, "Long Range (>20Kb): ", sequencedReadsGiven, large[i], reads, unique, false);
+                    writeOut(statsOut, "  <500BP: ", valsWereFound, fiveHundredBPRes[i], valsFound, unique, false);
+                    writeOut(statsOut, "  500BP-5kB: ", valsWereFound, fiveKBRes[i], valsFound, unique, false);
+                    writeOut(statsOut, "  5kB-20kB: ", valsWereFound, twentyKBRes[i], valsFound, unique, false);
+                    writeOut(statsOut, "Long Range (>20Kb): ", valsWereFound, large[i], valsFound, unique, false);
                     statsOut.close();
                 } catch (IOException error) {
                     error.printStackTrace();
                 }
             }
+        }
+    }
+
+    private void writeLibComplexityIfNeeded(boolean[] valsWereFound, long[] valsFound, BufferedWriter statsOut) throws IOException {
+        if (!valsWereFound[LC_INDEX] && valsWereFound[UNIQUE_INDEX] && valsWereFound[DUPS_INDEX]) {
+            long result = LibraryComplexity.estimateLibrarySize(valsFound[DUPS_INDEX], valsFound[UNIQUE_INDEX]);
+            if (result > 0) {
+                statsOut.write("Library Complexity Estimate: " + commify(result) + "\n");
+            } else {
+                statsOut.write("Library Complexity Estimate: N/A\n");
+            }
+        }
+    }
+
+    private void attempReadingDataFromExistingFile(boolean[] valsWereFound, long[] valsFound, File statFile) {
+        Arrays.fill(valsWereFound, false);
+        Arrays.fill(valsFound, 0);
+        if (statFile.exists()) {
+            try {
+                BufferedReader stats = new BufferedReader(new FileReader(statFile));
+                String statsData = stats.readLine().toLowerCase();
+                while (statsData != null) {
+                    if (statsData.contains("sequenced")) {
+                        populateFoundVals(statsData, valsWereFound, valsFound, SEQ_INDEX);
+                    } else if (statsData.contains("unique")) {
+                        populateFoundVals(statsData, valsWereFound, valsFound, UNIQUE_INDEX);
+                    } else if (statsData.contains("duplicate") && !statsData.contains("optical")) {
+                        populateFoundVals(statsData, valsWereFound, valsFound, DUPS_INDEX);
+                    } else if (statsData.contains("complexity")) {
+                        populateFoundVals(statsData, valsWereFound, valsFound, LC_INDEX);
+                    }
+                    statsData = stats.readLine();
+                }
+                stats.close();
+            } catch (IOException error) {
+                error.printStackTrace();
+            }
+        }
+    }
+
+    private void populateFoundVals(String statsData, boolean[] valsWereFound, long[] valsFound, int index) {
+        valsWereFound[index] = true;
+        String[] tokens = statsData.split(":");
+        valsFound[index] = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
+    }
+
+    private void attemptMapqCorrection(boolean[] valsWereGiven, long[] valsFound, long[] underMapQ, long unique, int i) {
+        if (underMapQ[i] <= 0 && valsWereGiven[SEQ_INDEX]) {
+            underMapQ[i] = valsFound[SEQ_INDEX] - unique;
         }
     }
 
@@ -211,11 +253,11 @@ public class StatisticsContainer {
         }
     }
 
-    private void writeOut(BufferedWriter statsOut, String description, boolean sequencedReadsGiven, long value,
-                          long reads, long unique, boolean checkNA) throws IOException {
+    private void writeOut(BufferedWriter statsOut, String description, boolean[] valsWereGiven, long value,
+                          long[] valsFound, long unique, boolean checkNA) throws IOException {
         if (!checkNA || value > 0) {
-            if (sequencedReadsGiven) {
-                statsOut.write(description + commify(value) + " (" + percentify(value, reads) + " / " + percentify(value, unique) + ")\n");
+            if (valsWereGiven[SEQ_INDEX] && valsWereGiven[UNIQUE_INDEX]) {
+                statsOut.write(description + commify(value) + " (" + percentify(value, valsFound[SEQ_INDEX]) + " / " + percentify(value, valsFound[UNIQUE_INDEX]) + ")\n");
             } else {
                 statsOut.write(description + commify(value) + " ((" + percentify(value, unique) + ")\n");
             }

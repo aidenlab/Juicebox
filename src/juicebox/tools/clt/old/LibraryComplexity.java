@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LibraryComplexity extends JuiceboxCLT {
 
     private String localWorkingDirectory;
-    private long readPairs = 0;
+    private long dupReadPairs = 0;
     private long uniqueReadPairs = 0;
     private long opticalDups = 0;
     private long totalReadPairs = 0;
@@ -70,31 +70,31 @@ public class LibraryComplexity extends JuiceboxCLT {
      * N = number of read pairs<br>
      * C = number of distinct fragments observed in read pairs<br>
      */
-    private static long estimateLibrarySize(final long readPairs,
-                                            final long uniqueReadPairs) {
-        final long readPairDuplicates = readPairs - uniqueReadPairs;
+    public static long estimateLibrarySize(final long duplicateReadPairs,
+                                           final long uniqueReadPairs) {
 
-        if (readPairs > 0 && readPairDuplicates > 0) {
+        long totalReadPairs = duplicateReadPairs + uniqueReadPairs;
+        if (totalReadPairs > 0 && duplicateReadPairs > 0) {
 
             double m = 1.0, M = 100.0;
 
-            if (uniqueReadPairs >= readPairs || f(m * uniqueReadPairs, uniqueReadPairs, readPairs) < 0) {
-                throw new IllegalStateException("Invalid values for pairs and unique pairs: " + readPairs + ", " + uniqueReadPairs);
+            if (uniqueReadPairs >= totalReadPairs || f(m * uniqueReadPairs, uniqueReadPairs, totalReadPairs) < 0) {
+                throw new IllegalStateException("Invalid values for pairs and unique pairs: " + totalReadPairs + ", " + uniqueReadPairs);
             }
 
-            while (f(M * uniqueReadPairs, uniqueReadPairs, readPairs) >= 0) {
+            while (f(M * uniqueReadPairs, uniqueReadPairs, totalReadPairs) >= 0) {
                 m = M;
                 M *= 10.0;
             }
 
             double r = (m + M) / 2.0;
-            double u = f(r * uniqueReadPairs, uniqueReadPairs, readPairs);
+            double u = f(r * uniqueReadPairs, uniqueReadPairs, totalReadPairs);
             int i = 0;
             while (u != 0 && i < 1000) {
                 if (u > 0) m = r;
                 else M = r;
                 r = (m + M) / 2.0;
-                u = f(r * uniqueReadPairs, uniqueReadPairs, readPairs);
+                u = f(r * uniqueReadPairs, uniqueReadPairs, totalReadPairs);
                 i++;
             }
             if (i == 1000) {
@@ -146,7 +146,7 @@ public class LibraryComplexity extends JuiceboxCLT {
 
     private void determineCountsFromFile(String file) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
-        readPairs = Long.parseLong(reader.readLine().trim());
+        dupReadPairs = Long.parseLong(reader.readLine().trim());
         uniqueReadPairs = Long.parseLong(reader.readLine().trim());
         try {
             opticalDups = Long.parseLong(reader.readLine().trim());
@@ -158,7 +158,7 @@ public class LibraryComplexity extends JuiceboxCLT {
 
     private void determineCountsFromInput(String[] args) throws NumberFormatException {
         uniqueReadPairs = Long.parseLong(args[1]);
-        readPairs = Long.parseLong(args[2]);
+        dupReadPairs = Long.parseLong(args[2]);
         opticalDups = Long.parseLong(args[3]);
     }
 
@@ -173,73 +173,63 @@ public class LibraryComplexity extends JuiceboxCLT {
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(3);
 
-                Callable<Long> taskOptDups = new Callable<Long>() {
-                    @Override
-                    public Long call() {
-                        File f = new File(localWorkingDirectory + "/opt_dups.txt");
-                        if (f.exists()) {
-                            try {
-                                long opticalDupsT = 0L;
-                                BufferedReader reader = new BufferedReader(new FileReader(f));
-                                while (reader.readLine() != null) opticalDupsT++;
-                                reader.close();
-                                return opticalDupsT;
-                            } catch (Exception e) {
-                                somethingFailed.set(true);
-                                return 0L;
-                            }
-                        } else {
+                Callable<Long> taskOptDups = () -> {
+                    File f = new File(localWorkingDirectory + "/opt_dups.txt");
+                    if (f.exists()) {
+                        try {
+                            long opticalDupsT = 0L;
+                            BufferedReader reader = new BufferedReader(new FileReader(f));
+                            while (reader.readLine() != null) opticalDupsT++;
+                            reader.close();
+                            return opticalDupsT;
+                        } catch (Exception e) {
+                            somethingFailed.set(true);
                             return 0L;
                         }
+                    } else {
+                        return 0L;
                     }
                 };
 
-                Callable<Long> taskUniqueReads = new Callable<Long>() {
-                    @Override
-                    public Long call() {
-                        File f = new File(localWorkingDirectory + "/merged_nodups.txt");
-                        if (f.exists()) {
-                            try {
-                                long uniqueReadPairsT = 0L;
-                                BufferedReader reader = new BufferedReader(new FileReader(f));
-                                while (reader.readLine() != null) uniqueReadPairsT++;
-                                reader.close();
-                                return uniqueReadPairsT;
-                            } catch (Exception e) {
-                                somethingFailed.set(true);
-                                return 0L;
-                            }
-                        } else {
+                Callable<Long> taskUniqueReads = () -> {
+                    File f = new File(localWorkingDirectory + "/merged_nodups.txt");
+                    if (f.exists()) {
+                        try {
+                            long uniqueReadPairsT = 0L;
+                            BufferedReader reader = new BufferedReader(new FileReader(f));
+                            while (reader.readLine() != null) uniqueReadPairsT++;
+                            reader.close();
+                            return uniqueReadPairsT;
+                        } catch (Exception e) {
+                            somethingFailed.set(true);
                             return 0L;
                         }
+                    } else {
+                        return 0L;
                     }
                 };
 
-                Callable<Long> taskReadPairs = new Callable<Long>() {
-                    @Override
-                    public Long call() {
-                        File f = new File(localWorkingDirectory + "/dups.txt");
-                        if (f.exists()) {
-                            try {
-                                long readPairsT = 0;
-                                BufferedReader reader = new BufferedReader(new FileReader(localWorkingDirectory + "/dups.txt"));
-                                while (reader.readLine() != null) readPairsT++;
-                                reader.close();
-                                return readPairsT;
-                            } catch (Exception e) {
-                                somethingFailed.set(true);
-                                return 0L;
-                            }
-                        } else {
+                Callable<Long> taskDupReadPairs = () -> {
+                    File f = new File(localWorkingDirectory + "/dups.txt");
+                    if (f.exists()) {
+                        try {
+                            long readPairsT = 0;
+                            BufferedReader reader = new BufferedReader(new FileReader(localWorkingDirectory + "/dups.txt"));
+                            while (reader.readLine() != null) readPairsT++;
+                            reader.close();
+                            return readPairsT;
+                        } catch (Exception e) {
+                            somethingFailed.set(true);
                             return 0L;
                         }
+                    } else {
+                        return 0L;
                     }
                 };
 
                 Future<Long> futureOptDups = executor.submit(taskOptDups);
                 Future<Long> futureUniqueReads = executor.submit(taskUniqueReads);
-                Future<Long> futureReadPairs = executor.submit(taskReadPairs);
-
+                Future<Long> futureDupReadPairs = executor.submit(taskDupReadPairs);
 
                 File f = new File(localWorkingDirectory + "/" + fileName);
                 if (f.exists()) {
@@ -262,7 +252,7 @@ public class LibraryComplexity extends JuiceboxCLT {
 
                 opticalDups = futureOptDups.get();
                 uniqueReadPairs = futureUniqueReads.get();
-                readPairs = futureReadPairs.get();
+                dupReadPairs = futureDupReadPairs.get();
                 executor.shutdown();
 
                 if (somethingFailed.get()) {
@@ -282,7 +272,6 @@ public class LibraryComplexity extends JuiceboxCLT {
             }
         }
 
-        readPairs += uniqueReadPairs;
         NumberFormat decimalFormat = NumberFormat.getPercentInstance();
         decimalFormat.setMinimumFractionDigits(2);
         decimalFormat.setMaximumFractionDigits(2);
@@ -294,9 +283,9 @@ public class LibraryComplexity extends JuiceboxCLT {
             System.out.println();
         }
 
-        System.out.print("PCR Duplicates: " + nf.format(readPairs - uniqueReadPairs) + " ");
+        System.out.print("PCR Duplicates: " + nf.format(dupReadPairs) + " ");
         if (totalReadPairs > 0) {
-            System.out.println("(" + decimalFormat.format((readPairs - uniqueReadPairs) / (double) totalReadPairs) + ")");
+            System.out.println("(" + decimalFormat.format(dupReadPairs / (double) totalReadPairs) + ")");
         } else {
             System.out.println();
         }
@@ -308,7 +297,7 @@ public class LibraryComplexity extends JuiceboxCLT {
         }
         long result;
         try {
-            result = estimateLibrarySize(readPairs, uniqueReadPairs);
+            result = estimateLibrarySize(dupReadPairs, uniqueReadPairs);
         } catch (NullPointerException e) {
             result = 0;
         }
