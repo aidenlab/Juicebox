@@ -203,8 +203,9 @@ public class StatisticsContainer {
         if (statFile.exists()) {
             try {
                 BufferedReader stats = new BufferedReader(new FileReader(statFile));
-                String statsData = stats.readLine().toLowerCase();
+                String statsData = stats.readLine();
                 while (statsData != null) {
+                    statsData = statsData.toLowerCase();
                     if (statsData.contains("sequenced")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, SEQ_INDEX);
                     } else if (statsData.contains("unique")) {
@@ -214,7 +215,7 @@ public class StatisticsContainer {
                     } else if (statsData.contains("complexity")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, LC_INDEX);
                     }
-                    statsData = stats.readLine().toLowerCase();
+                    statsData = stats.readLine();
                 }
                 stats.close();
             } catch (IOException error) {
