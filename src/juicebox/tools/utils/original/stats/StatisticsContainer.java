@@ -227,7 +227,11 @@ public class StatisticsContainer {
         if (!valsWereFound[index]) {
             valsWereFound[index] = true;
             String[] tokens = statsData.split(":");
-            valsFound[index] = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
+            String substring1 = tokens[1].replaceAll("[, ]", "");
+            if (substring1.contains("(")) {
+                substring1 = substring1.split("\\(")[0];
+            }
+            valsFound[index] = Long.parseLong(substring1.trim());
         }
     }
 
