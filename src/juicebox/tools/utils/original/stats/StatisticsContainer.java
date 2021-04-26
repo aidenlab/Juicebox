@@ -154,10 +154,10 @@ public class StatisticsContainer {
     
     public void outputStatsFile(List<String> statsFiles) {
         for (int i = 0; i < statsFiles.size(); i++) {
-            boolean[] valsWereFound = new boolean[NUM_TO_READ];
-            long[] valsFound = new long[NUM_TO_READ]; // seqReads, duplicates
             File statFile = new File(statsFiles.get(i));
             //output statistics file for first mapq calculation
+            boolean[] valsWereFound = new boolean[NUM_TO_READ];
+            long[] valsFound = new long[NUM_TO_READ]; // seqReads, duplicates
             attempReadingDataFromExistingFile(valsWereFound, valsFound, statFile);
 
             if (statFile.exists()) {
@@ -214,7 +214,7 @@ public class StatisticsContainer {
                     } else if (statsData.contains("complexity")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, LC_INDEX);
                     }
-                    statsData = stats.readLine();
+                    statsData = stats.readLine().toLowerCase();
                 }
                 stats.close();
             } catch (IOException error) {
@@ -224,13 +224,15 @@ public class StatisticsContainer {
     }
 
     private void populateFoundVals(String statsData, boolean[] valsWereFound, long[] valsFound, int index) {
-        valsWereFound[index] = true;
-        String[] tokens = statsData.split(":");
-        valsFound[index] = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
+        if (!valsWereFound[index]) {
+            valsWereFound[index] = true;
+            String[] tokens = statsData.split(":");
+            valsFound[index] = Long.parseLong(tokens[1].replaceAll("[, ]", ""));
+        }
     }
 
     private void attemptMapqCorrection(boolean[] valsWereGiven, long[] valsFound, long[] underMapQ, long unique, int i) {
-        if (underMapQ[i] <= 0 && valsWereGiven[SEQ_INDEX]) {
+        if (underMapQ[i] < 1 && valsWereGiven[SEQ_INDEX]) {
             underMapQ[i] = valsFound[SEQ_INDEX] - unique;
         }
     }
@@ -259,7 +261,7 @@ public class StatisticsContainer {
             if (valsWereGiven[SEQ_INDEX] && valsWereGiven[UNIQUE_INDEX]) {
                 statsOut.write(description + commify(value) + " (" + percentify(value, valsFound[SEQ_INDEX]) + " / " + percentify(value, valsFound[UNIQUE_INDEX]) + ")\n");
             } else {
-                statsOut.write(description + commify(value) + " ((" + percentify(value, unique) + ")\n");
+                statsOut.write(description + commify(value) + " (" + percentify(value, unique) + ")\n");
             }
         } else {
             statsOut.write(description + "N/A\n");
