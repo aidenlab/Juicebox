@@ -91,31 +91,36 @@ public class Pearsons extends JuiceboxCLT {
 
     }
 
-    public static BasicMatrix computePearsons(double[][] columns, int dim) {
+    public static BasicMatrix computePearsons(double[][] matrix, int dim, BitSet bitSet) {
 
         BasicMatrix pearsons = new InMemoryMatrix(dim);
 
-        BitSet bitSet = new BitSet(dim);
         for (int i = 0; i < dim; i++) {
-            for (int j = i + 1; j < dim; j++) {
-                double[] v1 = columns[i];
-                double[] v2 = columns[j];
-                if (v1 == null || v2 == null) {
+            if (bitSet.get(i)) {
+                for (int j = i + 1; j < dim; j++) {
+                    if (bitSet.get(j)) {
+                        float corr = (float) PearsonCorrelationMetric.corr(matrix[i], matrix[j]);
+                        pearsons.setEntry(i, j, corr);
+                        pearsons.setEntry(j, i, corr);
+                    } else {
+                        pearsons.setEntry(i, j, Float.NaN);
+                        pearsons.setEntry(j, i, Float.NaN);
+                    }
+                }
+            } else {
+                for (int j = i + 1; j < dim; j++) {
                     pearsons.setEntry(i, j, Float.NaN);
                     pearsons.setEntry(j, i, Float.NaN);
-                } else {
-                    double corr = PearsonCorrelationMetric.corr(columns[i], columns[j]);
-                    pearsons.setEntry(i, j, (float) corr);
-                    pearsons.setEntry(j, i, (float) corr);
-                    bitSet.set(i);
-                    bitSet.set(j);
                 }
             }
         }
         // Set diagonal to 1, set centromere to NaN
         for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) pearsons.setEntry(i, i, 1.0f);
-            else pearsons.setEntry(i, i, Float.NaN);
+            if (bitSet.get(i)) {
+                pearsons.setEntry(i, i, 1.0f);
+            } else {
+                pearsons.setEntry(i, i, Float.NaN);
+            }
         }
         return pearsons;
     }

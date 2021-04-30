@@ -848,7 +848,8 @@ public class MatrixZoomData {
         }
 
         // Compute O/E column vectors
-        double[][] vectors = new double[dim][];
+        double[][] oeMatrix = new double[dim][dim];
+        BitSet bitSet = new BitSet(dim);
 
         Iterator<ContactRecord> iterator = getNewContactRecordIterator();
         while (iterator.hasNext()) {
@@ -862,38 +863,30 @@ public class MatrixZoomData {
             double expected = df.getExpectedValue(chr1.getIndex(), dist);
             double oeValue = counts / expected;
 
-            double[] vi = vectors[i];
-            if (vi == null) {
-                vi = new double[dim]; //zeroValue) ;
-                vectors[i] = vi;
-            }
-            vi[j] = oeValue;
+            oeMatrix[i][j] = oeValue;
+            oeMatrix[j][i] = oeValue;
 
-
-            double[] vj = vectors[j];
-            if (vj == null) {
-                vj = new double[dim]; // zeroValue) ;
-                vectors[j] = vj;
-            }
-            vj[i] = oeValue;
+            bitSet.set(i);
+            bitSet.set(j);
         }
 
         // Subtract row means
         double[] rowMeans = new double[dim];
         for (int i = 0; i < dim; i++) {
-            double[] row = vectors[i];
-            rowMeans[i] = row == null ? 0 : getVectorMean(row);
-        }
-
-        for (int i = 0; i < dim; i++) {
-            double[] rows = vectors[i];
-            if (rows == null) continue;
-            for (int j = 0; j < dim; j++) {
-                rows[j] -= rowMeans[j];
+            if (bitSet.get(i)) {
+                rowMeans[i] = getVectorMean(oeMatrix[i]);
             }
         }
 
-        BasicMatrix pearsons = Pearsons.computePearsons(vectors, dim);
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                for (int j = 0; j < dim; j++) {
+                    oeMatrix[i][j] -= rowMeans[j];
+                }
+            }
+        }
+
+        BasicMatrix pearsons = Pearsons.computePearsons(oeMatrix, dim, bitSet);
         pearsonsMap.put(df.getNormalizationType(), pearsons);
 
         return pearsons;
