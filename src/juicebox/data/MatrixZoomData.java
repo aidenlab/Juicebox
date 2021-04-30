@@ -886,10 +886,10 @@ public class MatrixZoomData {
         }
 
         for (int j = 0; j < dim; j++) {
+            double[] rows = vectors[j];
+            if (rows == null) continue;
             for (int i = 0; i < dim; i++) {
-                double[] column = vectors[j];
-                if (column == null) continue;
-                column[i] -= rowMeans[i];
+                rows[i] -= rowMeans[i];
             }
         }
 
