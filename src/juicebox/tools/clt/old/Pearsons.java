@@ -38,12 +38,14 @@ import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.InMemoryMatrix;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.dev.ParallelizedJuicerTools;
 import juicebox.tools.utils.dev.PearsonCorrelationMetric;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
 import java.util.BitSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Class for calculating Pearsons (separated out from Dump)
@@ -91,7 +93,41 @@ public class Pearsons extends JuiceboxCLT {
 
     }
 
+    /**
+     * Return the mean of the given vector, ignoring NaNs
+     *
+     * @param vector Vector to calculate the mean on
+     * @return The mean of the vector, not including NaNs.
+     */
+    private static double getVectorMean(double[] vector) {
+        double sum = 0;
+        int count = 0;
+        for (double aVector : vector) {
+            if (!Double.isNaN(aVector)) {
+                sum += aVector;
+                count++;
+            }
+        }
+        return count == 0 ? 0 : sum / count;
+    }
+
     public static BasicMatrix computePearsons(double[][] matrix, int dim, BitSet bitSet) {
+
+        // Subtract row means
+        double[] rowMeans = new double[dim];
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                rowMeans[i] = getVectorMean(matrix[i]);
+            }
+        }
+
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                for (int j = 0; j < dim; j++) {
+                    matrix[i][j] -= rowMeans[j];
+                }
+            }
+        }
 
         BasicMatrix pearsons = new InMemoryMatrix(dim);
 
@@ -123,6 +159,80 @@ public class Pearsons extends JuiceboxCLT {
             }
         }
         return pearsons;
+    }
+
+    public static BasicMatrix computeParallelizedPearsons(double[][] matrix, int dim, BitSet bitSet) {
+        // Subtract row means
+        inPlaceParallelSubtractRowMeans(matrix, dim, bitSet);
+
+        BasicMatrix pearsons = new InMemoryMatrix(dim);
+
+        // Set diagonal to 1, set centromere to NaN
+        AtomicInteger dCounter = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(() -> {
+            int i = dCounter.getAndIncrement();
+            while (i < dim) {
+                if (bitSet.get(i)) {
+                    for (int j = i + 1; j < dim; j++) {
+                        float corr;
+                        if (bitSet.get(j)) {
+                            corr = (float) PearsonCorrelationMetric.corr(matrix[i], matrix[j]);
+                        } else {
+                            corr = Float.NaN;
+                        }
+                        synchronized (pearsons) {
+                            pearsons.setEntry(i, j, corr);
+                            pearsons.setEntry(j, i, corr);
+                        }
+                    }
+                } else {
+                    synchronized (pearsons) {
+                        for (int j = i + 1; j < dim; j++) {
+                            pearsons.setEntry(i, j, Float.NaN);
+                            pearsons.setEntry(j, i, Float.NaN);
+                        }
+                    }
+                }
+
+                i = dCounter.getAndIncrement();
+            }
+        });
+
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                pearsons.setEntry(i, i, 1.0f);
+            } else {
+                pearsons.setEntry(i, i, Float.NaN);
+            }
+        }
+        return pearsons;
+    }
+
+    private static void inPlaceParallelSubtractRowMeans(double[][] matrix, int dim, BitSet bitSet) {
+        double[] rowMeans = new double[dim];
+        AtomicInteger index = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(() -> {
+            int i = index.getAndIncrement();
+            while (i < dim) {
+                if (bitSet.get(i)) {
+                    rowMeans[i] = getVectorMean(matrix[i]);
+                }
+                i = index.getAndIncrement();
+            }
+        });
+
+        AtomicInteger index2 = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(() -> {
+            int i = index2.getAndIncrement();
+            while (i < dim) {
+                if (bitSet.get(i)) {
+                    for (int j = 0; j < dim; j++) {
+                        matrix[i][j] -= rowMeans[j];
+                    }
+                }
+                i = index2.getAndIncrement();
+            }
+        });
     }
 
     @Override

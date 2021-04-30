@@ -850,10 +850,8 @@ public class MatrixZoomData {
             throw new RuntimeException("Cannot compute pearsons for non-diagonal matrices");
         }
 
-        // # of columns.  We could let the data itself define this
         int dim;
         if (zoom.getUnit() == HiC.Unit.BP) {
-            //todo currently - pearson only done for resolutions where lossy conversion doesn't matter
             dim = (int) (chr1.getLength() / zoom.getBinSize()) + 1;
         } else {
             dim = ((DatasetReaderV2) reader).getFragCount(chr1) / zoom.getBinSize() + 1;
@@ -862,16 +860,29 @@ public class MatrixZoomData {
         // Compute O/E column vectors
         double[][] oeMatrix = new double[dim][dim];
         BitSet bitSet = new BitSet(dim);
+        populateOEMatrixAndBitset(oeMatrix, bitSet, df);
 
+        BasicMatrix pearsons;
+        if (HiCGlobals.guiIsCurrentlyActive) { // todo ask Neva
+            pearsons = Pearsons.computeParallelizedPearsons(oeMatrix, dim, bitSet);
+        } else {
+            pearsons = Pearsons.computePearsons(oeMatrix, dim, bitSet);
+        }
+        pearsonsMap.put(df.getNormalizationType(), pearsons);
+        return pearsons;
+    }
+
+    private void populateOEMatrixAndBitset(double[][] oeMatrix, BitSet bitSet, ExpectedValueFunction df) {
         Iterator<ContactRecord> iterator = getNewContactRecordIterator();
         while (iterator.hasNext()) {
             ContactRecord record = iterator.next();
-            int i = record.getBinX();
-            int j = record.getBinY();
             float counts = record.getCounts();
             if (Float.isNaN(counts)) continue;
 
+            int i = record.getBinX();
+            int j = record.getBinY();
             int dist = Math.abs(i - j);
+
             double expected = df.getExpectedValue(chr1.getIndex(), dist);
             double oeValue = counts / expected;
 
@@ -881,45 +892,6 @@ public class MatrixZoomData {
             bitSet.set(i);
             bitSet.set(j);
         }
-
-        // Subtract row means
-        double[] rowMeans = new double[dim];
-        for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) {
-                rowMeans[i] = getVectorMean(oeMatrix[i]);
-            }
-        }
-
-        for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) {
-                for (int j = 0; j < dim; j++) {
-                    oeMatrix[i][j] -= rowMeans[j];
-                }
-            }
-        }
-
-        BasicMatrix pearsons = Pearsons.computePearsons(oeMatrix, dim, bitSet);
-        pearsonsMap.put(df.getNormalizationType(), pearsons);
-
-        return pearsons;
-    }
-
-    /**
-     * Return the mean of the given vector, ignoring NaNs
-     *
-     * @param vector Vector to calculate the mean on
-     * @return The mean of the vector, not including NaNs.
-     */
-    private double getVectorMean(double[] vector) {
-        double sum = 0;
-        int count = 0;
-        for (double aVector : vector) {
-            if (!Double.isNaN(aVector)) {
-                sum += aVector;
-                count++;
-            }
-        }
-        return count == 0 ? 0 : sum / count;
     }
 
     /**

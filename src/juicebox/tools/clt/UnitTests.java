@@ -58,6 +58,7 @@ class UnitTests {
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, 50000);
         MatrixZoomData zd = matrix.getZoomData(zoom);
         ExpectedValueFunction df = ds.getExpectedValues(zoom, NormalizationHandler.KR);
+        HiCGlobals.guiIsCurrentlyActive = true;
         long time0 = System.nanoTime();
         BasicMatrix bm1 = zd.getPearsons(df);
         long time1 = System.nanoTime();
@@ -69,9 +70,9 @@ class UnitTests {
         System.out.println("Eig Time: " + (Etime1 - Etime0) * 1e-9);
 
 
-        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/c10.npy", toDenseMatrix(bm1));
+        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/c20.npy", toDenseMatrix(bm1));
 
-        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/E13.npy", eig);
+        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/E20.npy", eig);
     }
 
     private static float[][] toDenseMatrix(BasicMatrix bm1) {

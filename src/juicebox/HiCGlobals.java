@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
  */
 public class HiCGlobals {
 
-    public static final String versionNum = "2.07.12";
+    public static final String versionNum = "2.08.00";
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
 
     // MainWindow variables
@@ -63,7 +63,8 @@ public class HiCGlobals {
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static final Color diffGrayColor = new Color(238, 238, 238);
     // for state saving
-    public static int MAX_PEARSON_ZOOM = 500000;
+    public static int MAX_PEARSON_ZOOM = 50000;
+    public static int MAX_EIGENVECTOR_ZOOM = 250000;
     // implement Map scaling with this global variable
     public static double hicMapScale = 1;
     // whether MatrixZoomData should cache or not
