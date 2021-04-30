@@ -26,8 +26,6 @@ package juicebox.data;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.matrix.BasicMatrix;
-import juicebox.tools.clt.old.Pearsons;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.util.FileUtils;
@@ -51,22 +49,6 @@ public abstract class AbstractDatasetReader implements DatasetReader {
 
     AbstractDatasetReader(String path) {
         this.path = path;
-    }
-
-    public BasicMatrix readPearsons(String chr1Name, String chr2Name, HiCZoom zoom, NormalizationType type) throws IOException {
-
-        // TODO -- need to use zoom unit (BP or FRAG)
-        String rootPath = FileUtils.getParent(path);
-        String folder = rootPath + "/" + chr1Name;
-        String file = "pearsons" + "_"  + zoom.getBinSize() + "_" + type + ".bin";
-        String fullPath = folder + "/" + file;
-
-        if (FileUtils.resourceExists(fullPath)) {
-            return Pearsons.readPearsons(fullPath);
-        } else {
-            return null;
-        }
-
     }
 
     public String getPath() {

@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.basics.ListOfDoubleArrays;
-import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
@@ -203,12 +202,6 @@ public class CombinedDatasetReader implements DatasetReader {
 
     @Override
     public ListOfDoubleArrays readExpectedVectorPart(long position, long nVals) {
-        return null;
-    }
-
-    @Override
-    public BasicMatrix readPearsons(String chr1Name, String chr2Name, HiCZoom zoom, NormalizationType type) {
-        // At this time combined datasets do not have precomputed pearsons.
         return null;
     }
 

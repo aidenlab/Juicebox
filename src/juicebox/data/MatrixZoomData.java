@@ -81,7 +81,6 @@ public class MatrixZoomData {
     protected final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
-    private final HashSet<NormalizationType> missingPearsonFiles;
     //private List<List<ContactRecord>> localCacheOfRecords = null;
     private final V9Depth v9Depth;
     private double averageCount = -1;
@@ -147,7 +146,6 @@ public class MatrixZoomData {
 
         pearsonsMap = new HashMap<>();
         normSquaredMaps = new HashMap<>();
-        missingPearsonFiles = new HashSet<>();
     }
 
     public Chromosome getChr1() {
@@ -794,22 +792,6 @@ public class MatrixZoomData {
         BasicMatrix pearsons = pearsonsMap.get(df.getNormalizationType());
         if (pearsons != null) {
             return pearsons;
-        }
-        else if (!missingPearsonFiles.contains(df.getNormalizationType())) {
-            // try to read
-            try {
-                pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
-            } catch (IOException e) {
-                pearsons = null;
-                System.err.println(e.getMessage());
-            }
-            if (pearsons != null) {
-                // put it back in the map.
-                pearsonsMap.put(df.getNormalizationType(), pearsons);
-                readPearsons = true;
-            } else {
-                missingPearsonFiles.add(df.getNormalizationType());  // To keep from trying repeatedly
-            }
         }
         // we weren't able to read in the Pearsons. check that the resolution is low enough to calculate
         if (!readPearsons && (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) ||
