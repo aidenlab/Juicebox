@@ -46,10 +46,10 @@ import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.linear.Array2DRowRealMatrix;
-import org.apache.commons.math.linear.EigenDecompositionImpl;
-import org.apache.commons.math.linear.RealMatrix;
-import org.apache.commons.math.linear.RealVector;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
@@ -703,42 +703,54 @@ public class MatrixZoomData {
         }
 
         int dim = pearsons.getRowDimension();
-        double[][] data = new double[dim][dim];
         BitSet bitSet = new BitSet(dim);
         for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-                float tmp = pearsons.getEntry(i, j);
-                data[i][j] = tmp;
-                if (data[i][j] != 0 && !Float.isNaN(tmp)) {
-                    bitSet.set(i);
-                }
+            float tmp = pearsons.getEntry(i, i);
+            if (tmp > .999) { // checking if diagonal is 1
+                bitSet.set(i);
             }
         }
 
-        int[] nonCentromereColumns = new int[bitSet.cardinality()];
-        int count = 0;
-        for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) nonCentromereColumns[count++] = i;
-        }
+        int[] newPosToOrig = getMapNewPosToOriginal(dim, bitSet);
 
-        RealMatrix subMatrix = new Array2DRowRealMatrix(data).getSubMatrix(nonCentromereColumns, nonCentromereColumns);
-        RealVector rv = (new EigenDecompositionImpl(subMatrix, 0)).getEigenvector(which);
-
+        RealMatrix subMatrix = getSubsetOfMatrix(newPosToOrig, bitSet.cardinality(), pearsons);
+        RealVector rv = (new EigenDecomposition(subMatrix)).getEigenvector(which);
         double[] ev = rv.toArray();
 
         int size = pearsons.getColumnDimension();
         double[] eigenvector = new double[size];
-        int num = 0;
-        for (int i = 0; i < size; i++) {
-            if (num < nonCentromereColumns.length && i == nonCentromereColumns[num]) {
-                eigenvector[i] = ev[num];
-                num++;
-            } else {
-                eigenvector[i] = Double.NaN;
-            }
+        Arrays.fill(eigenvector, Double.NaN);
+        for (int i = 0; i < newPosToOrig.length; i++) {
+            int oldI = newPosToOrig[i];
+            eigenvector[oldI] = ev[i];
         }
         return eigenvector;
+    }
 
+    private RealMatrix getSubsetOfMatrix(int[] newPosToOrig, int subsetN, BasicMatrix pearsons) {
+        double[][] data = new double[subsetN][subsetN];
+
+        for (int newI = 0; newI < newPosToOrig.length; newI++) {
+            int oldI = newPosToOrig[newI];
+            for (int newJ = newI; newJ < newPosToOrig.length; newJ++) {
+                int oldJ = newPosToOrig[newJ];
+                float tmp = pearsons.getEntry(oldI, oldJ);
+                data[newI][newJ] = tmp;
+                data[newJ][newI] = tmp;
+            }
+        }
+        return new Array2DRowRealMatrix(data);
+    }
+
+    private int[] getMapNewPosToOriginal(int dim, BitSet bitSet) {
+        int[] newPosToOrig = new int[bitSet.cardinality()];
+        int count = 0;
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                newPosToOrig[count++] = i;
+            }
+        }
+        return newPosToOrig;
     }
 
     public BasicMatrix getNormSquared(NormalizationType normalizationType) {
