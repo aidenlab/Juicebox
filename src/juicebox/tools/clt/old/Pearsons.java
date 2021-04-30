@@ -38,6 +38,7 @@ import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.InMemoryMatrix;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.dev.PearsonCorrelationMetric;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.util.ParsingUtils;
 
@@ -90,52 +91,9 @@ public class Pearsons extends JuiceboxCLT {
 
     }
 
-    private static double computePearsons(double[] scores1, double[] scores2) {
-
-//        double length = scores1.length;
-//        double sum_xsq = 0;
-//        double sum_ysq = 0;
-//        double sumx = 0;
-//        double sumy = 0;
-//        for (int i=0; i<length; i++) sum_xsq += scores1[i]*scores1[i];
-//        for (int i=0; i<length; i++) sum_ysq += scores2[i]*scores2[i];
-//        for (int i=0; i<length; i++) sumx += scores1[i];
-//        for (int i=0; i<length; i++) sumy += scores2[i];
-//        double denominator = (sum_xsq - (sumx*sumx/length))*(sum_ysq - (sumy*sumy/length));
-//        double numerator = 0;
-//        for (int i=0; i<length; i++) numerator += scores1[i]*scores2[i]; // dot product
-//        return (numerator - (sumx*sumy/length))/Math.sqrt(denominator);
-
-        double result;
-        double sum_sq_x = 0;
-        double sum_sq_y = 0;
-        double sum_coproduct = 0;
-        double mean_x = scores1[0];
-        double mean_y = scores2[0];
-        for (int i = 1; i < scores1.length; i++) {
-
-            double sweep = ((double) i) / (i + 1);
-            double delta_x = scores1[i] - mean_x;
-            double delta_y = scores2[i] - mean_y;
-
-            sum_sq_x += delta_x * delta_x * sweep;
-            sum_sq_y += delta_y * delta_y * sweep;
-            sum_coproduct += delta_x * delta_y * sweep;
-
-            mean_x += delta_x / (i + 1);
-            mean_y += delta_y / (i + 1);
-        }
-        double pop_sd_x = Math.sqrt(sum_sq_x / scores1.length);
-        double pop_sd_y = Math.sqrt(sum_sq_y / scores1.length);
-        double cov_x_y = sum_coproduct / scores1.length;
-        result = cov_x_y / (pop_sd_x * pop_sd_y);
-        return result;
-    }
-
     public static BasicMatrix computePearsons(double[][] columns, int dim) {
 
         BasicMatrix pearsons = new InMemoryMatrix(dim);
-        //pearsons.fill(Float.NaN);
 
         BitSet bitSet = new BitSet(dim);
         for (int i = 0; i < dim; i++) {
@@ -146,7 +104,7 @@ public class Pearsons extends JuiceboxCLT {
                     pearsons.setEntry(i, j, Float.NaN);
                     pearsons.setEntry(j, i, Float.NaN);
                 } else {
-                    double corr = Pearsons.computePearsons(columns[i], columns[j]);
+                    double corr = PearsonCorrelationMetric.corr(columns[i], columns[j]);
                     pearsons.setEntry(i, j, (float) corr);
                     pearsons.setEntry(j, i, (float) corr);
                     bitSet.set(i);

@@ -885,11 +885,11 @@ public class MatrixZoomData {
             rowMeans[i] = row == null ? 0 : getVectorMean(row);
         }
 
-        for (int j = 0; j < dim; j++) {
-            double[] rows = vectors[j];
+        for (int i = 0; i < dim; i++) {
+            double[] rows = vectors[i];
             if (rows == null) continue;
-            for (int i = 0; i < dim; i++) {
-                rows[i] -= rowMeans[i];
+            for (int j = 0; j < dim; j++) {
+                rows[j] -= rowMeans[j];
             }
         }
 
