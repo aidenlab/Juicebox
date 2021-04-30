@@ -169,7 +169,7 @@ public class StatisticsContainer {
                     attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
                     writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
                     writeOut(statsOut, "Hi-C Contacts: ", valsWereFound, totalCurrent[i], valsFound, unique, false);
-                    writeOut(statsOut, " Ligation Motif Present: ", valsWereFound, ligation[i], valsFound, unique, true);
+                    //writeOut(statsOut, " Ligation Motif Present: ", valsWereFound, ligation[i], valsFound, unique, true);
                     appendPairTypeStatsOutputToFile(i, statsOut);
                     writeOut(statsOut, "Inter-chromosomal: ", valsWereFound, inter[i], valsFound, unique, false);
                     writeOut(statsOut, "Intra-chromosomal: ", valsWereFound, intra[i], valsFound, unique, false);
