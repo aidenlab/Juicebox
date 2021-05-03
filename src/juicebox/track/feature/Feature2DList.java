@@ -330,6 +330,10 @@ public class Feature2DList {
                         case ARROWHEAD:
                             outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                             break;
+                        case SCORES:
+                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                    "expectedV","centerSum", "leftSum", "downSum", "centerSumDC", "leftSumDC", "downSumDC"));
+                            break;
                     }
                     for (String key : outputKeys) {
                         header.append("\t").append(key);
@@ -546,7 +550,7 @@ public class Feature2DList {
         return featureList.get(key);
     }
 
-    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
+    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, SCORES, NA}
 
     /**
      * pass interface implementing a process for all features

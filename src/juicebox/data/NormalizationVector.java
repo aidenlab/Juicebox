@@ -31,10 +31,12 @@ import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.ZeroScale;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jrobinso
@@ -96,8 +98,7 @@ public class NormalizationVector {
 
     public NormalizationVector mmbaScaleToVector(MatrixZoomData zd) {
 
-        List<List<ContactRecord>> listOfLists = new ArrayList<>();
-        listOfLists.addAll(zd.getContactRecordList());
+        Map<Integer, Map<Integer, ContactRecord>> listOfLists = zd.getContactRecordMap(1, NormalizationHandler.NONE);
         ListOfFloatArrays newNormVector = ZeroScale.scale(listOfLists, data.convertToFloats(), getKey());
         if (newNormVector != null) {
             newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, listOfLists);

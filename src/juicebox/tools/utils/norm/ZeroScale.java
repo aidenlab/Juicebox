@@ -30,9 +30,10 @@ import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.norm.final2.FinalScale;
 
 import java.util.List;
+import java.util.Map;
 
 public class ZeroScale {
-    public static ListOfFloatArrays scale(List<List<ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial, String key) {
+    public static ListOfFloatArrays scale(Map<Integer, Map<Integer, ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial, String key) {
         ListOfFloatArrays newVector = FinalScale.scaleToTargetVector(contactRecordsListOfLists, targetVectorInitial);
         
         if (newVector == null && HiCGlobals.printVerboseComments) {
@@ -42,7 +43,7 @@ public class ZeroScale {
     }
     
     
-    public static ListOfFloatArrays normalizeVectorByScaleFactor(ListOfFloatArrays newNormVector, List<List<ContactRecord>> contactRecordsListOfLists) {
+    public static ListOfFloatArrays normalizeVectorByScaleFactor(ListOfFloatArrays newNormVector, Map<Integer, Map<Integer, ContactRecord>> contactRecordsListOfLists) {
         
         for (long k = 0; k < newNormVector.getLength(); k++) {
             float kVal = newNormVector.get(k);
@@ -55,8 +56,8 @@ public class ZeroScale {
         
         double normalizedSumTotal = 0, sumTotal = 0;
         
-        for (List<ContactRecord> records : contactRecordsListOfLists) {
-            for (ContactRecord cr : records) {
+        for (int i : contactRecordsListOfLists.keySet()) {
+            for (ContactRecord cr : contactRecordsListOfLists.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 final float counts = cr.getCounts();
@@ -81,7 +82,7 @@ public class ZeroScale {
         return newNormVector;
     }
     
-    public static ListOfFloatArrays mmbaScaleToVector(List<List<ContactRecord>> contactRecords, ListOfFloatArrays tempTargetVector) {
+    public static ListOfFloatArrays mmbaScaleToVector(Map<Integer, Map<Integer, ContactRecord>> contactRecords, ListOfFloatArrays tempTargetVector) {
         
         ListOfFloatArrays newNormVector = scale(contactRecords, tempTargetVector, "mmsa_scale");
         if (newNormVector != null) {

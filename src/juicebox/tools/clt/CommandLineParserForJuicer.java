@@ -48,6 +48,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
+    private final Option loopAnchorsOption = addBooleanOption("anchors");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
@@ -68,6 +69,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
     private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
+
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
 
@@ -79,7 +81,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
                 || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance") || cmd.equals("drink") || cmd.equals("drinks")
-                || cmd.equals("shuffle") || cmd.equals("grind");
+                || cmd.equals("shuffle") || cmd.equals("grind") || cmd.equals("generateTracks".toLowerCase())
+                || cmd.equals("loopScores".toLowerCase());
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {
@@ -104,6 +107,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public boolean getAggregateNormalization() { return optionToBoolean(apaAggregateNormalization);}
+
+    public boolean getLoopAnchorsOption() { return optionToBoolean(loopAnchorsOption);}
 
     /**
      * String flags
@@ -164,7 +169,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
      * String Set flags
      */
 
-    List<String> getChromosomeListOption() {
+    public List<String> getChromosomeListOption() {
+
         return optionToStringList(multipleChromosomesOption);
     }
 

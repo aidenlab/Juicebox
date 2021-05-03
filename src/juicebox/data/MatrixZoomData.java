@@ -32,6 +32,7 @@ import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.v9depth.LogDepth;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
@@ -53,6 +54,7 @@ import org.broad.igv.util.collections.LRUCache;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -83,6 +85,7 @@ public class MatrixZoomData {
     DatasetReader reader;
     private double averageCount = -1;
     private List<List<ContactRecord>> localCacheOfRecords = null;
+    private Map<Integer, Map<Integer, ContactRecord>> localCacheMapOfRecords = null;
     private long numberOfContactRecords = 0;
     private final V9Depth v9Depth;
 
@@ -299,6 +302,49 @@ public class MatrixZoomData {
         int r1 = avgPosition1 - (int) difference2 / 2 - 1;
         int r2 = avgPosition2 - (int) difference1 / 2 + 1;
         return new int[]{c1, c2, r1, r2};
+    }
+
+    public int[] getBlockMinMaxDist(int blockNumber) {
+        if (!isIntra) {
+            return new int[]{0,0};
+        } else {
+            if (reader.getVersion()>8) {
+                int positionAlongDiagonal = blockNumber % blockColumnCount;
+                int depth = blockNumber / blockColumnCount;
+                int avgPosition1 = positionAlongDiagonal * blockBinCount;
+                int avgPosition2 = (positionAlongDiagonal + 1) * blockBinCount;
+                int depthBase = reader.getDepthBase();
+                double difference1 = (Math.pow(2, depth) - 1) * blockBinCount * Math.sqrt(2);
+                double difference2 = (Math.pow(2, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+                if ( depthBase > 1 ) {
+                    difference1 = (Math.pow(depthBase, depth) - 1) * blockBinCount * Math.sqrt(2);
+                    difference2 = (Math.pow(depthBase, depth + 1) - 1) * blockBinCount * Math.sqrt(2);
+                } else if (depthBase < 0) {
+                    difference1 = Math.abs(depthBase) * depth * blockBinCount * Math.sqrt(2);
+                    difference2 = Math.abs(depthBase) * (depth + 1) * blockBinCount * Math.sqrt(2);
+                }
+                return new int[]{(int) difference1 - 1, (int) difference2 + 1};
+            } else {
+                int c = (blockNumber % blockColumnCount);
+                int r = blockNumber / blockColumnCount;
+                int c1 = c * blockBinCount;
+                int c2 = c1 + blockBinCount - 1;
+                int r1 = r * blockBinCount;
+                int r2 = r1 + blockBinCount - 1;
+                int difference1, difference2;
+                if (c1 > r2) {
+                    difference1 = Math.abs(c1 - r2);
+                    difference2 = Math.abs(c2 - r1);
+                } else if (r2 < c1) {
+                    difference1 = Math.abs(c2 - r1);
+                    difference2 = Math.abs(c1 - r2);
+                } else {
+                    difference1 = 0;
+                    difference2 = Math.max(Math.abs(c2 - r1), Math.abs(c1 - r2));
+                }
+                return new int[]{difference1, difference2};
+            }
+        }
     }
 
     private void populateBlocksToLoadV9(int positionAlongDiagonal, int depth, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
@@ -1307,14 +1353,102 @@ public class MatrixZoomData {
         return localCacheOfRecords;
     }
 
+    public Map<Integer, Map<Integer,ContactRecord>> getContactRecordMap(int numCPUThreads, NormalizationType norm) {
+        if (localCacheMapOfRecords == null || localCacheMapOfRecords.size() < 1) {
+            numberOfContactRecords = 0;
+            localCacheMapOfRecords = new ConcurrentHashMap<>();
+            List<Integer> blockNumbers = getBlockNumbers();
+
+            final AtomicInteger currentBlock = new AtomicInteger(0);
+            final AtomicInteger atomicNumberOfContactRecords = new AtomicInteger(0);
+            ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
+
+            for (int i = 0; i < numCPUThreads; i++) {
+                Runnable worker = new Runnable() {
+                    @Override
+                    public void run() {
+                        int blockIndex = currentBlock.getAndIncrement();
+                        while (blockIndex < blockNumbers.size()) {
+                            int blockToGet = blockNumbers.get(blockIndex);
+                            try {
+                                List<ContactRecord> blockRecords = getContactRecordsForBlock(blockToGet, norm);
+                                for (ContactRecord rec : blockRecords) {
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    atomicNumberOfContactRecords.getAndIncrement();
+
+                                    synchronized (localCacheMapOfRecords) {
+                                        if (!localCacheMapOfRecords.containsKey(binX)) {
+                                            localCacheMapOfRecords.put(binX, new ConcurrentHashMap<Integer, ContactRecord>());
+                                        }
+                                    }
+                                    synchronized (localCacheMapOfRecords.get(binX)) {
+                                        localCacheMapOfRecords.get(binX).put(binY, rec);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            blockIndex = currentBlock.getAndIncrement();
+                        }
+                    }
+                };
+                executor.execute(worker);
+            }
+            executor.shutdown();
+
+            // Wait until all threads finish
+            while (!executor.isTerminated()) {
+            }
+            numberOfContactRecords = atomicNumberOfContactRecords.get();
+        }
+        return localCacheMapOfRecords;
+    }
+
+
     public void clearCache() {
         blockCache.clear();
     }
 
-    public long getNumberOfContactRecords() {
+    public long getNumberOfContactRecords(int numCPUThreads, NormalizationType norm) {
         if (numberOfContactRecords == 0) {
-            getContactRecordList();
+            getContactRecordMap(numCPUThreads,norm);
         }
         return numberOfContactRecords;
+    }
+
+    public List<Integer> getBlockNumbers() {
+        return reader.getBlockNumbers(this);
+    }
+
+    public List<ContactRecord> getContactRecordsForBlock(int blockNumber, NormalizationType norm) throws IOException {
+        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+        return b.getContactRecords();
+    }
+
+    public void initializeDistScaling(ListOfDoubleArrays distScaling, int dist, NormalizationType norm) throws IOException {
+        if (reader.getVersion() > 8 ) {
+            int depth = v9Depth.getDepth(0, dist);
+            for (int i = 0; i < blockColumnCount; i++) {
+                int blockNumber = getBlockNumberVersion9FromPADAndDepth(i, depth);
+                Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+                for (ContactRecord cr : b.getContactRecords()) {
+                    if (Math.abs(cr.getBinX() - cr.getBinY()) == Math.abs(dist)) {
+                        distScaling.addTo(cr.getBinX(), cr.getCounts());
+                    }
+                }
+            }
+        } else {
+            int offset = dist / blockBinCount;
+            for (int i = 0; i < blockColumnCount; i++) {
+                int blockNumber = i * blockColumnCount + i + offset;
+                Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+                for (ContactRecord cr : b.getContactRecords()) {
+                    if (Math.abs(cr.getBinX() - cr.getBinY()) == Math.abs(dist)) {
+                        distScaling.addTo(cr.getBinX(), cr.getCounts());
+                    }
+                }
+            }
+        }
     }
 }

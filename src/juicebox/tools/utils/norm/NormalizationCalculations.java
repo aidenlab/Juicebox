@@ -38,7 +38,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -52,11 +54,12 @@ import java.util.Random;
  */
 public class NormalizationCalculations {
     
-    private List<List<ContactRecord>> contactRecords;
+    private Map<Integer, Map<Integer, ContactRecord>> contactRecords;
     private long totSize;
     private boolean isEnoughMemory = false;
     private int chr1;
     private int chr2;
+    private int numCPUThreads = 1;
 
     /**
      * Initializing from a single MatrixZoomData object
@@ -69,13 +72,33 @@ public class NormalizationCalculations {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
 
-        long count = zd.getNumberOfContactRecords();
+        long count = zd.getNumberOfContactRecords(numCPUThreads, NormalizationHandler.NONE);
         // todo where did the 1000 come from?
         // each contact record is 12 bytes; if longs/doubles, then 24 bytes
         // at worst, we probably double this?
         if (count * 48 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
-            this.contactRecords = zd.getContactRecordList();
+            this.contactRecords = zd.getContactRecordMap(numCPUThreads, NormalizationHandler.NONE);
+            this.totSize = zd.getXGridAxis().getBinCount();
+            this.chr1 = zd.getChr1Idx();
+            this.chr2 = zd.getChr2Idx();
+        }
+    }
+
+    public NormalizationCalculations(MatrixZoomData zd, int numCPUThreads) {
+
+        this.numCPUThreads = numCPUThreads;
+        if (zd.getChr1Idx() != zd.getChr2Idx()) {
+            throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
+        }
+
+        long count = zd.getNumberOfContactRecords(numCPUThreads, NormalizationHandler.NONE);
+        // todo where did the 1000 come from?
+        // each contact record is 12 bytes; if longs/doubles, then 24 bytes
+        // at worst, we probably double this?
+        if (count * 48 < Runtime.getRuntime().maxMemory()) {
+            isEnoughMemory = true;
+            this.contactRecords = zd.getContactRecordMap(numCPUThreads, NormalizationHandler.NONE);
             this.totSize = zd.getXGridAxis().getBinCount();
             this.chr1 = zd.getChr1Idx();
             this.chr2 = zd.getChr2Idx();
@@ -89,8 +112,33 @@ public class NormalizationCalculations {
      * @param totSize
      */
     public NormalizationCalculations(List<List<ContactRecord>> list, int totSize) {
-        this.contactRecords = list;
+        this.contactRecords = new ConcurrentHashMap<>();
+        for (List<ContactRecord> internalList : list) {
+            for (ContactRecord rec : internalList) {
+                int binX = rec.getBinX();
+                int binY = rec.getBinY();
+
+                if (!this.contactRecords.containsKey(binX)) {
+                    this.contactRecords.put(binX, new ConcurrentHashMap<Integer, ContactRecord>());
+                }
+
+                this.contactRecords.get(binX).put(binY, rec);
+
+            }
+        }
         this.totSize = totSize;
+    }
+
+    private void collapseLowDepth() {
+        ListOfFloatArrays tempRowSums = computeVC();
+        ListOfFloatArrays collapsedRowSums = new ListOfFloatArrays(tempRowSums.getLength());
+        ListOfFloatArrays oldToNewRowMap = new ListOfFloatArrays(tempRowSums.getLength());
+        ListOfFloatArrays newCollapseLengths = new ListOfFloatArrays(tempRowSums.getLength());
+        for (long i = 0; i<tempRowSums.getLength(); i++) {
+
+        }
+
+        Map<Integer, Map<Integer, ContactRecord>> tempContactRecords;
     }
 
     public static void calcKR(String path) throws IOException {
@@ -148,7 +196,7 @@ public class NormalizationCalculations {
         if nargin < 3, x0 = e; end
         if nargin < 2, tol = 1e-6; end
     */
-    private static ListOfDoubleArrays computeKRNormVector(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, double tol, ListOfDoubleArrays x0, double delta) {
+    private static ListOfDoubleArrays computeKRNormVector(ListOfIntArrays offset, Map<Integer, Map<Integer, ContactRecord>> listOfLists, double tol, ListOfDoubleArrays x0, double delta) {
     
         long n = x0.getLength();
         ListOfDoubleArrays e = new ListOfDoubleArrays(n, 1);
@@ -295,11 +343,11 @@ public class NormalizationCalculations {
         return x0;
     }
     
-    private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, List<List<ContactRecord>> listOfLists, ListOfDoubleArrays vector) {
+    private static ListOfDoubleArrays sparseMultiplyFromContactRecords(ListOfIntArrays offset, Map<Integer, Map<Integer, ContactRecord>> listOfLists, ListOfDoubleArrays vector) {
         ListOfDoubleArrays result = new ListOfDoubleArrays(vector.getLength());
         
-        for (List<ContactRecord> localList : listOfLists) {
-            for (ContactRecord cr : localList) {
+        for (int i : listOfLists.keySet()) {
+            for (ContactRecord cr : listOfLists.get(i).values()) {
                 int row = cr.getBinX();
                 int col = cr.getBinY();
                 float value = cr.getCounts();
@@ -365,8 +413,8 @@ public class NormalizationCalculations {
     ListOfFloatArrays computeVC() {
         ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
         
-        for (List<ContactRecord> localList : contactRecords) {
-            for (ContactRecord cr : localList) {
+        for (int i : contactRecords.keySet()) {
+            for (ContactRecord cr : contactRecords.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float value = cr.getCounts();
@@ -395,8 +443,8 @@ public class NormalizationCalculations {
     public double[] getNormMatrixSumFactor(ListOfFloatArrays norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
-        for (List<ContactRecord> localList : contactRecords) {
-            for (ContactRecord cr : localList) {
+        for (int i : contactRecords.keySet()) {
+            for (ContactRecord cr : contactRecords.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float value = cr.getCounts();
@@ -510,8 +558,8 @@ public class NormalizationCalculations {
     private ListOfIntArrays getOffset(double percent) {
         ListOfDoubleArrays rowSums = new ListOfDoubleArrays(totSize, 0);
         
-        for (List<ContactRecord> localList : contactRecords) {
-            for (ContactRecord cr : localList) {
+        for (int i : contactRecords.keySet()) {
+            for (ContactRecord cr : contactRecords.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float value = cr.getCounts();

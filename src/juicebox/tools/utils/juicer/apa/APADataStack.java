@@ -160,7 +160,7 @@ public class APADataStack {
         if (aggregateNormalization) {
             double gwUpstreamAnchorRowAverage = MatrixTools.getAverage(gwUpstreamAnchorRowSums);
             double gwDownstreamAnchorRowAverage = MatrixTools.getAverage(gwDownstreamAnchorRowSums);
-            System.out.println(gwUpstreamAnchorRowAverage + " " + gwDownstreamAnchorRowAverage);
+            //System.out.println(gwUpstreamAnchorRowAverage + " " + gwDownstreamAnchorRowAverage);
             RealMatrix gwUpstreamAnchorRowSumsNormed = gwUpstreamAnchorRowSums.scalarMultiply(1 / gwUpstreamAnchorRowAverage);
             RealMatrix gwDownstreamAnchorRowSumsNormed = gwDownstreamAnchorRowSums.scalarMultiply(1 / gwDownstreamAnchorRowAverage);
 
@@ -208,11 +208,26 @@ public class APADataStack {
                     apaMatrices[i]);
         }
 
+        if (!saveAllData && aggregateNormalization) {
+            String title = "N=" + peakNumbers[0] + " (filtered) " + peakNumbers[1] + " (unique) " +
+                    peakNumbers[2] + " (total)";
+            if (!dontIncludePlots) {
+                APAPlotter.plot(apaMatrices[apaMatrices.length - 1], axesRange, new File(subFolder, apaDataTitles[apaMatrices.length - 1] + ".png"),
+                        title, currentRegionWidth, apaDataTitles[apaMatrices.length - 1].equals("APA"));
+            }
+            MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[apaMatrices.length - 1] + ".txt")).getAbsolutePath(),
+                    apaMatrices[apaMatrices.length - 1]);
+        }
+
         if (saveAllData) {
             APAUtils.saveListText((new File(subFolder, "enhancement.txt")).getAbsolutePath(),
                     givenEnhancement);
             APAUtils.saveMeasures((new File(subFolder, "measures.txt")).getAbsolutePath(),
                     apaMatrices[0], currentRegionWidth);
+            if (aggregateNormalization) {
+                APAUtils.saveMeasures((new File(subFolder, "aggNorm_measures.txt")).getAbsolutePath(),
+                        apaMatrices[apaMatrices.length - 1], currentRegionWidth);
+            }
         }
     }
 

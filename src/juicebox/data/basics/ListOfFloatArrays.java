@@ -26,6 +26,7 @@ package juicebox.data.basics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public class ListOfFloatArrays {
 
     private final long DEFAULT_LENGTH = Integer.MAX_VALUE - 10;
     private final long overallLength;
-    private final List<float[]> internalList = new ArrayList<>();
+    private final List<float[]> internalList = Collections.synchronizedList(new ArrayList<>());
 
     public ListOfFloatArrays(long length) {
         this.overallLength = length;
@@ -181,6 +182,16 @@ public class ListOfFloatArrays {
                 array[k] *= val;
             }
         }
+    }
+
+    public float getAverage() {
+        float sum = 0;
+        for (float[] array : internalList) {
+            for (int k = 0; k < array.length; k++) {
+                sum += array[k];
+            }
+        }
+        return sum/overallLength;
     }
 
     public ListOfDoubleArrays convertToDoubles() {

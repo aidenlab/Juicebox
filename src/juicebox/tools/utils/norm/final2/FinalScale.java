@@ -31,6 +31,7 @@ import juicebox.data.basics.ListOfIntArrays;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class FinalScale {
 
@@ -47,7 +48,7 @@ public class FinalScale {
     private final static float minErrorThreshold = .02f;
     private static final float OFFSET = .5f;
     
-    public static ListOfFloatArrays scaleToTargetVector(List<List<ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial) {
+    public static ListOfFloatArrays scaleToTargetVector(Map<Integer, Map<Integer, ContactRecord>> contactRecordsListOfLists, ListOfFloatArrays targetVectorInitial) {
         
         double low, zHigh, zLow;
         int rlind, zlind, zhind;
@@ -109,8 +110,8 @@ public class FinalScale {
         
         if (removeZerosOnDiag) {
             bad = new ListOfIntArrays(k, 1);
-            for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
-                for (ContactRecord cr : contactRecords) {
+            for (int i : contactRecordsListOfLists.keySet()) {
+                for (ContactRecord cr : contactRecordsListOfLists.get(i).values()) {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
                     if (x == y) {
@@ -124,8 +125,8 @@ public class FinalScale {
 
         //	find rows sums
 
-        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
-            for (ContactRecord cr : contactRecords) {
+        for (int i : contactRecordsListOfLists.keySet()) {
+            for (ContactRecord cr : contactRecordsListOfLists.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 numNonZero.addTo(x, 1);
@@ -362,12 +363,12 @@ public class FinalScale {
         return realVector;
     }
     
-    private static ListOfFloatArrays sparseMultiplyGetRowSums(List<List<ContactRecord>> contactRecordsListOfLists,
+    private static ListOfFloatArrays sparseMultiplyGetRowSums(Map<Integer, Map<Integer, ContactRecord>> contactRecordsListOfLists,
                                                                ListOfFloatArrays vector, long vectorLength) {
         ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
         
-        for (List<ContactRecord> contactRecords : contactRecordsListOfLists) {
-            for (ContactRecord cr : contactRecords) {
+        for (int i : contactRecordsListOfLists.keySet()) {
+            for (ContactRecord cr : contactRecordsListOfLists.get(i).values()) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float counts = cr.getCounts();

@@ -139,6 +139,10 @@ public class CLTFactory {
             return new APAvsDistance();
         } else if (cmd.equals("statistics")) {
             return new Statistics();
+        } else if (cmd.equals("generateTracks".toLowerCase())) {
+            return new Generate1DTracks();
+        } else if (cmd.equals("loopScores".toLowerCase())) {
+            return new LoopScores();
         }
 
 
