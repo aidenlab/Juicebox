@@ -191,6 +191,7 @@ public class StatisticsWorker {
                             resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
                         }
                     } catch (Exception e) {
+                        System.err.println(e.getLocalizedMessage());
                         // do nothing, fail gracefully; likely a chromosome issue
                     }
                 }
@@ -281,28 +282,27 @@ public class StatisticsWorker {
         if (frag ==0){
             //# first fragment, distance is position
             dist1 = pos;
-        }
-        else {
+        } else {
             dist1 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag - 1]);
         }
 
         dist2 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag]);
         //get minimum value -- if (dist1 <= dist2), it's dist1, else dist2
-        int retVal = Math.min(dist1,dist2);
+        int retVal = Math.min(dist1, dist2);
         //get which end of the fragment this is, 3' or 5' (depends on strand)
-            if ((retVal == dist1) && (rep)) {
-                if (strand) {
-                    resultsContainer.fivePrimeEnd[index]++;
-                } else {
-                    resultsContainer.threePrimeEnd[index]++;
-                }
-            } else if ((retVal == dist2) && (rep)) {
-                if (!strand) {
-                    resultsContainer.fivePrimeEnd[index]++;
-                } else {
-                    resultsContainer.threePrimeEnd[index]++;
-                }
+        if ((retVal == dist1) && (rep)) {
+            if (strand) {
+                resultsContainer.fivePrimeEnd[index]++;
+            } else {
+                resultsContainer.threePrimeEnd[index]++;
             }
+        } else if ((retVal == dist2) && (rep)) {
+            if (!strand) {
+                resultsContainer.fivePrimeEnd[index]++;
+            } else {
+                resultsContainer.threePrimeEnd[index]++;
+            }
+        }
         return retVal;
     }
 
