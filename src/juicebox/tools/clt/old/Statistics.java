@@ -144,7 +144,7 @@ public class Statistics extends JuiceboxCLT {
     @Override
     public void run() {
         setMndIndex(localHandler);
-        readSiteFile(siteFile, localHandler);
+        fragmentCalculation = readSiteFile(siteFile, localHandler);
         StatisticsContainer container;
         if (mndChunks.size() < 2 || numThreads == 1) {
             LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,
