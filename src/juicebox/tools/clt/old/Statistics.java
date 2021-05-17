@@ -24,46 +24,41 @@
 
 package juicebox.tools.clt.old;
 
-import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.Chunk;
 import juicebox.tools.utils.original.FragmentCalculation;
+import juicebox.tools.utils.original.MTIndexHandler;
+import juicebox.tools.utils.original.stats.LoneStatisticsWorker;
+import juicebox.tools.utils.original.stats.ParallelStatistics;
+import juicebox.tools.utils.original.stats.StatisticsContainer;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Statistics extends JuiceboxCLT {
 
     private int numThreads;
-    private int mndIndexSize;
     private String siteFile;
-    private String ligationJunction;
+    private String ligationJunction = "none";
     private String inFile;
     private String mndIndexFile;
     private ChromosomeHandler localHandler;
-    private Map<Integer, Long> mndIndex;
-    private FragmentCalculation chromosomes;
+    private final List<Chunk> mndChunks = new ArrayList<>();
+    private FragmentCalculation fragmentCalculation;
     private final List<String> statsFiles = new ArrayList<>();
     private final List<Integer> mapqThresholds = new ArrayList<>();
-    private final static Object mergerLock = new Object();
-    private final AtomicInteger threadCounter = new AtomicInteger();
-    
+
     public Statistics() {
         //constructor
         super(getUsage());
     }
-    
+
     public static String getUsage() {
         return " Usage: statistics [--ligation NNNN] [--mapqs mapq1,maqp2] [--mndindex mndindex.txt] [--threads numthreads]\n " +
                 "                   <site_file> <stats_file> [stats_file_2] <infile> <genomeID> [outfile]\n" +
@@ -79,71 +74,26 @@ public class Statistics extends JuiceboxCLT {
                 " [outfile]: output, results of fragment search\n";
     }
 
-    public void setMndIndex() {
+    public void setMndIndex(ChromosomeHandler handler) {
         if (mndIndexFile != null && mndIndexFile.length() > 1) {
-            mndIndex = readMndIndex(mndIndexFile);
-        }
-    }
-
-    public Map<Integer, Long> readMndIndex(String mndIndexFile) {
-        int counter = 0;
-        FileInputStream is;
-        Map<Integer, Long> mndIndex = new ConcurrentHashMap<>();
-        try {
-            is = new FileInputStream(mndIndexFile);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-            String nextLine;
-            while ((nextLine = reader.readLine()) != null) {
-                String[] nextEntry = nextLine.split(",");
-                if (nextEntry.length != 2) {
-                    System.err.println("Improperly formatted merged nodups index");
-                    System.exit(70);
-                } else {
-                    mndIndex.put(counter++, Long.parseLong(nextEntry[1]));
-                }
+            Map<Integer, String> chromosomePairIndexes = new ConcurrentHashMap<>();
+            MTIndexHandler.populateChromosomePairIndexes(handler,
+                    chromosomePairIndexes, new HashMap<>(),
+                    new HashMap<>(), new HashMap<>());
+            Map<Integer, List<Chunk>> mndIndex = MTIndexHandler.readMndIndex(mndIndexFile, chromosomePairIndexes);
+            for (List<Chunk> values : mndIndex.values()) {
+                mndChunks.addAll(values);
             }
-        } catch (Exception e) {
-            System.err.println("Unable to read merged nodups index");
-            System.exit(70);
         }
-        mndIndexSize = counter;
-        return mndIndex;
     }
 
-    public void readSiteFile() {
+    private FragmentCalculation readSiteFile(String siteFile, ChromosomeHandler handler) {
         //read in restriction site file and store as multidimensional array q
         if (!siteFile.contains("none")) {
             //if restriction enzyme exists, find the RE distance//
-            try {
-                chromosomes = FragmentCalculation.readFragments(siteFile, localHandler);
-            } catch (IOException error) {
-                error.printStackTrace();
-            }
+            return FragmentCalculation.readFragments(siteFile, handler, "Stats");
         }
-    }
-    
-    public void runIndividualStatistics(final StatisticsContainer mergedContainer) {
-        long mndIndexStart;
-        while (threadCounter.get() < mndIndexSize) {
-            if (mndIndex != null) {
-                int currentCount = threadCounter.getAndIncrement();
-                if (!mndIndex.containsKey(currentCount)) {
-                    System.out.println("Index position does not exist");
-                } else {
-                    mndIndexStart = mndIndex.get(currentCount);
-                    try {
-                        StatisticsWorker runner = new StatisticsWorker(siteFile, statsFiles, mapqThresholds,
-                                ligationJunction, inFile, localHandler, mndIndexStart, chromosomes);
-                        runner.infileStatistics();
-                        synchronized (mergerLock) {
-                            mergedContainer.add(runner.getResultsContainer(), statsFiles.size());
-                        }
-                    } catch (Exception e2) {
-                        e2.printStackTrace();
-                    }
-                }
-            }
-        }
+        return null;
     }
 
     @Override
@@ -152,7 +102,7 @@ public class Statistics extends JuiceboxCLT {
             printUsageAndExit();
         }
         //set required arguments to variables
-        siteFile = args[1].toLowerCase();
+        siteFile = args[1];
         statsFiles.add(args[2]);
         if (args.length == 6) {// two map q values,input text files
             statsFiles.add(args[3]);
@@ -167,11 +117,14 @@ public class Statistics extends JuiceboxCLT {
         if (mapQT != null && (mapQT.size() == 1 || mapQT.size() == 2)) { //only one or two mapq values
             int mapqThreshold = mapQT.get(0) > 0 ? mapQT.get(0) : 1;
             mapqThresholds.add(mapqThreshold);
-            mapqThreshold = 30;
-            if (mapQT.size() == 2) {
-                mapqThreshold = mapQT.get(1) > 0 ? mapQT.get(1) : 30;
+
+            if (statsFiles.size() == 2) {
+                mapqThreshold = 30;
+                if (mapQT.size() == 2) {
+                    mapqThreshold = mapQT.get(1) > 0 ? mapQT.get(1) : 30;
+                }
+                mapqThresholds.add(mapqThreshold);
             }
-            mapqThresholds.add(mapqThreshold);
         }
         else {
             mapqThresholds.add(1);
@@ -180,7 +133,7 @@ public class Statistics extends JuiceboxCLT {
             }
         }
         String ligJunc = parser.getLigationOption();
-        if (ligJunc != null) {
+        if (ligJunc != null && ligJunc.length() > 1) {
             ligationJunction = ligJunc;
         }
         //multithreading flags
@@ -190,28 +143,23 @@ public class Statistics extends JuiceboxCLT {
 
     @Override
     public void run() {
-        setMndIndex();
-        readSiteFile();
-        if (mndIndex == null || numThreads == 1) {
-            StatisticsWorker runner = new StatisticsWorker(siteFile, statsFiles, mapqThresholds,
-                    ligationJunction, inFile, localHandler, chromosomes);
+        setMndIndex(localHandler);
+        fragmentCalculation = readSiteFile(siteFile, localHandler);
+        StatisticsContainer container;
+        if (mndChunks.size() < 2 || numThreads == 1) {
+            LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,
+                    ligationJunction, inFile, localHandler, fragmentCalculation);
             runner.infileStatistics();
-            runner.getResultsContainer().outputStatsFile(statsFiles);
-            runner.getResultsContainer().writeHistFile(statsFiles);
-
+            container = runner.getResultsContainer();
         } else {
-            StatisticsContainer mergedContainer = new StatisticsContainer();
-            ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-            for (int l = 0; l < numThreads; l++) {
-                Runnable worker = () -> runIndividualStatistics(mergedContainer);
-                executor.execute(worker);
-            }
-            executor.shutdown();
-            // Wait until all threads finish
-            while (!executor.isTerminated()) {
-            }
-            mergedContainer.outputStatsFile(statsFiles);
-            mergedContainer.writeHistFile(statsFiles);
+            container = new StatisticsContainer();
+            ParallelStatistics pStats = new ParallelStatistics(numThreads, container,
+                    mndChunks, siteFile, statsFiles, mapqThresholds,
+                    ligationJunction, inFile, localHandler, fragmentCalculation);
+            pStats.launchThreads();
         }
+        container.calculateConvergence(statsFiles.size());
+        container.outputStatsFile(statsFiles);
+        container.writeHistFile(statsFiles);
     }
 }

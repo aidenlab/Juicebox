@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MTIndexHandler {
-    public static Map<Integer, List<long[]>> readMndIndex(String mndIndexFile,
-                                                          Map<Integer, String> chromosomePairIndexes) {
+    public static Map<Integer, List<Chunk>> readMndIndex(String mndIndexFile,
+                                                         Map<Integer, String> chromosomePairIndexes) {
         FileInputStream is = null;
-        Map<String, List<long[]>> tempIndex = new HashMap<>();
-        Map<Integer, List<long[]>> mndIndex = new ConcurrentHashMap<>();
+        Map<String, List<Chunk>> tempIndex = new HashMap<>();
+        Map<Integer, List<Chunk>> mndIndex = new ConcurrentHashMap<>();
         try {
             is = new FileInputStream(mndIndexFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
@@ -53,7 +53,7 @@ public class MTIndexHandler {
                     if (tempIndex.get(nextEntry[0]) == null) {
                         tempIndex.put(nextEntry[0], new ArrayList<>());
                     }
-                    long[] indexEntry = new long[]{Long.parseLong(nextEntry[2]), Long.parseLong(nextEntry[3])};
+                    Chunk indexEntry = new Chunk(nextEntry[2], nextEntry[3]);
                     tempIndex.get(nextEntry[0]).add(indexEntry);
                 } else {
                     System.err.println("Improperly formatted merged nodups index: " + nextLine);
@@ -68,7 +68,6 @@ public class MTIndexHandler {
             System.err.println("Unable to read merged nodups index");
             System.exit(70);
         }
-
 
         for (Map.Entry<Integer, String> entry : chromosomePairIndexes.entrySet()) {
             String reverseName = entry.getValue().split("-")[1] + "-" + entry.getValue().split("-")[0];

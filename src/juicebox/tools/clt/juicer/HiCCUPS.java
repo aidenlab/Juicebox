@@ -177,7 +177,6 @@ public class HiCCUPS extends JuicerCLT {
     private boolean configurationsSetByUser = false;
     private String featureListPath;
     private boolean listGiven = false;
-    private boolean checkMapDensityThreshold = true;
     private ChromosomeHandler directlyInitializedChromosomeHandler = null;
 
     /*
@@ -205,7 +204,7 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
                 "[-c chromosome(s)] [-r resolution(s)] [--restrict] " +
-                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore-sparsity]" +
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
                 "<hicFile> <outputDirectory> [specified_loop_list]");
         Feature2D.allowHiCCUPSOrdering = true;
     }
@@ -248,10 +247,6 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         updateNumberOfCPUThreads(juicerParser);
-
-        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
-            checkMapDensityThreshold = false;
-        }
     }
 
     /**
@@ -295,9 +290,6 @@ public class HiCCUPS extends JuicerCLT {
         // fdr & oe thresholds directly sent in
         if (thresholds != null) setHiCCUPSFDROEThresholds(thresholds);
 
-        // force hiccups to run
-        checkMapDensityThreshold = false;
-
         this.restrictSearchRegions = restrictSearchRegions;
         if (usingCPUVersion) {
             useCPUVersionHiCCUPS = true;
@@ -313,28 +305,15 @@ public class HiCCUPS extends JuicerCLT {
             double firstExpected = df.getExpectedValuesNoNormalization().getFirstValue(); // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
-            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-            // todo 300M reads or contacts
-            if (HiCGlobals.printVerboseComments) {
-                System.err.println("First expected is " + firstExpected);
-            }
             if (firstExpected < 100000) {
-                System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
-                if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
-                    System.exit(0);
-                }
-            }
-
-            // high quality (e.g. GM12878) maps have different settings
-            if (!configurationsSetByUser) {
-                configurations = HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers();
+                System.err.println("Warning Hi-C map may be too sparse to find many loops via HiCCUPS.");
             }
         } catch (Exception e) {
             System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
-            if (!configurationsSetByUser) {
-                configurations = HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers();
-            }
+        }
+
+        if (!configurationsSetByUser) {
+            configurations = HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers();
         }
 
         ChromosomeHandler commonChromosomesHandler = ds.getChromosomeHandler();

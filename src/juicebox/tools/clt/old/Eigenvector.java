@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -90,12 +90,9 @@ public class Eigenvector extends JuiceboxCLT {
             System.exit(21);
         }
 
-        if ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_PEARSON_ZOOM) ||
-                (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
-          /*  System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
-            System.out.println("To override this limitation, send in the \"-p\" flag.");
-            System.exit(0);    */
-            System.out.println("WARNING: Pearson's and eigenvector calculation at high resolution can take a long time");
+        if ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_EIGENVECTOR_ZOOM) ||
+                (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_EIGENVECTOR_ZOOM / 1000)) {
+            System.out.println("WARNING: Eigenvector calculation at high resolution can take a long time");
         }
 
 

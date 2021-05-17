@@ -72,7 +72,7 @@ class ContactRecordIterator implements Iterator<ContactRecord> {
             return true;
         } else {
             blockIdx++;
-            if (blockIdx < blockNumbers.size()) {
+            if (blockNumbers != null && blockIdx < blockNumbers.size()) {
                 try {
                     int blockNumber = blockNumbers.get(blockIdx);
 

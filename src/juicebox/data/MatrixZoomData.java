@@ -46,10 +46,10 @@ import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.linear.Array2DRowRealMatrix;
-import org.apache.commons.math.linear.EigenDecompositionImpl;
-import org.apache.commons.math.linear.RealMatrix;
-import org.apache.commons.math.linear.RealVector;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
@@ -81,7 +81,6 @@ public class MatrixZoomData {
     protected final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
-    private final HashSet<NormalizationType> missingPearsonFiles;
     //private List<List<ContactRecord>> localCacheOfRecords = null;
     private final V9Depth v9Depth;
     private double averageCount = -1;
@@ -147,7 +146,6 @@ public class MatrixZoomData {
 
         pearsonsMap = new HashMap<>();
         normSquaredMaps = new HashMap<>();
-        missingPearsonFiles = new HashSet<>();
     }
 
     public Chromosome getChr1() {
@@ -703,42 +701,54 @@ public class MatrixZoomData {
         }
 
         int dim = pearsons.getRowDimension();
-        double[][] data = new double[dim][dim];
         BitSet bitSet = new BitSet(dim);
         for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-                float tmp = pearsons.getEntry(i, j);
-                data[i][j] = tmp;
-                if (data[i][j] != 0 && !Float.isNaN(tmp)) {
-                    bitSet.set(i);
-                }
+            float tmp = pearsons.getEntry(i, i);
+            if (tmp > .999) { // checking if diagonal is 1
+                bitSet.set(i);
             }
         }
 
-        int[] nonCentromereColumns = new int[bitSet.cardinality()];
-        int count = 0;
-        for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) nonCentromereColumns[count++] = i;
-        }
+        int[] newPosToOrig = getMapNewPosToOriginal(dim, bitSet);
 
-        RealMatrix subMatrix = new Array2DRowRealMatrix(data).getSubMatrix(nonCentromereColumns, nonCentromereColumns);
-        RealVector rv = (new EigenDecompositionImpl(subMatrix, 0)).getEigenvector(which);
-
+        RealMatrix subMatrix = getSubsetOfMatrix(newPosToOrig, bitSet.cardinality(), pearsons);
+        RealVector rv = (new EigenDecomposition(subMatrix)).getEigenvector(which);
         double[] ev = rv.toArray();
 
         int size = pearsons.getColumnDimension();
         double[] eigenvector = new double[size];
-        int num = 0;
-        for (int i = 0; i < size; i++) {
-            if (num < nonCentromereColumns.length && i == nonCentromereColumns[num]) {
-                eigenvector[i] = ev[num];
-                num++;
-            } else {
-                eigenvector[i] = Double.NaN;
-            }
+        Arrays.fill(eigenvector, Double.NaN);
+        for (int i = 0; i < newPosToOrig.length; i++) {
+            int oldI = newPosToOrig[i];
+            eigenvector[oldI] = ev[i];
         }
         return eigenvector;
+    }
 
+    private RealMatrix getSubsetOfMatrix(int[] newPosToOrig, int subsetN, BasicMatrix pearsons) {
+        double[][] data = new double[subsetN][subsetN];
+
+        for (int newI = 0; newI < newPosToOrig.length; newI++) {
+            int oldI = newPosToOrig[newI];
+            for (int newJ = newI; newJ < newPosToOrig.length; newJ++) {
+                int oldJ = newPosToOrig[newJ];
+                float tmp = pearsons.getEntry(oldI, oldJ);
+                data[newI][newJ] = tmp;
+                data[newJ][newI] = tmp;
+            }
+        }
+        return new Array2DRowRealMatrix(data);
+    }
+
+    private int[] getMapNewPosToOriginal(int dim, BitSet bitSet) {
+        int[] newPosToOrig = new int[bitSet.cardinality()];
+        int count = 0;
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) {
+                newPosToOrig[count++] = i;
+            }
+        }
+        return newPosToOrig;
     }
 
     public BasicMatrix getNormSquared(NormalizationType normalizationType) {
@@ -783,22 +793,6 @@ public class MatrixZoomData {
         if (pearsons != null) {
             return pearsons;
         }
-        else if (!missingPearsonFiles.contains(df.getNormalizationType())) {
-            // try to read
-            try {
-                pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
-            } catch (IOException e) {
-                pearsons = null;
-                System.err.println(e.getMessage());
-            }
-            if (pearsons != null) {
-                // put it back in the map.
-                pearsonsMap.put(df.getNormalizationType(), pearsons);
-                readPearsons = true;
-            } else {
-                missingPearsonFiles.add(df.getNormalizationType());  // To keep from trying repeatedly
-            }
-        }
         // we weren't able to read in the Pearsons. check that the resolution is low enough to calculate
         if (!readPearsons && (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) ||
                 (zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
@@ -838,83 +832,48 @@ public class MatrixZoomData {
             throw new RuntimeException("Cannot compute pearsons for non-diagonal matrices");
         }
 
-        // # of columns.  We could let the data itself define this
         int dim;
         if (zoom.getUnit() == HiC.Unit.BP) {
-            //todo currently - pearson only done for resolutions where lossy conversion doesn't matter
             dim = (int) (chr1.getLength() / zoom.getBinSize()) + 1;
         } else {
             dim = ((DatasetReaderV2) reader).getFragCount(chr1) / zoom.getBinSize() + 1;
         }
 
         // Compute O/E column vectors
-        double[][] vectors = new double[dim][];
+        double[][] oeMatrix = new double[dim][dim];
+        BitSet bitSet = new BitSet(dim);
+        populateOEMatrixAndBitset(oeMatrix, bitSet, df);
 
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            ContactRecord record = iterator.next();
-            int i = record.getBinX();
-            int j = record.getBinY();
-            float counts = record.getCounts();
-            if (Float.isNaN(counts)) continue;
-
-            int dist = Math.abs(i - j);
-            double expected = df.getExpectedValue(chr1.getIndex(), dist);
-            double oeValue = counts / expected;
-
-            double[] vi = vectors[i];
-            if (vi == null) {
-                vi = new double[dim]; //zeroValue) ;
-                vectors[i] = vi;
-            }
-            vi[j] = oeValue;
-
-
-            double[] vj = vectors[j];
-            if (vj == null) {
-                vj = new double[dim]; // zeroValue) ;
-                vectors[j] = vj;
-            }
-            vj[i] = oeValue;
+        BasicMatrix pearsons;
+        if (HiCGlobals.guiIsCurrentlyActive) { // todo ask Neva
+            pearsons = Pearsons.computeParallelizedPearsons(oeMatrix, dim, bitSet);
+        } else {
+            pearsons = Pearsons.computePearsons(oeMatrix, dim, bitSet);
         }
-
-        // Subtract row means
-        double[] rowMeans = new double[dim];
-        for (int i = 0; i < dim; i++) {
-            double[] row = vectors[i];
-            rowMeans[i] = row == null ? 0 : getVectorMean(row);
-        }
-
-        for (int j = 0; j < dim; j++) {
-            for (int i = 0; i < dim; i++) {
-                double[] column = vectors[j];
-                if (column == null) continue;
-                column[i] -= rowMeans[i];
-            }
-        }
-
-        BasicMatrix pearsons = Pearsons.computePearsons(vectors, dim);
         pearsonsMap.put(df.getNormalizationType(), pearsons);
-
         return pearsons;
     }
 
-    /**
-     * Return the mean of the given vector, ignoring NaNs
-     *
-     * @param vector Vector to calculate the mean on
-     * @return The mean of the vector, not including NaNs.
-     */
-    private double getVectorMean(double[] vector) {
-        double sum = 0;
-        int count = 0;
-        for (double aVector : vector) {
-            if (!Double.isNaN(aVector)) {
-                sum += aVector;
-                count++;
-            }
+    private void populateOEMatrixAndBitset(double[][] oeMatrix, BitSet bitSet, ExpectedValueFunction df) {
+        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
+        while (iterator.hasNext()) {
+            ContactRecord record = iterator.next();
+            float counts = record.getCounts();
+            if (Float.isNaN(counts)) continue;
+
+            int i = record.getBinX();
+            int j = record.getBinY();
+            int dist = Math.abs(i - j);
+
+            double expected = df.getExpectedValue(chr1.getIndex(), dist);
+            double oeValue = counts / expected;
+
+            oeMatrix[i][j] = oeValue;
+            oeMatrix[j][i] = oeValue;
+
+            bitSet.set(i);
+            bitSet.set(j);
         }
-        return count == 0 ? 0 : sum / count;
     }
 
     /**

@@ -53,7 +53,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
     private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
-    protected static Map<Integer, List<long[]>> mndIndex = null;
+    protected static Map<Integer, List<Chunk>> mndIndex = null;
     private final AtomicInteger chunkCounter = new AtomicInteger(0);
     private int totalChunks = 0;
     private int totalChrPairToWrite = 0;
@@ -67,7 +67,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
     private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrChunkMap = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Map<Integer, Pair<Pair<Integer, Integer>, MatrixPP>>> threadSpecificChrPairMatrices = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, MatrixPP> finalChrMatrices = new ConcurrentHashMap<>();
-
 
     public MultithreadedPreprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler,
                                      double hicFileScalingFactor, int numCPUThreads, String mndIndexFile) throws IOException {
@@ -91,7 +90,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     @Override
-    public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer, List<long[]>> ignore3) throws IOException {
+    public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer,
+            List<Chunk>> ignore3) throws IOException {
         super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 
         try {
@@ -161,14 +161,14 @@ public class MultithreadedPreprocessor extends Preprocessor {
                 break;
             }
             int chrChunk = chunkCounterToChrChunkMap.get(i);
-            List<long[]> chunkPositions = mndIndex.get(chrPair);
+            List<Chunk> chunkPositions = mndIndex.get(chrPair);
             PairIterator iter = null;
             if (mndIndex == null) {
                 System.err.println("No index for merged nodups file.");
                 System.exit(67);
             } else {
-                iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chunkPositions.get(chrChunk)[0],
-                        (int) chunkPositions.get(chrChunk)[1], chromosomeHandler);
+                iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chunkPositions.get(chrChunk),
+                        chromosomeHandler);
             }
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();
@@ -265,7 +265,7 @@ public class MultithreadedPreprocessor extends Preprocessor {
     }
 
     @Override
-    protected void writeBody(String inputFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, List<Chunk>> mndIndex) throws IOException {
 
         Set<String> syncWrittenMatrices = Collections.synchronizedSet(new HashSet<>());
         final AtomicInteger freeThreads = new AtomicInteger(numCPUThreads);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -113,11 +113,10 @@ public class Arrowhead extends JuicerCLT {
     // must be passed via command line
     private int resolution = 10000;
     private Dataset ds;
-    private boolean checkMapDensityThreshold = true;
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "[--ignore-sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
+                "<hicFile(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -141,7 +140,7 @@ public class Arrowhead extends JuicerCLT {
             norm = preferredNorm;
 
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
-        if (potentialResolution != null) {
+        if (potentialResolution != null && potentialResolution.size() > 0) {
             resolution = Integer.parseInt(potentialResolution.get(0));
             configurationsSetByUser = true;
         }
@@ -155,10 +154,6 @@ public class Arrowhead extends JuicerCLT {
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 1) {
             matrixSize = specifiedMatrixSize;
-        }
-
-        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
-            checkMapDensityThreshold = false;
         }
 
         updateNumberOfCPUThreads(juicerParser);
@@ -184,17 +179,8 @@ public class Arrowhead extends JuicerCLT {
 			double firstExpected = df.getExpectedValuesNoNormalization().getFirstValue(); // expected value on diagonal
             // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
             // then the map had more than 300M contacts.
-            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-            if (HiCGlobals.printVerboseComments) {
-                System.err.println("First expected is " + firstExpected);
-            }
-
             if (firstExpected < 100000) {
-                System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
-                if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore-sparsity flag.");
-                    System.exit(0);
-                }
+                System.err.println("Warning: Hi-C map may be too sparse to find many domains via Arrowhead.");
             }
 
             // high quality (IMR90, GM12878) maps have different settings

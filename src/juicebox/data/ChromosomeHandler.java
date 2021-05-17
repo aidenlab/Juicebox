@@ -92,7 +92,7 @@ public class ChromosomeHandler {
 
 
     public String cleanUpName(String name) {
-        if (genomeID.equalsIgnoreCase("hg19") || genomeID.equalsIgnoreCase("hg38")) {
+        if (genomeID.equalsIgnoreCase("hg19")) {
             return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
         }
         return name;

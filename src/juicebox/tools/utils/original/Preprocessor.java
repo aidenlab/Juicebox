@@ -306,7 +306,7 @@ public class Preprocessor {
 
 
     public void preprocess(final String inputFile, final String headerFile, final String footerFile,
-                           Map<Integer, List<long[]>> mndIndex) throws IOException {
+                           Map<Integer, List<Chunk>> mndIndex) throws IOException {
         File file = new File(inputFile);
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
@@ -318,12 +318,7 @@ public class Preprocessor {
             StringBuilder graphs = null;
             StringBuilder hicFileScaling = new StringBuilder().append(hicFileScalingFactor);
             if (fragmentFileName != null) {
-                try {
-                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
-                } catch (Exception e) {
-                    System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
-                    fragmentCalculation = null;
-                }
+                fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler, "Pre");
             } else {
                 System.out.println("Not including fragment map");
             }
@@ -333,7 +328,7 @@ public class Preprocessor {
                     fragmentCalculationsForRandomization = new ArrayList<>();
                     for (String fragmentFileName : randomizeFragMapFiles) {
                         try {
-                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler);
+                            FragmentCalculation fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName, chromosomeHandler, "PreWithRand");
                             fragmentCalculationsForRandomization.add(fragmentCalculation);
                             System.out.println(String.format("added %s", fragmentFileName));
                         } catch (Exception e) {
@@ -585,7 +580,7 @@ public class Preprocessor {
         try {
             iter = (file.endsWith(".bin")) ?
                     new BinPairIterator(file) :
-                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler);
+                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
 
             while (iter.hasNext()) {
                 totalRead++;
@@ -674,14 +669,14 @@ public class Preprocessor {
         }
     }
 
-    protected void writeBody(String inputFile, Map<Integer, List<long[]>> mndIndex) throws IOException {
+    protected void writeBody(String inputFile, Map<Integer, List<Chunk>> mndIndex) throws IOException {
 
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler);
+                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler, false);
 
         Set<String> writtenMatrices = Collections.synchronizedSet(new HashSet<>());
 

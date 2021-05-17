@@ -25,14 +25,17 @@
 package juicebox.tools.clt;
 
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
+import juicebox.data.*;
+import juicebox.data.basics.Chromosome;
+import juicebox.matrix.BasicMatrix;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
@@ -43,6 +46,44 @@ import java.util.*;
  * Created by muhammadsaadshamim on 7/22/15.
  */
 class UnitTests {
+
+    public static void pearsonsAndEigenvector() {
+
+        List<String> files = new ArrayList<>();
+        files.add("/Users/mshamim/Desktop/hicfiles/gm12878_rh14_30.hic");
+        Dataset ds = HiCFileTools.extractDatasetForCLT(files, false);
+        Chromosome chrom = ds.getChromosomeHandler().getChromosomeFromName("10");
+        Matrix matrix = ds.getMatrix(chrom, chrom);
+        HiCGlobals.MAX_PEARSON_ZOOM = 50000;
+        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, 50000);
+        MatrixZoomData zd = matrix.getZoomData(zoom);
+        ExpectedValueFunction df = ds.getExpectedValues(zoom, NormalizationHandler.KR);
+        HiCGlobals.guiIsCurrentlyActive = true;
+        long time0 = System.nanoTime();
+        BasicMatrix bm1 = zd.getPearsons(df);
+        long time1 = System.nanoTime();
+        System.out.println("Pearsons Time: " + (time1 - time0) * 1e-9);
+
+        long Etime0 = System.nanoTime();
+        double[] eig = zd.computeEigenvector(df, 0);
+        long Etime1 = System.nanoTime();
+        System.out.println("Eig Time: " + (Etime1 - Etime0) * 1e-9);
+
+
+        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/c20.npy", toDenseMatrix(bm1));
+
+        MatrixTools.saveMatrixTextNumpy("/Users/mshamim/Desktop/research/pearson/E20.npy", eig);
+    }
+
+    private static float[][] toDenseMatrix(BasicMatrix bm1) {
+        float[][] vals = new float[bm1.getRowDimension()][bm1.getColumnDimension()];
+        for (int i = 0; i < vals.length; i++) {
+            for (int j = 0; j < vals[i].length; j++) {
+                vals[i][j] = bm1.getEntry(i, j);
+            }
+        }
+        return vals;
+    }
 
     private static void testingMergerOfHiCCUPSPostprocessing() {
         HiCGlobals.printVerboseComments = true;

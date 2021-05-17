@@ -26,7 +26,6 @@ package juicebox.data;
 
 import juicebox.HiC;
 import juicebox.data.basics.ListOfDoubleArrays;
-import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
@@ -69,8 +68,6 @@ public interface DatasetReader {
     NormalizationVector readNormalizationVectorPart(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize, int bound1, int bound2) throws IOException;
 
     ListOfDoubleArrays readExpectedVectorPart(long position, long nVals) throws IOException;
-
-    BasicMatrix readPearsons(String chr1Name, String chr2Name, HiCZoom zoom, NormalizationType type) throws IOException;
 
     String getPath();
 

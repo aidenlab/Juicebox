@@ -130,8 +130,8 @@ public class CLTFactory {
             return new Pearsons();
         } else if (cmd.equals("eigenvector")) {
             return new Eigenvector();
-        } else if (cmd.equals("librarycomplexity")) {
-            return new LibraryComplexity();
+        } else if (cmd.contains("librarycomplexity")) {
+            return new LibraryComplexity(cmd);
         } else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
             return new APAvsDistance();
         } else if (cmd.equals("statistics")) {

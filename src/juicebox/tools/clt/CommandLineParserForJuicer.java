@@ -45,7 +45,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
-    private final Option bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore-sparsity");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
     private final Option threadNumOption = addIntegerOption('z', "threads");
 
@@ -78,10 +77,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
                 || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance");
-    }
-
-    public boolean getBypassMinimumMapCountCheckOption() {
-        return optionToBoolean(bypassMinimumMapCountCheckOption);
     }
 
     public boolean getLegacyOutputOption() {
