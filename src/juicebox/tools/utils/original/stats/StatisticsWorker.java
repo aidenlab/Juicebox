@@ -191,7 +191,7 @@ public class StatisticsWorker {
                             resultsContainer.hindIII.get(ind).put(dist, resultsContainer.hindIII.get(ind).getOrDefault(dist, 0L) + 1);
                         }
                     } catch (Exception e) {
-                        System.err.println(e.getLocalizedMessage());
+                       // System.err.println(e.getLocalizedMessage());
                         // do nothing, fail gracefully; likely a chromosome issue
                     }
                 }

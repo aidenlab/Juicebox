@@ -160,7 +160,7 @@ public class StatisticsContainer {
             long[] valsFound = new long[NUM_TO_READ]; // seqReads, duplicates
             attempReadingDataFromExistingFile(valsWereFound, valsFound, statFile);
 
-            if (statFile.exists()) {
+         //   if (statFile.exists()) {
                 try {
                     BufferedWriter statsOut = new BufferedWriter(new FileWriter(statFile, true));
                     writeLibComplexityIfNeeded(valsWereFound, valsFound, statsOut);
@@ -182,7 +182,7 @@ public class StatisticsContainer {
                 } catch (IOException error) {
                     error.printStackTrace();
                 }
-            }
+          //  }
         }
     }
 
