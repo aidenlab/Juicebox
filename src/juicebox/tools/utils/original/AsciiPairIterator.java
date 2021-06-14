@@ -168,7 +168,11 @@ public class AsciiPairIterator implements PairIterator {
                 }
 
                 if (format == null || format != Format.DCIC) {
-                    if (nTokens == 8) {
+                    if (nTokens == 4) {
+                        format = Format.SUPER_SHORT;
+                    } else if (nTokens == 5) {
+                        format = Format.SUPER_SHORT_WITH_SCORE;
+                    } else if (nTokens == 8) {
                         format = Format.SHORT;
                     } else if (nTokens == 9) {
                         format = Format.SHORT_WITH_SCORE;
@@ -187,6 +191,8 @@ public class AsciiPairIterator implements PairIterator {
                     nextPair = parseLongFormat(tokens);
                 } else if (format == Format.DCIC) {
                     nextPair = parseDCICFormat(tokens);
+                } else if (format == Format.SUPER_SHORT || format == Format.SUPER_SHORT_WITH_SCORE) {
+                    nextPair = parseSuperShortFormat(tokens, format == Format.SUPER_SHORT_WITH_SCORE);
                 } else {
                     nextPair = parseShortFormat(tokens, format == Format.SHORT_WITH_SCORE);
                 }
@@ -245,6 +251,27 @@ public class AsciiPairIterator implements PairIterator {
             AlignmentPair nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
             if (includeScore) {
                 nextPair.setScore(Float.parseFloat(tokens[8]));
+            }
+            return nextPair;
+        } else {
+            return new AlignmentPair(); // sets dummy values, sets isContigPair
+        }
+    }
+
+    private AlignmentPair parseSuperShortFormat(String[] tokens, boolean includeScore) {
+        String chrom1 = handler.cleanUpName(getInternedString(tokens[0]));
+        String chrom2 = handler.cleanUpName(getInternedString(tokens[2]));
+        // some contigs will not be present in the chrom.sizes file
+        if (isValid(chrom1, chrom2)) {
+            int chr1 = chromosomeOrdinals.get(chrom1);
+            int chr2 = chromosomeOrdinals.get(chrom2);
+            int pos1 = Integer.parseInt(tokens[1]);
+            int pos2 = Integer.parseInt(tokens[3]);
+
+            AlignmentPair nextPair = new AlignmentPair(true, chr1, pos1, 0, 1000,
+                    false, chr2, pos2, 1, 1000);
+            if (includeScore) {
+                nextPair.setScore(Float.parseFloat(tokens[4]));
             }
             return nextPair;
         } else {
@@ -366,6 +393,6 @@ public class AsciiPairIterator implements PairIterator {
         }
     }
 
-    enum Format {SHORT, LONG, MEDIUM, SHORT_WITH_SCORE, DCIC}
+    enum Format {SUPER_SHORT, SUPER_SHORT_WITH_SCORE, SHORT, LONG, MEDIUM, SHORT_WITH_SCORE, DCIC}
 
 }
