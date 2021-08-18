@@ -25,9 +25,9 @@
 package juicebox.tools.utils.original.stats;
 
 import juicebox.data.ChromosomeHandler;
-import juicebox.tools.utils.original.AlignmentPair;
-import juicebox.tools.utils.original.AlignmentPairLong;
 import juicebox.tools.utils.original.FragmentCalculation;
+import juicebox.tools.utils.original.mnditerator.AlignmentPair;
+import juicebox.tools.utils.original.mnditerator.AlignmentPairLong;
 
 import java.util.List;
 import java.util.Map;

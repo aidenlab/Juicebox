@@ -25,10 +25,10 @@
 package juicebox.tools.utils.original.stats;
 
 import juicebox.data.ChromosomeHandler;
-import juicebox.tools.utils.original.AlignmentPairLong;
-import juicebox.tools.utils.original.AsciiPairIterator;
 import juicebox.tools.utils.original.Chunk;
 import juicebox.tools.utils.original.FragmentCalculation;
+import juicebox.tools.utils.original.mnditerator.AlignmentPairLong;
+import juicebox.tools.utils.original.mnditerator.AsciiPairIterator;
 
 import java.io.IOException;
 import java.util.HashMap;

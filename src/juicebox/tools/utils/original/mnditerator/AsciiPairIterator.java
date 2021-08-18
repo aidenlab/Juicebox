@@ -22,12 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.original.mnditerator;
 
 
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.Chunk;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
