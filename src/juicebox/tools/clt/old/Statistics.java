@@ -59,7 +59,7 @@ public class Statistics extends JuiceboxCLT {
 
     public static String getUsage() {
         return " Usage: statistics [--ligation NNNN] [--mapqs mapq1,maqp2] [--mndindex mndindex.txt] [--threads numthreads]\n " +
-                "                   <site_file> <stats_file> [stats_file_2] <infile> <genomeID> [outfile]\n" +
+                "                   <site_file> <stats_file> [stats_file_2] <infile> <genomeID>\n" +
                 " --ligation: ligation junction\n" +
                 " --mapqs: mapping quality threshold(s), do not consider reads < threshold\n" +
                 " --mndindex: file of indices for merged nodups to read from\n" +
@@ -68,8 +68,7 @@ public class Statistics extends JuiceboxCLT {
                 " <stats file>: output file containing total reads, for library complexity\n" +
                 " <infile>: file in intermediate format to calculate statistics on, can be stream\n" +
                 " <genome ID>: file to create chromosome handler\n" +
-                " [stats file 2]: output file containing total reads for second mapping quality threshold\n" +
-                " [outfile]: output, results of fragment search\n";
+                " [stats file 2]: output file containing total reads for second mapping quality threshold\n";
     }
 
     public void setMndIndex() {
@@ -140,7 +139,9 @@ public class Statistics extends JuiceboxCLT {
     }
 
     private void tryToReadLocalHandler(String genomeID) {
-        if (genomeID.equalsIgnoreCase("NA") || genomeID.equalsIgnoreCase("NULL")) {
+        if (genomeID.equalsIgnoreCase("na")
+                || genomeID.equalsIgnoreCase("null")
+                || genomeID.equalsIgnoreCase("none")) {
             localHandler = null;
         } else {
             localHandler = HiCFileTools.loadChromosomes(genomeID); //genomeID
