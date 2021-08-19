@@ -187,16 +187,6 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         frag2 = pair.getFrag2();
                         chr1 = pair.getChr1();
                         chr2 = pair.getChr2();
-                        if (bp1 < 0) {
-                            bp1 = 0;
-                        } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
-                            bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
-                        }
-                        if (bp2 < 0) {
-                            bp2 = 0;
-                        } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
-                            bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
-                        }
                     } else {
                         bp1 = pair.getPos2();
                         bp2 = pair.getPos1();
@@ -204,17 +194,10 @@ public class MultithreadedPreprocessor extends Preprocessor {
                         frag2 = pair.getFrag1();
                         chr1 = pair.getChr2();
                         chr2 = pair.getChr1();
-                        if (bp1 < 0) {
-                            bp1 = 0;
-                        } else if (bp1 > chromosomeHandler.getChromosomeFromIndex(chr2).getLength()) {
-                            bp1 = (int) chromosomeHandler.getChromosomeFromIndex(chr2).getLength();
-                        }
-                        if (bp2 < 0) {
-                            bp2 = 0;
-                        } else if (bp2 > chromosomeHandler.getChromosomeFromIndex(chr1).getLength()) {
-                            bp2 = (int) chromosomeHandler.getChromosomeFromIndex(chr1).getLength();
-                        }
                     }
+
+                    bp1 = ensureFitInChromosomeBounds(bp1, chr1);
+                    bp2 = ensureFitInChromosomeBounds(bp2, chr2);
 
                     // Randomize position within fragment site
                     if (allowPositionsRandomization && fragmentCalculation != null) {
