@@ -25,7 +25,11 @@
 
 package juicebox.tools.utils.original.mnditerator;
 
+import juicebox.data.ChromosomeHandler;
+
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Jim Robinson
@@ -40,4 +44,14 @@ public interface PairIterator extends Iterator<AlignmentPair> {
     void remove();
 
     void close();
+
+    static PairIterator getIterator(String file, Map<String, Integer> chromosomeIndexes, ChromosomeHandler chromosomeHandler) throws IOException {
+        if (file.endsWith(".bin")) {
+            return new BinPairIterator(file);
+        } else if (file.endsWith(".bn")) {
+            return new ShortBinPairIterator(file);
+        } else {
+            return new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
+        }
+    }
 }

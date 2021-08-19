@@ -33,7 +33,8 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser.Alignment;
-import juicebox.tools.utils.original.mnditerator.*;
+import juicebox.tools.utils.original.mnditerator.AlignmentPair;
+import juicebox.tools.utils.original.mnditerator.PairIterator;
 import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
@@ -579,13 +580,7 @@ public class Preprocessor {
 
         // Create an index the first time through
         try {
-            if (file.endsWith(".bin")) {
-                iter = new BinPairIterator(file);
-            } else if (file.endsWith(".bn")) {
-                iter = new ShortBinPairIterator(file);
-            } else {
-                iter = new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
-            }
+            iter = PairIterator.getIterator(file, chromosomeIndexes, chromosomeHandler);
 
             while (iter.hasNext()) {
                 totalRead++;
@@ -679,14 +674,7 @@ public class Preprocessor {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);
 
-        PairIterator iter;
-        if (inputFile.endsWith(".bin")) {
-            iter = new BinPairIterator(inputFile);
-        } else if (inputFile.endsWith(".bn")) {
-            iter = new ShortBinPairIterator(inputFile);
-        } else {
-            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler, false);
-        }
+        PairIterator iter = PairIterator.getIterator(inputFile, chromosomeIndexes, chromosomeHandler);
 
         Set<String> writtenMatrices = Collections.synchronizedSet(new HashSet<>());
 
