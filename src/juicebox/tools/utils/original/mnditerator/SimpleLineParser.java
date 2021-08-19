@@ -22,36 +22,39 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.original.mnditerator;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+import java.util.HashMap;
+import java.util.Map;
 
+public class SimpleLineParser extends MNDLineParser {
 
-public class BinToPairs extends JuiceboxCLT {
+    private final Map<String, Integer> chrNameToIndex = new HashMap<>();
+    private final Map<Integer, String> chrIndexToName = new HashMap<>();
+    private int nextChromIndex = 1;
 
-    private String ifile, ofile;
+    @Override
+    protected int getChromosomeOrdinal(String chrom) {
+        if (!chrNameToIndex.containsKey(chrom)) {
+            chrNameToIndex.put(chrom, nextChromIndex);
+            chrNameToIndex.put(chrom.toLowerCase(), nextChromIndex);
+            chrNameToIndex.put(chrom.toUpperCase(), nextChromIndex);
+            chrIndexToName.put(nextChromIndex, chrom);
+            nextChromIndex++;
+        }
 
-    public BinToPairs() {
-        super("binToPairs <input_HiC_file> <output_HiC_file>");
+        return chrNameToIndex.get(chrom);
     }
 
     @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        ifile = args[1];
-        ofile = args[2];
+    public AlignmentPair generateBasicPair(String[] tokens, int chrom1Index, int chrom2Index, int pos1Index, int pos2Index) {
+        String chrom1 = getInternedString(tokens[chrom1Index]);
+        String chrom2 = getInternedString(tokens[chrom2Index]);
+        return createPair(tokens, chrom1, chrom2, pos1Index, pos2Index);
     }
 
     @Override
-    public void run() {
-        try {
-            AsciiToBinConverter.convertBack(ifile, ofile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String getChromosomeNameFromIndex(int chrIndex) {
+        return chrIndexToName.get(chrIndex);
     }
 }

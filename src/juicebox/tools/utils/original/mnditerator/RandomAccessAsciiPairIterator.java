@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.original.mnditerator;
 
 
 import juicebox.data.ChromosomeHandler;
+import juicebox.tools.utils.original.Chunk;
 
 import java.io.IOException;
 import java.util.Map;

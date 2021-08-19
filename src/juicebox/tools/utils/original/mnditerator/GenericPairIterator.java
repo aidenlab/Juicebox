@@ -22,36 +22,59 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.original.mnditerator;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+import java.io.BufferedReader;
+import java.io.IOException;
 
+public abstract class GenericPairIterator implements PairIterator {
 
-public class BinToPairs extends JuiceboxCLT {
+    protected final MNDFileParser mndFileParser;
+    protected AlignmentPair nextPair = null;
+    protected BufferedReader reader;
 
-    private String ifile, ofile;
-
-    public BinToPairs() {
-        super("binToPairs <input_HiC_file> <output_HiC_file>");
+    public GenericPairIterator(MNDFileParser mndFileParser) {
+        this.mndFileParser = mndFileParser;
     }
 
-    @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        ifile = args[1];
-        ofile = args[2];
+    public boolean hasNext() {
+        return nextPair != null;
     }
 
-    @Override
-    public void run() {
+    public AlignmentPair next() {
+        AlignmentPair p = nextPair;
+        advance();
+        return p;
+    }
+
+    protected void advance() {
+
         try {
-            AsciiToBinConverter.convertBack(ifile, ofile);
-        } catch (Exception e) {
+            String nextLine = reader.readLine();
+            nextLine = validateLine(nextLine);
+            if (nextLine != null) {
+                nextPair = mndFileParser.parse(nextLine);
+                return;
+            }
+        } catch (IOException e) {
             e.printStackTrace();
+        }
+        nextPair = null;
+    }
+
+    protected String validateLine(String nextLine) {
+        return nextLine;
+    }
+
+    public void remove() {
+        // Not implemented
+    }
+
+    public void close() {
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
 }

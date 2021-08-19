@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,28 +15,40 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
 
+package juicebox.tools.utils.original.mnditerator;
 
-package juicebox.tools.utils.original;
+import java.io.EOFException;
+import java.io.IOException;
 
-import java.util.Iterator;
+public class ShortBinPairIterator extends BinPairIterator {
 
-/**
- * @author Jim Robinson
- * @since 9/24/11
- */
-public interface PairIterator extends Iterator<AlignmentPair> {
-    boolean hasNext();
+    public ShortBinPairIterator(String path) throws IOException {
+        super(path);
+    }
 
-    AlignmentPair next();
+    @Override
+    protected void advance() {
+        try {
+            int chr1 = is.readInt();
+            int pos1 = is.readInt();
+            int chr2 = is.readInt();
+            int pos2 = is.readInt();
+            next = new AlignmentPair(chr1, pos1, chr2, pos2);
 
-    void remove();
-
-    void close();
+            float score = is.readFloat();
+            next.setScore(score);
+        } catch (IOException e) {
+            next = null;
+            if (!(e instanceof EOFException)) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

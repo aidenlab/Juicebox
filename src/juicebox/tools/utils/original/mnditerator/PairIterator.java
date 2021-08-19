@@ -22,36 +22,36 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+package juicebox.tools.utils.original.mnditerator;
 
+import juicebox.data.ChromosomeHandler;
 
-public class BinToPairs extends JuiceboxCLT {
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
-    private String ifile, ofile;
+/**
+ * @author Jim Robinson
+ * @since 9/24/11
+ */
+public interface PairIterator extends Iterator<AlignmentPair> {
 
-    public BinToPairs() {
-        super("binToPairs <input_HiC_file> <output_HiC_file>");
-    }
+    boolean hasNext();
 
-    @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        ifile = args[1];
-        ofile = args[2];
-    }
+    AlignmentPair next();
 
-    @Override
-    public void run() {
-        try {
-            AsciiToBinConverter.convertBack(ifile, ofile);
-        } catch (Exception e) {
-            e.printStackTrace();
+    void remove();
+
+    void close();
+
+    static PairIterator getIterator(String file, Map<String, Integer> chromosomeIndexes, ChromosomeHandler chromosomeHandler) throws IOException {
+        if (file.endsWith(".bin")) {
+            return new BinPairIterator(file);
+        } else if (file.endsWith(".bn")) {
+            return new ShortBinPairIterator(file);
+        } else {
+            return new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
         }
     }
 }

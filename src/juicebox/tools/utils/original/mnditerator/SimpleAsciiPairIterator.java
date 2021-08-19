@@ -22,36 +22,30 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.tools.utils.original.mnditerator;
 
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+import juicebox.HiCGlobals;
+import org.broad.igv.util.ParsingUtils;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
 
-public class BinToPairs extends JuiceboxCLT {
+public class SimpleAsciiPairIterator extends GenericPairIterator implements PairIterator {
 
-    private String ifile, ofile;
-
-    public BinToPairs() {
-        super("binToPairs <input_HiC_file> <output_HiC_file>");
+    public SimpleAsciiPairIterator(String path) throws IOException {
+        super(new MNDFileParser(new SimpleLineParser()));
+        if (path.endsWith(".gz")) {
+            InputStream gzipStream = new GZIPInputStream(new FileInputStream(path));
+            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
+            this.reader = new BufferedReader(decoder, 4194304);
+        } else {
+            this.reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
+        }
+        advance();
     }
 
-    @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 3) {
-            printUsageAndExit();
-        }
-        ifile = args[1];
-        ofile = args[2];
-    }
-
-    @Override
-    public void run() {
-        try {
-            AsciiToBinConverter.convertBack(ifile, ofile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String getChromosomeNameFromIndex(int chrIndex) {
+        return mndFileParser.getChromosomeNameFromIndex(chrIndex);
     }
 }

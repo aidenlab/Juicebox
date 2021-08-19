@@ -27,6 +27,9 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.tools.utils.original.mnditerator.AlignmentPair;
+import juicebox.tools.utils.original.mnditerator.AsciiPairIterator;
+import juicebox.tools.utils.original.mnditerator.PairIterator;
 import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.util.Pair;
 
