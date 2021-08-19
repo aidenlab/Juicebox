@@ -88,7 +88,13 @@ public class AsciiToBinConverter {
             File f = new File(outputFile);
             FileWriter fw = new FileWriter(f);
             pw = new PrintWriter(fw);
-            BinPairIterator iter = new BinPairIterator(inputPath);
+            BinPairIterator iter;
+            if (inputPath.endsWith(".bn")) {
+                iter = new ShortBinPairIterator(inputPath);
+            } else {
+                iter = new BinPairIterator(inputPath);
+            }
+
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();
                 pw.println(pair);

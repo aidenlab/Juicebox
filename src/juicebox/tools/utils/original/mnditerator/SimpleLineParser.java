@@ -24,30 +24,37 @@
 
 package juicebox.tools.utils.original.mnditerator;
 
-public class AlignmentPairLong extends AlignmentPair {
+import java.util.HashMap;
+import java.util.Map;
 
-    private final String seq1;
-    private final String seq2;
+public class SimpleLineParser extends MNDLineParser {
 
-    public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
-                             boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2) {
-        super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-        this.seq1 = seq1;
-        this.seq2 = seq2;
+    private final Map<String, Integer> chrNameToIndex = new HashMap<>();
+    private final Map<Integer, String> chrIndexToName = new HashMap<>();
+    private int nextChromIndex = 1;
+
+    @Override
+    protected int getChromosomeOrdinal(String chrom) {
+        if (!chrNameToIndex.containsKey(chrom)) {
+            chrNameToIndex.put(chrom, nextChromIndex);
+            chrNameToIndex.put(chrom.toLowerCase(), nextChromIndex);
+            chrNameToIndex.put(chrom.toUpperCase(), nextChromIndex);
+            chrIndexToName.put(nextChromIndex, chrom);
+            nextChromIndex++;
+        }
+
+        return chrNameToIndex.get(chrom);
     }
 
-    public AlignmentPairLong(AlignmentPair np, String seq1, String seq2) {
-        this(np.getStrand1(), np.getChr1(), np.getPos1(), np.getFrag1(), np.getMapq1(), seq1,
-                np.getStrand2(), np.getChr2(), np.getPos2(), np.getFrag2(), np.getMapq2(), seq2);
+    @Override
+    public AlignmentPair generateBasicPair(String[] tokens, int chrom1Index, int chrom2Index, int pos1Index, int pos2Index) {
+        String chrom1 = getInternedString(tokens[chrom1Index]);
+        String chrom2 = getInternedString(tokens[chrom2Index]);
+        return createPair(tokens, chrom1, chrom2, pos1Index, pos2Index);
     }
 
-    public String getSeq1() {
-        return seq1;
+    @Override
+    public String getChromosomeNameFromIndex(int chrIndex) {
+        return chrIndexToName.get(chrIndex);
     }
-
-    public String getSeq2() {
-        return seq2;
-    }
-
 }
-

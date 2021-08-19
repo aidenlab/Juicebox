@@ -51,9 +51,6 @@ import java.util.List;
 
 /**
  * This is the "model" class for the HiC viewer.
- *
- * @author Jim Robinson
- * @since 4/8/12
  */
 public class HiC {
 

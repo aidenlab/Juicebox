@@ -48,14 +48,12 @@ public class Statistics extends JuiceboxCLT {
     private String ligationJunction = "none";
     private String inFile;
     private String mndIndexFile;
-    private ChromosomeHandler localHandler;
+    private ChromosomeHandler localHandler = null;
     private final List<Chunk> mndChunks = new ArrayList<>();
-    private FragmentCalculation fragmentCalculation;
     private final List<String> statsFiles = new ArrayList<>();
     private final List<Integer> mapqThresholds = new ArrayList<>();
 
     public Statistics() {
-        //constructor
         super(getUsage());
     }
 
@@ -74,10 +72,10 @@ public class Statistics extends JuiceboxCLT {
                 " [outfile]: output, results of fragment search\n";
     }
 
-    public void setMndIndex(ChromosomeHandler handler) {
-        if (mndIndexFile != null && mndIndexFile.length() > 1) {
+    public void setMndIndex() {
+        if (localHandler != null && mndIndexFile != null && mndIndexFile.length() > 1) {
             Map<Integer, String> chromosomePairIndexes = new ConcurrentHashMap<>();
-            MTIndexHandler.populateChromosomePairIndexes(handler,
+            MTIndexHandler.populateChromosomePairIndexes(localHandler,
                     chromosomePairIndexes, new HashMap<>(),
                     new HashMap<>(), new HashMap<>());
             Map<Integer, List<Chunk>> mndIndex = MTIndexHandler.readMndIndex(mndIndexFile, chromosomePairIndexes);
@@ -87,11 +85,11 @@ public class Statistics extends JuiceboxCLT {
         }
     }
 
-    private FragmentCalculation readSiteFile(String siteFile, ChromosomeHandler handler) {
+    private FragmentCalculation readSiteFile(String siteFile) {
         //read in restriction site file and store as multidimensional array q
         if (!siteFile.contains("none")) {
             //if restriction enzyme exists, find the RE distance//
-            return FragmentCalculation.readFragments(siteFile, handler, "Stats");
+            return FragmentCalculation.readFragments(siteFile, localHandler, "Stats");
         }
         return null;
     }
@@ -107,10 +105,10 @@ public class Statistics extends JuiceboxCLT {
         if (args.length == 6) {// two map q values,input text files
             statsFiles.add(args[3]);
             inFile = args[4];
-            localHandler = HiCFileTools.loadChromosomes(args[5]); //genomeID
+            tryToReadLocalHandler(args[5]);
         } else {//only one mapq value
             inFile = args[3];
-            localHandler = HiCFileTools.loadChromosomes(args[4]);
+            tryToReadLocalHandler(args[4]);
         }
         //check for flags, else use default values
         List<Integer> mapQT = parser.getMultipleMapQOptions();
@@ -141,14 +139,22 @@ public class Statistics extends JuiceboxCLT {
         mndIndexFile = parser.getMndIndexOption();
     }
 
+    private void tryToReadLocalHandler(String genomeID) {
+        if (genomeID.equalsIgnoreCase("NA") || genomeID.equalsIgnoreCase("NULL")) {
+            localHandler = null;
+        } else {
+            localHandler = HiCFileTools.loadChromosomes(genomeID); //genomeID
+        }
+    }
+
     @Override
     public void run() {
-        setMndIndex(localHandler);
-        fragmentCalculation = readSiteFile(siteFile, localHandler);
+        setMndIndex();
+        FragmentCalculation fragmentCalculation = readSiteFile(siteFile);
         StatisticsContainer container;
-        if (mndChunks.size() < 2 || numThreads == 1) {
+        if (localHandler == null || mndChunks.size() < 2 || numThreads == 1) {
             LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,
-                    ligationJunction, inFile, localHandler, fragmentCalculation);
+                    ligationJunction, inFile, fragmentCalculation);
             runner.infileStatistics();
             container = runner.getResultsContainer();
         } else {

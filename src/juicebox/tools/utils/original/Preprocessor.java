@@ -33,10 +33,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser.Alignment;
-import juicebox.tools.utils.original.mnditerator.AlignmentPair;
-import juicebox.tools.utils.original.mnditerator.AsciiPairIterator;
-import juicebox.tools.utils.original.mnditerator.BinPairIterator;
-import juicebox.tools.utils.original.mnditerator.PairIterator;
+import juicebox.tools.utils.original.mnditerator.*;
 import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
@@ -582,9 +579,13 @@ public class Preprocessor {
 
         // Create an index the first time through
         try {
-            iter = (file.endsWith(".bin")) ?
-                    new BinPairIterator(file) :
-                    new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
+            if (file.endsWith(".bin")) {
+                iter = new BinPairIterator(file);
+            } else if (file.endsWith(".bn")) {
+                iter = new ShortBinPairIterator(file);
+            } else {
+                iter = new AsciiPairIterator(file, chromosomeIndexes, chromosomeHandler, false);
+            }
 
             while (iter.hasNext()) {
                 totalRead++;
@@ -678,9 +679,14 @@ public class Preprocessor {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix, losArray, compressor, matrixPositions, -1, false);
 
-        PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile) :
-                new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler, false);
+        PairIterator iter;
+        if (inputFile.endsWith(".bin")) {
+            iter = new BinPairIterator(inputFile);
+        } else if (inputFile.endsWith(".bn")) {
+            iter = new ShortBinPairIterator(inputFile);
+        } else {
+            iter = new AsciiPairIterator(inputFile, chromosomeIndexes, chromosomeHandler, false);
+        }
 
         Set<String> writtenMatrices = Collections.synchronizedSet(new HashSet<>());
 

@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.original.stats;
 
-import juicebox.data.ChromosomeHandler;
 import juicebox.tools.utils.original.FragmentCalculation;
 import juicebox.tools.utils.original.mnditerator.AlignmentPair;
 import juicebox.tools.utils.original.mnditerator.AlignmentPairLong;
@@ -32,7 +31,7 @@ import juicebox.tools.utils.original.mnditerator.AlignmentPairLong;
 import java.util.List;
 import java.util.Map;
 
-public class StatisticsWorker {
+public abstract class StatisticsWorker {
     protected static final int TWENTY_KB = 20000;
     protected static final int FIVE_HUNDRED_BP = 500;
     protected static final int FIVE_KB = 5000;
@@ -47,19 +46,15 @@ public class StatisticsWorker {
     protected final List<String> statsFiles;
     protected final List<Integer> mapqThresholds;
     protected final FragmentCalculation fragmentCalculation;
-    protected final ChromosomeHandler localHandler;
     protected final StatisticsContainer resultsContainer;
 
     public StatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds,
-                            String ligationJunction, String inFile, ChromosomeHandler localHandler,
-                            FragmentCalculation fragmentCalculation) {
-        //default constructor for non-multithreading inputs, no mnd-indexing
+                            String ligationJunction, String inFile, FragmentCalculation fragmentCalculation) {
         this.inFile = inFile;
         this.siteFile = siteFile;
         this.statsFiles = statsFiles;
         this.mapqThresholds = mapqThresholds;
         this.ligationJunction = ligationJunction;
-        this.localHandler = localHandler;
         this.fragmentCalculation = fragmentCalculation;
         this.resultsContainer = new StatisticsContainer();
         this.danglingJunction = ligationJunction.substring(ligationJunction.length() / 2);
@@ -268,25 +263,26 @@ public class StatisticsWorker {
         }
     }
     */
-    
-    private int distHindIII(boolean strand, int chr, int pos, int frag, boolean rep, int index){
+
+    private int distHindIII(boolean strand, int chrIndex, int pos, int frag, boolean rep, int index) {
         //Find distance to nearest HindIII restriction site
         //find upper index of position in sites array via binary search
         //get distance to each end of HindIII fragment
         int dist1;
         int dist2;
-        int arr = fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName()).length;
-        if(frag>=arr){
+        int[] sites = fragmentCalculation.getSites(getChromosomeNameFromIndex(chrIndex));
+        int arr = sites.length;
+        if (frag >= arr) {
             return 0;
         }
-        if (frag ==0){
+        if (frag == 0) {
             //# first fragment, distance is position
             dist1 = pos;
         } else {
-            dist1 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag - 1]);
+            dist1 = Math.abs(pos - sites[frag - 1]);
         }
 
-        dist2 = Math.abs(pos - fragmentCalculation.getSites(localHandler.getChromosomeFromIndex(chr).getName())[frag]);
+        dist2 = Math.abs(pos - sites[frag]);
         //get minimum value -- if (dist1 <= dist2), it's dist1, else dist2
         int retVal = Math.min(dist1, dist2);
         //get which end of the fragment this is, 3' or 5' (depends on strand)
@@ -306,15 +302,17 @@ public class StatisticsWorker {
         return retVal;
     }
 
-    private static int bSearch(int distance){
+    protected abstract String getChromosomeNameFromIndex(int chr);
+
+    private static int bSearch(int distance) {
         //search for int distance in array binary
         int lower = 0;
-        int upper = bins.length-1;
+        int upper = bins.length - 1;
         int index;
-        while(lower<=upper){
-            index = (lower+upper)/2;
-            if (bins[index]<distance) {
-                lower=index+1;
+        while (lower <= upper) {
+            index = (lower + upper) / 2;
+            if (bins[index] < distance) {
+                lower = index + 1;
             }
             else if (bins[index]>distance) {
                 upper=index-1;

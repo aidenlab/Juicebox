@@ -24,30 +24,31 @@
 
 package juicebox.tools.utils.original.mnditerator;
 
-public class AlignmentPairLong extends AlignmentPair {
+import java.io.EOFException;
+import java.io.IOException;
 
-    private final String seq1;
-    private final String seq2;
+public class ShortBinPairIterator extends BinPairIterator {
 
-    public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
-                             boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2) {
-        super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-        this.seq1 = seq1;
-        this.seq2 = seq2;
+    public ShortBinPairIterator(String path) throws IOException {
+        super(path);
     }
 
-    public AlignmentPairLong(AlignmentPair np, String seq1, String seq2) {
-        this(np.getStrand1(), np.getChr1(), np.getPos1(), np.getFrag1(), np.getMapq1(), seq1,
-                np.getStrand2(), np.getChr2(), np.getPos2(), np.getFrag2(), np.getMapq2(), seq2);
-    }
+    @Override
+    protected void advance() {
+        try {
+            int chr1 = is.readInt();
+            int pos1 = is.readInt();
+            int chr2 = is.readInt();
+            int pos2 = is.readInt();
+            next = new AlignmentPair(chr1, pos1, chr2, pos2);
 
-    public String getSeq1() {
-        return seq1;
+            float score = is.readFloat();
+            next.setScore(score);
+        } catch (IOException e) {
+            next = null;
+            if (!(e instanceof EOFException)) {
+                e.printStackTrace();
+            }
+        }
     }
-
-    public String getSeq2() {
-        return seq2;
-    }
-
 }
-

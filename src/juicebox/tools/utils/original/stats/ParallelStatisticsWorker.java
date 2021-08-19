@@ -36,10 +36,14 @@ import java.util.List;
 import java.util.Map;
 
 public class ParallelStatisticsWorker extends StatisticsWorker {
+
+    private final ChromosomeHandler localHandler;
+
     public ParallelStatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds,
                                     String ligationJunction, String inFile, ChromosomeHandler localHandler,
                                     FragmentCalculation chromosomes) {
-        super(siteFile, statsFiles, mapqThresholds, ligationJunction, inFile, localHandler, chromosomes);
+        super(siteFile, statsFiles, mapqThresholds, ligationJunction, inFile, chromosomes);
+        this.localHandler = localHandler;
     }
 
     public void infileStatistics(Chunk chunk) {
@@ -67,5 +71,9 @@ public class ParallelStatisticsWorker extends StatisticsWorker {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    protected String getChromosomeNameFromIndex(int chr) {
+        return localHandler.getChromosomeFromIndex(chr).getName();
     }
 }

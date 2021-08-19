@@ -24,36 +24,33 @@
 
 package juicebox.tools.utils.original.stats;
 
-import juicebox.data.ChromosomeHandler;
 import juicebox.tools.utils.original.FragmentCalculation;
-import juicebox.tools.utils.original.mnditerator.AsciiPairIterator;
+import juicebox.tools.utils.original.mnditerator.SimpleAsciiPairIterator;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LoneStatisticsWorker extends StatisticsWorker {
+
+    private SimpleAsciiPairIterator fileIterator;
+
     public LoneStatisticsWorker(String siteFile, List<String> statsFiles, List<Integer> mapqThresholds, String ligationJunction,
-                                String inFile, ChromosomeHandler localHandler, FragmentCalculation fragmentCalculation) {
-        super(siteFile, statsFiles, mapqThresholds, ligationJunction, inFile, localHandler, fragmentCalculation);
+                                String inFile, FragmentCalculation fragmentCalculation) {
+        super(siteFile, statsFiles, mapqThresholds, ligationJunction, inFile, fragmentCalculation);
     }
 
     public void infileStatistics() {
-        //read in infile and calculate statistics
         try {
-            //create index for AsciiIterator
-            Map<String, Integer> chromosomeIndexes = new HashMap<>();
-            for (int i = 0; i < localHandler.size(); i++) {
-                chromosomeIndexes.put(localHandler.getChromosomeFromIndex(i).getName(), i);
-            }
-            //iterate through input file
-            AsciiPairIterator files = new AsciiPairIterator(inFile, chromosomeIndexes, localHandler, true);
-            while (files.hasNext()) {
-                processSingleEntry(files.next(), "", false);
+            fileIterator = new SimpleAsciiPairIterator(inFile);
+            while (fileIterator.hasNext()) {
+                processSingleEntry(fileIterator.next(), "", false);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    protected String getChromosomeNameFromIndex(int chr) {
+        return fileIterator.getChromosomeNameFromIndex(chr);
     }
 }

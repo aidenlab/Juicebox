@@ -59,7 +59,11 @@ public class FragmentCalculation {
                     sites[i - 1] = Integer.parseInt(tokens[i]);
                 }
 
-                sitesMap.put(handler.cleanUpName(key), sites);
+                if (handler != null) {
+                    sitesMap.put(handler.cleanUpName(key), sites);
+                } else {
+                    sitesMap.put(key, sites);
+                }
             } else {
                 System.out.println("Skipping line: " + nextLine);
             }

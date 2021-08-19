@@ -24,30 +24,28 @@
 
 package juicebox.tools.utils.original.mnditerator;
 
-public class AlignmentPairLong extends AlignmentPair {
+import juicebox.HiCGlobals;
+import org.broad.igv.util.ParsingUtils;
 
-    private final String seq1;
-    private final String seq2;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
 
-    public AlignmentPairLong(boolean strand1, int chr1, int pos1, int frag1, int mapq1, String seq1,
-                             boolean strand2, int chr2, int pos2, int frag2, int mapq2, String seq2) {
-        super(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-        this.seq1 = seq1;
-        this.seq2 = seq2;
+public class SimpleAsciiPairIterator extends GenericPairIterator implements PairIterator {
+
+    public SimpleAsciiPairIterator(String path) throws IOException {
+        super(new MNDFileParser(new SimpleLineParser()));
+        if (path.endsWith(".gz")) {
+            InputStream gzipStream = new GZIPInputStream(new FileInputStream(path));
+            Reader decoder = new InputStreamReader(gzipStream, StandardCharsets.UTF_8);
+            this.reader = new BufferedReader(decoder, 4194304);
+        } else {
+            this.reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
+        }
+        advance();
     }
 
-    public AlignmentPairLong(AlignmentPair np, String seq1, String seq2) {
-        this(np.getStrand1(), np.getChr1(), np.getPos1(), np.getFrag1(), np.getMapq1(), seq1,
-                np.getStrand2(), np.getChr2(), np.getPos2(), np.getFrag2(), np.getMapq2(), seq2);
+    public String getChromosomeNameFromIndex(int chrIndex) {
+        return mndFileParser.getChromosomeNameFromIndex(chrIndex);
     }
-
-    public String getSeq1() {
-        return seq1;
-    }
-
-    public String getSeq2() {
-        return seq2;
-    }
-
 }
-
