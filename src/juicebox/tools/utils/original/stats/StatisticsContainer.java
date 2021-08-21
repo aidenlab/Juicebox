@@ -34,7 +34,8 @@ public class StatisticsContainer {
 
     private final static float CONVERGENCE_THRESHOLD = 0.01f;
     private final static int CONVERGENCE_REGION = 3;
-    private final static int SEQ_INDEX = 0, DUPS_INDEX = 1, UNIQUE_INDEX = 2, LC_INDEX = 3, NUM_TO_READ = 4;
+    private final static int SEQ_INDEX = 0, DUPS_INDEX = 1, UNIQUE_INDEX = 2;
+    private final static int LC_INDEX = 3, SINGLE_ALIGNMENT_INDEX = 4, NUM_TO_READ = 5;
     private final NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 
     //Variables for calculating statistics
@@ -166,8 +167,10 @@ public class StatisticsContainer {
                     writeLibComplexityIfNeeded(valsWereFound, valsFound, statsOut);
                     if (unique == 0) unique = 1;
                     writeOut(statsOut, "Intra-fragment Reads: ", valsWereFound, intraFragment[i], valsFound, unique, true);
-                    attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
-                    writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
+                    if (!isUTLibrary(valsWereFound, valsFound, underMapQ[i])) {
+                        attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
+                        writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
+                    }
                     writeOut(statsOut, "Hi-C Contacts: ", valsWereFound, totalCurrent[i], valsFound, unique, false);
                     //writeOut(statsOut, " Ligation Motif Present: ", valsWereFound, ligation[i], valsFound, unique, true);
                     appendPairTypeStatsOutputToFile(i, statsOut);
@@ -182,8 +185,14 @@ public class StatisticsContainer {
                 } catch (IOException error) {
                     error.printStackTrace();
                 }
-          //  }
+            //  }
         }
+    }
+
+    private boolean isUTLibrary(boolean[] valsWereFound, long[] valsFound, long belowMapQ) {
+        return valsWereFound[SINGLE_ALIGNMENT_INDEX]
+                && valsFound[SINGLE_ALIGNMENT_INDEX] > 0
+                && belowMapQ < 1;
     }
 
     private void writeLibComplexityIfNeeded(boolean[] valsWereFound, long[] valsFound, BufferedWriter statsOut) throws IOException {
@@ -214,6 +223,8 @@ public class StatisticsContainer {
                         populateFoundVals(statsData, valsWereFound, valsFound, DUPS_INDEX);
                     } else if (statsData.contains("complexity")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, LC_INDEX);
+                    } else if (statsData.contains("single") && statsData.contains("alignment")) {
+                        populateFoundVals(statsData, valsWereFound, valsFound, SINGLE_ALIGNMENT_INDEX);
                     }
                     statsData = stats.readLine();
                 }
