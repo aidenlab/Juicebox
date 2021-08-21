@@ -151,8 +151,10 @@ public class ListOfFloatArrays {
     public void addValuesFrom(ListOfFloatArrays other) {
         if (overallLength == other.overallLength) {
             for (int i = 0; i < internalList.size(); i++) {
-                for (int j = 0; j < internalList.get(i).length; j++) {
-                    internalList.get(i)[j] += other.internalList.get(i)[j];
+                float[] array = internalList.get(i);
+                float[] otherArray = other.internalList.get(i);
+                for (int j = 0; j < array.length; j++) {
+                    array[j] += otherArray[j];
                 }
             }
         } else {
@@ -184,8 +186,12 @@ public class ListOfFloatArrays {
     public ListOfDoubleArrays convertToDoubles() {
         ListOfDoubleArrays newList = new ListOfDoubleArrays(overallLength);
         for (int j = 0; j < internalList.size(); j++) {
-            for (int k = 0; k < internalList.get(j).length; k++) {
-                newList.getValues().get(j)[k] = internalList.get(j)[k];
+
+            float[] array = internalList.get(j);
+            double[] newArray = newList.getValues().get(j);
+
+            for (int k = 0; k < array.length; k++) {
+                newArray[k] = array[k];
             }
         }
         return newList;

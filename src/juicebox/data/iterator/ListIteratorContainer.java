@@ -25,9 +25,12 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.tools.dev.ParallelizedJuicerTools;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ListIteratorContainer extends IteratorContainer {
 
@@ -49,5 +52,44 @@ public class ListIteratorContainer extends IteratorContainer {
         // float is 4 bytes; one for each row (row sums)
         // 12 bytes (2 ints, 1 float) for contact record
         return 4 * getMatrixSize() + 12 * getNumberOfContactRecords() < Runtime.getRuntime().maxMemory();
+    }
+
+    public static ListOfFloatArrays sparseMultiplyByListContacts(List<ContactRecord> readList, ListOfFloatArrays vector,
+                                                                 long vectorLength, int numThreads) {
+        final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
+
+        int[] cutoffs = ParallelizedListOperations.createCutoffs(numThreads, readList.size());
+
+        AtomicInteger index = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(numThreads, () -> {
+            int sIndx = index.getAndIncrement();
+            ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
+            for (int i = cutoffs[sIndx]; i < cutoffs[sIndx + 1]; i++) {
+                ContactRecord cr = readList.get(i);
+                matrixVectorMult(vector, sumVector, cr);
+            }
+
+            synchronized (totalSumVector) {
+                totalSumVector.addValuesFrom(sumVector);
+            }
+        });
+
+        return totalSumVector;
+    }
+
+    public static void matrixVectorMult(ListOfFloatArrays vector, ListOfFloatArrays sumVector, ContactRecord cr) {
+        int x = cr.getBinX();
+        int y = cr.getBinY();
+        float counts = cr.getCounts();
+
+        sumVector.addTo(x, counts * vector.get(y));
+        if (x != y) {
+            sumVector.addTo(y, counts * vector.get(x));
+        }
+    }
+
+    @Override
+    public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
+        return sparseMultiplyByListContacts(readList, vector, vectorLength, 10);
     }
 }

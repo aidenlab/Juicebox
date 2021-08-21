@@ -25,48 +25,30 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
-import juicebox.data.basics.ListOfFloatArrays;
 
 import java.util.Iterator;
 
-public abstract class IteratorContainer {
+public class CoupledIteratorAndOffset implements Iterator<ContactRecord> {
 
-    private final long matrixSize;
-    private long numberOfContactRecords = -1;
+    private final Iterator<ContactRecord> internalIterator;
+    private final int xOffset, yOffset;
 
-    public IteratorContainer(long matrixSize) {
-        this.matrixSize = matrixSize;
+    public CoupledIteratorAndOffset(Iterator<ContactRecord> iterator, int xOffset, int yOffset) {
+        internalIterator = iterator;
+        this.xOffset = xOffset;
+        this.yOffset = yOffset;
     }
 
-    abstract public Iterator<ContactRecord> getNewContactRecordIterator();
-
-    protected void setNumberOfContactRecords(long numberOfContactRecords) {
-        this.numberOfContactRecords = numberOfContactRecords;
+    @Override
+    public boolean hasNext() {
+        return internalIterator.hasNext();
     }
 
-    public long getNumberOfContactRecords() {
-        if (numberOfContactRecords > 0) return numberOfContactRecords;
-
-        numberOfContactRecords = 0;
-        Iterator<ContactRecord> iterator = getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-            numberOfContactRecords++;
-        }
-
-        return numberOfContactRecords;
+    @Override
+    public ContactRecord next() {
+        ContactRecord cr = internalIterator.next();
+        int binX = cr.getBinX() + xOffset;
+        int binY = cr.getBinY() + yOffset;
+        return new ContactRecord(binX, binY, cr.getCounts());
     }
-
-    public long getMatrixSize() {
-        return matrixSize;
-    }
-
-    public boolean getIsThereEnoughMemoryForNormCalculation() {
-        // when using an iterator, we basically only worry
-        // about the vector of row sums
-        // float is 4 bytes; one for each row
-        return matrixSize * 4 < Runtime.getRuntime().maxMemory();
-    }
-
-    public abstract ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength);
 }

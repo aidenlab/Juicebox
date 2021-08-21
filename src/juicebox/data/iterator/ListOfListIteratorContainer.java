@@ -25,6 +25,7 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfFloatArrays;
 
 import java.util.Iterator;
 import java.util.List;
@@ -50,5 +51,15 @@ public class ListOfListIteratorContainer extends IteratorContainer {
         // float is 4 bytes; one for each row (row sums)
         // 12 bytes (2 ints, 1 float) for contact record
         return 4 * getMatrixSize() + 12 * getNumberOfContactRecords() < Runtime.getRuntime().maxMemory();
+    }
+
+    @Override
+    public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
+        final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
+        for (List<ContactRecord> contactRecords : allContactRecords) {
+            totalSumVector.addValuesFrom(ListIteratorContainer.sparseMultiplyByListContacts(
+                    contactRecords, vector, vectorLength, 10));
+        }
+        return totalSumVector;
     }
 }
