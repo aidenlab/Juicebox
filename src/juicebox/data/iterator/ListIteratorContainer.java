@@ -27,6 +27,7 @@ package juicebox.data.iterator;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.dev.ParallelizedJuicerTools;
 
 import java.util.Iterator;
@@ -81,7 +82,7 @@ public class ListIteratorContainer extends IteratorContainer {
     public static void matrixVectorMult(ListOfFloatArrays vector, ListOfDoubleArrays sumVector, ContactRecord cr) {
         int x = cr.getBinX();
         int y = cr.getBinY();
-        float counts = cr.getCounts();
+        double counts = cr.getCounts();
         if (x == y) {
             counts *= .5;
         }
@@ -92,6 +93,6 @@ public class ListIteratorContainer extends IteratorContainer {
 
     @Override
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
-        return sparseMultiplyByListContacts(readList, vector, vectorLength, 10);
+        return sparseMultiplyByListContacts(readList, vector, vectorLength, JuiceboxCLT.numCPUMatrixThreads);
     }
 }

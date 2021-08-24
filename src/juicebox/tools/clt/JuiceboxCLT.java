@@ -39,6 +39,7 @@ public abstract class JuiceboxCLT {
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
     protected static int numCPUThreads = 1;
+    public static int numCPUMatrixThreads = 10;
     protected boolean usingMultiThreadedVersion = false;
 
     protected JuiceboxCLT(String usage) {
@@ -79,15 +80,22 @@ public abstract class JuiceboxCLT {
         }
     }
 
+    public static int getAppropriateNumberOfThreads(int numThreads, int defaultNum) {
+        if (numThreads > 0) {
+            return numThreads;
+        } else if (numThreads < 0) {
+            return Runtime.getRuntime().availableProcessors();
+        } else {
+            return defaultNum;
+        }
+    }
+
     protected void updateNumberOfCPUThreads(CommandLineParser parser) {
         int numThreads = parser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else if (numThreads < 0) {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        } else {
-            numCPUThreads = 1;
-        }
+        int numMThreads = parser.getNumMatrixOperationThreads();
+        numCPUThreads = getAppropriateNumberOfThreads(numThreads, 1);
+        numCPUMatrixThreads = getAppropriateNumberOfThreads(numMThreads, 10);
+
         System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 }

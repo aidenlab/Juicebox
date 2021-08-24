@@ -75,6 +75,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option genomeWideOption = addIntegerOption('w', "genomewide");
     private final Option alignmentFilterOption = addIntegerOption('a', "alignment");
     private final Option threadNumOption = addIntegerOption('j', "threads");
+    private final Option matrixThreadNumOption = addIntegerOption("mthreads");
     private final Option v9DepthBaseOption = addIntegerOption("v9-depth-base");
 
     // sets of strings
@@ -246,6 +247,10 @@ public class CommandLineParser extends CmdLineParser {
 
     public int getNumThreads() {
         return optionToInt(threadNumOption);
+    }
+
+    public int getNumMatrixOperationThreads() {
+        return optionToInt(matrixThreadNumOption);
     }
 
     public int getV9DepthBase() {
