@@ -25,6 +25,7 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.dev.ParallelizedJuicerTools;
 
@@ -56,14 +57,14 @@ public class ListIteratorContainer extends IteratorContainer {
 
     public static ListOfFloatArrays sparseMultiplyByListContacts(List<ContactRecord> readList, ListOfFloatArrays vector,
                                                                  long vectorLength, int numThreads) {
-        final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
+        final ListOfDoubleArrays totalSumVector = new ListOfDoubleArrays(vectorLength);
 
         int[] cutoffs = ParallelizedListOperations.createCutoffs(numThreads, readList.size());
 
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numThreads, () -> {
             int sIndx = index.getAndIncrement();
-            ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
+            ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
             for (int i = cutoffs[sIndx]; i < cutoffs[sIndx + 1]; i++) {
                 ContactRecord cr = readList.get(i);
                 matrixVectorMult(vector, sumVector, cr);
@@ -74,18 +75,19 @@ public class ListIteratorContainer extends IteratorContainer {
             }
         });
 
-        return totalSumVector;
+        return totalSumVector.convertToFloats();
     }
 
-    public static void matrixVectorMult(ListOfFloatArrays vector, ListOfFloatArrays sumVector, ContactRecord cr) {
+    public static void matrixVectorMult(ListOfFloatArrays vector, ListOfDoubleArrays sumVector, ContactRecord cr) {
         int x = cr.getBinX();
         int y = cr.getBinY();
         float counts = cr.getCounts();
+        if (x == y) {
+            counts *= .5;
+        }
 
         sumVector.addTo(x, counts * vector.get(y));
-        if (x != y) {
-            sumVector.addTo(y, counts * vector.get(x));
-        }
+        sumVector.addTo(y, counts * vector.get(x));
     }
 
     @Override
