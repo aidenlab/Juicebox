@@ -35,7 +35,7 @@ public class PairsToBin extends JuiceboxCLT {
     private String ifile, ofile, genomeId;
 
     public PairsToBin() {
-        super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
+        super("pairsToBin <input_mnd> <output_mnd_binary> <genomeID>");
     }
 
     @Override

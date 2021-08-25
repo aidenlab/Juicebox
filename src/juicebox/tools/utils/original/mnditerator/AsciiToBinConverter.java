@@ -62,16 +62,10 @@ public class AsciiToBinConverter {
             LittleEndianOutputStream les = new LittleEndianOutputStream(bos);
             iter = new AsciiPairIterator(inputPath, chromosomeOrdinals, chromosomeHandler, true);
 
-            while (iter.hasNext()) {
-                AlignmentPair pair = iter.next();
-                les.writeBoolean(pair.getStrand1());
-                les.writeInt(pair.getChr1());
-                les.writeInt(pair.getPos1());
-                les.writeInt(pair.getFrag1());
-                les.writeBoolean(pair.getStrand2());
-                les.writeInt(pair.getChr2());
-                les.writeInt(pair.getPos2());
-                les.writeInt(pair.getFrag2());
+            if (outputFile.endsWith(".bn")) {
+                writeOutShortBinaryFormat(iter, les);
+            } else {
+                writeOutStandardBinaryFormat(iter, les);
             }
             les.flush();
             bos.flush();
@@ -79,6 +73,31 @@ public class AsciiToBinConverter {
             if (iter != null) iter.close();
             if (bos != null) bos.close();
 
+        }
+    }
+
+    private static void writeOutShortBinaryFormat(AsciiPairIterator iter, LittleEndianOutputStream les) throws IOException {
+        while (iter.hasNext()) {
+            AlignmentPair pair = iter.next();
+            les.writeInt(pair.getChr1());
+            les.writeInt(pair.getPos1());
+            les.writeInt(pair.getChr2());
+            les.writeInt(pair.getPos2());
+            les.writeFloat(pair.getScore());
+        }
+    }
+
+    private static void writeOutStandardBinaryFormat(AsciiPairIterator iter, LittleEndianOutputStream les) throws IOException {
+        while (iter.hasNext()) {
+            AlignmentPair pair = iter.next();
+            les.writeBoolean(pair.getStrand1());
+            les.writeInt(pair.getChr1());
+            les.writeInt(pair.getPos1());
+            les.writeInt(pair.getFrag1());
+            les.writeBoolean(pair.getStrand2());
+            les.writeInt(pair.getChr2());
+            les.writeInt(pair.getPos2());
+            les.writeInt(pair.getFrag2());
         }
     }
 
