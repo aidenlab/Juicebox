@@ -46,7 +46,7 @@ public class ListOfListGenerator {
 
     public static IteratorContainer createForWholeGenome(Dataset dataset, ChromosomeHandler chromosomeHandler,
                                                          HiCZoom zoom, boolean includeIntraData) {
-        IteratorContainer ic = new GWIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
+        IteratorContainer ic = new GWFromFileIteratorContainer(dataset, chromosomeHandler, zoom, includeIntraData);
         return tryToCreateIteratorInRAM(ic);
     }
 
@@ -81,8 +81,8 @@ public class ListOfListGenerator {
 
     private static List<List<ContactRecord>> populateListOfLists(IteratorContainer ic) {
 
-        if (ic instanceof GWIteratorContainer) {
-            List<Iterator<ContactRecord>> iterators = ((GWIteratorContainer) ic).getAllContactRecordIterators();
+        if (ic instanceof GWFromFileIteratorContainer) {
+            List<Iterator<ContactRecord>> iterators = ((GWFromFileIteratorContainer) ic).getAllFromFileContactRecordIterators();
             List<List<ContactRecord>> allRecords = new ArrayList<>();
 
             AtomicInteger index = new AtomicInteger(0);

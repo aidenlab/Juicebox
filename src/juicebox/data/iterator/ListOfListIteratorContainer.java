@@ -25,10 +25,13 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.tools.dev.ParallelizedJuicerTools;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ListOfListIteratorContainer extends IteratorContainer {
 
@@ -55,11 +58,38 @@ public class ListOfListIteratorContainer extends IteratorContainer {
 
     @Override
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
-        final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
-        for (List<ContactRecord> contactRecords : allContactRecords) {
-            totalSumVector.addValuesFrom(ListIteratorContainer.sparseMultiplyByListContacts(
-                    contactRecords, vector, vectorLength, numCPUMatrixThreads));
+
+        if (allContactRecords.size() < numCPUMatrixThreads) {
+            final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
+            for (List<ContactRecord> contactRecords : allContactRecords) {
+                totalSumVector.addValuesFrom(ListIteratorContainer.sparseMultiplyByListContacts(
+                        contactRecords, vector, vectorLength, numCPUMatrixThreads));
+            }
+            return totalSumVector;
         }
-        return totalSumVector;
+
+        return sparseMultiplyAcrossLists(vector, vectorLength);
+    }
+
+    private ListOfFloatArrays sparseMultiplyAcrossLists(ListOfFloatArrays vector, long vectorLength) {
+        final ListOfDoubleArrays totalSumVector = new ListOfDoubleArrays(vectorLength);
+
+        AtomicInteger index = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
+            int sIndx = index.getAndIncrement();
+            ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
+            while (sIndx < allContactRecords.size()) {
+                for (ContactRecord cr : allContactRecords.get(sIndx)) {
+                    ListIteratorContainer.matrixVectorMult(vector, sumVector, cr);
+                }
+                sIndx = index.getAndIncrement();
+            }
+
+            synchronized (totalSumVector) {
+                totalSumVector.addValuesFrom(sumVector);
+            }
+        });
+
+        return totalSumVector.convertToFloats();
     }
 }

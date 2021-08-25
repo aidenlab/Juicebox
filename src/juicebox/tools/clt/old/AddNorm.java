@@ -29,7 +29,6 @@ import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
-import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -80,12 +79,7 @@ public class AddNorm extends JuiceboxCLT {
                               boolean noFragNorm, int numCPUThreads,
                               Map<NormalizationType, Integer> resolutionsToBuildTo) throws IOException {
         //HiCGlobals.useCache = false;
-        NormalizationVectorUpdater updater;
-        if (numCPUThreads > 1) {
-            updater = new MultithreadedNormalizationVectorUpdater(numCPUThreads);
-        } else {
-            updater = new NormalizationVectorUpdater();
-        }
+        NormalizationVectorUpdater updater = new NormalizationVectorUpdater();
         updater.updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
     }
 

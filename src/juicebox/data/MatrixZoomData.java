@@ -34,6 +34,7 @@ import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.iterator.IteratorContainer;
 import juicebox.data.iterator.ListOfListGenerator;
+import juicebox.data.iterator.ZDIteratorContainer;
 import juicebox.data.v9depth.LogDepth;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
@@ -1211,5 +1212,9 @@ public class MatrixZoomData {
             iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache);
         }
         return iteratorContainer;
+    }
+
+    public IteratorContainer getFromFileIteratorContainer() {
+        return new ZDIteratorContainer(reader, this, blockCache);
     }
 }
