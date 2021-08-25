@@ -29,7 +29,6 @@ import juicebox.data.ContactRecord;
 import juicebox.data.Dataset;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfFloatArrays;
-import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.dev.ParallelizedJuicerTools;
 import juicebox.windowui.HiCZoom;
 
@@ -76,7 +75,7 @@ public class GWIteratorContainer extends IteratorContainer {
                 GenomeWideIterator.getAllIterators(dataset, handler, zoom, includeIntra);
 
         AtomicInteger index = new AtomicInteger(0);
-        ParallelizedJuicerTools.launchParallelizedCode(JuiceboxCLT.numCPUMatrixThreads, () -> {
+        ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
             int i = index.getAndIncrement();
             ListOfFloatArrays accumSumVector = new ListOfFloatArrays(vectorLength);
             while (i < allIterators.size()) {

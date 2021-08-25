@@ -33,6 +33,7 @@ public abstract class IteratorContainer {
 
     private final long matrixSize;
     private long numberOfContactRecords = -1;
+    public static int numCPUMatrixThreads = 10;
 
     public IteratorContainer(long matrixSize) {
         this.matrixSize = matrixSize;

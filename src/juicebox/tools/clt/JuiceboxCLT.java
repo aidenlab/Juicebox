@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Arrays;
@@ -39,7 +40,6 @@ public abstract class JuiceboxCLT {
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
     protected static int numCPUThreads = 1;
-    public static int numCPUMatrixThreads = 10;
     protected boolean usingMultiThreadedVersion = false;
 
     protected JuiceboxCLT(String usage) {
@@ -84,7 +84,7 @@ public abstract class JuiceboxCLT {
         if (numThreads > 0) {
             return numThreads;
         } else if (numThreads < 0) {
-            return Runtime.getRuntime().availableProcessors();
+            return Math.abs(numThreads) * Runtime.getRuntime().availableProcessors();
         } else {
             return defaultNum;
         }
@@ -94,7 +94,7 @@ public abstract class JuiceboxCLT {
         int numThreads = parser.getNumThreads();
         int numMThreads = parser.getNumMatrixOperationThreads();
         numCPUThreads = getAppropriateNumberOfThreads(numThreads, 1);
-        numCPUMatrixThreads = getAppropriateNumberOfThreads(numMThreads, 10);
+        IteratorContainer.numCPUMatrixThreads = getAppropriateNumberOfThreads(numMThreads, Runtime.getRuntime().availableProcessors());
 
         System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
