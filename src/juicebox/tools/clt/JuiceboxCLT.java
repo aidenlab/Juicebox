@@ -40,6 +40,7 @@ public abstract class JuiceboxCLT {
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
     protected static int numCPUThreads = 1;
+    protected static int numCPUThreadsForSecondTask = 1;
     protected boolean usingMultiThreadedVersion = false;
 
     protected JuiceboxCLT(String usage) {
@@ -90,13 +91,16 @@ public abstract class JuiceboxCLT {
         }
     }
 
-    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
+    protected void updateNumberOfCPUThreads(CommandLineParser parser, int numDefaultThreads) {
         int numThreads = parser.getNumThreads();
-        int numMThreads = parser.getNumMatrixOperationThreads();
-        numCPUThreads = getAppropriateNumberOfThreads(numThreads, 1);
-        IteratorContainer.numCPUMatrixThreads = getAppropriateNumberOfThreads(numMThreads, Runtime.getRuntime().availableProcessors());
+        numCPUThreads = getAppropriateNumberOfThreads(numThreads, numDefaultThreads);
+        System.out.println("Using " + numCPUThreads + " CPU thread(s) for primary task");
+    }
 
-        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
+    protected void updateSecondaryNumberOfCPUThreads(CommandLineParser parser, int numDefaultThreads) {
+        int numMThreads = parser.getNumMatrixOperationThreads();
+        numCPUThreadsForSecondTask = getAppropriateNumberOfThreads(numMThreads, numDefaultThreads);
+        System.out.println("Using " + IteratorContainer.numCPUMatrixThreads + " CPU thread(s) for secondary task");
     }
 }
 

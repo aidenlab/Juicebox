@@ -156,7 +156,7 @@ public class Arrowhead extends JuicerCLT {
             matrixSize = specifiedMatrixSize;
         }
 
-        updateNumberOfCPUThreads(juicerParser);
+        updateNumberOfCPUThreads(juicerParser, 1);
 
         List<String> t = juicerParser.getThresholdOptions();
         if (t != null && t.size() == 6) {

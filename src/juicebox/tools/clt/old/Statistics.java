@@ -133,7 +133,7 @@ public class Statistics extends JuiceboxCLT {
             ligationJunction = ligJunc;
         }
         //multithreading flags
-        updateNumberOfCPUThreads(parser);
+        updateNumberOfCPUThreads(parser, 1);
         mndIndexFile = parser.getMndIndexOption();
     }
 

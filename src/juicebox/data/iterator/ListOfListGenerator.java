@@ -26,14 +26,18 @@ package juicebox.data.iterator;
 
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.tools.dev.ParallelizedJuicerTools;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ListOfListGenerator {
+    private static final int MAX_LIMIT = Integer.MAX_VALUE - 10;
+
     public static IteratorContainer createFromZD(DatasetReader reader, MatrixZoomData matrixZoomData,
                                                  LRUCache<String, Block> blockCache) {
         IteratorContainer ic = new ZDIteratorContainer(reader, matrixZoomData, blockCache);
@@ -76,25 +80,46 @@ public class ListOfListGenerator {
     }
 
     private static List<List<ContactRecord>> populateListOfLists(IteratorContainer ic) {
+
+        if (ic instanceof GWIteratorContainer) {
+            List<Iterator<ContactRecord>> iterators = ((GWIteratorContainer) ic).getAllContactRecordIterators();
+            List<List<ContactRecord>> allRecords = new ArrayList<>();
+
+            AtomicInteger index = new AtomicInteger(0);
+            ParallelizedJuicerTools.launchParallelizedCode(IteratorContainer.numCPUMatrixThreads, () -> {
+                int i = index.getAndIncrement();
+                List<List<ContactRecord>> recordsForThread = new ArrayList<>();
+                while (i < iterators.size()) {
+                    List<List<ContactRecord>> recordsForIter = populateListOfListsFromSingleIterator(iterators.get(i));
+                    recordsForThread.addAll(recordsForIter);
+                    i = index.getAndIncrement();
+                }
+                synchronized (allRecords) {
+                    allRecords.addAll(recordsForThread);
+                }
+            });
+            return allRecords;
+        } else {
+            return populateListOfListsFromSingleIterator(ic.getNewContactRecordIterator());
+        }
+    }
+
+    private static List<List<ContactRecord>> populateListOfListsFromSingleIterator(Iterator<ContactRecord> iterator) {
         List<List<ContactRecord>> allRecords = new ArrayList<>();
         List<ContactRecord> tempList = new ArrayList<>();
         int counter = 0;
-
-        Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
         while (iterator.hasNext()) {
             tempList.add(iterator.next());
             counter++;
-            if (counter > Integer.MAX_VALUE - 10) {
+            if (counter > MAX_LIMIT) {
                 allRecords.add(tempList);
                 tempList = new ArrayList<>();
                 counter = 0;
             }
         }
-
         if (tempList.size() > 0) {
             allRecords.add(tempList);
         }
-
         return allRecords;
     }
 

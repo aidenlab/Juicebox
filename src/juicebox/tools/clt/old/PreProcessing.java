@@ -27,6 +27,7 @@ package juicebox.tools.clt.old;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.ShellCommandRunner;
@@ -100,7 +101,10 @@ public class PreProcessing extends JuiceboxCLT {
         String tmpDir = parser.getTmpdirOption();
         double hicFileScalingFactor = parser.getScalingOption();
 
-        updateNumberOfCPUThreads(parser);
+        updateNumberOfCPUThreads(parser, 1);
+        updateSecondaryNumberOfCPUThreads(parser, 10);
+        IteratorContainer.numCPUMatrixThreads = numCPUThreadsForSecondTask;
+
         if (numCPUThreads < 2) {
             preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
             usingMultiThreadedVersion = false;
