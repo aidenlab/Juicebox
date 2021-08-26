@@ -25,10 +25,10 @@
 package juicebox.tools.clt.old;
 
 import juicebox.HiCGlobals;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.norm.CustomNormVectorFileHandler;
-import juicebox.tools.utils.norm.MultithreadedNormalizationVectorUpdater;
 import juicebox.tools.utils.norm.NormalizationVectorUpdater;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
@@ -78,12 +78,8 @@ public class AddNorm extends JuiceboxCLT {
     public static void launch(String outputFile, List<NormalizationType> normalizationTypes, int genomeWide,
                               boolean noFragNorm, int numCPUThreads,
                               Map<NormalizationType, Integer> resolutionsToBuildTo) throws IOException {
-        NormalizationVectorUpdater updater;
-        if (numCPUThreads > 1) {
-            updater = new MultithreadedNormalizationVectorUpdater(numCPUThreads);
-        } else {
-            updater = new NormalizationVectorUpdater();
-        }
+        HiCGlobals.useCache = false;
+        NormalizationVectorUpdater updater = new NormalizationVectorUpdater();
         updater.updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
     }
 
@@ -101,7 +97,9 @@ public class AddNorm extends JuiceboxCLT {
         noFragNorm = parser.getNoFragNormOption();
         HiCGlobals.USE_ITERATOR_NOT_ALL_IN_RAM = parser.getDontPutAllContactsIntoRAM();
         HiCGlobals.CHECK_RAM_USAGE = parser.shouldCheckRAMUsage();
-        updateNumberOfCPUThreads(parser);
+        updateNumberOfCPUThreads(parser, 10);
+        IteratorContainer.numCPUMatrixThreads = numCPUThreads;
+
         usingMultiThreadedVersion = numCPUThreads > 1;
 
         genomeWideResolution = parser.getGenomeWideOption();

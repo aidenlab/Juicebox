@@ -28,6 +28,8 @@ import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.DatasetReader;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.basics.ListOfDoubleArrays;
+import juicebox.data.basics.ListOfFloatArrays;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.util.Iterator;
@@ -48,5 +50,25 @@ public class ZDIteratorContainer extends IteratorContainer {
     @Override
     public Iterator<ContactRecord> getNewContactRecordIterator() {
         return new ContactRecordIterator(reader, zd, blockCache);
+    }
+
+    public static ListOfFloatArrays matrixVectorMultiplyOnIterator(Iterator<ContactRecord> iterator,
+                                                                   ListOfFloatArrays vector, long vectorLength) {
+        ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
+        while (iterator.hasNext()) {
+            ContactRecord cr = iterator.next();
+            ListIteratorContainer.matrixVectorMult(vector, sumVector, cr);
+        }
+        return sumVector.convertToFloats();
+    }
+
+    @Override
+    public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
+        return matrixVectorMultiplyOnIterator(getNewContactRecordIterator(), vector, vectorLength);
+    }
+
+    @Override
+    public void clear() {
+        //blockCache.clear();
     }
 }

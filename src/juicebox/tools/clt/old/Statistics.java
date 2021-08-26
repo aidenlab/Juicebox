@@ -43,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Statistics extends JuiceboxCLT {
 
-    private int numThreads;
     private String siteFile;
     private String ligationJunction = "none";
     private String inFile;
@@ -134,7 +133,7 @@ public class Statistics extends JuiceboxCLT {
             ligationJunction = ligJunc;
         }
         //multithreading flags
-        numThreads = Math.max(parser.getNumThreads(), 1);
+        updateNumberOfCPUThreads(parser, 1);
         mndIndexFile = parser.getMndIndexOption();
     }
 
@@ -153,14 +152,14 @@ public class Statistics extends JuiceboxCLT {
         setMndIndex();
         FragmentCalculation fragmentCalculation = readSiteFile(siteFile);
         StatisticsContainer container;
-        if (localHandler == null || mndChunks.size() < 2 || numThreads == 1) {
+        if (localHandler == null || mndChunks.size() < 2 || numCPUThreads == 1) {
             LoneStatisticsWorker runner = new LoneStatisticsWorker(siteFile, statsFiles, mapqThresholds,
                     ligationJunction, inFile, fragmentCalculation);
             runner.infileStatistics();
             container = runner.getResultsContainer();
         } else {
             container = new StatisticsContainer();
-            ParallelStatistics pStats = new ParallelStatistics(numThreads, container,
+            ParallelStatistics pStats = new ParallelStatistics(numCPUThreads, container,
                     mndChunks, siteFile, statsFiles, mapqThresholds,
                     ligationJunction, inFile, localHandler, fragmentCalculation);
             pStats.launchThreads();

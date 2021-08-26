@@ -42,7 +42,6 @@ public abstract class JuicerCLT extends JuiceboxCLT {
 
     protected NormalizationType norm = NormalizationHandler.SCALE;
     protected List<String> givenChromosomes = null; //TODO set to protected
-    protected static int numCPUThreads = 1;
 
     protected JuicerCLT(String usage) {
         super(usage);
@@ -64,18 +63,6 @@ public abstract class JuicerCLT extends JuiceboxCLT {
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer)parser;
         assessIfChromosomesHaveBeenSpecified(juicerParser);
         readJuicerArguments(args, juicerParser);
-    }
-
-    protected void updateNumberOfCPUThreads(CommandLineParserForJuicer juicerParser) {
-        int numThreads = juicerParser.getNumThreads();
-        if (numThreads > 0) {
-            numCPUThreads = numThreads;
-        } else if (numThreads < 0) {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
-        } else {
-            numCPUThreads = 1;
-        }
-        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
     }
 
     protected abstract void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser);

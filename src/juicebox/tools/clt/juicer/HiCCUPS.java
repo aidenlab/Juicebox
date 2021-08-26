@@ -246,7 +246,7 @@ public class HiCCUPS extends JuicerCLT {
             System.out.println(CPU_VERSION_WARNING);
         }
 
-        updateNumberOfCPUThreads(juicerParser);
+        updateNumberOfCPUThreads(juicerParser, 1);
     }
 
     /**

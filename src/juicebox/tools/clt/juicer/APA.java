@@ -136,7 +136,7 @@ public class APA extends JuicerCLT {
      */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
-                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
+                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [--include-inter-chr] [--save-all]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false;
     }
@@ -210,7 +210,7 @@ public class APA extends JuicerCLT {
             resolutions = Ints.toArray(intResolutions);
         }
 
-        updateNumberOfCPUThreads(juicerParser);
+        updateNumberOfCPUThreads(juicerParser, 1);
     }
 
     @Override

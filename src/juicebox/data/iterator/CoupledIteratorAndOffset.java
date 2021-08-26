@@ -22,40 +22,33 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.data.iterator;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.HiCFileTools;
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+import juicebox.data.ContactRecord;
 
-public class PairsToBin extends JuiceboxCLT {
+import java.util.Iterator;
 
-    private String ifile, ofile, genomeId;
+public class CoupledIteratorAndOffset implements Iterator<ContactRecord> {
 
-    public PairsToBin() {
-        super("pairsToBin <input_mnd> <output_mnd_binary> <genomeID>");
+    private final Iterator<ContactRecord> internalIterator;
+    private final int xOffset, yOffset;
+
+    public CoupledIteratorAndOffset(Iterator<ContactRecord> iterator, int xOffset, int yOffset) {
+        internalIterator = iterator;
+        this.xOffset = xOffset;
+        this.yOffset = yOffset;
     }
 
     @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 4) {
-            printUsageAndExit();
-        }
-        ifile = args[1];
-        ofile = args[2];
-        genomeId = args[3];
+    public boolean hasNext() {
+        return internalIterator.hasNext();
     }
 
     @Override
-    public void run() {
-        ChromosomeHandler chromosomeHandler = HiCFileTools.loadChromosomes(genomeId);
-        try {
-            AsciiToBinConverter.convert(ifile, ofile, chromosomeHandler);
-        } catch (Exception e) {
-            System.err.println("Unable to convert from ascii to bin");
-            e.printStackTrace();
-        }
+    public ContactRecord next() {
+        ContactRecord cr = internalIterator.next();
+        int binX = cr.getBinX() + xOffset;
+        int binY = cr.getBinY() + yOffset;
+        return new ContactRecord(binX, binY, cr.getCounts());
     }
 }

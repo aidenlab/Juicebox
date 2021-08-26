@@ -1003,4 +1003,26 @@ public class Dataset {
     public int getDepthBase() {
         return v9DepthBase;
     }
+
+    public void clearCache(boolean onlyClearInter) {
+        for (Matrix matrix : matrices.values()) {
+            for (HiCZoom zoom : getBpZooms()) {
+                try {
+                    matrix.getZoomData(zoom).clearCache(onlyClearInter);
+                } catch (Exception e) {
+                    System.err.println("Clearing err: " + e.getLocalizedMessage());
+                }
+            }
+        }
+    }
+
+    public void clearCache(boolean onlyClearInter, HiCZoom zoom) {
+        for (Matrix matrix : matrices.values()) {
+            try {
+                matrix.getZoomData(zoom).clearCache(onlyClearInter);
+            } catch (Exception e) {
+                System.err.println("Clearing z_err: " + e.getLocalizedMessage());
+            }
+        }
+    }
 }

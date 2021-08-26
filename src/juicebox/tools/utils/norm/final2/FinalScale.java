@@ -371,22 +371,6 @@ public class FinalScale {
 
     private static ListOfFloatArrays sparseMultiplyGetRowSums(IteratorContainer ic,
                                                               ListOfFloatArrays vector, long vectorLength) {
-        ListOfFloatArrays sumVector = new ListOfFloatArrays(vectorLength);
-
-        Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            ContactRecord cr = iterator.next();
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float counts = cr.getCounts();
-            if (x == y) {
-                counts *= .5;
-            }
-
-            sumVector.addTo(x, counts * vector.get(y));
-            sumVector.addTo(y, counts * vector.get(x));
-        }
-
-        return sumVector;
+        return ic.sparseMultiply(vector, vectorLength);
     }
 }

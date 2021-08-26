@@ -25,6 +25,7 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfFloatArrays;
 
 import java.util.Iterator;
 
@@ -32,6 +33,7 @@ public abstract class IteratorContainer {
 
     private final long matrixSize;
     private long numberOfContactRecords = -1;
+    public static int numCPUMatrixThreads = 10;
 
     public IteratorContainer(long matrixSize) {
         this.matrixSize = matrixSize;
@@ -66,4 +68,9 @@ public abstract class IteratorContainer {
         // float is 4 bytes; one for each row
         return matrixSize * 4 < Runtime.getRuntime().maxMemory();
     }
+
+    public abstract ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength);
+
+    public abstract void clear();
+
 }

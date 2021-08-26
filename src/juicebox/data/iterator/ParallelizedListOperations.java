@@ -22,40 +22,18 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt.old;
+package juicebox.data.iterator;
 
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.HiCFileTools;
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.utils.original.mnditerator.AsciiToBinConverter;
+public class ParallelizedListOperations {
 
-public class PairsToBin extends JuiceboxCLT {
-
-    private String ifile, ofile, genomeId;
-
-    public PairsToBin() {
-        super("pairsToBin <input_mnd> <output_mnd_binary> <genomeID>");
-    }
-
-    @Override
-    public void readArguments(String[] args, CommandLineParser parser) {
-        if (args.length != 4) {
-            printUsageAndExit();
+    public static int[] createCutoffs(int n, int listSize) {
+        int[] cutoffs = new int[n + 1];
+        int increment = listSize / n;
+        for (int k = 1; k < n; k++) {
+            cutoffs[k] = k * increment;
         }
-        ifile = args[1];
-        ofile = args[2];
-        genomeId = args[3];
-    }
-
-    @Override
-    public void run() {
-        ChromosomeHandler chromosomeHandler = HiCFileTools.loadChromosomes(genomeId);
-        try {
-            AsciiToBinConverter.convert(ifile, ofile, chromosomeHandler);
-        } catch (Exception e) {
-            System.err.println("Unable to convert from ascii to bin");
-            e.printStackTrace();
-        }
+        cutoffs[0] = 0;
+        cutoffs[n] = listSize;
+        return cutoffs;
     }
 }

@@ -28,9 +28,13 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.Dataset;
 import juicebox.data.basics.Chromosome;
+import juicebox.data.basics.ListOfFloatArrays;
+import juicebox.tools.dev.ParallelizedJuicerTools;
 import juicebox.windowui.HiCZoom;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class GWIteratorContainer extends IteratorContainer {
@@ -61,5 +65,39 @@ public class GWIteratorContainer extends IteratorContainer {
     @Override
     public Iterator<ContactRecord> getNewContactRecordIterator() {
         return new GenomeWideIterator(dataset, handler, zoom, includeIntra);
+    }
+
+    public List<Iterator<ContactRecord>> getAllFromFileContactRecordIterators() {
+        return GenomeWideIterator.getAllFromFileIterators(dataset, handler, zoom, includeIntra);
+    }
+
+    @Override
+    public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
+        final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
+
+        List<Iterator<ContactRecord>> allIterators = getAllFromFileContactRecordIterators();
+
+        AtomicInteger index = new AtomicInteger(0);
+        ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
+            int i = index.getAndIncrement();
+            ListOfFloatArrays accumSumVector = new ListOfFloatArrays(vectorLength);
+            while (i < allIterators.size()) {
+                accumSumVector.addValuesFrom(ZDIteratorContainer.matrixVectorMultiplyOnIterator(
+                        allIterators.get(i), vector, vectorLength));
+                i = index.getAndIncrement();
+            }
+            synchronized (totalSumVector) {
+                totalSumVector.addValuesFrom(accumSumVector);
+            }
+        });
+
+        allIterators.clear();
+
+        return totalSumVector;
+    }
+
+    @Override
+    public void clear() {
+        // null, doesn't need to clean anything
     }
 }

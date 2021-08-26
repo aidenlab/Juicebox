@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
+import juicebox.data.iterator.IteratorContainer;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Arrays;
@@ -39,6 +40,7 @@ public abstract class JuiceboxCLT {
     protected Dataset dataset = null;
     protected NormalizationType norm = null;
     protected static int numCPUThreads = 1;
+    protected static int numCPUThreadsForSecondTask = 1;
     protected boolean usingMultiThreadedVersion = false;
 
     protected JuiceboxCLT(String usage) {
@@ -79,16 +81,26 @@ public abstract class JuiceboxCLT {
         }
     }
 
-    protected void updateNumberOfCPUThreads(CommandLineParser parser) {
-        int numThreads = parser.getNumThreads();
+    public static int getAppropriateNumberOfThreads(int numThreads, int defaultNum) {
         if (numThreads > 0) {
-            numCPUThreads = numThreads;
+            return numThreads;
         } else if (numThreads < 0) {
-            numCPUThreads = Runtime.getRuntime().availableProcessors();
+            return Math.abs(numThreads) * Runtime.getRuntime().availableProcessors();
         } else {
-            numCPUThreads = 1;
+            return defaultNum;
         }
-        System.out.println("Using " + numCPUThreads + " CPU thread(s)");
+    }
+
+    protected void updateNumberOfCPUThreads(CommandLineParser parser, int numDefaultThreads) {
+        int numThreads = parser.getNumThreads();
+        numCPUThreads = getAppropriateNumberOfThreads(numThreads, numDefaultThreads);
+        System.out.println("Using " + numCPUThreads + " CPU thread(s) for primary task");
+    }
+
+    protected void updateSecondaryNumberOfCPUThreads(CommandLineParser parser, int numDefaultThreads) {
+        int numMThreads = parser.getNumMatrixOperationThreads();
+        numCPUThreadsForSecondTask = getAppropriateNumberOfThreads(numMThreads, numDefaultThreads);
+        System.out.println("Using " + IteratorContainer.numCPUMatrixThreads + " CPU thread(s) for secondary task");
     }
 }
 

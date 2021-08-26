@@ -46,7 +46,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
     private final Option multipleResolutionsOption = addStringOption('r', "resolutions");
     private final Option legacyOutputOption = addBooleanOption('g', "legacy");
-    private final Option threadNumOption = addIntegerOption('z', "threads");
 
     // APA
     private final Option apaWindowOption = addIntegerOption('w', "window");
@@ -133,10 +132,6 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public int getMatrixSizeOption() {
         return optionToInt(matrixSizeOption);
-    }
-
-    public int getNumThreads() {
-        return optionToInt(threadNumOption);
     }
 
     /**

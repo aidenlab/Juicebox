@@ -63,12 +63,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      * Cache of chromosome name -> array of restriction sites
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
-    private final Map<String, IndexEntry> masterIndex = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, IndexEntry> masterIndex = new HashMap<>();
     private Map<String, LargeIndexEntry> normVectorIndex;
     private final Dataset dataset;
     private int version = -1;
     private Map<String, FragIndexEntry> fragmentSitesIndex;
-    private final Map<String, BlockIndex> blockIndexMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, BlockIndex> blockIndexMap = new HashMap<>();
     private long masterIndexPos;
     private long normVectorFilePosition;
     private long nviHeaderPosition;
@@ -332,11 +332,15 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         if (binSize < 50 && HiCGlobals.allowDynamicBlockIndex) {
             int maxPossibleBlockNumber = blockColumnCount * blockColumnCount - 1;
             DynamicBlockIndex blockIndex = new DynamicBlockIndex(getValidStream(), nBlocks, maxPossibleBlockNumber, currentFilePointer);
-            blockIndexMap.put(zd.getKey(), blockIndex);
+            synchronized (blockIndexMap) {
+                blockIndexMap.put(zd.getKey(), blockIndex);
+            }
         } else {
             BlockIndex blockIndex = new BlockIndex(nBlocks);
             blockIndex.populateBlocks(dis);
-            blockIndexMap.put(zd.getKey(), blockIndex);
+            synchronized (blockIndexMap) {
+                blockIndexMap.put(zd.getKey(), blockIndex);
+            }
         }
         currentFilePointer += (nBlocks * 16L);
     
@@ -483,7 +487,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             long filePosition = dis.readLong();
             int sizeInBytes = dis.readInt();
             currentPosition += 12;
-            masterIndex.put(key, new IndexEntry(filePosition, sizeInBytes));
+            synchronized (masterIndex) {
+                masterIndex.put(key, new IndexEntry(filePosition, sizeInBytes));
+            }
         }
 
         Map<String, ExpectedValueFunction> expectedValuesMap = new LinkedHashMap<>();
