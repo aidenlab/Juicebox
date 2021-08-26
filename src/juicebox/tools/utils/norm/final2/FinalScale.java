@@ -26,11 +26,9 @@ package juicebox.tools.utils.norm.final2;
 
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
-import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.basics.ListOfIntArrays;
 import juicebox.data.iterator.IteratorContainer;
-import juicebox.data.iterator.ListIteratorContainer;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -374,18 +372,5 @@ public class FinalScale {
     private static ListOfFloatArrays sparseMultiplyGetRowSums(IteratorContainer ic,
                                                               ListOfFloatArrays vector, long vectorLength) {
         return ic.sparseMultiply(vector, vectorLength);
-    }
-
-    private static ListOfFloatArrays sparseMultiplyGetRowSumsOld(IteratorContainer ic,
-                                                                 ListOfFloatArrays vector, long vectorLength) {
-        ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
-
-        Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
-        while (iterator.hasNext()) {
-            ContactRecord cr = iterator.next();
-            ListIteratorContainer.matrixVectorMult(vector, sumVector, cr);
-        }
-
-        return sumVector.convertToFloats();
     }
 }

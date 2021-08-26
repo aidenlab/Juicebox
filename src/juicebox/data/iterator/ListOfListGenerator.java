@@ -106,17 +106,15 @@ public class ListOfListGenerator {
 
     private static List<List<ContactRecord>> populateListOfListsFromSingleIterator(Iterator<ContactRecord> iterator) {
 
-        //long[] howManyLeft = new long[]{numContacts};
         List<List<ContactRecord>> allRecords = new ArrayList<>();
-        List<ContactRecord> tempList = allocateNewArrayList();//howManyLeft
+        List<ContactRecord> tempList = new ArrayList<>();
         int counter = 0;
         while (iterator.hasNext()) {
             tempList.add(iterator.next());
             counter++;
             if (counter > MAX_LIMIT) {
                 allRecords.add(tempList);
-                //howManyLeft[0] -= counter;
-                tempList = allocateNewArrayList();//howManyLeft
+                tempList = new ArrayList<>();
                 counter = 0;
             }
         }
@@ -124,19 +122,6 @@ public class ListOfListGenerator {
             allRecords.add(tempList);
         }
         return allRecords;
-    }
-
-    private static List<ContactRecord> allocateNewArrayList() { //long[] howManyLeft
-        /*if(howManyLeft[0] > 0) {
-            if (howManyLeft[0] <= MAX_LIMIT) {
-                int size = (int) howManyLeft[0];
-                return new ArrayList<>(size);
-            } else {
-                return new ArrayList<>(MAX_LIMIT);
-            }
-        }
-        */
-        return new ArrayList<>();
     }
 
     private static boolean checkMemory(IteratorContainer ic) {
