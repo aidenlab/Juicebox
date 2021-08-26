@@ -27,7 +27,6 @@ package juicebox.tools.utils.norm;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
-import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.iterator.IteratorContainer;
 import juicebox.data.iterator.ListOfListGenerator;
@@ -40,7 +39,6 @@ import org.broad.igv.util.Pair;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -172,12 +170,11 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         int addY = 0;
         // Loop through chromosomes
         for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            final int chrIdx = chr.getIndex();
-
             MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, chr, chr, zoom);
             if (zd == null) continue;
+            final int chrIdx = chr.getIndex();
 
-            Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+            Iterator<ContactRecord> iterator = zd.getFromFileIteratorContainer().getNewContactRecordIterator();
             while (iterator.hasNext()) {
                 ContactRecord cr = iterator.next();
                 int x = cr.getBinX();
@@ -193,17 +190,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
         }
 
         // Split normalization vector by chromosome
-        Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<>();
-        long location1 = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            long chrBinned = c1.getLength() / resolution + 1;
-            ListOfDoubleArrays chrNV = new ListOfDoubleArrays(chrBinned);
-            for (long k = 0; k < chrNV.getLength(); k++) { // todo optimize a version with system.arraycopy and long
-                chrNV.set(k, vector.get(location1 + k));
-            }
-            location1 += chrNV.getLength();
-            normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
-        }
+        Map<Chromosome, NormalizationVector> normVectorMap =
+                NormalizationTools.parCreateNormVectorMap(chromosomeHandler, resolution, vector, norm, zoom);
 
         ic.clear();
 

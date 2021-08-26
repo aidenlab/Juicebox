@@ -155,19 +155,24 @@ public class ExpectedValueCalculation {
      * @param bin2   Position2 observed in units of "bins"
      */
     public synchronized void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
-	
-		// Ignore NaN values    TODO -- is this the right thing to do?
-		if (Double.isNaN(weight)) return;
-	
-		int dist;
-		Chromosome chr = chromosomesMap.get(chrIdx);
-		if (chr == null) return;
-	
-		chromosomeCounts.merge(chrIdx, weight, Double::sum);
-		dist = Math.abs(bin1 - bin2);
-	
-		actualDistances[dist] += weight;
-	}
+
+        // Ignore NaN values    TODO -- is this the right thing to do?
+        if (Double.isNaN(weight)) return;
+
+        int dist;
+        Chromosome chr = chromosomesMap.get(chrIdx);
+        if (chr == null) return;
+
+        Double count = chromosomeCounts.get(chrIdx);
+        if (count == null) {
+            chromosomeCounts.put(chrIdx, weight);
+        } else {
+            chromosomeCounts.put(chrIdx, count + weight);
+        }
+        dist = Math.abs(bin1 - bin2);
+
+        actualDistances[dist] += weight;
+    }
 
     public void merge(ExpectedValueCalculation otherEVCalc) {
         for (Map.Entry<Integer, Chromosome> entry : otherEVCalc.chromosomesMap.entrySet()) {
