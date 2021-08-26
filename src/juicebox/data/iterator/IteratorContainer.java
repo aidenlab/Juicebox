@@ -70,4 +70,7 @@ public abstract class IteratorContainer {
     }
 
     public abstract ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength);
+
+    public abstract void clear();
+
 }

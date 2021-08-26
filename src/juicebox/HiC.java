@@ -1235,10 +1235,7 @@ public class HiC {
     }
 
     private void clearAllCacheForDataset(Dataset ds) {
-        Matrix matrix = ds.getMatrix(xContext.getChromosome(), yContext.getChromosome());
-        for (HiCZoom zoom : ds.getBpZooms()) {
-            matrix.getZoomData(zoom).clearCache();
-        }
+        ds.clearCache(false);
     }
 
     public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {

@@ -158,6 +158,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                         normVectorIndices, normVectorBuffers, expectedValueCalculations);
             }
 
+            ds.clearCache(true, zoom);
+
             //System.out.println("genomewide normalization: " + Duration.between(A,B).toMillis());
             System.out.println();
             System.out.print("Calculating norms for zoom " + zoom);
@@ -196,6 +198,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 if (weShouldBuildScale && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
                     buildScale(chr, nc, zoom, zd, evSCALE);
                 }
+
+                zd.clearCache(false);
             }
 
             if (weShouldBuildVC && evVC.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.VC)) {

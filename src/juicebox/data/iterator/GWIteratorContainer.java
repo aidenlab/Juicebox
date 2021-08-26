@@ -37,15 +37,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class GWFromFileIteratorContainer extends IteratorContainer {
+public class GWIteratorContainer extends IteratorContainer {
 
     private final Dataset dataset;
     private final ChromosomeHandler handler;
     private final HiCZoom zoom;
     private final boolean includeIntra;
 
-    public GWFromFileIteratorContainer(Dataset dataset, ChromosomeHandler handler,
-                                       HiCZoom zoom, boolean includeIntra) {
+    public GWIteratorContainer(Dataset dataset, ChromosomeHandler handler,
+                               HiCZoom zoom, boolean includeIntra) {
         super(calculateMatrixSize(handler, zoom));
         this.dataset = dataset;
         this.handler = handler;
@@ -67,15 +67,15 @@ public class GWFromFileIteratorContainer extends IteratorContainer {
         return new GenomeWideIterator(dataset, handler, zoom, includeIntra);
     }
 
-    public List<Iterator<ContactRecord>> getAllFromFileContactRecordIterators() {
-        return GenomeWideIterator.getAllFromFileIterators(dataset, handler, zoom, includeIntra);
+    public List<Iterator<ContactRecord>> getAllContactRecordIterators() {
+        return GenomeWideIterator.getAllIterators(dataset, handler, zoom, includeIntra);
     }
 
     @Override
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
         final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
 
-        List<Iterator<ContactRecord>> allIterators = getAllFromFileContactRecordIterators();
+        List<Iterator<ContactRecord>> allIterators = getAllContactRecordIterators();
 
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
@@ -94,5 +94,10 @@ public class GWFromFileIteratorContainer extends IteratorContainer {
         allIterators.clear();
 
         return totalSumVector;
+    }
+
+    @Override
+    public void clear() {
+        // null, doesn't need to clean anything
     }
 }

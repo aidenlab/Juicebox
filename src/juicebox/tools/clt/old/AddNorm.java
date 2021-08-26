@@ -78,7 +78,7 @@ public class AddNorm extends JuiceboxCLT {
     public static void launch(String outputFile, List<NormalizationType> normalizationTypes, int genomeWide,
                               boolean noFragNorm, int numCPUThreads,
                               Map<NormalizationType, Integer> resolutionsToBuildTo) throws IOException {
-        //HiCGlobals.useCache = false;
+        HiCGlobals.useCache = false;
         NormalizationVectorUpdater updater = new NormalizationVectorUpdater();
         updater.updateHicFile(outputFile, normalizationTypes, resolutionsToBuildTo, genomeWide, noFragNorm);
     }

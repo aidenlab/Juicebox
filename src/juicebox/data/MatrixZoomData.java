@@ -34,7 +34,6 @@ import juicebox.assembly.Scaffold;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.iterator.IteratorContainer;
 import juicebox.data.iterator.ListOfListGenerator;
-import juicebox.data.iterator.ZDIteratorContainer;
 import juicebox.data.v9depth.LogDepth;
 import juicebox.data.v9depth.V9Depth;
 import juicebox.gui.SuperAdapter;
@@ -62,11 +61,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-
-/**
- * @author jrobinso
- * @since Aug 10, 2010
- */
 public class MatrixZoomData {
 
     final Chromosome chr1;  // Chromosome on the X axis
@@ -1198,8 +1192,11 @@ public class MatrixZoomData {
         this.averageCount = averageCount;
     }
 
-    public void clearCache() {
+    public void clearCache(boolean onlyClearInter) {
+        if (onlyClearInter && isIntra) return;
         blockCache.clear();
+        iteratorContainer.clear();
+        iteratorContainer = null;
     }
 
     private Iterator<ContactRecord> getNewContactRecordIterator() {
@@ -1212,9 +1209,5 @@ public class MatrixZoomData {
             iteratorContainer = ListOfListGenerator.createFromZD(reader, this, blockCache);
         }
         return iteratorContainer;
-    }
-
-    public IteratorContainer getFromFileIteratorContainer() {
-        return new ZDIteratorContainer(reader, this, blockCache);
     }
 }

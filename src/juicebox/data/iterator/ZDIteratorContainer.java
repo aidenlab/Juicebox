@@ -66,4 +66,9 @@ public class ZDIteratorContainer extends IteratorContainer {
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
         return matrixVectorMultiplyOnIterator(getNewContactRecordIterator(), vector, vectorLength);
     }
+
+    @Override
+    public void clear() {
+        //blockCache.clear();
+    }
 }

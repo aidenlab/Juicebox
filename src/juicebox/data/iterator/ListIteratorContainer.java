@@ -94,4 +94,9 @@ public class ListIteratorContainer extends IteratorContainer {
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
         return sparseMultiplyByListContacts(readList, vector, vectorLength, numCPUMatrixThreads);
     }
+
+    @Override
+    public void clear() {
+        readList.clear();
+    }
 }

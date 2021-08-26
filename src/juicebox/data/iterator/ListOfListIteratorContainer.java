@@ -71,6 +71,14 @@ public class ListOfListIteratorContainer extends IteratorContainer {
         return sparseMultiplyAcrossLists(vector, vectorLength);
     }
 
+    @Override
+    public void clear() {
+        for (List<ContactRecord> cList : allContactRecords) {
+            cList.clear();
+        }
+        allContactRecords.clear();
+    }
+
     private ListOfFloatArrays sparseMultiplyAcrossLists(ListOfFloatArrays vector, long vectorLength) {
         final ListOfDoubleArrays totalSumVector = new ListOfDoubleArrays(vectorLength);
 

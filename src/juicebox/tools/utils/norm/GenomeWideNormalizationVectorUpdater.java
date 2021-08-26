@@ -204,6 +204,8 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
         }
 
+        ic.clear();
+
         return new Pair<>(normVectorMap, expectedValueCalculation);
     }
 }
