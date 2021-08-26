@@ -1009,18 +1009,19 @@ public class Dataset {
             for (HiCZoom zoom : getBpZooms()) {
                 try {
                     matrix.getZoomData(zoom).clearCache(onlyClearInter);
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    System.err.println("Clearing err: " + e.getLocalizedMessage());
                 }
             }
         }
-
     }
 
     public void clearCache(boolean onlyClearInter, HiCZoom zoom) {
         for (Matrix matrix : matrices.values()) {
             try {
                 matrix.getZoomData(zoom).clearCache(onlyClearInter);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.err.println("Clearing z_err: " + e.getLocalizedMessage());
             }
         }
     }

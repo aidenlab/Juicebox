@@ -67,15 +67,15 @@ public class GWIteratorContainer extends IteratorContainer {
         return new GenomeWideIterator(dataset, handler, zoom, includeIntra);
     }
 
-    public List<Iterator<ContactRecord>> getAllContactRecordIterators() {
-        return GenomeWideIterator.getAllIterators(dataset, handler, zoom, includeIntra);
+    public List<Iterator<ContactRecord>> getAllFromFileContactRecordIterators() {
+        return GenomeWideIterator.getAllFromFileIterators(dataset, handler, zoom, includeIntra);
     }
 
     @Override
     public ListOfFloatArrays sparseMultiply(ListOfFloatArrays vector, long vectorLength) {
         final ListOfFloatArrays totalSumVector = new ListOfFloatArrays(vectorLength);
 
-        List<Iterator<ContactRecord>> allIterators = getAllContactRecordIterators();
+        List<Iterator<ContactRecord>> allIterators = getAllFromFileContactRecordIterators();
 
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {

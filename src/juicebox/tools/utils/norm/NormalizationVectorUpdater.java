@@ -89,7 +89,6 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                                    NormalizationCalculations nc, HiCZoom zoom, MatrixZoomData zd, ExpectedValueCalculation evVC,
                                    ExpectedValueCalculation evVCSqrt) throws IOException {
         final int chrIdx = chr.getIndex();
-        long currentTime = System.currentTimeMillis();
         ListOfFloatArrays vc = nc.computeVC();
 
         ListOfFloatArrays vcSqrt = new ListOfFloatArrays(vc.getLength());
@@ -152,6 +151,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             }
             if (noFrag && zoom.getUnit() == HiC.Unit.FRAG) continue;
 
+            System.out.println();
+            System.out.print("Calculating norms for zoom " + zoom);
+
             // compute genome-wide normalizations
             if (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideLowestResolutionAllowed) {
                 GenomeWideNormalizationVectorUpdater.updateHicFileForGWfromPreAddNormOnly(ds, zoom, normalizationsToBuild, resolutionsToBuildTo,
@@ -161,8 +163,6 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             ds.clearCache(true, zoom);
 
             //System.out.println("genomewide normalization: " + Duration.between(A,B).toMillis());
-            System.out.println();
-            System.out.print("Calculating norms for zoom " + zoom);
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
@@ -176,6 +176,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
 
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
                 if (zd == null) continue;
+
+                System.out.println("Now Doing " + chr.getName());
 
                 NormalizationCalculations nc = new NormalizationCalculations(zd.getIteratorContainer());
                 if (!nc.isEnoughMemory()) {
@@ -214,6 +216,8 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
             if (weShouldBuildScale && evSCALE.hasData() && zoom.getBinSize() >= resolutionsToBuildTo.get(NormalizationHandler.SCALE)) {
                 expectedValueCalculations.add(evSCALE);
             }
+
+            ds.clearCache(false, zoom);
         }
         writeNormsToUpdateFile(reader, path, true, expectedValueCalculations, null, normVectorIndices,
                 normVectorBuffers, "Finished writing norms");

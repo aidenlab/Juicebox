@@ -82,7 +82,7 @@ public class ListOfListGenerator {
     private static List<List<ContactRecord>> populateListOfLists(IteratorContainer ic) {
 
         if (ic instanceof GWIteratorContainer) {
-            List<Iterator<ContactRecord>> iterators = ((GWIteratorContainer) ic).getAllContactRecordIterators();
+            List<Iterator<ContactRecord>> iterators = ((GWIteratorContainer) ic).getAllFromFileContactRecordIterators();
             List<List<ContactRecord>> allRecords = new ArrayList<>();
 
             AtomicInteger index = new AtomicInteger(0);
@@ -105,15 +105,18 @@ public class ListOfListGenerator {
     }
 
     private static List<List<ContactRecord>> populateListOfListsFromSingleIterator(Iterator<ContactRecord> iterator) {
+
+        //long[] howManyLeft = new long[]{numContacts};
         List<List<ContactRecord>> allRecords = new ArrayList<>();
-        List<ContactRecord> tempList = new ArrayList<>();
+        List<ContactRecord> tempList = allocateNewArrayList();//howManyLeft
         int counter = 0;
         while (iterator.hasNext()) {
             tempList.add(iterator.next());
             counter++;
             if (counter > MAX_LIMIT) {
                 allRecords.add(tempList);
-                tempList = new ArrayList<>();
+                //howManyLeft[0] -= counter;
+                tempList = allocateNewArrayList();//howManyLeft
                 counter = 0;
             }
         }
@@ -121,6 +124,19 @@ public class ListOfListGenerator {
             allRecords.add(tempList);
         }
         return allRecords;
+    }
+
+    private static List<ContactRecord> allocateNewArrayList() { //long[] howManyLeft
+        /*if(howManyLeft[0] > 0) {
+            if (howManyLeft[0] <= MAX_LIMIT) {
+                int size = (int) howManyLeft[0];
+                return new ArrayList<>(size);
+            } else {
+                return new ArrayList<>(MAX_LIMIT);
+            }
+        }
+        */
+        return new ArrayList<>();
     }
 
     private static boolean checkMemory(IteratorContainer ic) {

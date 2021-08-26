@@ -38,7 +38,7 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
     private final boolean includeIntra;
     private final HiCZoom zoom;
     private final Dataset dataset;
-    private CoupledIteratorAndOffset currentIterator = null;
+    private Iterator<ContactRecord> currentIterator = null;
 
     private int recentAddX = 0;
     private int recentAddY = 0;
@@ -64,8 +64,8 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
         return getNextIterator();
     }
 
-    public static List<Iterator<ContactRecord>> getAllIterators(Dataset dataset, ChromosomeHandler handler,
-                                                                HiCZoom zoom, boolean includeIntra) {
+    public static List<Iterator<ContactRecord>> getAllFromFileIterators(Dataset dataset, ChromosomeHandler handler,
+                                                                        HiCZoom zoom, boolean includeIntra) {
         Chromosome[] chromosomes = handler.getChromosomeArrayWithoutAllByAll();
         List<Iterator<ContactRecord>> allIterators = new ArrayList<>();
 
@@ -79,7 +79,8 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
                 if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
                     MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
                     if (zd != null) {
-                        Iterator<ContactRecord> iterator = zd.getIteratorContainer().getNewContactRecordIterator();
+                        IteratorContainer ic = zd.getFromFileIteratorContainer();
+                        Iterator<ContactRecord> iterator = ic.getNewContactRecordIterator();
                         if (iterator != null && iterator.hasNext()) {
                             allIterators.add(new CoupledIteratorAndOffset(iterator, xOffset, yOffset));
                         }
@@ -101,7 +102,7 @@ public class GenomeWideIterator implements Iterator<ContactRecord> {
                 if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
                     MatrixZoomData zd = HiCFileTools.getMatrixZoomData(dataset, c1, c2, zoom);
                     if (zd != null) {
-                        Iterator<ContactRecord> newIterator = zd.getIteratorContainer().getNewContactRecordIterator();
+                        Iterator<ContactRecord> newIterator = zd.getFromFileIteratorContainer().getNewContactRecordIterator();
                         if (newIterator != null && newIterator.hasNext()) {
                             currentIterator = new CoupledIteratorAndOffset(newIterator, recentAddX, recentAddY);
                             return true;
