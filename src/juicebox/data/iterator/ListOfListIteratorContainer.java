@@ -80,21 +80,23 @@ public class ListOfListIteratorContainer extends IteratorContainer {
     private ListOfFloatArrays sparseMultiplyAcrossLists(ListOfFloatArrays vector, long vectorLength) {
         final ListOfDoubleArrays totalSumVector = new ListOfDoubleArrays(vectorLength);
 
+        ListOfDoubleArrays[] allVectors = getArrayOfDoubleVectors(allContactRecords.getNumLists(), vectorLength);
+
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
             int sIndx = index.getAndIncrement();
-            ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
             while (sIndx < allContactRecords.getNumLists()) {
                 for (ContactRecord cr : allContactRecords.getSubList(sIndx)) {
-                    ListIteratorContainer.matrixVectorMult(vector, sumVector, cr);
+                    ListIteratorContainer.matrixVectorMult(vector, allVectors[sIndx], cr);
                 }
                 sIndx = index.getAndIncrement();
             }
-
-            synchronized (totalSumVector) {
-                totalSumVector.addValuesFrom(sumVector);
-            }
         });
+
+        for (int z = 0; z < allVectors.length; z++) {
+            totalSumVector.addValuesFrom(allVectors[z]);
+            allVectors[z] = null;
+        }
 
         return totalSumVector.convertToFloats();
     }
