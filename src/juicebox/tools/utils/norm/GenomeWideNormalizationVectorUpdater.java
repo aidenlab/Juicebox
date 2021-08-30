@@ -127,7 +127,9 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             if (NormalizationHandler.isGenomeWideNorm(normType)) {
                 if (zoom.getBinSize() >= resolutionsToBuildTo.get(normType)) {
 
-                    System.out.println("Now Doing " + normType.getLabel());
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("Now Doing " + normType.getLabel());
+                    }
                     long currentTime = System.currentTimeMillis();
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
                     if (HiCGlobals.printVerboseComments) {
