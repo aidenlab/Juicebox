@@ -30,13 +30,11 @@ import juicebox.tools.dev.ParallelizedJuicerTools;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.util.collections.LRUCache;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ListOfListGenerator {
-    private static final int MAX_LIMIT = Integer.MAX_VALUE - 10;
 
     public static IteratorContainer createFromZD(DatasetReader reader, MatrixZoomData matrixZoomData,
                                                  LRUCache<String, Block> blockCache) {
@@ -63,8 +61,8 @@ public class ListOfListGenerator {
             }
 
             if (shouldFitInMemory) {
-                List<List<ContactRecord>> allContactRecords = populateListOfLists(ic0);
-                long numOfContactRecords = getTotalSize(allContactRecords);
+                BigContactRecordList allContactRecords = populateListOfLists(ic0);
+                long numOfContactRecords = allContactRecords.getTotalSize();
 
                 IteratorContainer newIC = new ListOfListIteratorContainer(allContactRecords,
                         ic0.getMatrixSize(),
@@ -79,62 +77,35 @@ public class ListOfListGenerator {
         return ic0;
     }
 
-    private static List<List<ContactRecord>> populateListOfLists(IteratorContainer ic) {
+    private static BigContactRecordList populateListOfLists(IteratorContainer ic) {
 
         if (ic instanceof GWIteratorContainer) {
             List<Iterator<ContactRecord>> iterators = ((GWIteratorContainer) ic).getAllFromFileContactRecordIterators();
-            List<List<ContactRecord>> allRecords = new ArrayList<>();
+            BigContactRecordList allRecords = new BigContactRecordList();
 
             AtomicInteger index = new AtomicInteger(0);
             ParallelizedJuicerTools.launchParallelizedCode(IteratorContainer.numCPUMatrixThreads, () -> {
                 int i = index.getAndIncrement();
-                List<List<ContactRecord>> recordsForThread = new ArrayList<>();
+                BigContactRecordList recordsForThread = new BigContactRecordList();
                 while (i < iterators.size()) {
-                    List<List<ContactRecord>> recordsForIter = populateListOfListsFromSingleIterator(iterators.get(i));
-                    recordsForThread.addAll(recordsForIter);
+                    BigContactRecordList recordsForIter = BigContactRecordList.populateListOfListsFromSingleIterator(iterators.get(i));
+                    recordsForThread.addAllSubLists(recordsForIter);
                     i = index.getAndIncrement();
                 }
                 synchronized (allRecords) {
-                    allRecords.addAll(recordsForThread);
+                    allRecords.addAllSubLists(recordsForThread);
                 }
             });
+            allRecords.sort();
             return allRecords;
         } else {
-            return populateListOfListsFromSingleIterator(ic.getNewContactRecordIterator());
+            return BigContactRecordList.populateListOfListsFromSingleIterator(ic.getNewContactRecordIterator());
         }
-    }
-
-    private static List<List<ContactRecord>> populateListOfListsFromSingleIterator(Iterator<ContactRecord> iterator) {
-
-        List<List<ContactRecord>> allRecords = new ArrayList<>();
-        List<ContactRecord> tempList = new ArrayList<>();
-        int counter = 0;
-        while (iterator.hasNext()) {
-            tempList.add(iterator.next());
-            counter++;
-            if (counter > MAX_LIMIT) {
-                allRecords.add(tempList);
-                tempList = new ArrayList<>();
-                counter = 0;
-            }
-        }
-        if (tempList.size() > 0) {
-            allRecords.add(tempList);
-        }
-        return allRecords;
     }
 
     private static boolean checkMemory(IteratorContainer ic) {
         long ramForRowSums = ic.getMatrixSize() * 4;
         long ramForAllContactRecords = ic.getNumberOfContactRecords() * 12;
         return ramForRowSums + ramForAllContactRecords < Runtime.getRuntime().maxMemory();
-    }
-
-    private static long getTotalSize(List<List<ContactRecord>> allContactRecords) {
-        long numOfContactRecords = 0;
-        for (List<ContactRecord> records : allContactRecords) {
-            numOfContactRecords += records.size();
-        }
-        return numOfContactRecords;
     }
 }

@@ -25,6 +25,7 @@
 package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 
 import java.util.Iterator;
@@ -73,4 +74,19 @@ public abstract class IteratorContainer {
 
     public abstract void clear();
 
+    protected static ListOfFloatArrays[] getArrayOfFloatVectors(int size, long vectorLength) {
+        ListOfFloatArrays[] array = new ListOfFloatArrays[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = new ListOfFloatArrays(vectorLength);
+        }
+        return array;
+    }
+
+    protected static ListOfDoubleArrays[] getArrayOfDoubleVectors(int size, long vectorLength) {
+        ListOfDoubleArrays[] array = new ListOfDoubleArrays[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = new ListOfDoubleArrays(vectorLength);
+        }
+        return array;
+    }
 }

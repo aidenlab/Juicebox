@@ -77,19 +77,22 @@ public class GWIteratorContainer extends IteratorContainer {
 
         List<Iterator<ContactRecord>> allIterators = getAllFromFileContactRecordIterators();
 
+        final ListOfFloatArrays[] allVectors = getArrayOfFloatVectors(allIterators.size(), vectorLength);
+
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numCPUMatrixThreads, () -> {
             int i = index.getAndIncrement();
-            ListOfFloatArrays accumSumVector = new ListOfFloatArrays(vectorLength);
             while (i < allIterators.size()) {
-                accumSumVector.addValuesFrom(ZDIteratorContainer.matrixVectorMultiplyOnIterator(
+                allVectors[i].addValuesFrom(ZDIteratorContainer.matrixVectorMultiplyOnIterator(
                         allIterators.get(i), vector, vectorLength));
                 i = index.getAndIncrement();
             }
-            synchronized (totalSumVector) {
-                totalSumVector.addValuesFrom(accumSumVector);
-            }
         });
+
+        for (int z = 0; z < allVectors.length; z++) {
+            totalSumVector.addValuesFrom(allVectors[z]);
+            allVectors[z] = null;
+        }
 
         allIterators.clear();
 

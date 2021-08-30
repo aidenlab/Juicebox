@@ -165,7 +165,7 @@ class UnitTests {
 
         HiCGlobals.printVerboseComments = true;
 
-        List<List<ContactRecord>> listOfLists = new ArrayList<>();
+        BigContactRecordList listOfLists = new ArrayList<>();
         listOfLists.addAll(zd.getContactRecordList());
         double[] result = ZeroScale.scale(listOfLists, targetVectorInitial, zd.getKey());
 

@@ -496,7 +496,7 @@ public class NormalizationCalculations {
         return ZeroScale.mmbaScaleToVector(ic, tempTargetVector);
     }
 
-    /*public List<List<ContactRecord>> booleanBalancing() {
+    /*public BigContactRecordList booleanBalancing() {
         ListOfFloatArrays rowsums = new ListOfFloatArrays(totSize, 0);
         Map<Float,Map<Long,Integer>> rowsumIndices = new HashMap<>();
         Map<Long, List<LinkedContactRecord>> rows = new HashMap<>();

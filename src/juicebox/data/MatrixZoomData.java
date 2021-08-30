@@ -77,7 +77,7 @@ public class MatrixZoomData {
     protected final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
-    //private List<List<ContactRecord>> localCacheOfRecords = null;
+    //private BigContactRecordList localCacheOfRecords = null;
     private final V9Depth v9Depth;
     private double averageCount = -1;
     protected DatasetReader reader;

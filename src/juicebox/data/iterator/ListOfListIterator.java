@@ -27,15 +27,14 @@ package juicebox.data.iterator;
 import juicebox.data.ContactRecord;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class ListOfListIterator implements Iterator<ContactRecord> {
 
-    private final List<List<ContactRecord>> allContactRecords;
+    private final BigContactRecordList allContactRecords;
     private Iterator<ContactRecord> currentIterator = null;
     private int currentListIndex = 0;
 
-    public ListOfListIterator(List<List<ContactRecord>> allContactRecords) {
+    public ListOfListIterator(BigContactRecordList allContactRecords) {
         this.allContactRecords = allContactRecords;
         getNextIterator();
     }
@@ -51,8 +50,8 @@ public class ListOfListIterator implements Iterator<ContactRecord> {
     }
 
     private boolean getNextIterator() {
-        while (currentListIndex < allContactRecords.size()) {
-            currentIterator = allContactRecords.get(currentListIndex).iterator();
+        while (currentListIndex < allContactRecords.getNumLists()) {
+            currentIterator = allContactRecords.getSubList(currentListIndex).iterator();
             if (currentIterator.hasNext()) {
                 return true;
             }
