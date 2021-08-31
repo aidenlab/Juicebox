@@ -177,7 +177,9 @@ public class NormalizationVectorUpdater extends NormVectorUpdater {
                 MatrixZoomData zd = HiCFileTools.getMatrixZoomData(ds, chr, chr, zoom);
                 if (zd == null) continue;
 
-                System.out.println("Now Doing " + chr.getName());
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Now Doing " + chr.getName());
+                }
 
                 NormalizationCalculations nc = new NormalizationCalculations(zd.getIteratorContainer());
                 if (!nc.isEnoughMemory()) {

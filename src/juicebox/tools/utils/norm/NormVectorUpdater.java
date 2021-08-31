@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.data.DatasetReaderV2;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.windowui.HiCZoom;
@@ -37,6 +38,7 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,70 +65,41 @@ public class NormVectorUpdater {
         return v > 0 && !Float.isNaN(v);
     }
 
-    static void putArrayValuesIntoBuffer(BufferedByteWriter buffer, double[] array) throws IOException {
-        buffer.putInt(array.length);
-        for (double val : array) {
-            buffer.putDouble(val);
-        }
-    }
-
-    static void putDoubleArraysIntoBufferList(List<BufferedByteWriter> bufferList, List<double[]> arrays) throws IOException {
-        int freeBytes = Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten();
-        long bytesNeeded = 4;
-        if (bytesNeeded >= freeBytes) {
-            bufferList.add(new BufferedByteWriter());
-        }
-        long vectorLength = 0;
-        for (double[] array : arrays) {
-            vectorLength += array.length;
-        }
-        bufferList.get(bufferList.size()-1).putLong(vectorLength);
-
-        for (double[] array : arrays) {
-            bufferList.add(new BufferedByteWriter());
-            for (double val : array) {
-                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
-                    bufferList.add(new BufferedByteWriter());
-                }
-                bufferList.get(bufferList.size()-1).putDouble(val);
-            }
-        }
-    }
-
     static void putFloatArraysIntoBufferList(List<BufferedByteWriter> bufferList, List<float[]> arrays) throws IOException {
-        int freeBytes = Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten();
-        long bytesNeeded = 4;
-        if (bytesNeeded >= freeBytes) {
-            bufferList.add(new BufferedByteWriter());
-        }
+
+        BufferedByteWriter buffer = getBufferWithEnoughSpace(bufferList, 8);
         long vectorLength = 0;
         for (float[] array : arrays) {
             vectorLength += array.length;
         }
-        bufferList.get(bufferList.size()-1).putLong(vectorLength);
+        buffer.putLong(vectorLength);
 
         for (float[] array : arrays) {
-            bufferList.add(new BufferedByteWriter());
+            buffer = getBufferWithEnoughSpace(bufferList, 4 * array.length);
             for (float val : array) {
-                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
-                    bufferList.add(new BufferedByteWriter());
-                }
-                bufferList.get(bufferList.size()-1).putFloat(val);
+                buffer.putFloat(val);
             }
         }
     }
 
-    private static void putMapValuesIntoBuffer(BufferedByteWriter buffer, Map<Integer, Double> hashmap) throws IOException {
+    private static void putMapValuesIntoBuffer(List<BufferedByteWriter> bufferList, Map<Integer, Double> hashmap) throws IOException {
+        int bytesNeeded = 4 + (8 * hashmap.size());
+        BufferedByteWriter buffer = getBufferWithEnoughSpace(bufferList, bytesNeeded);
+
         buffer.putInt(hashmap.size());
-        for (Map.Entry<Integer, Double> keyValuePair : hashmap.entrySet()) {
-            buffer.putInt(keyValuePair.getKey());
-            buffer.putFloat(keyValuePair.getValue().floatValue());
+
+        List<Integer> keys = new ArrayList<>(hashmap.keySet());
+        Collections.sort(keys);
+
+        for (Integer key : keys) {
+            buffer.putInt(key);
+            buffer.putFloat(hashmap.get(key).floatValue());
         }
     }
 
     private static void writeExpectedToBuffer(RandomAccessFile raf, List<BufferedByteWriter> expectedBuffers, long filePosition) throws IOException {
         raf.getChannel().position(filePosition);
-        for (int i=0;i<expectedBuffers.size();i+=1) {
+        for (int i = 0; i < expectedBuffers.size(); i++) {
             byte[] evBytes = expectedBuffers.get(i).getBytes();
             raf.write(evBytes);
         }
@@ -171,156 +144,98 @@ public class NormVectorUpdater {
         long filePosition = reader.getNormFilePosition();
         long nviHeaderPosition = reader.getNviHeaderPosition();
 
-        if (useCalcNotFunc) {
-            update(path, version, filePosition, expectedValueCalculations, normVectorIndices,
-                    normVectorBuffers, nviHeaderPosition);
-        } else {
-            update(path, version, filePosition, expectedValueFunctionMap, normVectorIndices,
-                    normVectorBuffers, nviHeaderPosition);
+
+        try (RandomAccessFile raf = new RandomAccessFile(path, "rw")) {
+            handleVersionSix(raf, version);
+            List<BufferedByteWriter> expectedBuffers = new ArrayList<>();
+            expectedBuffers.add(new BufferedByteWriter());
+
+            if (useCalcNotFunc) {
+                writeExpectedValues(expectedBuffers, expectedValueCalculations);
+            } else {
+                writeExpectedValues(expectedBuffers, expectedValueFunctionMap);
+            }
+
+            writeExpectedToBuffer(raf, expectedBuffers, filePosition);
+            writeNormsToBuffer(raf, normVectorIndices, normVectorBuffers, nviHeaderPosition);
         }
 
         System.out.println(message);
     }
 
-
-    private static void update(String hicfile, int version, final long filePosition, List<ExpectedValueCalculation> expectedValueCalculations,
-                               List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
-
-        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
-            handleVersionSix(raf, version);
-            List<BufferedByteWriter> expectedBuffers = new ArrayList<>();
-            expectedBuffers.add(new BufferedByteWriter());
-            writeExpectedValues(expectedBuffers, expectedValueCalculations);
-            writeExpectedToBuffer(raf, expectedBuffers, filePosition);
-            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers, nviHeaderPosition);
-        }
-    }
-
-    static void update(String hicfile, int version, final long filePosition, Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                       List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(hicfile, "rw")) {
-            handleVersionSix(raf, version);
-            List<BufferedByteWriter> expectedBuffers = new ArrayList<>();
-            expectedBuffers.add(new BufferedByteWriter());
-            writeExpectedValues(expectedBuffers, expectedValueFunctionMap);
-            writeExpectedToBuffer(raf, expectedBuffers, filePosition);
-            writeNormsToBuffer(raf, normVectorIndex, normVectorBuffers, nviHeaderPosition);
-        }
-    }
-
     private static void writeExpectedValues(List<BufferedByteWriter> expectedBuffers, List<ExpectedValueCalculation> expectedValueCalculations) throws IOException {
-
-        BufferedByteWriter buffer = expectedBuffers.get(expectedBuffers.size()-1);
-        int freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-        int bytesNeeded = 4;
-        if (bytesNeeded >= freeBytes) {
-            expectedBuffers.add(new BufferedByteWriter());
-            buffer = expectedBuffers.get(expectedBuffers.size()-1);
-        }
-        expectedBuffers.get(expectedBuffers.size()-1).putInt(expectedValueCalculations.size());
+        BufferedByteWriter buffer = getBufferWithEnoughSpace(expectedBuffers, 4);
+        buffer.putInt(expectedValueCalculations.size());
 
         for (ExpectedValueCalculation ev : expectedValueCalculations) {
             ev.computeDensity();
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = ev.getType().toString().length()+1;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putNullTerminatedString(ev.getType().toString());
-
             HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = unit.toString().length()+1;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putNullTerminatedString(unit.toString());
-
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putInt(ev.getGridSize());
-
-            putFloatArraysIntoBufferList(expectedBuffers, ev.getDensityAvg().convertToFloats().getValues());
-
-
-            buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4+(12*ev.getChrScaleFactors().size());
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            putMapValuesIntoBuffer(buffer, ev.getChrScaleFactors());
+            appendExpectedValuesToBuffer(expectedBuffers, ev.getType(),
+                    unit, ev.getGridSize(), ev.getDensityAvg(),
+                    ev.getChrScaleFactors());
         }
     }
 
     private static void writeExpectedValues(List<BufferedByteWriter> expectedBuffers, Map<String, ExpectedValueFunction> expectedValueFunctionMap) throws IOException {
-        BufferedByteWriter buffer = expectedBuffers.get(expectedBuffers.size()-1);
-        int freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-        int bytesNeeded = 4;
-        if (bytesNeeded >= freeBytes) {
-            expectedBuffers.add(new BufferedByteWriter());
-            buffer = expectedBuffers.get(expectedBuffers.size()-1);
-        }
-        expectedBuffers.get(expectedBuffers.size()-1).putInt(expectedValueFunctionMap.size());
+
+        BufferedByteWriter buffer = getBufferWithEnoughSpace(expectedBuffers, 4);
+        buffer.putInt(expectedValueFunctionMap.size());
 
         for (ExpectedValueFunction function : expectedValueFunctionMap.values()) {
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = function.getNormalizationType().toString().length()+1;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putNullTerminatedString(function.getNormalizationType().toString());
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = function.getUnit().toString().length()+1;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putNullTerminatedString(function.getUnit().toString());
-
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4;
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            buffer.putInt(function.getBinSize());
-
-            putFloatArraysIntoBufferList(expectedBuffers, function.getExpectedValuesNoNormalization().convertToFloats().getValues());
-
-            buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            freeBytes = Integer.MAX_VALUE - buffer.bytesWritten();
-            bytesNeeded = 4+(12*((ExpectedValueFunctionImpl) function).getNormFactors().size());
-            if (bytesNeeded >= freeBytes) {
-                expectedBuffers.add(new BufferedByteWriter());
-                buffer = expectedBuffers.get(expectedBuffers.size()-1);
-            }
-            putMapValuesIntoBuffer(buffer, ((ExpectedValueFunctionImpl) function).getNormFactors());
+            appendExpectedValuesToBuffer(expectedBuffers, function.getNormalizationType(),
+                    function.getUnit(), function.getBinSize(),
+                    function.getExpectedValuesNoNormalization(),
+                    ((ExpectedValueFunctionImpl) function).getNormFactors());
         }
     }
 
-    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex, List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
+    private static void appendExpectedValuesToBuffer(List<BufferedByteWriter> expectedBuffers,
+                                                     NormalizationType normalizationType,
+                                                     HiC.Unit unit, int binSize,
+                                                     ListOfDoubleArrays expectedValuesNoNormalization,
+                                                     Map<Integer, Double> normFactors) throws IOException {
+
+        int bytesNeeded = normalizationType.toString().length() + 1;
+        bytesNeeded += unit.toString().length() + 1;
+        bytesNeeded += 4;
+
+        BufferedByteWriter buffer = getBufferWithEnoughSpace(expectedBuffers, bytesNeeded);
+        buffer.putNullTerminatedString(normalizationType.toString());
+        buffer.putNullTerminatedString(unit.toString());
+        buffer.putInt(binSize);
+
+        putFloatArraysIntoBufferList(expectedBuffers,
+                expectedValuesNoNormalization.convertToFloats().getValues());
+
+        putMapValuesIntoBuffer(expectedBuffers, normFactors);
+    }
+
+    private static BufferedByteWriter getBufferWithEnoughSpace(List<BufferedByteWriter> expectedBuffers, int bytesNeeded) {
+        BufferedByteWriter buffer = expectedBuffers.get(expectedBuffers.size() - 1);
+        int freeBytes = Integer.MAX_VALUE - 10 - buffer.bytesWritten();
+
+        if (bytesNeeded >= freeBytes) {
+            expectedBuffers.add(new BufferedByteWriter());
+            return expectedBuffers.get(expectedBuffers.size() - 1);
+        }
+        return buffer;
+    }
+
+    private static void writeNormsToBuffer(RandomAccessFile raf, List<NormalizationVectorIndexEntry> normVectorIndex,
+                                           List<BufferedByteWriter> normVectorBuffers, long nviHeaderPosition) throws IOException {
         // Get the size of the index in bytes, to compute an offset for the actual entries.
         BufferedByteWriter buffer = new BufferedByteWriter();
         writeNormIndex(buffer, normVectorIndex);
         long normVectorStartPosition = raf.getChannel().position() + buffer.bytesWritten();
         long size = buffer.bytesWritten();
-        long NVI =  normVectorStartPosition - size;
+        long NVI = normVectorStartPosition - size;
         // write NVI, size
         raf.getChannel().position(nviHeaderPosition);
 
-        BufferedByteWriter headerbuffer = new BufferedByteWriter();
-        headerbuffer.putLong(NVI);
-        headerbuffer.putLong(size);
-        raf.write(headerbuffer.getBytes());
+        BufferedByteWriter headerBuffer = new BufferedByteWriter();
+        headerBuffer.putLong(NVI);
+        headerBuffer.putLong(size);
+        raf.write(headerBuffer.getBytes());
 
         // reset pointer to where we were
         raf.getChannel().position(NVI);
@@ -335,7 +250,7 @@ public class NormVectorUpdater {
         writeNormIndex(buffer, normVectorIndex);
         raf.write(buffer.getBytes());
         // Finally the norm vectors
-        for (int i=0; i<normVectorBuffers.size(); i+=1) {
+        for (int i = 0; i < normVectorBuffers.size(); i++) {
             raf.write(normVectorBuffers.get(i).getBytes());
         }
     }

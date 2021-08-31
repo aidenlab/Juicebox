@@ -38,9 +38,7 @@ import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
     // todo remove
@@ -127,7 +125,9 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
             if (NormalizationHandler.isGenomeWideNorm(normType)) {
                 if (zoom.getBinSize() >= resolutionsToBuildTo.get(normType)) {
 
-                    System.out.println("Now Doing " + normType.getLabel());
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("Now Doing " + normType.getLabel());
+                    }
                     long currentTime = System.currentTimeMillis();
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
                     if (HiCGlobals.printVerboseComments) {
@@ -136,8 +136,12 @@ public class GenomeWideNormalizationVectorUpdater extends NormVectorUpdater {
 
                     if (wgVectors != null) {
                         Map<Chromosome, NormalizationVector> nvMap = wgVectors.getFirst();
-                        for (Chromosome chromosome : nvMap.keySet()) {
-                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffers, nvMap.get(chromosome).getData().convertToFloats(), chromosome.getIndex(), normType, zoom);
+                        List<Chromosome> chromosomes = new ArrayList<>(nvMap.keySet());
+                        Collections.sort(chromosomes, Comparator.comparingInt(Chromosome::getIndex));
+                        for (Chromosome chromosome : chromosomes) {
+                            updateNormVectorIndexWithVector(normVectorIndices, normVectorBuffers,
+                                    nvMap.get(chromosome).getData().convertToFloats(), chromosome.getIndex(),
+                                    normType, zoom);
                         }
 
                         expectedValueCalculations.add(wgVectors.getSecond());

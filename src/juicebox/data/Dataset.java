@@ -1010,7 +1010,9 @@ public class Dataset {
                 try {
                     matrix.getZoomData(zoom).clearCache(onlyClearInter);
                 } catch (Exception e) {
-                    System.err.println("Clearing err: " + e.getLocalizedMessage());
+                    if (HiCGlobals.printVerboseComments) {
+                        System.err.println("Clearing err: " + e.getLocalizedMessage());
+                    }
                 }
             }
         }
@@ -1021,7 +1023,9 @@ public class Dataset {
             try {
                 matrix.getZoomData(zoom).clearCache(onlyClearInter);
             } catch (Exception e) {
-                System.err.println("Clearing z_err: " + e.getLocalizedMessage());
+                if (HiCGlobals.printVerboseComments) {
+                    System.err.println("Clearing z_err: " + e.getLocalizedMessage());
+                }
             }
         }
     }
