@@ -26,10 +26,7 @@ package juicebox.data.iterator;
 
 import juicebox.data.ContactRecord;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class BigContactRecordList {
 
@@ -91,5 +88,38 @@ public class BigContactRecordList {
 
     public void sort() {
         internalList.sort(Comparator.comparing(o -> o.get(0)));
+    }
+
+    public void collapse() {
+        System.out.println("Was n " + internalList.size());
+
+        int numFinList = (int) Math.max(numOfContactRecords / 200000000, 20);
+        List<List<ContactRecord>> newInternalList = new ArrayList<>();
+        int[] countForList = new int[numFinList];
+        Arrays.fill(countForList, 0);
+        for (int z = 0; z < numFinList; z++) {
+            newInternalList.add(new ArrayList<>());
+        }
+
+        for (List<ContactRecord> subList : internalList) {
+            int whichIndexToAddTo = getIndexOfMin(countForList);
+            countForList[whichIndexToAddTo] += subList.size();
+            newInternalList.get(whichIndexToAddTo).addAll(subList);
+        }
+
+        internalList.clear();
+        internalList = newInternalList;
+
+        System.out.println("Now is n " + internalList.size());
+    }
+
+    private int getIndexOfMin(int[] counts) {
+        int minIndex = 0;
+        for (int k = 1; k < counts.length; k++) {
+            if (counts[k] < counts[minIndex]) {
+                minIndex = k;
+            }
+        }
+        return minIndex;
     }
 }

@@ -97,6 +97,7 @@ public class ListOfListGenerator {
                 }
             });
             allRecords.sort();
+            allRecords.collapse();
             return allRecords;
         } else {
             return BigContactRecordList.populateListOfListsFromSingleIterator(ic.getNewContactRecordIterator());
