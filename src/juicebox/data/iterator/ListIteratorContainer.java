@@ -61,21 +61,19 @@ public class ListIteratorContainer extends IteratorContainer {
 
         int[] cutoffs = ParallelizedListOperations.createCutoffs(numThreads, readList.size());
 
-        final ListOfDoubleArrays[] allVectors = getArrayOfDoubleVectors(numThreads, vectorLength);
-
         AtomicInteger index = new AtomicInteger(0);
         ParallelizedJuicerTools.launchParallelizedCode(numThreads, () -> {
             int sIndx = index.getAndIncrement();
+            ListOfDoubleArrays sumVector = new ListOfDoubleArrays(vectorLength);
             for (int i = cutoffs[sIndx]; i < cutoffs[sIndx + 1]; i++) {
                 ContactRecord cr = readList.get(i);
-                matrixVectorMult(vector, allVectors[i], cr);
+                matrixVectorMult(vector, sumVector, cr);
+            }
+
+            synchronized (totalSumVector) {
+                totalSumVector.addValuesFrom(sumVector);
             }
         });
-
-        for (int z = 0; z < allVectors.length; z++) {
-            totalSumVector.addValuesFrom(allVectors[z]);
-            allVectors[z] = null;
-        }
 
         return totalSumVector.convertToFloats();
     }
