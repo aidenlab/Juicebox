@@ -35,7 +35,9 @@ public class StatisticsContainer {
     private final static float CONVERGENCE_THRESHOLD = 0.01f;
     private final static int CONVERGENCE_REGION = 3;
     private final static int SEQ_INDEX = 0, DUPS_INDEX = 1, UNIQUE_INDEX = 2;
-    private final static int LC_INDEX = 3, SINGLE_ALIGNMENT_INDEX = 4, NUM_TO_READ = 5;
+    private final static int LC_INDEX = 3, SINGLE_ALIGNMENT_INDEX = 4;
+    private final static int SINGLE_ALIGN_DUPS_INDEX = 5, SINGLE_ALIGN_UNIQUE_INDEX = 6;
+    private final static int NUM_TO_READ = 7;
     private final NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
 
     //Variables for calculating statistics
@@ -167,10 +169,10 @@ public class StatisticsContainer {
                     writeLibComplexityIfNeeded(valsWereFound, valsFound, statsOut);
                     if (unique == 0) unique = 1;
                     writeOut(statsOut, "Intra-fragment Reads: ", valsWereFound, intraFragment[i], valsFound, unique, true);
-                    if (!isUTLibrary(valsWereFound, valsFound, underMapQ[i])) {
-                        attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
-                        writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
-                    }
+                    //if (!isUTLibrary(valsWereFound, valsFound, underMapQ[i])) {
+                    attemptMapqCorrection(valsWereFound, valsFound, underMapQ, unique, i);
+                    writeOut(statsOut, "Below MAPQ Threshold: ", valsWereFound, underMapQ[i], valsFound, unique, true);
+                    //}
                     writeOut(statsOut, "Hi-C Contacts: ", valsWereFound, totalCurrent[i], valsFound, unique, false);
                     //writeOut(statsOut, " Ligation Motif Present: ", valsWereFound, ligation[i], valsFound, unique, true);
                     appendPairTypeStatsOutputToFile(i, statsOut);
@@ -196,12 +198,40 @@ public class StatisticsContainer {
     }
 
     private void writeLibComplexityIfNeeded(boolean[] valsWereFound, long[] valsFound, BufferedWriter statsOut) throws IOException {
-        if (!valsWereFound[LC_INDEX] && valsWereFound[UNIQUE_INDEX] && valsWereFound[DUPS_INDEX]) {
-            long result = LibraryComplexity.estimateLibrarySize(valsFound[DUPS_INDEX], valsFound[UNIQUE_INDEX]);
-            if (result > 0) {
-                statsOut.write("Library Complexity Estimate: " + commify(result) + "\n");
-            } else {
-                statsOut.write("Library Complexity Estimate: N/A\n");
+        if (!valsWereFound[LC_INDEX]) {
+            boolean isUTExperiment = false;
+            long lcTotal = 0L;
+            if (valsWereFound[SINGLE_ALIGN_UNIQUE_INDEX] && valsWereFound[SINGLE_ALIGN_DUPS_INDEX]) {
+                long resultLC1 = LibraryComplexity.estimateLibrarySize(valsFound[SINGLE_ALIGN_DUPS_INDEX], valsFound[SINGLE_ALIGN_UNIQUE_INDEX]);
+                isUTExperiment = true;
+                if (resultLC1 > 0) {
+                    lcTotal += resultLC1;
+                    statsOut.write("Library Complexity Estimate (1 alignment)*: " + commify(resultLC1) + "\n");
+                } else {
+                    statsOut.write("Library Complexity Estimate (1 alignment)*: N/A\n");
+                }
+            }
+
+            if (valsWereFound[UNIQUE_INDEX] && valsWereFound[DUPS_INDEX]) {
+                long resultLC2 = LibraryComplexity.estimateLibrarySize(valsFound[DUPS_INDEX], valsFound[UNIQUE_INDEX]);
+                String description = "";
+                if (isUTExperiment) {
+                    description = " (2 alignments)";
+                }
+                if (resultLC2 > 0) {
+                    lcTotal += resultLC2;
+                    statsOut.write("Library Complexity Estimate" + description + "*: " + commify(resultLC2) + "\n");
+                } else {
+                    statsOut.write("Library Complexity Estimate" + description + "*: N/A\n");
+                }
+            }
+
+            if (isUTExperiment) {
+                if (lcTotal > 0) {
+                    statsOut.write("Library Complexity Estimate (1+2 above)*: " + commify(lcTotal) + "\n");
+                } else {
+                    statsOut.write("Library Complexity Estimate (1+2 above)*: N/A\n");
+                }
             }
         }
     }
@@ -218,9 +248,17 @@ public class StatisticsContainer {
                     if (statsData.contains("sequenced")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, SEQ_INDEX);
                     } else if (statsData.contains("unique")) {
-                        populateFoundVals(statsData, valsWereFound, valsFound, UNIQUE_INDEX);
+                        if (isSingleAlignment(statsData)) {
+                            populateFoundVals(statsData, valsWereFound, valsFound, SINGLE_ALIGN_UNIQUE_INDEX);
+                        } else {
+                            populateFoundVals(statsData, valsWereFound, valsFound, UNIQUE_INDEX);
+                        }
                     } else if (statsData.contains("duplicate") && !statsData.contains("optical")) {
-                        populateFoundVals(statsData, valsWereFound, valsFound, DUPS_INDEX);
+                        if (isSingleAlignment(statsData)) {
+                            populateFoundVals(statsData, valsWereFound, valsFound, SINGLE_ALIGN_DUPS_INDEX);
+                        } else {
+                            populateFoundVals(statsData, valsWereFound, valsFound, DUPS_INDEX);
+                        }
                     } else if (statsData.contains("complexity")) {
                         populateFoundVals(statsData, valsWereFound, valsFound, LC_INDEX);
                     } else if (statsData.contains("single") && statsData.contains("alignment")) {
@@ -233,6 +271,13 @@ public class StatisticsContainer {
                 error.printStackTrace();
             }
         }
+    }
+
+    private boolean isSingleAlignment(String text) {
+        String[] tokens = text.split(":");
+        String description = tokens[0].toLowerCase();
+        return (description.contains("1") || description.contains("one")) &&
+                description.contains("alignment");
     }
 
     private void populateFoundVals(String statsData, boolean[] valsWereFound, long[] valsFound, int index) {
