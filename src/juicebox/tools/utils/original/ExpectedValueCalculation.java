@@ -33,13 +33,11 @@ import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.iterator.IteratorContainer;
+import juicebox.tools.utils.common.QuickMedian;
 import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -73,7 +71,7 @@ public class ExpectedValueCalculation {
     /**
      * Genome wide count of binned reads at a given distance
      */
-    private final double[] actualDistances;
+    private final List<List<Double>> actualDistances;
     /**
      * Expected count at a given binned distance from diagonal
      */
@@ -142,9 +140,10 @@ public class ExpectedValueCalculation {
         }
 
         numberOfBins = (int) (maxLen / binSize) + 1;
-
-        actualDistances = new double[numberOfBins];
-        Arrays.fill(actualDistances, 0);
+        actualDistances = new ArrayList<List<Double>>(numberOfBins);
+        for (int z = 0; z < numberOfBins; z++) {
+            actualDistances.add(new ArrayList<>());
+        }
     }
 
     public int getBinSize() {
@@ -167,7 +166,7 @@ public class ExpectedValueCalculation {
 
         chromosomeCounts[chrIdx] += weight;
         int dist = Math.abs(bin1 - bin2);
-        actualDistances[dist] += weight;
+        actualDistances.get(dist).add(weight);
     }
 
     public void merge(ExpectedValueCalculation otherEVCalc) {
@@ -175,8 +174,10 @@ public class ExpectedValueCalculation {
             chromosomeCounts[z] += otherEVCalc.chromosomeCounts[z];
         }
 
-        for (int i = 0; i < actualDistances.length; i++) {
-            actualDistances[i] += otherEVCalc.actualDistances[i];
+        for (int i = 0; i < actualDistances.size(); i++) {
+            if (otherEVCalc.actualDistances.get(i).size() > 0) {
+                actualDistances.get(i).addAll(otherEVCalc.actualDistances.get(i));
+            }
         }
     }
 
@@ -206,86 +207,75 @@ public class ExpectedValueCalculation {
          */
         double[] possibleDistances = new double[numberOfBins];
 
+        long[] nChrBins = new long[chromosomesMap.length];
         for (int z = 0; z < chromosomesMap.length; z++) {
             Chromosome chromosome = chromosomesMap[z];
-            if (chromosome == null) continue;
-            // didn't see anything at all from a chromosome, then don't include it in possDists.
-            if (chromosomeCounts[z] < 1) continue;
-            // use correct units (bp or fragments)
+            if (chromosome == null || chromosomeCounts[z] < 1) continue;
             long len = isFrag ? fragmentCountMap.get(chromosome.getName()) : chromosome.getLength();
-            long nChrBins = len / binSize;
+            nChrBins[z] = len / binSize;
+        }
 
-            maxNumBins = Math.max(maxNumBins, nChrBins);
 
-            for (int i = 0; i < nChrBins; i++) {
-                possibleDistances[i] += (nChrBins - i);
+        for (int z = 0; z < chromosomesMap.length; z++) {
+            Chromosome chromosome = chromosomesMap[z];
+            if (chromosome == null || chromosomeCounts[z] < 1) continue;
+
+            maxNumBins = Math.max(maxNumBins, nChrBins[z]);
+
+            for (int i = 0; i < nChrBins[z]; i++) {
+                possibleDistances[i] += (nChrBins[z] - i);
             }
 
         }
-		//System.err.println("max # bins " + maxNumBins);
-		densityAvg = new ListOfDoubleArrays(maxNumBins);
-	
-		// Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
-	
-		double numSum = actualDistances[0];
-		double denSum = possibleDistances[0];
-		int bound1 = 0;
-		int bound2 = 0;
-		for (long ii = 0; ii < maxNumBins; ii++) {
-			if (numSum < 400) {
-				while (numSum < 400 && bound2 < maxNumBins) {
-					// increase window size until window is big enough.  This code will only execute once;
-					// after this, the window will always contain at least 400 reads.
-					bound2++;
-					numSum += actualDistances[bound2];
-					denSum += possibleDistances[bound2];
-				}
-			} else if (numSum >= 400 && bound2 - bound1 > 0) {
-				while (bound2 - bound1 > 0 && bound2 < numberOfBins && bound1 < numberOfBins && numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
-                    numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
-                    denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
-                    bound1++;
-                    bound2--;
+        //System.err.println("max # bins " + maxNumBins);
+        densityAvg = new ListOfDoubleArrays(maxNumBins);
+
+        // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
+
+        ListOfDoubleArrays numEntriesForDist = new ListOfDoubleArrays(maxNumBins);
+        for (int q = 0; q < maxNumBins; q++) {
+            List<Double> values = new ArrayList<>(actualDistances.get(q));
+            int window = 0;
+            while (values.size() < 400) {
+                window++;
+                if (q - window > -1) {
+                    values.addAll(actualDistances.get(q - window));
+                }
+                if (q + window < actualDistances.size()) {
+                    values.addAll(actualDistances.get(q + window));
                 }
             }
-			densityAvg.set(ii, numSum / denSum);
-            // Default case - bump the window size up by 2 to keep it centered for the next iteration
-            if (bound2 + 2 < maxNumBins) {
-                numSum += actualDistances[bound2 + 1] + actualDistances[bound2 + 2];
-                denSum += possibleDistances[bound2 + 1] + possibleDistances[bound2 + 2];
-                bound2 += 2;
-            } else if (bound2 + 1 < maxNumBins) {
-                numSum += actualDistances[bound2 + 1];
-                denSum += possibleDistances[bound2 + 1];
-                bound2++;
-            }
-            // Otherwise, bound2 is at limit already
+
+            numEntriesForDist.set(q, values.size());
+            densityAvg.set(q, QuickMedian.fastMedian(actualDistances.get(q)));
         }
+        actualDistances.clear();
+        //densityAvg.splineInterpolate(numEntriesForDist);
+        //densityAvg.smoothWithWeights(numEntriesForDist);
+
+        // e1 mean
+        // e2 median
+        // e3 loess
+        // e4 spline
+        // e5 median with window, 400
 
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
         for (int z = 0; z < chromosomesMap.length; z++) {
             Chromosome chromosome = chromosomesMap[z];
-            if (chromosome == null) continue;
-            // didn't see anything at all from a chromosome, then don't include it in possDists.
-            if (chromosomeCounts[z] < 1) continue;
-            //int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
-            long len = isFrag ? fragmentCountMap.get(chromosome.getName()) : chromosome.getLength();
-            long nChrBins = len / binSize;
-
+            if (chromosome == null || chromosomeCounts[z] < 1) continue;
 
             double expectedCount = 0;
-            for (long n = 0; n < nChrBins; n++) {
+            for (long n = 0; n < nChrBins[z]; n++) {
                 if (n < maxNumBins) {
                     final double v = densityAvg.get(n);
                     // this is the sum of the diagonal for this particular chromosome.
                     // the value in each bin is multiplied by the length of the diagonal to get expected count
                     // the total at the end should be the sum of the expected matrix for this chromosome
                     // i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
-					// then multiply it by the chromosome-wide possible == nChrBins - n.
-					expectedCount += (nChrBins - n) * v;
-			
-				}
+                    // then multiply it by the chromosome-wide possible == nChrBins - n.
+                    expectedCount += (nChrBins[z] - n) * v;
+                }
             }
 
             double observedCount = chromosomeCounts[chromosome.getIndex()];

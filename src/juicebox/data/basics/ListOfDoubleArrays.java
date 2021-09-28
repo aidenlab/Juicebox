@@ -24,6 +24,10 @@
 
 package juicebox.data.basics;
 
+import org.apache.commons.math3.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -175,5 +179,39 @@ public class ListOfDoubleArrays {
 			}
 		}
 		return newList;
+	}
+
+	public void smoothWithWeights(ListOfDoubleArrays weightsArray) {
+		for (int z = 0; z < internalList.size(); z++) {
+			LoessInterpolator interpolator = new LoessInterpolator();
+			double[] yValues = internalList.get(z);
+			double[] weights = weightsArray.internalList.get(z);
+			double[] xValues = range(yValues.length);
+			double[] yValues2 = interpolator.smooth(xValues, yValues, weights);
+			System.arraycopy(yValues2, 0, internalList.get(z),
+					0, yValues2.length);
+		}
+	}
+
+	private double[] range(int length) {
+		double[] array = new double[length];
+		for (int i = 0; i < length; i++) {
+			array[i] = i;
+		}
+		return array;
+	}
+
+	public void splineInterpolate(ListOfDoubleArrays weightsArray) {
+		for (int z = 0; z < internalList.size(); z++) {
+			SplineInterpolator interpolator = new SplineInterpolator();
+			double[] yValues = internalList.get(z);
+			double[] weights = weightsArray.internalList.get(z);
+			double[] xValues = range(yValues.length);
+			PolynomialSplineFunction func = interpolator.interpolate(xValues, yValues);
+
+			for (int k = 0; k < xValues.length; k++) {
+				yValues[k] = func.value(xValues[k]);
+			}
+		}
 	}
 }
