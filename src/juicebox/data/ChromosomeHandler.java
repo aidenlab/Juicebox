@@ -388,6 +388,14 @@ public class ChromosomeHandler {
         return subsetArray;
     }
 
+    public int getMaxChromIndex() {
+        int maxChromIndex = 0;
+        for (Chromosome chrom : chromosomesArray) {
+            maxChromIndex = Math.max(maxChromIndex, chrom.getIndex());
+        }
+        return maxChromIndex;
+    }
+
     static class ChromosomeComparator implements Comparator<Chromosome> {
         @Override
         public int compare(Chromosome a, Chromosome b) {

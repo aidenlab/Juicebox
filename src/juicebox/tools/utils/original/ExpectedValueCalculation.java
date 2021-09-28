@@ -60,30 +60,30 @@ public class ExpectedValueCalculation {
     private final int binSize;
 
     private final int numberOfBins;
-    /**
-     * Map of chromosome index -> total count for that chromosome
-     */
-    private final Map<Integer, Double> chromosomeCounts = new ConcurrentHashMap<>();
+    // A little redundant, for clarity
+    public final boolean isFrag;
     /**
      * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
      * the "expected total"  == observed total
      */
     private final Map<Integer, Double> chrScaleFactors = new ConcurrentHashMap<>();
     private final NormalizationType type;
-    // A little redundant, for clarity
-    public boolean isFrag = false;
-	/**
-	 * Genome wide count of binned reads at a given distance
-	 */
-	private final double[] actualDistances;
-	/**
-	 * Expected count at a given binned distance from diagonal
-	 */
-	private ListOfDoubleArrays densityAvg;
-	/**
-	 * Chromosome in this genome, needed for normalizations
-	 */
-	private final Map<Integer, Chromosome> chromosomesMap = new ConcurrentHashMap<>();
+    /**
+     * Map of chromosome index -> total count for that chromosome
+     */
+    private final double[] chromosomeCounts;
+    /**
+     * Genome wide count of binned reads at a given distance
+     */
+    private final double[] actualDistances;
+    /**
+     * Expected count at a given binned distance from diagonal
+     */
+    private ListOfDoubleArrays densityAvg;
+    /**
+     * Chromosome in this genome, needed for normalizations
+     */
+    private final Chromosome[] chromosomesMap;
     /**
      * Stores restriction site fragment information for fragment maps
      */
@@ -97,7 +97,8 @@ public class ExpectedValueCalculation {
      * @param fragmentCountMap  Optional.  Map of chromosome name -> number of fragments
      * @param type              Identifies the observed matrix type,  either NONE (observed), VC, or KR.
      */
-    public ExpectedValueCalculation(ChromosomeHandler chromosomeHandler, int binSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
+    public ExpectedValueCalculation(ChromosomeHandler chromosomeHandler, int binSize,
+                                    Map<String, Integer> fragmentCountMap, NormalizationType type) {
 
         this.type = type;
         this.binSize = binSize;
@@ -106,20 +107,25 @@ public class ExpectedValueCalculation {
             this.isFrag = true;
             this.fragmentCountMap = fragmentCountMap;
         } else {
+            this.isFrag = false;
             this.fragmentCountMap = null;
         }
 
         long maxLen = 0;
 
-        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
-            if (chr != null) {
-                chromosomesMap.put(chr.getIndex(), chr);
+        int maxChromIndex = chromosomeHandler.getMaxChromIndex() + 1;
+        chromosomesMap = new Chromosome[maxChromIndex];
+        Arrays.fill(chromosomesMap, null);
+        chromosomeCounts = new double[maxChromIndex];
+
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+            if (chromosome != null) {
+                chromosomesMap[chromosome.getIndex()] = chromosome;
                 try {
                     maxLen = isFrag ?
-                            Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
-                            Math.max(maxLen, chr.getLength());
-                }
-                catch (NullPointerException error) {
+                            Math.max(maxLen, fragmentCountMap.get(chromosome.getName())) :
+                            Math.max(maxLen, chromosome.getLength());
+                } catch (NullPointerException error) {
                     System.err.println("Problem with creating fragment-delimited maps, NullPointerException.\n" +
                             "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
                             "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
@@ -154,47 +160,32 @@ public class ExpectedValueCalculation {
      * @param bin1   Position1 observed in units of "bins"
      * @param bin2   Position2 observed in units of "bins"
      */
-    public synchronized void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
+    public synchronized void addDistance(int chrIdx, int bin1, int bin2, double weight) {
 
-        // Ignore NaN values    TODO -- is this the right thing to do?
+        // Ignore NaN values
         if (Double.isNaN(weight)) return;
+        if (chromosomesMap[chrIdx] == null) return;
 
-        int dist;
-        Chromosome chr = chromosomesMap.get(chrIdx);
-        if (chr == null) return;
-
-        Double count = chromosomeCounts.get(chrIdx);
-        if (count == null) {
-            chromosomeCounts.put(chrIdx, weight);
-        } else {
-            chromosomeCounts.put(chrIdx, count + weight);
-        }
-        dist = Math.abs(bin1 - bin2);
-
+        chromosomeCounts[chrIdx] += weight;
+        int dist = Math.abs(bin1 - bin2);
         actualDistances[dist] += weight;
     }
 
     public void merge(ExpectedValueCalculation otherEVCalc) {
-        for (Map.Entry<Integer, Chromosome> entry : otherEVCalc.chromosomesMap.entrySet()) {
-            Chromosome chr = chromosomesMap.get(entry.getKey());
-            if (chr != null) {
-                if (otherEVCalc.chromosomeCounts.get(entry.getKey()) != null) {
-                    Double count = chromosomeCounts.get(entry.getKey());
-                    if (count == null) {
-                        chromosomeCounts.put(entry.getKey(), otherEVCalc.chromosomeCounts.get(entry.getKey()));
-                    } else {
-                        chromosomeCounts.put(entry.getKey(), count + otherEVCalc.chromosomeCounts.get(entry.getKey()));
-                    }
-                }
-            }
+        for (int z = 0; z < chromosomeCounts.length; z++) {
+            chromosomeCounts[z] += otherEVCalc.chromosomeCounts[z];
         }
+
         for (int i = 0; i < actualDistances.length; i++) {
             actualDistances[i] += otherEVCalc.actualDistances[i];
         }
     }
 
     public boolean hasData() {
-        return !chromosomeCounts.isEmpty();
+        for (double val : chromosomeCounts) {
+            if (val > 0) return true;
+        }
+        return false;
     }
 
     /**
@@ -207,22 +198,22 @@ public class ExpectedValueCalculation {
      * an "expected" or average uniform density.
      */
     public synchronized void computeDensity() {
-	
-		long maxNumBins = 0;
-	
-		//System.err.println("# of bins=" + numberOfBins);
-		/**
-		 * Genome wide binned possible distances
-		 */
-		double[] possibleDistances = new double[numberOfBins];
-	
-		for (Chromosome chr : chromosomesMap.values()) {
 
+        long maxNumBins = 0;
+
+        //System.err.println("# of bins=" + numberOfBins);
+        /**
+         * Genome wide binned possible distances
+         */
+        double[] possibleDistances = new double[numberOfBins];
+
+        for (int z = 0; z < chromosomesMap.length; z++) {
+            Chromosome chromosome = chromosomesMap[z];
+            if (chromosome == null) continue;
             // didn't see anything at all from a chromosome, then don't include it in possDists.
-            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
-
+            if (chromosomeCounts[z] < 1) continue;
             // use correct units (bp or fragments)
-            long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+            long len = isFrag ? fragmentCountMap.get(chromosome.getName()) : chromosome.getLength();
             long nChrBins = len / binSize;
 
             maxNumBins = Math.max(maxNumBins, nChrBins);
@@ -274,13 +265,13 @@ public class ExpectedValueCalculation {
 
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
-        for (Chromosome chr : chromosomesMap.values()) {
-
-            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
-                continue;
-            }
+        for (int z = 0; z < chromosomesMap.length; z++) {
+            Chromosome chromosome = chromosomesMap[z];
+            if (chromosome == null) continue;
+            // didn't see anything at all from a chromosome, then don't include it in possDists.
+            if (chromosomeCounts[z] < 1) continue;
             //int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
-            long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+            long len = isFrag ? fragmentCountMap.get(chromosome.getName()) : chromosome.getLength();
             long nChrBins = len / binSize;
 
 
@@ -298,9 +289,9 @@ public class ExpectedValueCalculation {
 				}
             }
 
-            double observedCount = chromosomeCounts.get(chr.getIndex());
+            double observedCount = chromosomeCounts[chromosome.getIndex()];
             double f = expectedCount / observedCount;
-            chrScaleFactors.put(chr.getIndex(), f);
+            chrScaleFactors.put(chromosome.getIndex(), f);
         }
     }
 
