@@ -37,9 +37,9 @@ import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -66,7 +66,7 @@ public class ExpectedValueCalculation {
      * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
      * the "expected total"  == observed total
      */
-    private final Map<Integer, Double> chrScaleFactors = new ConcurrentHashMap<>();
+    private final double[] chrScaleFactors;
     private final NormalizationType type;
     /**
      * Map of chromosome index -> total count for that chromosome
@@ -113,10 +113,11 @@ public class ExpectedValueCalculation {
 
         long maxLen = 0;
 
-        int maxChromIndex = chromosomeHandler.getMaxChromIndex() + 1;
-        chromosomesMap = new Chromosome[maxChromIndex];
+        int maxNumChromosomes = chromosomeHandler.getMaxChromIndex() + 1;
+        chromosomesMap = new Chromosome[maxNumChromosomes];
         Arrays.fill(chromosomesMap, null);
-        chromosomeCounts = new double[maxChromIndex];
+        chromosomeCounts = new double[maxNumChromosomes];
+        chrScaleFactors = new double[maxNumChromosomes];
 
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             if (chromosome != null) {
@@ -290,8 +291,7 @@ public class ExpectedValueCalculation {
             }
 
             double observedCount = chromosomeCounts[chromosome.getIndex()];
-            double f = expectedCount / observedCount;
-            chrScaleFactors.put(chromosome.getIndex(), f);
+            chrScaleFactors[z] = expectedCount / observedCount;
         }
     }
 
@@ -301,7 +301,13 @@ public class ExpectedValueCalculation {
      * @return The normalization factors
      */
     public Map<Integer, Double> getChrScaleFactors() {
-        return chrScaleFactors;
+        Map<Integer, Double> scaleFactorsMap = new HashMap<>();
+        for (int z = 0; z < chrScaleFactors.length; z++) {
+            if (chrScaleFactors[z] > 0) {
+                scaleFactorsMap.put(z, chrScaleFactors[z]);
+            }
+        }
+        return scaleFactorsMap;
     }
 	
 	/**
@@ -324,7 +330,8 @@ public class ExpectedValueCalculation {
 
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
-        return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, binSize, densityAvg, chrScaleFactors);
+        return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP,
+                binSize, densityAvg, getChrScaleFactors());
     }
 
     // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
