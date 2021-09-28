@@ -896,7 +896,7 @@ public class Preprocessor {
     
                 ev.computeDensity();
     
-                int binSize = ev.getGridSize();
+                int binSize = ev.getBinSize();
                 HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
                 bufferList.get(bufferList.size()-1).putNullTerminatedString(unit.toString());

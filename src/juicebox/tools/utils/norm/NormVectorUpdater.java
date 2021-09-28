@@ -171,7 +171,7 @@ public class NormVectorUpdater {
             ev.computeDensity();
             HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
             appendExpectedValuesToBuffer(expectedBuffers, ev.getType(),
-                    unit, ev.getGridSize(), ev.getDensityAvg(),
+                    unit, ev.getBinSize(), ev.getDensityAvg(),
                     ev.getChrScaleFactors());
         }
     }

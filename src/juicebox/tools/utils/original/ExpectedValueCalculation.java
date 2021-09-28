@@ -57,7 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ExpectedValueCalculation {
 
-    private final int gridSize;
+    private final int binSize;
 
     private final int numberOfBins;
     /**
@@ -93,14 +93,14 @@ public class ExpectedValueCalculation {
      * Instantiate a DensityCalculation.  This constructor is used to compute the "expected" density from pair data.
      *
      * @param chromosomeHandler Handler for list of chromosomesMap, mainly used for size
-     * @param gridSize         Grid size, used for binning appropriately
-     * @param fragmentCountMap Optional.  Map of chromosome name -> number of fragments
-     * @param type             Identifies the observed matrix type,  either NONE (observed), VC, or KR.
+     * @param binSize           Grid size, used for binning appropriately
+     * @param fragmentCountMap  Optional.  Map of chromosome name -> number of fragments
+     * @param type              Identifies the observed matrix type,  either NONE (observed), VC, or KR.
      */
-    public ExpectedValueCalculation(ChromosomeHandler chromosomeHandler, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
+    public ExpectedValueCalculation(ChromosomeHandler chromosomeHandler, int binSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
 
         this.type = type;
-        this.gridSize = gridSize;
+        this.binSize = binSize;
 
         if (fragmentCountMap != null) {
             this.isFrag = true;
@@ -136,14 +136,14 @@ public class ExpectedValueCalculation {
             }
         }
 
-        numberOfBins = (int) (maxLen / gridSize) + 1;
+        numberOfBins = (int) (maxLen / binSize) + 1;
 
         actualDistances = new double[numberOfBins];
         Arrays.fill(actualDistances, 0);
     }
 
-    public int getGridSize() {
-        return gridSize;
+    public int getBinSize() {
+        return binSize;
     }
 
 
@@ -217,21 +217,21 @@ public class ExpectedValueCalculation {
 		double[] possibleDistances = new double[numberOfBins];
 	
 		for (Chromosome chr : chromosomesMap.values()) {
-		
-			// didn't see anything at all from a chromosome, then don't include it in possDists.
-			if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
-		
-			// use correct units (bp or fragments)
-			long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
-			long nChrBins = len / gridSize;
-		
-			maxNumBins = Math.max(maxNumBins, nChrBins);
-		
-			for (int i = 0; i < nChrBins; i++) {
-				possibleDistances[i] += (nChrBins - i);
-			}
-		
-		}
+
+            // didn't see anything at all from a chromosome, then don't include it in possDists.
+            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
+
+            // use correct units (bp or fragments)
+            long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+            long nChrBins = len / binSize;
+
+            maxNumBins = Math.max(maxNumBins, nChrBins);
+
+            for (int i = 0; i < nChrBins; i++) {
+                possibleDistances[i] += (nChrBins - i);
+            }
+
+        }
 		//System.err.println("max # bins " + maxNumBins);
 		densityAvg = new ListOfDoubleArrays(maxNumBins);
 	
@@ -275,23 +275,23 @@ public class ExpectedValueCalculation {
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
         for (Chromosome chr : chromosomesMap.values()) {
-	
-			if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
-				continue;
-			}
-			//int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
-			long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
-			long nChrBins = len / gridSize;
-	
-	
-			double expectedCount = 0;
-			for (long n = 0; n < nChrBins; n++) {
-				if (n < maxNumBins) {
-					final double v = densityAvg.get(n);
-					// this is the sum of the diagonal for this particular chromosome.
-					// the value in each bin is multiplied by the length of the diagonal to get expected count
-					// the total at the end should be the sum of the expected matrix for this chromosome
-					// i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
+
+            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
+                continue;
+            }
+            //int len = isFrag ? fragmentCalculation.getNumberFragments(chr.getName()) : chr.getLength();
+            long len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();
+            long nChrBins = len / binSize;
+
+
+            double expectedCount = 0;
+            for (long n = 0; n < nChrBins; n++) {
+                if (n < maxNumBins) {
+                    final double v = densityAvg.get(n);
+                    // this is the sum of the diagonal for this particular chromosome.
+                    // the value in each bin is multiplied by the length of the diagonal to get expected count
+                    // the total at the end should be the sum of the expected matrix for this chromosome
+                    // i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
 					// then multiply it by the chromosome-wide possible == nChrBins - n.
 					expectedCount += (nChrBins - n) * v;
 			
@@ -333,7 +333,7 @@ public class ExpectedValueCalculation {
 
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
-        return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
+        return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, binSize, densityAvg, chrScaleFactors);
     }
 
     // TODO: this is often inefficient, we have all of the contact records when we leave norm calculations, should do this there if possible
