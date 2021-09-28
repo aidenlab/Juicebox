@@ -52,8 +52,6 @@ import java.util.Map;
  * Methods are provided to save the result of the calculation to a binary file, and restore it.  See the
  * DensityUtil class for example usage.
  *
- * @author Jim Robinson
- * @since 11/27/11
  */
 public class ExpectedValueCalculation {
 
