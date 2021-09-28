@@ -61,13 +61,13 @@ public class ExpectedValueCalculation {
     // A little redundant, for clarity
     public final boolean isFrag;
     /**
-     * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
+     * chromosome index -> "normalization factor", essentially a fudge factor to make
      * the "expected total"  == observed total
      */
     private final double[] chrScaleFactors;
     private final NormalizationType type;
     /**
-     * Map of chromosome index -> total count for that chromosome
+     * chromosome index -> total count for that chromosome
      */
     private final double[] chromosomeCounts;
     /**
