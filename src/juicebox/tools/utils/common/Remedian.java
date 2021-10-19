@@ -30,39 +30,38 @@ import java.util.List;
 
 public class Remedian {
     private final int numValsPerSet;
-    private final List<Number> values;
-    private final List<Number> medians = new ArrayList<>();
-    private int total = 0;
+    private final List<List<Number>> medianPyramid;
     private Float theMainMedian = null;
 
     public Remedian(int numValsPerSet) { // try to use odd number of entries
         this.numValsPerSet = numValsPerSet;
-        values = new ArrayList<>(numValsPerSet);
+        medianPyramid = new ArrayList<>(3);
+        medianPyramid.add(new ArrayList<>(numValsPerSet));
     }
 
     public void addVal(float value) {
-        values.add(value);
-        total++;
-        if (total % numValsPerSet == 0) {
-            getCurrentMedianAndAppend();
+        medianPyramid.get(0).add(value);
+        checkLayer(0);
+        theMainMedian = null;
+    }
+
+    private void checkLayer(int k) {
+        if (medianPyramid.get(k).size() >= numValsPerSet) {
+            float median = QuickMedian.fastMedian(medianPyramid.get(k));
+            if (medianPyramid.size() < k + 2) {
+                medianPyramid.add(new ArrayList<>(numValsPerSet));
+            }
+            medianPyramid.get(k + 1).add(median);
+            medianPyramid.get(k).clear();
+            checkLayer(k + 1);
         }
     }
 
     public float getMedian() {
-        if (values.size() > 0) {
-            getCurrentMedianAndAppend();
-            theMainMedian = null;
-        }
         if (theMainMedian == null) {
-            theMainMedian = QuickMedian.fastMedian(medians);
+            theMainMedian = QuickMedian.fastMedian(medianPyramid.get(medianPyramid.size() - 1));
         }
         return theMainMedian;
-    }
-
-    private void getCurrentMedianAndAppend() {
-        float median = QuickMedian.fastMedian(values);
-        medians.add(median);
-        values.clear();
     }
 }
 
