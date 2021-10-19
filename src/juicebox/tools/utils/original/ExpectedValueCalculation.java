@@ -247,17 +247,11 @@ public class ExpectedValueCalculation {
             }
 
             numEntriesForDist.set(q, values.size());
-            densityAvg.set(q, QuickMedian.fastMedian(actualDistances.get(q)));
+            densityAvg.set(q, QuickMedian.fastMedian(values));
         }
         actualDistances.clear();
-        //densityAvg.splineInterpolate(numEntriesForDist);
-        //densityAvg.smoothWithWeights(numEntriesForDist);
-
-        // e1 mean
-        // e2 median
-        // e3 loess
-        // e4 spline
-        // e5 median with window, 400
+        // previously mean window 400
+        // now median window, 400
 
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
