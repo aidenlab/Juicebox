@@ -28,7 +28,7 @@ import java.util.List;
 
 public class QuickMedian {
 
-    public static float fastMedian(List<Double> list) {
+    public static float fastMedian(List<Number> list) {
         int size = list.size();
         if (size < 1) {
             return Float.NaN;

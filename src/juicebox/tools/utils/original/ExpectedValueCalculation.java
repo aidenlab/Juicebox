@@ -234,7 +234,7 @@ public class ExpectedValueCalculation {
 
         ListOfDoubleArrays numEntriesForDist = new ListOfDoubleArrays(maxNumBins);
         for (int q = 0; q < maxNumBins; q++) {
-            List<Double> values = new ArrayList<>(actualDistances.get(q));
+            List<Number> values = new ArrayList<>(actualDistances.get(q));
             int window = 0;
             while (values.size() < 400) {
                 window++;
