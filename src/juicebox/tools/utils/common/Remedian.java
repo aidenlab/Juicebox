@@ -39,9 +39,16 @@ public class Remedian {
         medianPyramid.add(new ArrayList<>(numValsPerSet));
     }
 
-    public void addVal(float value) {
-        medianPyramid.get(0).add(value);
-        checkLayer(0);
+    public void addVal(double value) {
+        addVal(value, 0);
+    }
+
+    public void addVal(Number value, int layer) {
+        while (medianPyramid.size() < layer + 1) {
+            medianPyramid.add(new ArrayList<>(numValsPerSet));
+        }
+        medianPyramid.get(layer).add(value);
+        checkLayer(layer);
         theMainMedian = null;
     }
 
@@ -62,6 +69,29 @@ public class Remedian {
             theMainMedian = QuickMedian.fastMedian(medianPyramid.get(medianPyramid.size() - 1));
         }
         return theMainMedian;
+    }
+
+    public Remedian deepClone() {
+        Remedian clone = new Remedian(numValsPerSet);
+        for (int l = 0; l < medianPyramid.size(); l++) {
+            for (Number value : medianPyramid.get(l)) {
+                clone.addVal(value, l);
+            }
+        }
+        return clone;
+    }
+
+    public void merge(Remedian other) {
+        for (int l = 0; l < other.medianPyramid.size(); l++) {
+            for (Number value : other.medianPyramid.get(l)) {
+                addVal(value, l);
+            }
+        }
+    }
+
+    public int topTierSize() {
+        int s = medianPyramid.size();
+        return (int) (medianPyramid.get(s - 1).size() * Math.pow(numValsPerSet, s - 1));
     }
 }
 

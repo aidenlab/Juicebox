@@ -33,7 +33,7 @@ import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
 import juicebox.data.iterator.IteratorContainer;
-import juicebox.tools.utils.common.QuickMedian;
+import juicebox.tools.utils.common.Remedian;
 import juicebox.tools.utils.norm.NormVectorUpdater;
 import juicebox.windowui.NormalizationType;
 
@@ -71,7 +71,9 @@ public class ExpectedValueCalculation {
     /**
      * Genome wide count of binned reads at a given distance
      */
-    private final List<List<Double>> actualDistances;
+    private final List<Remedian> actualDistances;
+    private final int BUFFER_SIZE = 21;
+
     /**
      * Expected count at a given binned distance from diagonal
      */
@@ -140,9 +142,9 @@ public class ExpectedValueCalculation {
         }
 
         numberOfBins = (int) (maxLen / binSize) + 1;
-        actualDistances = new ArrayList<List<Double>>(numberOfBins);
+        actualDistances = new ArrayList<Remedian>(numberOfBins);
         for (int z = 0; z < numberOfBins; z++) {
-            actualDistances.add(new ArrayList<>());
+            actualDistances.add(new Remedian(BUFFER_SIZE));
         }
     }
 
@@ -166,7 +168,7 @@ public class ExpectedValueCalculation {
 
         chromosomeCounts[chrIdx] += weight;
         int dist = Math.abs(bin1 - bin2);
-        actualDistances.get(dist).add(weight);
+        actualDistances.get(dist).addVal(weight);
     }
 
     public void merge(ExpectedValueCalculation otherEVCalc) {
@@ -175,9 +177,7 @@ public class ExpectedValueCalculation {
         }
 
         for (int i = 0; i < actualDistances.size(); i++) {
-            if (otherEVCalc.actualDistances.get(i).size() > 0) {
-                actualDistances.get(i).addAll(otherEVCalc.actualDistances.get(i));
-            }
+            actualDistances.get(i).merge(otherEVCalc.actualDistances.get(i));
         }
     }
 
@@ -232,22 +232,22 @@ public class ExpectedValueCalculation {
 
         // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
 
-        ListOfDoubleArrays numEntriesForDist = new ListOfDoubleArrays(maxNumBins);
+        //ListOfDoubleArrays numEntriesForDist = new ListOfDoubleArrays(maxNumBins);
         for (int q = 0; q < maxNumBins; q++) {
-            List<Number> values = new ArrayList<>(actualDistances.get(q));
+            Remedian remedian = actualDistances.get(q).deepClone();
             int window = 0;
-            while (values.size() < 400) {
+            while (remedian.topTierSize() < 400) {
                 window++;
                 if (q - window > -1) {
-                    values.addAll(actualDistances.get(q - window));
+                    remedian.merge(actualDistances.get(q - window));
                 }
                 if (q + window < actualDistances.size()) {
-                    values.addAll(actualDistances.get(q + window));
+                    remedian.merge(actualDistances.get(q + window));
                 }
             }
 
-            numEntriesForDist.set(q, values.size());
-            densityAvg.set(q, QuickMedian.fastMedian(values));
+            //numEntriesForDist.set(q, values.size());
+            densityAvg.set(q, remedian.getMedian());
         }
         actualDistances.clear();
         // previously mean window 400
