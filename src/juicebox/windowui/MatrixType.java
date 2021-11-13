@@ -84,7 +84,7 @@ public enum MatrixType {
     OSQ("Observed^2"),
     CSQ("Control^2"),
     OCSQ_VS("Observed^2 vs Control^2"),
-    OCSQ_RATIO_V2("((Observed/Control) * (AvgC/AvgO))^2");
+    OCSQ_RATIO_V2("Log[((Observed/Control) * (AvgC/AvgO))^2]");
 
     private static final MatrixType[] enabledMatrixTypesNoControl =
             new MatrixType[]{OBSERVED, OSQ, OEV2, PEARSON, EXPLOGEO};
