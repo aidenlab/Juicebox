@@ -26,6 +26,7 @@
 package juicebox.windowui;
 
 public enum MatrixType {
+    // todo rename all to be more readable
     OBSERVED("Observed"),
     EXPECTED("Expected"),
     OE("Observed/Expected"),
@@ -79,15 +80,21 @@ public enum MatrixType {
     DIFF("Observed-Control"),
     NORM("Norm"),
     EIGENVECTOR("Eigenvector"),
-    NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
+    NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2"),
+    OSQ("Observed^2"),
+    CSQ("Control^2"),
+    OCSQ_VS("Observed^2 vs Control^2"),
+    OCSQ_RATIO_V2("((Observed/Control) * (AvgC/AvgO))^2");
 
     private static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, OE, OEV2, PEARSON, LOG};
+            new MatrixType[]{OBSERVED, OSQ, OEV2, PEARSON, EXPLOGEO};
 
     private static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            OBSERVED, CONTROL, VS, RATIO, RATIOV2,
-            OE, OECTRL, OEVS, OEV2, OECTRLV2, OEVSV2,
-            PEARSON, PEARSONCTRL, PEARSONVS, LOG, LOGC, LOGEOVS};
+            OBSERVED, CONTROL, VS, RATIOV2,
+            OSQ, CSQ, OCSQ_VS, OCSQ_RATIO_V2,
+            OEV2, OECTRLV2, OEVSV2,
+            PEARSON, PEARSONCTRL, PEARSONVS,
+            EXPLOGEO, EXPLOGCEO};
 
     private static final MatrixType[] enabledMatrixTypesNoControlDev =
             new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
@@ -128,7 +135,8 @@ public enum MatrixType {
      * @return true is the option is generally available all maps or resolutions
      */
     public static boolean isObservedOrControl(MatrixType option) {
-        return option == OBSERVED || option == CONTROL;
+        return option == OBSERVED || option == CONTROL ||
+                option == OSQ || option == CSQ;
     }
 
     /**
@@ -160,7 +168,7 @@ public enum MatrixType {
         return option == OEV2 || option == OEP1V2 || option == RATIOV2 || option == RATIOP1V2 || option == RATIO0V2
                 || option == RATIO0P1V2 || option == OECTRLV2 || option == OECTRLP1V2
                 || option == OEVSV2 || option == OEVSP1V2 || option == OERATIOV2 || option == OERATIOP1V2
-                || option == LOGRATIOV2 || option == LOGEORATIOV2
+                || option == LOGRATIOV2 || option == LOGEORATIOV2 || option == OCSQ_RATIO_V2
                 || isSubtactType(option);
     }
 
