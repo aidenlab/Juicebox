@@ -386,6 +386,22 @@ public class SuperAdapter {
         repaint();
     }
 
+    private static boolean genomesAreCompatible(Dataset dataset1, Dataset dataset2) {
+        if (dataset1.getGenomeId().equalsIgnoreCase(dataset2.getGenomeId())) {
+            return true;
+        }
+
+        String[] g1 = dataset1.getGenomeId().split("/");
+        String[] g2 = dataset2.getGenomeId().split("/");
+        if (g1[g1.length - 1].equalsIgnoreCase(g2[g2.length - 1])) {
+            return true;
+        }
+        //todo can go chromosome by chromosome and check names/sizes
+        System.err.println("Genome IDs do not match:\n" +
+                dataset1.getGenomeId().toLowerCase() + "  vs  " + dataset2.getGenomeId().toLowerCase());
+        return false;
+    }
+
     private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
         StringBuilder newFilesToBeLoaded = new StringBuilder();
@@ -424,7 +440,7 @@ public class SuperAdapter {
                 JOptionPane.showMessageDialog(mainWindow, "This version of \"hic\" format is no longer supported");
                 return false;
             }
-            if (control && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
+            if (control && !genomesAreCompatible(dataset, hic.getDataset())) {
                 JOptionPane.showMessageDialog(mainWindow, "Cannot load maps with different genomes");
                 return false;
             }
