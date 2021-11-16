@@ -110,6 +110,11 @@ public class HeatmapRenderer {
             if (blocks == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
             renderSimpleSquaredMap(blocks, cs, width, height, sameChr, originX, originY);
+        } else if (displayOption == MatrixType.OSQRT) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            if (blocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderSimpleSqrtMap(blocks, cs, width, height, sameChr, originX, originY);
         } else if (displayOption == MatrixType.LOG) {
             List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
             if (blocks == null) return false;
@@ -141,6 +146,11 @@ public class HeatmapRenderer {
             if (controlZD == null || ctrlBlocks == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
             renderSimpleSquaredMap(ctrlBlocks, cs, width, height, sameChr, originX, originY);
+        } else if (displayOption == MatrixType.CSQRT) {
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (controlZD == null || ctrlBlocks == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
+            renderSimpleSqrtMap(ctrlBlocks, cs, width, height, sameChr, originX, originY);
         } else if (displayOption == MatrixType.LOGC) {
             List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
             if (controlZD == null || ctrlBlocks == null) return false;
@@ -170,7 +180,7 @@ public class HeatmapRenderer {
                     sameChr, originX, originY, width, height);
         } else if (displayOption == MatrixType.LOGEOVS || displayOption == MatrixType.OCMEVS ||
                 displayOption == MatrixType.VS || displayOption == MatrixType.LOGVS ||
-                displayOption == MatrixType.OCSQ_VS ||
+                displayOption == MatrixType.OCSQ_VS || displayOption == MatrixType.OCSQRT_VS ||
                 displayOption == MatrixType.OEVSV2 || displayOption == MatrixType.OEVS ||
                 displayOption == MatrixType.OEVSP1V2 || displayOption == MatrixType.OEVSP1 ||
                 displayOption == MatrixType.OERATIOV2 || displayOption == MatrixType.OERATIO ||
@@ -191,6 +201,8 @@ public class HeatmapRenderer {
                 renderSimpleVSMap(blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
             } else if (displayOption == MatrixType.OCSQ_VS) {
                 renderSimpleSquaredVSMap(blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
+            } else if (displayOption == MatrixType.OCSQRT_VS) {
+                renderSimpleSqrtVSMap(blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
             } else if (displayOption == MatrixType.LOGVS) {
                 renderSimpleLogVSMap(blocks, ctrlBlocks, zd, controlZD, originX, originY, width, height, cs, sameChr);
             } else if (displayOption == MatrixType.OEVSP1V2 || displayOption == MatrixType.OEVSP1) {
@@ -305,6 +317,14 @@ public class HeatmapRenderer {
             if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
             renderSquaredRatioWithAvgMap(blocks, ctrlBlocks, zd, controlZD,
+                    0, 0, originX, originY, width, height,
+                    cs, sameChr, controlNormalizationType);
+        } else if (displayOption == MatrixType.OCSQRT_RATIO_V2) {
+            List<Block> blocks = getTheBlocks(zd, x, y, maxX, maxY, observedNormalizationType, isImportant);
+            List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
+            if (blocks == null || ctrlBlocks == null || controlZD == null) return false;
+            ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, blocks, 1f);
+            renderSqrtRatioWithAvgMap(blocks, ctrlBlocks, zd, controlZD,
                     0, 0, originX, originY, width, height,
                     cs, sameChr, controlNormalizationType);
         } else if (displayOption == MatrixType.RATIOP1V2 || displayOption == MatrixType.RATIOP1) {
@@ -578,6 +598,34 @@ public class HeatmapRenderer {
                         float num = (rec.getCounts() + pseudoCountObs) / (averageCount + pseudoCountObs);
                         float den = (ctrlRecord.getCounts() + pseudoCountCtrl) / (ctrlAverageCount + pseudoCountCtrl);
                         ratioPainting(originX, originY, width, height, cs, sameChr, rec, num * num, den * den);
+                    }
+                }
+            }
+        }
+    }
+
+    private void renderSqrtRatioWithAvgMap(List<Block> blocks, List<Block> ctrlBlocks,
+                                           MatrixZoomData zd, MatrixZoomData controlZD,
+                                           float pseudoCountObs, float pseudoCountCtrl,
+                                           int originX, int originY, int width, int height,
+                                           ColorScale cs, boolean sameChr, NormalizationType controlNormalizationType) {
+        float averageCount = (float) zd.getAverageCount();
+        float ctrlAverageCount = controlZD == null ? 1 : (float) controlZD.getAverageCount();
+
+        Map<String, Block> controlBlocks = convertBlockListToMap(ctrlBlocks, controlZD);
+
+        for (Block b : blocks) {
+            Collection<ContactRecord> recs = b.getContactRecords();
+
+            Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
+
+            if (recs != null) {
+                for (ContactRecord rec : recs) {
+                    ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
+                    if (ctrlRecord != null) {
+                        float num = (rec.getCounts() + pseudoCountObs) / (averageCount + pseudoCountObs);
+                        float den = (ctrlRecord.getCounts() + pseudoCountCtrl) / (ctrlAverageCount + pseudoCountCtrl);
+                        ratioPainting(originX, originY, width, height, cs, sameChr, rec, (float) Math.sqrt(num), (float) Math.sqrt(den));
                     }
                 }
             }
@@ -1012,6 +1060,48 @@ public class HeatmapRenderer {
         }
     }
 
+    private void renderSimpleSqrtVSMap(List<Block> blocks, List<Block> ctrlBlocks,
+                                       MatrixZoomData zd, MatrixZoomData controlZD,
+                                       int originX, int originY, int width, int height, ColorScale cs, boolean sameChr) {
+        float averageCount = (float) Math.sqrt(zd.getAverageCount());
+        float ctrlAverageCount = (float) Math.sqrt(controlZD.getAverageCount());
+        float averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
+        if (blocks != null) {
+            for (Block b : blocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+
+                        float score = (float) Math.sqrt(rec.getCounts());
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+                        score = (score / averageCount) * averageAcrossMapAndControl;
+
+                        setColor(cs.getColor(score));
+
+                        aboveDiagonalPainting(originX, originY, width, height, rec);
+                    }
+                }
+            }
+        }
+        if (sameChr && ctrlBlocks != null) {
+            for (Block b : ctrlBlocks) {
+                Collection<ContactRecord> recs = b.getContactRecords();
+                if (recs != null) {
+                    for (ContactRecord rec : recs) {
+
+                        float score = (float) Math.sqrt(rec.getCounts());
+                        if (Float.isNaN(score) || Float.isInfinite(score)) continue;
+                        score = (score / ctrlAverageCount) * averageAcrossMapAndControl;
+
+                        setColor(cs.getColor(score));
+                        belowDiagonalPainting(originX, originY, width, height, rec);
+                    }
+                }
+            }
+        }
+    }
+
     private void renderLogObservedBaseExpectedMap(int chromosome, List<Block> blocks, ExpectedValueFunction df,
                                                   MatrixZoomData zd, ColorScale cs, boolean sameChr,
                                                   int originX, int originY, int width, int height) {
@@ -1172,6 +1262,19 @@ public class HeatmapRenderer {
             if (recs != null) {
                 for (ContactRecord rec : recs) {
                     float score = rec.getCounts() * rec.getCounts();
+                    simplePainting(cs, width, height, sameChr, originX, originY, rec, score);
+                }
+            }
+        }
+    }
+
+    private void renderSimpleSqrtMap(List<Block> blocks, ColorScale cs,
+                                     int width, int height, boolean sameChr, int originX, int originY) {
+        for (Block b : blocks) {
+            Collection<ContactRecord> recs = b.getContactRecords();
+            if (recs != null) {
+                for (ContactRecord rec : recs) {
+                    float score = (float) Math.sqrt(rec.getCounts());
                     simplePainting(cs, width, height, sameChr, originX, originY, rec, score);
                 }
             }

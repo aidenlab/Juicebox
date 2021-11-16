@@ -84,20 +84,25 @@ public enum MatrixType {
     OSQ("Observed^2"),
     CSQ("Control^2"),
     OCSQ_VS("Observed^2 vs Control^2"),
-    OCSQ_RATIO_V2("Log[((Observed/Control) * (AvgC/AvgO))^2]");
+    OCSQ_RATIO_V2("Log[((Observed/Control) * (AvgC/AvgO))^2]"),
+    OSQRT("Sqrt(Observed)"),
+    CSQRT("Sqrt(Control)"),
+    OCSQRT_VS("Sqrt(Observed) vs Sqrt(Control)"),
+    OCSQRT_RATIO_V2("Log[Sqrt((Observed/Control) * (AvgC/AvgO))]");
 
     private static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, OSQ, OEV2, PEARSON, EXPLOGEO};
+            new MatrixType[]{OBSERVED, OSQ, OSQRT, OEV2, PEARSON, EXPLOGEO};
 
     private static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
             OBSERVED, CONTROL, VS, RATIOV2,
             OSQ, CSQ, OCSQ_VS, OCSQ_RATIO_V2,
+            OSQRT, CSQRT, OCSQRT_VS, OCSQRT_RATIO_V2,
             OEV2, OECTRLV2, OEVSV2,
             PEARSON, PEARSONCTRL, PEARSONVS,
             EXPLOGEO, EXPLOGCEO};
 
     private static final MatrixType[] enabledMatrixTypesNoControlDev =
-            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
+            new MatrixType[]{OBSERVED, OSQ, OSQRT, EXPECTED, OE, OEV2, OEP1, OEP1V2, OME, PEARSON,
                     LOG, LOGEO, EXPLOGEO};
 
     private static final MatrixType[] enabledMatrixTypesWithControlDev = new MatrixType[]{
@@ -106,6 +111,8 @@ public enum MatrixType {
             VS, RATIO, RATIOV2, RATIOP1, RATIOP1V2, RATIO0, RATIO0V2, RATIO0P1, RATIO0P1V2,
             OERATIO, OERATIOV2, OERATIOP1, OERATIOP1V2, OERATIOMINUS, OERATIOMINUSP1,
             OEVS, OEVSV2, OEVSP1, OEVSP1V2, OCMEVS, PEARSONVS, DIFF,
+            OSQ, CSQ, OCSQ_VS, OCSQ_RATIO_V2,
+            OSQRT, CSQRT, OCSQRT_VS, OCSQRT_RATIO_V2,
             LOGVS, LOGEOVS, LOGRATIO, LOGRATIOV2, LOGEORATIO, LOGEORATIOV2,
             EXPLOGEO, EXPLOGCEO
     };
@@ -168,7 +175,8 @@ public enum MatrixType {
         return option == OEV2 || option == OEP1V2 || option == RATIOV2 || option == RATIOP1V2 || option == RATIO0V2
                 || option == RATIO0P1V2 || option == OECTRLV2 || option == OECTRLP1V2
                 || option == OEVSV2 || option == OEVSP1V2 || option == OERATIOV2 || option == OERATIOP1V2
-                || option == LOGRATIOV2 || option == LOGEORATIOV2 || option == OCSQ_RATIO_V2
+                || option == LOGRATIOV2 || option == LOGEORATIOV2
+                || option == OCSQ_RATIO_V2 || option == OCSQRT_RATIO_V2
                 || isSubtactType(option);
     }
 
