@@ -24,6 +24,8 @@
 
 package juicebox.data.basics;
 
+import juicebox.tools.utils.common.QuickMedian;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -175,5 +177,36 @@ public class ListOfDoubleArrays {
 			}
 		}
 		return newList;
+	}
+
+	public void doRollingMedian(int window) {
+		if (window > DEFAULT_LENGTH || internalList.size() > 1) {
+			System.err.println("ERROR: NOT YET IMPLEMENTED!!!");
+			System.exit(-3);
+		}
+		double[] data = internalList.get(0);
+		if (window >= data.length || window < 1) return;
+
+		double[] secondArray = new double[data.length - window];
+		List<Double> values = getInitialList(window, data);
+		for (int z = 0; z < secondArray.length; z++) {
+			secondArray[z] = QuickMedian.fastMedian(values);
+			values.remove(0);
+			int nextIndexToAdd = 2 * (window + 1) + z;
+			if (nextIndexToAdd < data.length) {
+				values.add(data[nextIndexToAdd]);
+			}
+		}
+		System.arraycopy(secondArray, 0, data, window, secondArray.length);
+	}
+
+	private List<Double> getInitialList(int window, double[] data) {
+		int start = 0;
+		int end = 2 * (window + 1);
+		List<Double> values = new ArrayList<>();
+		for (int q = start; q < end; q++) {
+			values.add(data[q]);
+		}
+		return values;
 	}
 }
