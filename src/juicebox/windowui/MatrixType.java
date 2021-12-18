@@ -91,7 +91,7 @@ public enum MatrixType {
     OCSQRT_RATIO_V2("Log[Sqrt((Observed/Control) * (AvgC/AvgO))]");
 
     private static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, OSQ, OSQRT, OEV2, PEARSON, EXPLOGEO};
+            new MatrixType[]{OBSERVED, OSQ, OSQRT, OE, OEV2, PEARSON, EXPLOGEO};
 
     private static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
             OBSERVED, CONTROL, VS, RATIOV2,

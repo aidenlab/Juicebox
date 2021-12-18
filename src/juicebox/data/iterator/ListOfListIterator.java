@@ -41,7 +41,7 @@ public class ListOfListIterator implements Iterator<ContactRecord> {
 
     @Override
     public boolean hasNext() {
-        if (currentIterator.hasNext()) {
+        if (currentIterator != null && currentIterator.hasNext()) {
             return true;
         } else {
             currentListIndex++;

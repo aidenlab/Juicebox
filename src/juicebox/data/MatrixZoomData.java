@@ -841,7 +841,7 @@ public class MatrixZoomData {
         populateOEMatrixAndBitset(oeMatrix, bitSet, df);
 
         BasicMatrix pearsons;
-        if (HiCGlobals.guiIsCurrentlyActive) { // todo ask Neva
+        if (HiCGlobals.guiIsCurrentlyActive) {
             pearsons = Pearsons.computeParallelizedPearsons(oeMatrix, dim, bitSet);
         } else {
             pearsons = Pearsons.computePearsons(oeMatrix, dim, bitSet);
