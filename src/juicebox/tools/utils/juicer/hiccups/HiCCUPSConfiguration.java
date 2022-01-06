@@ -66,15 +66,23 @@ public class HiCCUPSConfiguration {
     }
 
     public static List<HiCCUPSConfiguration> extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser,
-                                                                                  List<HiCZoom> availableZooms) {
+                                                                                  List<HiCZoom> availableZooms, int version) {
         List<String> resString = juicerParser.getMultipleResolutionOptions();
         if (resString == null) return null;
         int[] resolutions = ArrayTools.extractIntegers(resString);
 
         Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<>();
         for (int res : resolutions) {
-            if (res == 5000) {
-                configurationMap.put(res, getDefaultConfigFor5K());
+            if (res == 1000) {
+                configurationMap.put(res, getHiCCUPS2ConfigFor1K());
+            } else if (res == 2000) {
+                configurationMap.put(res, getHiCCUPS2ConfigFor2K());
+            } else if (res == 5000) {
+                if (version == 1) {
+                    configurationMap.put(res, getDefaultConfigFor5K());
+                } else {
+                    configurationMap.put(res, getHiCCUPS2ConfigFor5K());
+                }
             } else if (res == 10000) {
                 configurationMap.put(res, getDefaultConfigFor10K());
             } else if (res == 25000) {
@@ -127,6 +135,17 @@ public class HiCCUPSConfiguration {
         return validConfigs;
     }
 
+    public static HiCCUPSConfiguration getHiCCUPS2ConfigFor1K() {
+        return new HiCCUPSConfiguration(1000, 10, 5, 10, 3000);
+    }
+    public static HiCCUPSConfiguration getHiCCUPS2ConfigFor2K() {
+        return new HiCCUPSConfiguration(2000, 10, 4, 10, 6000);
+    }
+
+    public static HiCCUPSConfiguration getHiCCUPS2ConfigFor5K() {
+        return new HiCCUPSConfiguration(5000, 10, 4, 7, 10000);
+    }
+
     public static HiCCUPSConfiguration getDefaultConfigFor5K() {
         return new HiCCUPSConfiguration(5000, 10, 4, 7, 20000);
     }
@@ -149,6 +168,16 @@ public class HiCCUPSConfiguration {
         configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
         configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
         System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
+        return configurations;
+    }
+
+    public static List<HiCCUPSConfiguration> getHiCCUPS2DefaultSetOfConfigsForUsers() {
+        List<HiCCUPSConfiguration> configurations = new ArrayList<>();
+        configurations.add(HiCCUPSConfiguration.getHiCCUPS2ConfigFor1K());
+        configurations.add(HiCCUPSConfiguration.getHiCCUPS2ConfigFor2K());
+        configurations.add(HiCCUPSConfiguration.getHiCCUPS2ConfigFor5K());
+        configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
+        System.out.println("Default HiCCUPS2 settings for 1kb, 2kb, 5kb, and 10kb are being used");
         return configurations;
     }
 

@@ -110,6 +110,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
+        } else if (cmd.equals("hiccups2")) {
+            return new HiCCUPS2();
         } else if (cmd.equals("loop_domains")) {
             return new LoopDomains();
         } else if (cmd.equals("motifs")) {

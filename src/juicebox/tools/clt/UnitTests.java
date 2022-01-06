@@ -123,7 +123,7 @@ class UnitTests {
         HiCCUPSUtils.postProcess(map, ds1, ds1.getChromosomeHandler(),
                 HiCCUPSConfiguration.getDefaultSetOfConfigsForUsers(),
                 NormalizationHandler.KR, outputDirectory,
-                false, outputMergedGivenFile);
+                false, outputMergedGivenFile, 1);
     }
 
     public static void testingHiCCUPSPostprocessing() {
@@ -148,7 +148,7 @@ class UnitTests {
         loopLists.put(10000, Feature2DParser.loadFeatures(link2, chromosomeHandler, true, null, false));
 
         HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
-                filteredConfigurations, norm, outputDirectory, false, outputMergedFile);
+                filteredConfigurations, norm, outputDirectory, false, outputMergedFile, 1);
     }
 
     /*

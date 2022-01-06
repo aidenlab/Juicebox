@@ -113,7 +113,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         looplist1 = Feature2DParser.loadFeatures(args[3], commonChromosomesHandler, true, null, false);
         looplist2 = Feature2DParser.loadFeatures(args[4], commonChromosomesHandler, true, null, false);
 
-        configs = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
+        configs = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms, 1);
 
         if (configs == null) {
             configs = new ArrayList<>();

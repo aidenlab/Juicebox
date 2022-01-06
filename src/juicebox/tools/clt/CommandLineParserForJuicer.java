@@ -36,10 +36,10 @@ import java.util.List;
 public class CommandLineParserForJuicer extends CommandLineParser {
 
     // used flags
-    // wmnxcrplafdptkqbvuhgjyzo
+    // wmnxcrplafdptkqbvuhgjyzoe
 
     // available flags
-    // es
+    // s
 
     // General
     private final Option matrixSizeOption = addIntegerOption('m', "matrix-width");
@@ -65,6 +65,9 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     private final Option cpuVersionHiCCUPSOption = addBooleanOption('j', "cpu");
     private final Option restrictSearchRegionsOption = addBooleanOption('y', "restrict");
 
+    //Localizer
+    private final Option expandSize = addIntegerOption('e', "expand");
+
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
 
@@ -72,7 +75,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public static boolean isJuicerCommand(String cmd) {
-        return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
+        return cmd.equals("hiccups") || cmd.equals("hiccups2") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
                 || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance");
@@ -133,6 +136,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     public int getMatrixSizeOption() {
         return optionToInt(matrixSizeOption);
     }
+
+    public int getExpandSize() { return optionToInt(expandSize);}
 
     /**
      * double flags
