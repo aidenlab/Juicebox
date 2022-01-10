@@ -27,6 +27,7 @@ package juicebox.data;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
@@ -254,10 +255,10 @@ public class Matrix {
     private static List<Chromosome> getIndicesFromSubChromosomes(final ChromosomeHandler handler, Chromosome chromosome) {
         final List<Chromosome> indices = new ArrayList<>();
         if (handler.isCustomChromosome(chromosome)) {
-            GenomeWideList<MotifAnchor> regions = handler.getListOfRegionsInCustomChromosome(chromosome.getIndex());
-            regions.processLists(new FeatureFunction<MotifAnchor>() {
+            GenomeWideList<GenericLocus> regions = handler.getListOfRegionsInCustomChromosome(chromosome.getIndex());
+            regions.processLists(new FeatureFunction<GenericLocus>() {
                 @Override
-                public void process(String chr, List<MotifAnchor> featureList) {
+                public void process(String chr, List<GenericLocus> featureList) {
                     if (featureList.size() > 0) {
                         Chromosome chromosomeN = handler.getChromosomeFromName(chr);
                         if (chromosomeN != null) {

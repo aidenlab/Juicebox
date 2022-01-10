@@ -25,6 +25,7 @@
 package juicebox.data.censoring;
 
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import org.broad.igv.util.Pair;
 
@@ -34,13 +35,13 @@ public class RegionPair {
 	
 	public final int xI;
 	public final int yI;
-	public final MotifAnchor xRegion;
-	public final MotifAnchor xTransRegion;
-	public final MotifAnchor yRegion;
-	public final MotifAnchor yTransRegion;
+	public final GenericLocus xRegion;
+	public final GenericLocus xTransRegion;
+	public final GenericLocus yRegion;
+	public final GenericLocus yTransRegion;
 
-    private RegionPair(int xI, Pair<MotifAnchor, MotifAnchor> xLocalRegion,
-                       int yI, Pair<MotifAnchor, MotifAnchor> yLocalRegion) {
+    private RegionPair(int xI, Pair<GenericLocus, GenericLocus> xLocalRegion,
+                       int yI, Pair<GenericLocus, GenericLocus> yLocalRegion) {
         this.xI = xI;
         this.yI = yI;
         this.xRegion = xLocalRegion.getFirst();
@@ -49,7 +50,7 @@ public class RegionPair {
         this.yTransRegion = yLocalRegion.getSecond();
     }
 
-    public static RegionPair generateRegionPair(Pair<MotifAnchor, MotifAnchor> xRegion, Pair<MotifAnchor, MotifAnchor> yRegion, ChromosomeHandler handler) {
+    public static RegionPair generateRegionPair(Pair<GenericLocus, GenericLocus> xRegion, Pair<GenericLocus, GenericLocus> yRegion, ChromosomeHandler handler) {
         int xI = handler.getChromosomeFromName(xRegion.getFirst().getChr()).getIndex();
         int yI = handler.getChromosomeFromName(yRegion.getFirst().getChr()).getIndex();
 

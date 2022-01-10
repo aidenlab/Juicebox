@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.basics.Chromosome;
@@ -99,14 +100,14 @@ public class GeneTools {
         return geneLocationHashMap;
     }
 
-    public static GenomeWideList<MotifAnchor> parseGenome(String genomeID, ChromosomeHandler handler) {
+    public static GenomeWideList<GenericLocus> parseGenome(String genomeID, ChromosomeHandler handler) {
         BufferedReader reader = getStreamToGeneFile(genomeID);
-        List<MotifAnchor> allGenes = extractAllGenes(reader, handler);
+        List<GenericLocus> allGenes = extractAllGenes(reader, handler);
         return new GenomeWideList<>(handler, allGenes);
     }
 
-    private static List<MotifAnchor> extractAllGenes(BufferedReader reader, ChromosomeHandler handler) {
-        List<MotifAnchor> genes = new ArrayList<>();
+    private static List<GenericLocus> extractAllGenes(BufferedReader reader, ChromosomeHandler handler) {
+        List<GenericLocus> genes = new ArrayList<>();
 
         String nextLine;
         try {

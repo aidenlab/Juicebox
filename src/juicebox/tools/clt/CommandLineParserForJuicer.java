@@ -76,7 +76,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("hiccups2") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains")
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") || cmd.equals("localizer")
                 || cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes")
                 || cmd.equals("apa_vs_distance");
     }

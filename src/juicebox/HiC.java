@@ -26,6 +26,7 @@
 package juicebox;
 
 import juicebox.data.*;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.basics.Chromosome;
 import juicebox.gui.SuperAdapter;
@@ -1238,7 +1239,7 @@ public class HiC {
         ds.clearCache(false);
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
+    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
         try {
             return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(name, g1, g2);
         } catch (Exception ignored) {

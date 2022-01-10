@@ -26,9 +26,7 @@ package juicebox.tools.dev;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.data.anchor.MotifAnchor;
-import juicebox.data.anchor.MotifAnchorParser;
-import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.anchor.*;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -82,23 +80,24 @@ public class GeneFinder extends JuicerCLT {
 
         try {
 
-            GenomeWideList<MotifAnchor> genes = GeneTools.parseGenome(genomeID, handler);
+            GenomeWideList<GenericLocus> genes = GeneTools.parseGenome(genomeID, handler);
             System.out.println("Starting with " + genes.size() + " genes");
 
             if (loopListPath != null) {
                 final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, handler, false, null, false);
-                GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(allLoops, false, handler);
+                GenomeWideList<GenericLocus> allAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(allLoops, false, handler, 15000
+                );
                 final Feature2DList filteredLoops = new Feature2DList();
 
                 if ((new File(bedFilePath)).exists()) {
-                    GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+                    GenomeWideList<GenericLocus> proteins = GenericLocusParser.loadFromBEDFile(handler, bedFilePath);
                     MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
 
-                    allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
+                    allAnchors.processLists(new FeatureFunction<GenericLocus>() {
                         @Override
-                        public void process(String chr, List<MotifAnchor> anchors) {
+                        public void process(String chr, List<GenericLocus> anchors) {
                             List<Feature2D> restoredLoops = new ArrayList<>();
-                            for (MotifAnchor anchor : anchors) {
+                            for (GenericLocus anchor : anchors) {
                                 restoredLoops.addAll(anchor.getOriginalFeatures1());
                                 restoredLoops.addAll(anchor.getOriginalFeatures2());
                             }
@@ -115,23 +114,23 @@ public class GeneFinder extends JuicerCLT {
                 // note, this is NOT identical to all anchors after preservative intersect
                 // because this restores both of the loops anchors even if one was eliminated
                 // in the previous intersection as long as one of its anchors hit the protein
-                GenomeWideList<MotifAnchor> filteredAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(filteredLoops, false, handler);
+                GenomeWideList<GenericLocus> filteredAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(filteredLoops, false, handler, 15000);
                 MotifAnchorTools.preservativeIntersectLists(genes, filteredAnchors, false);
 
             } else {
                 if ((new File(bedFilePath)).exists()) {
                     System.out.println("Just using bed file");
-                    GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+                    GenomeWideList<GenericLocus> proteins = GenericLocusParser.loadFromBEDFile(handler, bedFilePath);
                     //MotifAnchorTools.mergeAndExpandSmallAnchors(proteins, 1000);
                     MotifAnchorTools.preservativeIntersectLists(genes, proteins, false);
                 }
             }
 
             final Set<String> geneNames = new HashSet<>();
-            genes.processLists(new FeatureFunction<MotifAnchor>() {
+            genes.processLists(new FeatureFunction<GenericLocus>() {
                 @Override
-                public void process(String chr, List<MotifAnchor> featureList) {
-                    for (MotifAnchor anchor : featureList) {
+                public void process(String chr, List<GenericLocus> featureList) {
+                    for (GenericLocus anchor : featureList) {
                         geneNames.add(anchor.getName());
                     }
                 }

@@ -25,6 +25,7 @@
 package juicebox.data.censoring;
 
 import juicebox.HiC;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.basics.Chromosome;
 import juicebox.track.*;
@@ -54,13 +55,13 @@ public class OneDimTrackCensoring {
         int gx2 = endBin * binSize;
 
         //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getName(), gx1, gx2);
+        List<Pair<GenericLocus, GenericLocus>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getName(), gx1, gx2);
 
         List<HiCDataPoint[]> dataPointArrays = new ArrayList<>();
-        for (Pair<MotifAnchor, MotifAnchor> regionPair : axisRegions) {
+        for (Pair<GenericLocus, GenericLocus> regionPair : axisRegions) {
     
-            MotifAnchor originalRegion = regionPair.getFirst();
-            MotifAnchor translatedRegion = regionPair.getSecond();
+            GenericLocus originalRegion = regionPair.getFirst();
+            GenericLocus translatedRegion = regionPair.getSecond();
     
             Chromosome orig = hic.getChromosomeHandler().getChromosomeFromName(originalRegion.getChr());
             HiCDataPoint[] array = dataSource.getData(orig, (int) (originalRegion.getX1() / binSize),
@@ -73,7 +74,7 @@ public class OneDimTrackCensoring {
     }
 
     private static HiCDataPoint[] translateDataPointArray(int binSize, HiCDataPoint[] array,
-                                                          MotifAnchor originalRegion, MotifAnchor translatedRegion) {
+                                                          GenericLocus originalRegion, GenericLocus translatedRegion) {
         List<HiCDataPoint> translatedPoints = new ArrayList<>();
 
         if (array.length > 0 && array[0] instanceof HiCCoverageDataSource.CoverageDataPoint) {

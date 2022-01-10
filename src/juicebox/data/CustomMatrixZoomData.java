@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiCGlobals;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.censoring.CustomMZDRegionHandler;
@@ -129,11 +130,11 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         
         // x window
         //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
+        List<Pair<GenericLocus, GenericLocus>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1, gx2);
         
         // y window
         //currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
-        List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1, gy2);
+        List<Pair<GenericLocus, GenericLocus>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1, gy2);
 
         if (isImportant) {
             if (HiCGlobals.printVerboseComments)
@@ -149,8 +150,8 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
         ExecutorService executor = HiCGlobals.newFixedThreadPool();
         // todo change to be by chromosome?
-        for (Pair<MotifAnchor, MotifAnchor> xRegion : xAxisRegions) {
-            for (Pair<MotifAnchor, MotifAnchor> yRegion : yAxisRegions) {
+        for (Pair<GenericLocus, GenericLocus> xRegion : xAxisRegions) {
+            for (Pair<GenericLocus, GenericLocus> yRegion : yAxisRegions) {
                 Runnable worker = new Runnable() {
                     @Override
                     public void run() {
@@ -326,12 +327,12 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         // x window
         int gx1 = binX * zoom.getBinSize();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx1, gx1);
-        List<Pair<MotifAnchor, MotifAnchor>> xRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1);
+        List<Pair<GenericLocus, GenericLocus>> xRegions = rTreeHandler.getIntersectingFeatures(chr1.getName(), gx1);
 
         // y window
         int gy1 = binY * zoom.getBinSize();
         currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy1, gy1);
-        List<Pair<MotifAnchor, MotifAnchor>> yRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1);
+        List<Pair<GenericLocus, GenericLocus>> yRegions = rTreeHandler.getIntersectingFeatures(chr2.getName(), gy1);
 
         RegionPair rp = RegionPair.generateRegionPair(xRegions.get(0), yRegions.get(0), handler);
         MatrixZoomData zd = zoomDatasForDifferentRegions.get(Matrix.generateKey(rp.xI, rp.yI));
@@ -357,7 +358,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     }
 
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
+    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
         return rTreeHandler.getIntersectingFeatures(name, g1, g2);
     }
 }
