@@ -71,10 +71,10 @@ public class Localizer extends JuicerCLT {
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
     // TODO the sqrt(2) scaling should be removed (i.e. handle scaling internally)
-    private int window = 10;
+    private int window = 1;
     private int expandSize = 2500;
     private int numLocalizedPeaks = 1;
-    private int[] resolutions = new int[]{10};
+    private int[] resolutions = new int[]{100};
     private int[] regionWidths = new int[]{window};
     private boolean includeInterChr = false;
     private Feature2DList finalLoopList = new Feature2DList();
@@ -167,7 +167,7 @@ public class Localizer extends JuicerCLT {
 
             AtomicInteger[] gwPeakNumbers = {new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0)};
 
-            System.out.println("Processing Localizer for resolution " + resolution);
+            System.out.println("Processing Localizer for resolution " + resolution + " with window " + window);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             ChromosomeHandler handler = ds.getChromosomeHandler();
@@ -194,7 +194,7 @@ public class Localizer extends JuicerCLT {
                 GenomeWideList<GenericLocus> featureAnchors = GenericLocusTools.extractAnchorsFromIntrachromosomalFeatures(loopList,
                         false, handler, expandSize);
                 GenericLocusTools.updateOriginalFeatures(featureAnchors, "coarse");
-                featureAnchors.simpleExport(new File(outputDirectory, "coarseLoopAnchors_"+expandSize+".bed"));
+                //featureAnchors.simpleExport(new File(outputDirectory, "coarseLoopAnchors_"+expandSize+".bed"));
 
 
                 double maxProgressStatus = handler.size();
@@ -256,11 +256,14 @@ public class Localizer extends JuicerCLT {
                                             try {
 
                                                 // set radius to search for localization, uses radius attribute from HiCCUPS, otherwise uses defaults
-                                                int radius = (int) Float.parseFloat(loop.getAttribute("radius")) / resolution;
+                                                int radius = 0;
+                                                if (loop.containsAttributeKey("radius")) {
+                                                    radius = (int) Float.parseFloat(loop.getAttribute("radius")) / resolution;
+                                                }
                                                 if (radius <= 0) {
                                                     radius = (int) (loop.getEnd1() - loop.getStart1()) / resolution;
-                                                } else if (radius <= 1000 / resolution) {
-                                                    radius = 1000 / resolution;
+                                                } else if (radius <= 2000 / resolution) {
+                                                    radius = 2000 / resolution;
                                                 }
 
                                                 // load raw data and relevant portions of norm vector
@@ -359,14 +362,13 @@ public class Localizer extends JuicerCLT {
                                                 System.err.println("Unable to find data for loop: " + loop);
                                             }
                                         }
-                                        Instant B = Instant.now();
-                                        //System.out.println("Localization Chunk " + threadChunk + ": " + Duration.between(A,B).toMillis());
+
                                         int reasonableDivisor = Math.max(numOfLoopChunks / 20, 1);
-                                        if (HiCGlobals.printVerboseComments || threadChunk % reasonableDivisor == 0) {
-                                            DecimalFormat df = new DecimalFormat("#.####");
-                                            df.setRoundingMode(RoundingMode.FLOOR);
-                                            System.out.println(df.format(Math.floor((100.0 * threadChunk) / numOfLoopChunks)) + "% ");
-                                        }
+                                        //if (HiCGlobals.printVerboseComments || threadChunk % reasonableDivisor == 0) {
+                                        //    DecimalFormat df = new DecimalFormat("#.####");
+                                        //    df.setRoundingMode(RoundingMode.FLOOR);
+                                        //    System.out.println(df.format(Math.floor((100.0 * threadChunk) / numOfLoopChunks)) + "% ");
+                                        //}
                                         threadChunk = loopChunk.getAndIncrement();
                                     }
                                 }
@@ -386,14 +388,14 @@ public class Localizer extends JuicerCLT {
                 // output primary list
                 GenericLocusTools.callMergeAnchors(highResAnchorPrimaryList);
                 GenericLocusTools.updateOriginalFeatures(highResAnchorPrimaryList, "highRes");
-                highResAnchorPrimaryList.simpleExport(new File(outputDirectory, "highRes_primary_loopAnchors.bed"));
+                //highResAnchorPrimaryList.simpleExport(new File(outputDirectory, "highRes_primary_loopAnchors.bed"));
                 finalPrimaryLoopList.exportFeatureList(new File(outputDirectory, "localizedList_primary_"+resolution+".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
 
                 // output secondary list if number of requested localized peaks > 1
                 if (numLocalizedPeaks > 1) {
                     GenericLocusTools.callMergeAnchors(highResAnchorList);
                     GenericLocusTools.updateOriginalFeatures(highResAnchorList, "highRes");
-                    highResAnchorList.simpleExport(new File(outputDirectory, "highRes_loopAnchors.bed"));
+                    //highResAnchorList.simpleExport(new File(outputDirectory, "highRes_loopAnchors.bed"));
                     finalLoopList.exportFeatureList(new File(outputDirectory, "localizedList_" + resolution + ".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
                 }
             } else {

@@ -200,7 +200,8 @@ public class GenericLocus extends Feature implements Comparable<GenericLocus> {
 
     @Override
     public String toString() {
-        return "chr" + chr + "\t" + x1 + "\t" + x2;
+        String chrString = chr.startsWith("chr") ? chr.substring(3) : chr;
+        return "chr" + chrString + "\t" + x1 + "\t" + x2;
     }
 
     @Override

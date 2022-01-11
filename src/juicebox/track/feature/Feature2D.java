@@ -322,6 +322,8 @@ public class Feature2D implements Comparable<Feature2D> {
     public String simpleStringWithColor() {
         if (HiCGlobals.isLegacyOutputPrintingEnabled) {
             return simpleString() + justColorString();
+        } else if (this.containsAttributeKey("score")) {
+            return simpleString() + "\t.\t" + this.attributes.get("score") + "\t.\t." + justColorString();
         } else {
             return simpleString() + BEDPE_SPACER + justColorString();
         }
@@ -436,6 +438,10 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public boolean containsAttributeValue(String attribute) {
 		return attributes.containsValue(attribute);
+    }
+
+    public boolean containsAttributeKey(String attribute) {
+        return attributes.containsKey(attribute);
     }
 
     public String getLocationKey() {

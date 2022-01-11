@@ -334,7 +334,7 @@ public class Feature2DParser {
             try {
                 attrs.put("score", "" + Float.parseFloat(tokens[7]));
             } catch (Exception e) {
-                // ignore
+                //ignore
             }
 
             addToList(chr1Name, chr2Name, handler, nextLine, newList, useFeature2DWithMotif, featureType,
