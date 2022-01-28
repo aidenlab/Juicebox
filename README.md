@@ -4,9 +4,9 @@ Breaking News!
 This codebase is being split up to better support long-term maintenance and modular aspects of different tools
 available. The new repositories are:
 
-- [JuiceboxGUI](https://github.com/aidenlab/juiceboxgui) for the Juicebox Desktop and Assembly Tools.
+- [JuiceboxGUI](https://github.com/aidenlab/juiceboxgui) for Juicebox Desktop and Assembly Tools.
 - [HiCTools](https://github.com/aidenlab/hictools) for building .hic files (Pre and Addnorm)
-- [JuicerTools](https://github.com/aidenlab/juicertools) for analysis tools (HiCCUPS, Arrowhead, APA, etc.)
+- [JuicerTools](https://github.com/aidenlab/juicertools) for analyzing .hic files (HiCCUPS, Arrowhead, APA, etc.)
 
 We also have new tools:
 
