@@ -17,8 +17,8 @@ We also have new tools:
 - [EMT](https://github.com/sa501428/hic-emt) for upgrading older .hic files or making smaller .hic files for regions of
   interest.
 
-We will continue to host this repository for legacy purposes, but bug reports and github issues should be posted at the
-appropriate repositories listed above.
+We will continue to host this repository for legacy purposes, but updates, bug reports, and github issues will be
+handled at the appropriate repositories listed above.
 
 --------------
 About Juicebox
