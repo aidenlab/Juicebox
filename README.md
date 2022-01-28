@@ -10,7 +10,7 @@ available. The new repositories are:
 
 We also have new tools:
 
-- [Straw]() to quickly and easily stream .hic data into C++, python, R, and MATLAB.
+- [Straw](https://github.com/aidenlab/straw) to quickly and easily stream .hic data into C++, python, R, and MATLAB.
 - [Java Straw](https://github.com/aidenlab/java-straw) to quickly and easily stream .hic data into Java
 - [POSSUMM](https://github.com/sa501428/EigenVector) for new C++ code to rapidly calculate A-B compartments (i.e.
   eigenvectors) for higher resolutions
