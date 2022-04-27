@@ -1499,7 +1499,7 @@ public class MatrixZoomData {
                     row = new ArrayList<>(10);
                     rows.put(py, row);
                 }
-                row.add(record);
+                row.add(new ContactRecord(px, py, counts));
             }
         }
 

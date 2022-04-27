@@ -191,7 +191,7 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
         } else {
             nonemptyChromosomePairs.put(chromosomePair, 1);
         }
-        if (combinedMatrix!=null) {
+        if (combinedMatrix!=null && nonemptyChromosomePairs.containsKey(chromosomePair)) {
             LittleEndianOutputStream[] localLos;
             if (numOfNeededThreads == 1) {
                 localLos = new LittleEndianOutputStream[1];
@@ -212,9 +212,22 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
             los.writeInt(combinedMatrix.getChr2Idx());
 
             int numResolutions = 0;
-            numResolutions = numResolutions + bpBinSizes.length + fragBinSizes.length;
-            if (chromosomePair == 0) {
-                numResolutions = 1;
+            for (int i = 0; i < bpBinSizes.length; i++) {
+                MatrixZoomData zd = combinedMatrix.getZoomData(new HiCZoom(HiC.Unit.BP, bpBinSizes[i]));
+                if (zd != null) {
+                    numResolutions += 1;
+                }
+                if (chromosomePair == 0) {
+                    break;
+                }
+            }
+            for (int i = 0; i < fragBinSizes.length; i++) {
+                MatrixZoomData zd = combinedMatrix.getZoomData(new HiCZoom(HiC.Unit.FRAG, fragBinSizes[i]));
+                if (chromosomePair > 0) {
+                    if (zd != null) {
+                        numResolutions += 1;
+                    }
+                }
             }
             los.writeInt(numResolutions);
 
@@ -239,7 +252,7 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
 
             final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
 
-            for (int i = numResolutions - 1; i >= 0; i--) {
+            for (int i = 0; i < numResolutions; i++) {
                 MatrixZoomData zd;
                 if (i < bpBinSizes.length) {
                     zd = combinedMatrix.getZoomData(new HiCZoom(HiC.Unit.BP, bpBinSizes[i]));
@@ -268,6 +281,14 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
                 }
             }
 
+
+
+            long matrixSize = 0;
+            for (int i = 0; i < localLos.length; i++) {
+                matrixSize += localLos[i].getWrittenCount();
+                localLos[i].close();
+            }
+
             chromosomePairBlockIndexes.put(chromosomePair, localBlockIndexes);
             for (Map.Entry<Long, List<IndexEntry>> entry : localBlockIndexes.entrySet()) {
                 updateIndexPositions(entry.getValue(), null, false,
@@ -275,11 +296,6 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
                         currentPosition, entry.getKey());
             }
 
-            long matrixSize = 0;
-            for (int i = 0; i < localLos.length; i++) {
-                matrixSize += localLos[i].getWrittenCount();
-                localLos[i].close();
-            }
             matrixSizes.put(chromosomePair, matrixSize);
             currentPosition += matrixSize;
             System.out.print(".");
