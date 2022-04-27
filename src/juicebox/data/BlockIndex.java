@@ -55,6 +55,14 @@ public class BlockIndex {
         return new ArrayList<>(blockIndex.keySet());
     }
 
+    public Integer getBlockSize(int num) {
+        if (blockIndex.containsKey(num)) {
+            return blockIndex.get(num).size;
+        } else {
+            return null;
+        }
+    }
+
     public IndexEntry getBlock(int blockNumber) {
         return blockIndex.get(blockNumber);
     }

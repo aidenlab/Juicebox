@@ -353,6 +353,8 @@ public class MatrixZoomDataPP {
     private void dumpBlocks(File file) throws IOException {
         LittleEndianOutputStream los = null;
         try {
+            System.err.println("Used Memory prior to dumping blocks " + binSize);
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
             los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file), 4194304));
 
             List<BlockPP> blockList = new ArrayList<>(blocks.values());
@@ -396,9 +398,12 @@ public class MatrixZoomDataPP {
                     los.writeInt(point.y);
                     los.writeFloat(count.getCounts());
                 }
+                b.clear();
             }
 
             blocks.clear();
+            System.err.println("Used Memory after dumping blocks " + binSize);
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
 
         } finally {
             if (los != null) los.close();
@@ -490,10 +495,6 @@ public class MatrixZoomDataPP {
         Integer[] sortedBlockNumbers = new Integer[blockNumbers.size()];
         blockNumbers.toArray(sortedBlockNumbers);
         Arrays.sort(sortedBlockNumbers);
-        Map<Integer, BlockPP> threadSafeBlocks = new ConcurrentHashMap<>(blocks.size());
-        for (Map.Entry<Integer, BlockPP> entry : blocks.entrySet()) {
-            threadSafeBlocks.put(entry.getKey(), entry.getValue());
-        }
         int numCPUThreads = (losArray.length - 1) / numResolutions;
 
         ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
@@ -527,12 +528,14 @@ public class MatrixZoomDataPP {
                 continue;
             }
             final Integer[] threadBlocks = Arrays.copyOfRange(sortedBlockNumbers, startBlock, endBlock);
+            final LinkedHashMap<Integer, BlockPP> threadSafeBlocks = new LinkedHashMap<Integer, BlockPP>(blocks);
             List<IndexEntry> indexEntries = new ArrayList<>();
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
                     try {
                         writeBlockChunk(threadBlocks, threadSafeBlocks, losArray, whichLos, indexEntries, sampledData);
+                        threadSafeBlocks.clear();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -543,6 +546,8 @@ public class MatrixZoomDataPP {
             executor.execute(worker);
         }
         executor.shutdown();
+        blocks.clear();
+
         // Wait until all threads finish
         while (!executor.isTerminated()) {
             try {
@@ -577,7 +582,8 @@ public class MatrixZoomDataPP {
                 System.out.println("Error while deleting file");
             }
         }
-
+        System.err.println("Used Memory after writing zoom");
+        System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         computeStats(sampledData);
         return finalIndexEntries;
     }
@@ -592,6 +598,7 @@ public class MatrixZoomDataPP {
             int num = threadBlocks[i];
             if (threadSafeBlocks.get(num) != null ){
                 currentBlock = threadSafeBlocks.get(num);
+                threadSafeBlocks.remove(num);
                 if (tmpFilesByBlockNumber.get(num) != null) {
                     for (Map.Entry<File, Long> entry : tmpFilesByBlockNumber.get(num).entrySet()) {
                         readAndMerge(currentBlock, entry);
@@ -616,7 +623,11 @@ public class MatrixZoomDataPP {
                 long size = losArray[threadNum + 1].getWrittenCount() - position;
                 indexEntries.add(new IndexEntry(num, position, (int) size));
             }
+            currentBlock.clear();
+            System.err.println("Used Memory after writing block " + i);
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         }
+        threadSafeBlocks.clear();
     }
 
     private void readAndMerge(BlockPP currentBlock, Map.Entry<File, Long> entry) throws IOException {

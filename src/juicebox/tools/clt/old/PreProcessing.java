@@ -32,6 +32,7 @@ import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.common.ShellCommandRunner;
 import juicebox.tools.utils.original.MultithreadedPreprocessor;
+import juicebox.tools.utils.original.MultithreadedPreprocessorHic;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.NormalizationType;
 
@@ -48,6 +49,7 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
     private boolean noNorm = false;
     private boolean noFragNorm = false;
+    private boolean fromHIC = false;
     private int genomeWide;
     private String shell = "sh";
     private final List<NormalizationType> normalizationTypes = new ArrayList<>();
@@ -104,22 +106,30 @@ public class PreProcessing extends JuiceboxCLT {
         updateNumberOfCPUThreads(parser, 1);
         updateSecondaryNumberOfCPUThreads(parser, 10);
         IteratorContainer.numCPUMatrixThreads = numCPUThreadsForSecondTask;
+        fromHIC = parser.getFromHICOption();
 
-        if (numCPUThreads < 2) {
-            preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-            usingMultiThreadedVersion = false;
+        if (fromHIC) {
+            preprocessor = new MultithreadedPreprocessorHic(new File(outputFile), genomeId, chromHandler,
+                    hicFileScalingFactor, numCPUThreads);
+            usingMultiThreadedVersion = true;
         } else {
-            try {
-                preprocessor = new MultithreadedPreprocessor(new File(outputFile), genomeId, chromHandler,
-                        hicFileScalingFactor, numCPUThreads, parser.getMndIndexOption());
-                usingMultiThreadedVersion = true;
-            } catch (Exception e) {
-                System.err.println(e.getLocalizedMessage() + "\nUsing single threaded preprocessor");
+            if (numCPUThreads < 2) {
                 preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
                 usingMultiThreadedVersion = false;
+            } else {
+                try {
+                    preprocessor = new MultithreadedPreprocessor(new File(outputFile), genomeId, chromHandler,
+                            hicFileScalingFactor, numCPUThreads, parser.getMndIndexOption());
+                    usingMultiThreadedVersion = true;
+                } catch (Exception e) {
+                    System.err.println(e.getLocalizedMessage() + "\nUsing single threaded preprocessor");
+                    preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+                    usingMultiThreadedVersion = false;
+                }
             }
         }
 
+        preprocessor.setFromHIC(fromHIC);
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser.getCountThresholdOption());
         preprocessor.setV9DepthBase(parser.getV9DepthBase());
@@ -137,6 +147,8 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
         preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
         preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
+        preprocessor.setSubsampler(parser.getSubsampleOption());
+
         int blockCapacity = parser.getBlockCapacityOption();
         if (blockCapacity > 10) {
             Preprocessor.BLOCK_CAPACITY = blockCapacity;
@@ -156,6 +168,7 @@ public class PreProcessing extends JuiceboxCLT {
 
     @Override
     public void run() {
+        HiCGlobals.allowDynamicBlockIndex = false;
         try {
             long currentTime = System.currentTimeMillis();
             if (usingMultiThreadedVersion) {

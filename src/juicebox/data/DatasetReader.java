@@ -61,6 +61,8 @@ public interface DatasetReader {
      */
     List<Integer> getBlockNumbers(MatrixZoomData matrixZoomData);
 
+    Integer getBlockSize(MatrixZoomData matrixZoomData, int blockNum);
+
     double[] readEigenvector(String chrName, HiCZoom zoom, int number, String type);
 
     NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException;

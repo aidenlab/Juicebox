@@ -194,7 +194,7 @@ public class Localizer extends JuicerCLT {
                 GenomeWideList<GenericLocus> featureAnchors = GenericLocusTools.extractAnchorsFromIntrachromosomalFeatures(loopList,
                         false, handler, expandSize);
                 GenericLocusTools.updateOriginalFeatures(featureAnchors, "coarse");
-                //featureAnchors.simpleExport(new File(outputDirectory, "coarseLoopAnchors_"+expandSize+".bed"));
+                featureAnchors.simpleExport(new File(outputDirectory, "coarseLoopAnchors_"+expandSize+".bed"));
 
 
                 double maxProgressStatus = handler.size();
@@ -388,14 +388,14 @@ public class Localizer extends JuicerCLT {
                 // output primary list
                 GenericLocusTools.callMergeAnchors(highResAnchorPrimaryList);
                 GenericLocusTools.updateOriginalFeatures(highResAnchorPrimaryList, "highRes");
-                //highResAnchorPrimaryList.simpleExport(new File(outputDirectory, "highRes_primary_loopAnchors.bed"));
+                highResAnchorPrimaryList.simpleExport(new File(outputDirectory, "highRes_primary_loopAnchors.bed"));
                 finalPrimaryLoopList.exportFeatureList(new File(outputDirectory, "localizedList_primary_"+resolution+".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
 
                 // output secondary list if number of requested localized peaks > 1
                 if (numLocalizedPeaks > 1) {
                     GenericLocusTools.callMergeAnchors(highResAnchorList);
                     GenericLocusTools.updateOriginalFeatures(highResAnchorList, "highRes");
-                    //highResAnchorList.simpleExport(new File(outputDirectory, "highRes_loopAnchors.bed"));
+                    highResAnchorList.simpleExport(new File(outputDirectory, "highRes_loopAnchors.bed"));
                     finalLoopList.exportFeatureList(new File(outputDirectory, "localizedList_" + resolution + ".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
                 }
             } else {

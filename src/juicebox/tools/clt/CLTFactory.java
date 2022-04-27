@@ -112,6 +112,8 @@ public class CLTFactory {
             return new HiCCUPS();
         } else if (cmd.equals("hiccups2")) {
             return new HiCCUPS2();
+        } else if (cmd.equals("hiccups-scores")) {
+            return new HiCCUPSscores();
         } else if (cmd.equals("localizer")) {
             return new Localizer();
         } else if (cmd.equals("loop_domains")) {

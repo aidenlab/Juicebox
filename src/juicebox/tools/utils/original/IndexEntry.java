@@ -27,9 +27,9 @@ package juicebox.tools.utils.original;
 public class IndexEntry {
     public final long position;
     public final int size;
-    int id;
+    public int id;
 
-    IndexEntry(int id, long position, int size) {
+    public IndexEntry(int id, long position, int size) {
         this.id = id;
         this.position = position;
         this.size = size;

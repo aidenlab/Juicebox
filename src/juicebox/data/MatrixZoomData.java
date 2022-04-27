@@ -41,25 +41,36 @@ import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.RealMatrixWrapper;
 import juicebox.tools.clt.old.Pearsons;
+import juicebox.tools.utils.original.*;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.broad.igv.tdf.BufferedByteWriter;
+import org.broad.igv.util.Pair;
+import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 import org.broad.igv.util.collections.LRUCache;
 
+import java.awt.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.Deflater;
 
 
 public class MatrixZoomData {
@@ -79,9 +90,11 @@ public class MatrixZoomData {
     private final HashMap<NormalizationType, BasicMatrix> normSquaredMaps;
     //private BigContactRecordList localCacheOfRecords = null;
     private final V9Depth v9Depth;
+    private double sumCount = -1;
     private double averageCount = -1;
     protected DatasetReader reader;
     private IteratorContainer iteratorContainer = null;
+    public long blockIndexPosition;
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -176,9 +189,11 @@ public class MatrixZoomData {
         return zoom;
     }
 
-    private int getBlockColumnCount() {
+    public int getBlockColumnCount() {
         return blockColumnCount;
     }
+
+    public int getBlockBinCount() { return blockBinCount; }
 
     public String getKey() {
         return chr1.getName() + "_" + chr2.getName() + "_" + zoom.getKey();
@@ -890,7 +905,12 @@ public class MatrixZoomData {
         System.out.println();
     
     }
-    
+
+    public List<Integer> getBlockNumbers() {
+        return reader.getBlockNumbers(this);
+    }
+
+
     /**
      * For a specified region, select the block numbers corresponding to it
      *
@@ -1184,6 +1204,10 @@ public class MatrixZoomData {
         return averageCount;
     }
 
+    public double getSumCount() {
+        return sumCount;
+    }
+
     /**
      * Sets the average count
      *
@@ -1191,6 +1215,10 @@ public class MatrixZoomData {
      */
     public void setAverageCount(double averageCount) {
         this.averageCount = averageCount;
+    }
+
+    public void setSumCount(double sumCount) {
+        this.sumCount = sumCount;
     }
 
     public void clearCache(boolean onlyClearInter) {
@@ -1218,5 +1246,394 @@ public class MatrixZoomData {
 
     public IteratorContainer getFromFileIteratorContainer() {
         return new ZDIteratorContainer(reader, this, blockCache);
+    }
+
+    // Merge and write out blocks one at a time.
+    public Pair<List<IndexEntry>,ExpectedValueCalculation> mergeAndWriteBlocks(LittleEndianOutputStream los, Deflater compressor,
+                                                boolean calculateExpecteds, Map<String, Integer> fragmentCountMap, ChromosomeHandler chromosomeHandler) throws IOException {
+
+        List<Integer> sortedBlockNumbers = reader.getBlockNumbers(this);
+        List<IndexEntry> indexEntries = new ArrayList<>();
+
+        ExpectedValueCalculation zoomCalc;
+        if (calculateExpecteds) {
+            zoomCalc = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fragmentCountMap, NormalizationHandler.NONE);
+        } else {
+            zoomCalc = null;
+        }
+
+        for (int i = 0; i < sortedBlockNumbers.size(); i++) {
+            Block currentBlock = reader.readNormalizedBlock(sortedBlockNumbers.get(i), this, NormalizationHandler.NONE);
+            int num = sortedBlockNumbers.get(i);
+
+            // Output block
+            long position = los.getWrittenCount();
+            writeBlock(currentBlock, los, compressor, zoomCalc);
+            long size = los.getWrittenCount() - position;
+
+            indexEntries.add(new IndexEntry(num, position, (int) size));
+            //System.err.println(num + " " + position + " " + size);
+        }
+
+        return new Pair<>(indexEntries, zoomCalc);
+    }
+
+    // Merge and write out blocks multithreaded.
+    public Pair<List<IndexEntry>,ExpectedValueCalculation> mergeAndWriteBlocks(LittleEndianOutputStream[] losArray, Deflater compressor, int whichZoom, int numResolutions,
+                                                                               boolean calculateExpecteds, Map<String, Integer> fragmentCountMap, ChromosomeHandler chromosomeHandler) {
+        List<Integer> sortedBlockNumbers = reader.getBlockNumbers(this);
+        int numCPUThreads = (losArray.length - 1) / numResolutions;
+        List<Integer> sortedBlockSizes = new ArrayList<>();
+        long totalBlockSize = 0;
+        for (int i = 0; i < sortedBlockNumbers.size(); i++) {
+            int blockSize = reader.getBlockSize(this, sortedBlockNumbers.get(i));
+            sortedBlockSizes.add(blockSize);
+            totalBlockSize += blockSize;
+        }
+        ExecutorService executor = Executors.newFixedThreadPool(numCPUThreads);
+        Map<Integer, Long> blockChunkSizes = new ConcurrentHashMap<>(numCPUThreads);
+        Map<Integer, List<IndexEntry>> chunkBlockIndexes = new ConcurrentHashMap<>(numCPUThreads);
+        ExpectedValueCalculation zoomCalc; Map<Integer, ExpectedValueCalculation> localExpectedValueCalculations;
+        if (calculateExpecteds) {
+            zoomCalc = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fragmentCountMap, NormalizationHandler.NONE);
+            localExpectedValueCalculations = new ConcurrentHashMap<>(numCPUThreads);
+        } else {
+            zoomCalc = null;
+            localExpectedValueCalculations = null;
+        }
+
+        int placeholder = 0;
+        for (int l = 0; l < numCPUThreads; l++) {
+            final int threadNum = l;
+            final int whichLos = numCPUThreads * whichZoom + threadNum;
+            final long blockSizePerThread = (long) Math.floor(1.5 * (long) Math.floor(totalBlockSize / numCPUThreads));
+            final int startBlock;
+            if (l == 0) {
+                startBlock = 0;
+            } else {
+                startBlock = placeholder;
+            }
+            int tmpEnd = startBlock + ((int) Math.floor((double) sortedBlockNumbers.size() / numCPUThreads))  - 1;
+            long tmpBlockSize = 0;
+            int tmpEnd2 = 0;
+            for (int b = startBlock; b <= tmpEnd; b++) {
+                tmpBlockSize += sortedBlockSizes.get(b);
+                if (tmpBlockSize > blockSizePerThread) {
+                    tmpEnd2 = b-1;
+                    break;
+                }
+            }
+            if (tmpEnd2 > 0) {
+                tmpEnd = tmpEnd2;
+            }
+            if (l + 1 == numCPUThreads && tmpEnd < sortedBlockNumbers.size()-1) {
+                tmpEnd = sortedBlockNumbers.size()-1;
+            }
+            final int endBlock = tmpEnd;
+            placeholder = endBlock + 1;
+            //System.err.println(binSize + " " + blockNumbers.size() + " " + sortedBlockNumbers.length + " " + startBlock + " " + endBlock);
+            if (startBlock > endBlock) {
+                blockChunkSizes.put(threadNum,(long) 0);
+                continue;
+            }
+            List<IndexEntry> indexEntries = new ArrayList<>();
+            final ExpectedValueCalculation calc;
+            if (calculateExpecteds) {
+                calc = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fragmentCountMap, NormalizationHandler.NONE);
+            } else {
+                calc = null;
+            }
+
+            Runnable worker = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        writeBlockChunk(startBlock, endBlock, sortedBlockNumbers, losArray, whichLos, indexEntries, calc);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    chunkBlockIndexes.put(whichLos,indexEntries);
+                    if (calculateExpecteds) {
+                        localExpectedValueCalculations.put(threadNum, calc);
+                    }
+                }
+            };
+            executor.execute(worker);
+        }
+        executor.shutdown();
+
+        // Wait until all threads finish
+        while (!executor.isTerminated()) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                System.err.println(e.getLocalizedMessage());
+            }
+        }
+
+        long adjust = 0;
+        for (int i = 0; i < losArray.length; i++) {
+            blockChunkSizes.put(i, losArray[i].getWrittenCount());
+            if (i < numCPUThreads*whichZoom) {
+                adjust += blockChunkSizes.get(i);
+            }
+        }
+        List<IndexEntry> finalIndexEntries = new ArrayList<>();
+        for (int i = numCPUThreads*whichZoom ; i < numCPUThreads * (whichZoom + 1); i++) {
+            adjust += blockChunkSizes.get(i);
+            if (chunkBlockIndexes.get(i) != null) {
+                for (int j = 0; j < chunkBlockIndexes.get(i).size(); j++) {
+                    long newPos = chunkBlockIndexes.get(i).get(j).position + adjust;
+                    //System.err.println(chunkBlockIndexes.get(i).get(j).id + " " + newPos + " " + chunkBlockIndexes.get(i).get(j).size);
+                    finalIndexEntries.add(new IndexEntry(chunkBlockIndexes.get(i).get(j).id, chunkBlockIndexes.get(i).get(j).position + adjust,
+                            chunkBlockIndexes.get(i).get(j).size));
+                }
+            }
+
+        }
+        for (int l = 0; l < numCPUThreads; l++) {
+            if (calculateExpecteds) {
+                ExpectedValueCalculation tmpCalc = localExpectedValueCalculations.get(l);
+                if (tmpCalc != null) {
+                    zoomCalc.merge(tmpCalc);
+                }
+                tmpCalc = null;
+
+            }
+        }
+
+
+        return new Pair<>(finalIndexEntries, zoomCalc);
+    }
+
+    private void writeBlockChunk(int startBlock, int endBlock, List<Integer> sortedBlockNumbers, LittleEndianOutputStream[] losArray,
+                                 int threadNum, List<IndexEntry> indexEntries, ExpectedValueCalculation calc ) throws IOException{
+        Deflater compressor = new Deflater();
+        compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
+        //System.err.println(threadBlocks.length);
+        for (int i = startBlock; i <= endBlock; i++) {
+
+            Block currentBlock = reader.readNormalizedBlock(sortedBlockNumbers.get(i), this, NormalizationHandler.NONE);
+            int num = sortedBlockNumbers.get(i);
+
+            if (currentBlock != null) {
+                long position = losArray[threadNum + 1].getWrittenCount();
+                writeBlock(currentBlock, losArray[threadNum + 1], compressor, calc);
+                long size = losArray[threadNum + 1].getWrittenCount() - position;
+                indexEntries.add(new IndexEntry(num, position, (int) size));
+            }
+            currentBlock.clear();
+            //System.err.println("Used Memory after writing block " + i);
+            //System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        }
+    }
+
+    /**
+     * Note -- compressed
+     *
+     * @param block       Block to write
+     * @throws IOException
+     */
+    protected void writeBlock(Block block, LittleEndianOutputStream los, Deflater compressor, ExpectedValueCalculation calc) throws IOException {
+
+        final List<ContactRecord> records = block.getContactRecords();//   getContactRecords();
+
+        // System.out.println("Write contact records : records count = " + records.size());
+
+        // Count records first
+        int nRecords = records.size();
+
+        BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 12);
+        buffer.putInt(nRecords);
+
+        // Find extents of occupied cells
+        int binXOffset = Integer.MAX_VALUE;
+        int binYOffset = Integer.MAX_VALUE;
+        int binXMax = 0;
+        int binYMax = 0;
+        for (ContactRecord entry : records) {
+            binXOffset = Math.min(binXOffset, entry.getBinX());
+            binYOffset = Math.min(binYOffset, entry.getBinY());
+            binXMax = Math.max(binXMax, entry.getBinX());
+            binYMax = Math.max(binYMax, entry.getBinY());
+        }
+
+        buffer.putInt(binXOffset);
+        buffer.putInt(binYOffset);
+
+        // Sort keys in row-major order
+        records.sort(new Comparator<ContactRecord>() {
+            @Override
+            public int compare(ContactRecord o1, ContactRecord o2) {
+                if (o1.getBinY() != o2.getBinY()) {
+                    return o1.getBinY() - o2.getBinY();
+                } else {
+                    return o1.getBinX() - o2.getBinX();
+                }
+            }
+        });
+        ContactRecord lastRecord = records.get(records.size() - 1);
+        final short w = (short) (binXMax - binXOffset + 1);
+        final int w1 = binXMax - binXOffset + 1;
+        final int w2 = binYMax - binYOffset + 1;
+
+        boolean isInteger = true;
+        float maxCounts = 0;
+
+        LinkedHashMap<Integer, List<ContactRecord>> rows = new LinkedHashMap<>();
+        for (ContactRecord record : records) {
+            float counts = record.getCounts();
+
+            if (counts >= 0) {
+
+                isInteger = isInteger && (Math.floor(counts) == counts);
+                maxCounts = Math.max(counts, maxCounts);
+
+                final int px = record.getBinX() - binXOffset;
+                final int py = record.getBinY() - binYOffset;
+                if (calc != null && chr1.getIndex() == chr2.getIndex()) {
+                    calc.addDistance(chr1.getIndex(), px, py, counts);
+                }
+                List<ContactRecord> row = rows.get(py);
+                if (row == null) {
+                    row = new ArrayList<>(10);
+                    rows.put(py, row);
+                }
+                row.add(record);
+            }
+        }
+
+        // Compute size for each representation and choose smallest
+        boolean useShort = isInteger && (maxCounts < Short.MAX_VALUE);
+        boolean useShortBinX = w1 < Short.MAX_VALUE;
+        boolean useShortBinY = w2 < Short.MAX_VALUE;
+        int valueSize = useShort ? 2 : 4;
+
+        int lorSize = 0;
+        int nDensePts = (lastRecord.getBinY() - binYOffset) * w + (lastRecord.getBinX() - binXOffset) + 1;
+
+        int denseSize = nDensePts * valueSize;
+        for (List<ContactRecord> row : rows.values()) {
+            lorSize += 4 + row.size() * valueSize;
+        }
+
+        buffer.put((byte) (useShort ? 0 : 1));
+        buffer.put((byte) (useShortBinX ? 0 : 1));
+        buffer.put((byte) (useShortBinY ? 0 : 1));
+
+        //dense calculation is incorrect for v9
+        denseSize = Integer.MAX_VALUE;
+
+        if (lorSize < denseSize) {
+
+            buffer.put((byte) 1);  // List of rows representation
+
+            if (useShortBinY) {
+                buffer.putShort((short) rows.size()); // # of rows
+            } else {
+                buffer.putInt(rows.size());  // # of rows
+            }
+
+            for (Map.Entry<Integer, List<ContactRecord>> entry : rows.entrySet()) {
+
+                int py = entry.getKey();
+                List<ContactRecord> row = entry.getValue();
+                if (useShortBinY) {
+                    buffer.putShort((short) py);  // Row number
+                } else {
+                    buffer.putInt(py); // Row number
+                }
+                if (useShortBinX) {
+                    buffer.putShort((short) row.size());  // size of row
+                } else {
+                    buffer.putInt(row.size()); // size of row
+                }
+
+                for (ContactRecord contactRecord : row) {
+                    if (useShortBinX) {
+                        buffer.putShort((short) (contactRecord.getBinX()));
+                    } else {
+                        buffer.putInt(contactRecord.getBinX());
+                    }
+
+                    final float counts = contactRecord.getCounts();
+                    if (useShort) {
+                        buffer.putShort((short) counts);
+                    } else {
+                        buffer.putFloat(counts);
+                    }
+                }
+            }
+
+        } else {
+            buffer.put((byte) 2);  // Dense matrix
+
+            buffer.putInt(nDensePts);
+            buffer.putShort(w);
+
+            int lastIdx = 0;
+            for (ContactRecord p : records) {
+
+                int idx = (p.getBinY() - binYOffset) * w + (p.getBinX() - binXOffset);
+                for (int i = lastIdx; i < idx; i++) {
+                    // Filler value
+                    if (useShort) {
+                        buffer.putShort(Short.MIN_VALUE);
+                    } else {
+                        buffer.putFloat(Float.NaN);
+                    }
+                }
+                float counts = p.getCounts();
+                if (useShort) {
+                    buffer.putShort((short) counts);
+                } else {
+                    buffer.putFloat(counts);
+                }
+                lastIdx = idx + 1;
+
+            }
+        }
+
+
+        byte[] bytes = buffer.getBytes();
+        byte[] compressedBytes = compress(bytes, compressor);
+        los.write(compressedBytes);
+
+    }
+
+    /**
+     * todo should this be synchronized?
+     *
+     * @param data
+     * @param compressor
+     * @return
+     */
+    protected byte[] compress(byte[] data, Deflater compressor) {
+
+        // Give the compressor the data to compress
+        compressor.reset();
+        compressor.setInput(data);
+        compressor.finish();
+
+        // Create an expandable byte array to hold the compressed data.
+        // You cannot use an array that's the same size as the orginal because
+        // there is no guarantee that the compressed data will be smaller than
+        // the uncompressed data.
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
+
+        // Compress the data
+        byte[] buf = new byte[1024];
+        while (!compressor.finished()) {
+            int count = compressor.deflate(buf);
+            bos.write(buf, 0, count);
+        }
+        try {
+            bos.close();
+        } catch (IOException e) {
+            System.err.println("Error clossing ByteArrayOutputStream");
+            e.printStackTrace();
+        }
+
+        return bos.toByteArray();
     }
 }

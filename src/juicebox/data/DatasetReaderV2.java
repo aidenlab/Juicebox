@@ -348,6 +348,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         long nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
+        zd.setSumCount(sumCounts);
 
         stream.close();
         return new Pair<>(zd, currentFilePointer);
@@ -777,6 +778,18 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return blockIndex == null ? null : blockIndex.getBlockNumbers();
     }
 
+    @Override
+    public Integer getBlockSize(MatrixZoomData zd, int blockNum) {
+        BlockIndex blockIndex = blockIndexMap.get(zd.getKey());
+        Integer blockSize;
+        if (blockIndex != null) {
+            blockSize = blockIndex.getBlockSize(blockNum);
+        } else {
+            blockSize = null;
+        }
+        return blockSize;
+    }
+
     public Map<String, LargeIndexEntry> getNormVectorIndex() {
         return normVectorIndex;
     }
@@ -794,6 +807,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             this.nSites = nSites;
         }
     }
+
 
     @Override
     public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {

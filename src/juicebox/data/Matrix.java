@@ -49,6 +49,8 @@ public class Matrix {
     protected List<MatrixZoomData> bpZoomData = new ArrayList<>();
     protected List<MatrixZoomData> fragZoomData = new ArrayList<>();
     protected List<MatrixZoomData> dynamicBPZoomData = new ArrayList<>();
+    protected List<Integer> bpBinSizes = new ArrayList<>();
+    protected List<Integer> fragBinSizes = new ArrayList<>();
     private final Comparator<MatrixZoomData> comparator = new Comparator<MatrixZoomData>() {
         @Override
         public int compare(MatrixZoomData o1, MatrixZoomData o2) {
@@ -355,11 +357,44 @@ public class Matrix {
         return null;
     }
 
-    public int getNumberOfZooms(HiC.Unit unit) {
-        return (unit == HiC.Unit.BP) ? bpZoomData.size() : fragZoomData.size();
+    public MatrixZoomData getZoomData(int index) {
+        if (index < bpBinSizes.size()) {
+            HiCZoom zoom = new HiCZoom(HiC.Unit.BP, bpBinSizes.get(index));
+            return getZoomData(zoom);
+        } else if (index >= bpBinSizes.size() && index < (bpBinSizes.size()+fragBinSizes.size())) {
+            HiCZoom zoom = new HiCZoom(HiC.Unit.FRAG, fragBinSizes.get(index));
+            return getZoomData(zoom);
+        } else {
+            return null;
+        }
+    }
+
+    public int getNumBPResolutions() {
+        return bpBinSizes.size();
+    }
+
+    public int getNumFragResolutions() {
+        return fragBinSizes.size();
     }
 
     public boolean isNotIntra() {
         return chr1 != chr2;
     }
+
+    public int getChr1Idx() {
+        return chr1;
+    }
+
+    public int getChr2Idx() {
+        return chr2;
+    }
+
+    public void setBpBinSizes(ArrayList<Integer> bpBinSizes) {
+        this.bpBinSizes = bpBinSizes;
+    }
+
+    public void setFragBinSizes(ArrayList<Integer> fragBinSizes) {
+        this.fragBinSizes = fragBinSizes;
+    }
+
 }

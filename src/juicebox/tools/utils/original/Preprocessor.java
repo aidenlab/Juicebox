@@ -30,6 +30,8 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.CombinedDatasetReader;
+import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser.Alignment;
@@ -87,6 +89,9 @@ public class Preprocessor {
     protected static boolean allowPositionsRandomization = false;
     protected static boolean throwOutIntraFrag = false;
     public static int BLOCK_CAPACITY = 1000;
+    protected double subsampleFraction = 1;
+    protected Random randomSubsampleGenerator = new Random(0);
+    protected static boolean fromHIC = false;
     
     // Base-pair resolutions
     protected int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000, 1000};
@@ -243,6 +248,8 @@ public class Preprocessor {
         this.randomizeFragMapFiles = fragMaps;
     }
 
+    public void setSubsampler(double subsampleFraction) { this.subsampleFraction = subsampleFraction; }
+
     protected static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
 
         int low = 1;
@@ -306,13 +313,18 @@ public class Preprocessor {
         return null;
     }
 
+    public void setFromHIC(boolean fromHIC) {
+        Preprocessor.fromHIC = fromHIC;
+    }
 
     public void preprocess(final String inputFile, final String headerFile, final String footerFile,
                            Map<Integer, List<Chunk>> mndIndex) throws IOException {
-        File file = new File(inputFile);
-        if (!file.exists() || file.length() == 0) {
-            System.err.println(inputFile + " does not exist or does not contain any reads.");
-            System.exit(57);
+        if (!fromHIC) {
+            File file = new File(inputFile);
+            if (!file.exists() || file.length() == 0) {
+                System.err.println(inputFile + " does not exist or does not contain any reads.");
+                System.exit(57);
+            }
         }
 
         try {
@@ -825,7 +837,11 @@ public class Preprocessor {
         int frag1 = pair.getFrag1();
         int frag2 = pair.getFrag2();
 
-        return throwOutIntraFrag && chr1 == chr2 && frag1 == frag2;
+        if (throwOutIntraFrag && chr1 == chr2 && frag1 == frag2) {return true;}
+
+        if ( subsampleFraction < 1 && subsampleFraction > 0) {
+            return randomSubsampleGenerator.nextDouble() > subsampleFraction;
+        } else { return false; }
     }
 
     protected void updateMasterIndex(String headerFile) throws IOException {
@@ -985,6 +1001,8 @@ public class Preprocessor {
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] losArray,
                                                                   Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
+        System.err.println("Used Memory for matrix");
+        System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         LittleEndianOutputStream los = losArray[0];
         long position = los.getWrittenCount();
 
@@ -1015,7 +1033,7 @@ public class Preprocessor {
 
         final Map<Long, List<IndexEntry>> localBlockIndexes = new ConcurrentHashMap<>();
 
-        for (int i = 0; i < matrix.getZoomData().length; i++) {
+        for (int i = matrix.getZoomData().length-1 ; i >= 0; i--) {
             MatrixZoomDataPP zd = matrix.getZoomData()[i];
             if (zd != null) {
                 List<IndexEntry> blockIndex = null;

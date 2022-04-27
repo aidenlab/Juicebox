@@ -64,4 +64,8 @@ public class Block {
     public List<ContactRecord> getContactRecords() {
         return records;
     }
+
+    public void clear() {
+        records.clear();
+    }
 }
