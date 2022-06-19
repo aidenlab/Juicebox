@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -353,16 +353,10 @@ public class Dataset {
     public String getStatistics() {
         String stats = null;
         if (attributes != null) stats = attributes.get(Preprocessor.STATISTICS);
-        if ((stats == null) || !stats.contains("<table>")) {
-            try {
-                attributes.put(Preprocessor.STATISTICS, reader.readStats());
-            } catch (IOException error) {
-                if (stats != null) {
-                    attributes.put(Preprocessor.STATISTICS, convertStats(stats));
-                } else return null;
-            }
+        if (stats != null && (!stats.contains("<table>")) && HiCGlobals.guiIsCurrentlyActive) {
+            return convertStats(stats);
         }
-        return attributes.get(Preprocessor.STATISTICS);
+        return stats;
     }
 
     private String convertStats(String oldStats) {
@@ -389,10 +383,7 @@ public class Dataset {
         newStats += "<table><tr><th colspan=2>Experiment Information</th></tr>\n" +
                 "        <tr> <td> Experiment #:</td> <td>";
         String filename = reader.getPath();
-        boolean mapq30 = false;
-        if (filename.lastIndexOf("_30") > 0) {
-            mapq30 = true;
-        }
+        boolean mapq30 = filename.lastIndexOf("_30") > 0;
         String[] parts = filename.split("/");
         newStats += parts[parts.length - 2];
         newStats += "</td></tr>";

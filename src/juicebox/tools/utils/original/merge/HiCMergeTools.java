@@ -37,6 +37,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HiCMergeTools {
+
+    public static void main2(String[] args) {
+        List<String> newList = new ArrayList<>();
+        newList.add("https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/mapq30/S5_IMR90.hic");
+        Dataset ds = HiCFileTools.extractDatasetForCLT(newList, false);
+        System.out.println(ds.getStatistics());
+        System.out.println("\n\n\n\n");
+        System.out.println(ds.getGraphs());
+    }
+
+    public static void main(String[] args) {
+        List<String> newList = new ArrayList<>();
+        newList.add("https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/mapq30/S5_IMR90.hic");
+        long s1 = System.nanoTime();
+        Dataset ds = HiCFileTools.extractDatasetForCLT(newList, false);
+        long s2 = System.nanoTime();
+        System.out.println(ds.getStatistics());
+        long s3 = System.nanoTime();
+        System.out.println("\n\n\n\n");
+        System.out.println(ds.getGraphs());
+        System.out.println("\n\n\n\n");
+        System.out.println(((s2 - s1) * 1e-9) + "\t" + ((s3 - s2) * 1e-9));
+    }
+
     public static void mergeStatsAndGraphs(List<String> dsPaths, File tempFolder,
                                            Preprocessor builder) {
         List<String> statsList = new ArrayList<>();
