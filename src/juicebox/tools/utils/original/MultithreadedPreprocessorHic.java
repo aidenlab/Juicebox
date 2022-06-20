@@ -81,28 +81,26 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
         try {
             PrintWriter finalOutput = new PrintWriter(outputFile + CAT_SCRIPT);
             StringBuilder catOutputLine = new StringBuilder();
-            StringBuilder removeLine = new StringBuilder();
-            catOutputLine.append("cat ").append(outputFile).append("_header").append(" >> ").append(outputFile).append("\n");
-            removeLine.append("rm ").append(outputFile).append("_header\n");
+            catOutputLine.append("cat ").append(outputFile).append("_header").append(" > ").append(outputFile).append("\n");
+            catOutputLine.append("rm ").append(outputFile).append("_header\n");
             for (int i = 0; i < chromosomePairCounter; i++) {
                 if ((nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i)) || i == 0) {
                     catOutputLine.append("cat ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append(" >> ").append(outputFile).append("\n");
-                    removeLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("\n");
+                    catOutputLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("\n");
                     if (i > 0) {
                         int numOfNeededThreads = numCPUThreads;
                         if (numOfNeededThreads > 1) {
                             for (int j = 1; j <= numOfNeededThreads * numResolutions; j++) {
                                 catOutputLine.append("cat ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append(" >> ").append(outputFile).append("\n");
-                                removeLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append("\n");
+                                catOutputLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append("\n");
                             }
                         }
                     }
                 }
             }
             catOutputLine.append("cat ").append(outputFile).append("_footer").append(" >> ").append(outputFile).append("\n");
-            removeLine.append("rm ").append(outputFile).append("_footer\n");
+            catOutputLine.append("rm ").append(outputFile).append("_footer\n");
             finalOutput.println(catOutputLine);
-            finalOutput.println(removeLine);
             finalOutput.close();
         } catch (Exception e) {
             e.printStackTrace();
