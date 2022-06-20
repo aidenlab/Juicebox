@@ -74,7 +74,7 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
     public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer,
             List<Chunk>> ignore3) throws IOException {
         List<String> summedHiCFiles = Arrays.asList(inputFile.split("\\+"));
-        HiCMergeTools.mergeStatsAndGraphs(summedHiCFiles, tmpDir, this, outputFile.getAbsolutePath());
+        HiCMergeTools.mergeStatsAndGraphs(summedHiCFiles, this, outputFile.getAbsolutePath());
         ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 

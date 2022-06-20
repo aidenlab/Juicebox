@@ -32,14 +32,12 @@ import juicebox.tools.utils.original.merge.merger.Merger;
 import juicebox.tools.utils.original.merge.merger.PairedAlignmentStatsMerger;
 import juicebox.tools.utils.original.merge.merger.SingleAlignmentStatsMerger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HiCMergeTools {
 
-    public static void mergeStatsAndGraphs(List<String> dsPaths, File tempFolder,
-                                           Preprocessor builder, String stem) {
+    public static void mergeStatsAndGraphs(List<String> dsPaths, Preprocessor builder, String stem) {
         List<String> statsList = new ArrayList<>();
         List<String> graphsList = new ArrayList<>();
         for (String dsPath : dsPaths) {
@@ -52,7 +50,7 @@ public class HiCMergeTools {
 
         if (statsList.size() > 0) {
             boolean isSingleAlignment = confirmAllSingleAlignment(statsList);
-            String statsPath = new File(tempFolder, stem + "merged_stats.txt").getAbsolutePath();
+            String statsPath = stem + "merged_stats.txt";
             if (isSingleAlignment) {
                 StatsUtils.merge(statsList, new SingleAlignmentStatsMerger(), statsPath);
             } else {
@@ -62,7 +60,7 @@ public class HiCMergeTools {
         }
 
         if (graphsList.size() > 0) {
-            String graphsPath = new File(tempFolder, stem + "merged_graphs_hists.m").getAbsolutePath();
+            String graphsPath = stem + "merged_graphs_hists.m";
             StatsUtils.merge(graphsList, new GraphsMerger(), graphsPath);
             builder.setGraphFile(graphsPath);
         }
