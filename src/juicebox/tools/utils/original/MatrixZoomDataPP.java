@@ -405,9 +405,10 @@ public class MatrixZoomDataPP {
             }
 
             blocks.clear();
-            System.err.println("Used Memory after dumping blocks " + binSize);
-            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Used Memory after dumping blocks " + binSize);
+                System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            }
         } finally {
             if (los != null) los.close();
 
