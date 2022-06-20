@@ -39,7 +39,7 @@ import java.util.List;
 public class HiCMergeTools {
 
     public static void mergeStatsAndGraphs(List<String> dsPaths, File tempFolder,
-                                           Preprocessor builder) {
+                                           Preprocessor builder, String stem) {
         List<String> statsList = new ArrayList<>();
         List<String> graphsList = new ArrayList<>();
         for (String dsPath : dsPaths) {
@@ -52,7 +52,7 @@ public class HiCMergeTools {
 
         if (statsList.size() > 0) {
             boolean isSingleAlignment = confirmAllSingleAlignment(statsList);
-            String statsPath = new File(tempFolder, "stats.txt").getAbsolutePath();
+            String statsPath = new File(tempFolder, stem + "merged_stats.txt").getAbsolutePath();
             if (isSingleAlignment) {
                 StatsUtils.merge(statsList, new SingleAlignmentStatsMerger(), statsPath);
             } else {
@@ -62,7 +62,7 @@ public class HiCMergeTools {
         }
 
         if (graphsList.size() > 0) {
-            String graphsPath = new File(tempFolder, "graphs_hists.m").getAbsolutePath();
+            String graphsPath = new File(tempFolder, stem + "merged_graphs_hists.m").getAbsolutePath();
             StatsUtils.merge(graphsList, new GraphsMerger(), graphsPath);
             builder.setGraphFile(graphsPath);
         }

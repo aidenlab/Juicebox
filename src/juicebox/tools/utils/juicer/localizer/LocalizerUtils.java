@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -424,17 +424,17 @@ public class LocalizerUtils {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
                 if (inputData.getEntry(i,j) > 0 && outputData.getEntry(i,j) >= 0) {
-                    int minRow = Math.max(0, i - (int) window);
-                    int minCol = Math.max(0, j - (int) window);
-                    int maxRow = Math.min(i + (int) window, numRows-1);
-                    int maxCol = Math.min(j + (int) window, numCols-1);
+                    int minRow = Math.max(0, i - window);
+                    int minCol = Math.max(0, j - window);
+                    int maxRow = Math.min(i + window, numRows - 1);
+                    int maxCol = Math.min(j + window, numCols - 1);
                     int maxValR = i;
                     int maxValC = j;
-                    double maxVal = inputData.getEntry(i,j);
-                    outputData.setEntry(maxValR, maxValC, inputData.getEntry(i,j));
+                    double maxVal = inputData.getEntry(i, j);
+                    outputData.setEntry(maxValR, maxValC, inputData.getEntry(i, j));
                     for (int nmsRow = minRow; nmsRow <= maxRow; nmsRow++) {
                         for (int nmsCol = minCol; nmsCol <= maxCol; nmsCol++) {
-                            if (nmsRow!=i || nmsCol!=j) {
+                            if (nmsRow != i || nmsCol != j) {
                                 if (inputData.getEntry(nmsRow, nmsCol) > maxVal) {
                                     outputData.setEntry(maxValR, maxValC, -1);
                                 } else if (inputData.getEntry(nmsRow, nmsCol) == maxVal) {
@@ -464,18 +464,18 @@ public class LocalizerUtils {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
                 if (observedData.getEntry(i,j) > 0 && outputData.getEntry(i,j) >= 0) {
-                    int minRow = Math.max(0, i - (int) window);
-                    int minCol = Math.max(0, j - (int) window);
-                    int maxRow = Math.min(i + (int) window, numRows-1);
-                    int maxCol = Math.min(j + (int) window, numCols-1);
+                    int minRow = Math.max(0, i - window);
+                    int minCol = Math.max(0, j - window);
+                    int maxRow = Math.min(i + window, numRows - 1);
+                    int maxCol = Math.min(j + window, numCols - 1);
                     int maxValR = i;
                     int maxValC = j;
-                    double maxVal = 2*(Math.sqrt(observedData.getEntry(i,j)) - Math.sqrt(expectedData.getEntry(i,j)));
-                    outputData.setEntry(maxValR, maxValC, observedData.getEntry(i,j));
+                    double maxVal = 2 * (Math.sqrt(observedData.getEntry(i, j)) - Math.sqrt(expectedData.getEntry(i, j)));
+                    outputData.setEntry(maxValR, maxValC, observedData.getEntry(i, j));
                     for (int nmsRow = minRow; nmsRow <= maxRow; nmsRow++) {
                         for (int nmsCol = minCol; nmsCol <= maxCol; nmsCol++) {
-                            if (nmsRow!=i || nmsCol!=j) {
-                                double testVal = 2*(Math.sqrt(observedData.getEntry(nmsRow, nmsCol)) - Math.sqrt(expectedData.getEntry(nmsRow,nmsCol)));
+                            if (nmsRow != i || nmsCol != j) {
+                                double testVal = 2 * (Math.sqrt(observedData.getEntry(nmsRow, nmsCol)) - Math.sqrt(expectedData.getEntry(nmsRow, nmsCol)));
                                 if (testVal > maxVal) {
                                     outputData.setEntry(maxValR, maxValC, -1);
                                 } else if (testVal == maxVal) {
