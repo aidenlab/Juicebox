@@ -256,6 +256,8 @@ public class MultithreadedPreprocessor extends Preprocessor {
         Set<String> syncWrittenMatrices = Collections.synchronizedSet(new HashSet<>());
         final AtomicInteger freeThreads = new AtomicInteger(numCPUThreads);
 
+
+
         for (int chrPair = 1; chrPair < chromosomePairCounter; chrPair++) {
             if (mndIndex.containsKey(chrPair)) {
                 int numOfChunks = mndIndex.get(chrPair).size();

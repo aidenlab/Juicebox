@@ -31,6 +31,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
 import juicebox.data.basics.Chromosome;
 import juicebox.tools.clt.juicer.HiCCUPS;
+import juicebox.tools.clt.juicer.HiCCUPS2;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.*;
 import juicebox.windowui.NormalizationType;
@@ -110,6 +111,38 @@ public class HiCCUPSUtils {
         return new Feature2D(Feature2D.FeatureType.PEAK, chrName, pos1, pos1 + resolution, chrName, pos2, pos2 + resolution, Color.black, attributes);
     }
 
+    public static Feature2D generatePeak(String chrName, float observed, float peak, int rowPos, int colPos,
+                                         float expectedBL, float expectedDonut, float expectedH, float expectedV,
+                                         float binBL, float binDonut, float binH, float binV, int resolution,
+                                         float pvalBL, float pvalDonut, float pvalH, float pvalV) {
+        Map<String, String> attributes = new HashMap<>();
+
+        attributes.put(OBSERVED, String.valueOf(observed));
+        attributes.put(PEAK, String.valueOf(peak));
+
+        attributes.put(EXPECTEDBL, String.valueOf(expectedBL));
+        attributes.put(EXPECTEDDONUT, String.valueOf(expectedDonut));
+        attributes.put(EXPECTEDH, String.valueOf(expectedH));
+        attributes.put(EXPECTEDV, String.valueOf(expectedV));
+
+        attributes.put(BINBL, String.valueOf(binBL));
+        attributes.put(BINDONUT, String.valueOf(binDonut));
+        attributes.put(BINH, String.valueOf(binH));
+        attributes.put(BINV, String.valueOf(binV));
+
+        attributes.put(FDRBL, String.valueOf(pvalBL));
+        attributes.put(FDRDONUT, String.valueOf(pvalDonut));
+        attributes.put(FDRH, String.valueOf(pvalH));
+        attributes.put(FDRV, String.valueOf(pvalV));
+
+
+        int pos1 = Math.min(rowPos, colPos);
+        int pos2 = Math.max(rowPos, colPos);
+
+        return new Feature2D(Feature2D.FeatureType.PEAK, chrName, pos1, pos1 + resolution, chrName, pos2, pos2 + resolution, Color.black, attributes);
+
+    }
+
     /**
      * Calculate fdr values for a given peak
      */
@@ -187,20 +220,43 @@ public class HiCCUPSUtils {
         return filtered;
     }
 
-    private static void filterOutFeaturesByFDR(Feature2DList list) {
+    private static void doFinalCleanUp(Feature2DList list) {
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return fdrThreshold(feature2DList);
+                return finalCleanUp(feature2DList);
             }
         });
     }
 
-    private static List<Feature2D> fdrThreshold(List<Feature2D> feature2DList) {
+    private static List<Feature2D> finalCleanUp(List<Feature2D> feature2DList) {
         List<Feature2D> filtered = new ArrayList<>();
         for (Feature2D feature : feature2DList) {
-            if (fdrThresholdsSatisfied(feature))
+            if (finalCleanSatisfied(feature))
                 filtered.add(feature);
+        }
+        return filtered;
+    }
+
+    private static void filterOutFeaturesByFDR(Feature2DList list, int version) {
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return fdrThreshold(feature2DList, version);
+            }
+        });
+    }
+
+    private static List<Feature2D> fdrThreshold(List<Feature2D> feature2DList, int version) {
+        List<Feature2D> filtered = new ArrayList<>();
+        for (Feature2D feature : feature2DList) {
+            if (version == 1 ) {
+                if (fdrThresholdsSatisfied(feature))
+                    filtered.add(feature);
+            } else if (version == 2) {
+                if (fdrThresholds2Satisfied(feature))
+                    filtered.add(feature);
+            }
         }
         return filtered;
     }
@@ -335,6 +391,66 @@ public class HiCCUPSUtils {
                 && (observed > (t3 * expectedBL) || observed > (t3 * expectedDonut))
                 && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f);
     }
+
+    private static boolean fdrThresholds2Satisfied(Feature2D pixel) {
+
+        double f2 = HiCCUPS2.fdrsum2;
+        double t1 = HiCCUPS2.oeThreshold1;
+        double t2 = HiCCUPS2.oeThreshold2;
+        double t3 = HiCCUPS2.oeThreshold3;
+
+
+
+
+        int observed = Math.round(pixel.getFloatAttribute(OBSERVED));
+        int numCollapsed = Math.round(pixel.getFloatAttribute(NUMCOLLAPSED));
+
+        float expectedBL = pixel.getFloatAttribute(EXPECTEDBL);
+        float expectedDonut = pixel.getFloatAttribute(EXPECTEDDONUT);
+        float expectedH = pixel.getFloatAttribute(EXPECTEDH);
+        float expectedV = pixel.getFloatAttribute(EXPECTEDV);
+
+        float fdrBL = pixel.getFloatAttribute(FDRBL);
+        float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
+        float fdrH = pixel.getFloatAttribute(FDRH);
+        float fdrV = pixel.getFloatAttribute(FDRV);
+
+        return observed > (t2 * expectedBL)
+                && observed > (t2 * expectedDonut)
+                && observed > (t1 * expectedH)
+                && observed > (t1 * expectedV)
+                && (observed > (t3 * expectedBL) || observed > (t3 * expectedDonut))
+                && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f2);
+
+    }
+
+    private static boolean finalCleanSatisfied(Feature2D pixel) {
+        double f1 = HiCCUPS2.fdrsum1;
+        double t4 = HiCCUPS2.oeThreshold4;
+
+        long resolution = pixel.getWidth1();
+
+        int observed = Math.round(pixel.getFloatAttribute(OBSERVED));
+        int numCollapsed = Math.round(pixel.getFloatAttribute(NUMCOLLAPSED));
+
+        float expectedBL = pixel.getFloatAttribute(EXPECTEDBL);
+        float expectedDonut = pixel.getFloatAttribute(EXPECTEDDONUT);
+        float expectedH = pixel.getFloatAttribute(EXPECTEDH);
+        float expectedV = pixel.getFloatAttribute(EXPECTEDV);
+
+        float fdrBL = pixel.getFloatAttribute(FDRBL);
+        float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
+        float fdrH = pixel.getFloatAttribute(FDRH);
+        float fdrV = pixel.getFloatAttribute(FDRV);
+
+        if (resolution >= 5000) {
+            return (observed < (t4 * expectedDonut) && observed < (t4 * expectedBL) && observed < (t4 * expectedH) && observed < (t4 * expectedV))
+                    && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f1);
+        } else {
+            return (observed < (t4 * expectedDonut) && observed < (t4 * expectedBL) && observed < (t4 * expectedH) && observed < (t4 * expectedV));
+        }
+    }
+
     private static boolean enrichmentThresholdSatisfied(Feature2D pixel, final float maxEnrich) {
 
 
@@ -367,6 +483,41 @@ public class HiCCUPSUtils {
 
     public static double hypotenuse(double x, double y) {
         return Math.sqrt(x * x + y * y);
+    }
+
+    /**
+     * Code to merge high resolution calls (i.e. when <5kb resolution is used)
+     *
+     * @return loop list merged across resolutions
+     */
+    public static Feature2DList mergeHighResolutions(Map<Integer, Feature2DList> hiccupsLoopLists) {
+
+        Feature2DList mergedList = new Feature2DList();
+
+        if (hiccupsLoopLists.containsKey(1000) && hiccupsLoopLists.containsKey(2000) && hiccupsLoopLists.containsKey(5000)) {
+            mergedList.add(handleGenericThreeListMerger(hiccupsLoopLists.get(1000), hiccupsLoopLists.get(2000),
+                    hiccupsLoopLists.get(5000), 2000, 5000, 50000, 80000,
+                    20, 40));
+        } else if (hiccupsLoopLists.containsKey(1000) && hiccupsLoopLists.containsKey(2000)) {
+            mergedList.add(handleGenericTwoListMerger(hiccupsLoopLists.get(1000), hiccupsLoopLists.get(2000), 2000,
+                    50000, 20));
+        } else if (hiccupsLoopLists.containsKey(1000) && hiccupsLoopLists.containsKey(5000)) {
+            mergedList.add(handleGenericTwoListMerger(hiccupsLoopLists.get(1000), hiccupsLoopLists.get(5000), 5000,
+                    80000, 20));
+        } else if (hiccupsLoopLists.containsKey(2000) && hiccupsLoopLists.containsKey(5000)) {
+            mergedList.add(handleGenericTwoListMerger(hiccupsLoopLists.get(2000), hiccupsLoopLists.get(5000), 5000,
+                    80000, 40));
+        }
+
+        mergedList.removeDuplicates();
+
+        if (hiccupsLoopLists.containsKey(10000)) {
+            handleExistingGenericMerger(mergedList, hiccupsLoopLists.get(10000), 10000);
+        }
+
+        mergedList.removeDuplicates();
+
+        return mergedList;
     }
 
     /**
@@ -440,11 +591,91 @@ public class HiCCUPSUtils {
         return mergedList;
     }
 
+    private static void handleExistingGenericMerger(Feature2DList mergedList, Feature2DList list2, int radius) {
+        // add peaks unique to list 2
+        Feature2DList centroidsList2 = Feature2DTools.extractReproducibleCentroids(mergedList, list2, 2 * radius);
+        Feature2DList distantList2 = Feature2DTools.extractPeaksNotNearCentroids(list2, centroidsList2);
+        mergedList.add(distantList2);
+    }
+
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
         Feature2DList centroidsTwentyFiveKB = Feature2DTools.extractReproducibleCentroids(mergedList, twentyFiveKBList, 2 * 25000);
         Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB);
         mergedList.add(distant25);
+    }
+
+    private static Feature2DList handleGenericTwoListMerger(Feature2DList list1, Feature2DList list2, int radius1, int nearDiagonal1,
+                                                            int observedLimit1) {
+        // add peaks from list1 commonly found between list1 and list2 within 2*radius1
+        Feature2DList centroidsList1List2 = Feature2DTools.extractReproducibleCentroids(list2, list1, 2 * radius1);
+        Feature2DList mergedList = Feature2DTools.extractPeaksNearCentroids(list1, centroidsList1List2, "list12->centroids");
+
+        // add peaks unique to list 2
+        Feature2DList centroidsList2List1 = Feature2DTools.extractReproducibleCentroids(list1, list2, 2 * radius1);
+        Feature2DList distantList2List1 = Feature2DTools.extractPeaksNotNearCentroids(list2, centroidsList2List1);
+        mergedList.add(distantList2List1);
+
+        // add peaks close to diagonal from list 1
+        Feature2DList nearDiagList1 = Feature2DTools.getPeaksNearDiagonal(list1, nearDiagonal1);
+        mergedList.add(nearDiagList1);
+
+        // add particularly strong peaks from list 1
+        Feature2DList strongList1 = Feature2DTools.getStrongPeaks(list1, observedLimit1);
+        mergedList.add(strongList1);
+
+        // TODO expand filter duplicates?
+        mergedList.removeDuplicates();
+
+        return mergedList;
+    }
+
+    private static Feature2DList handleGenericThreeListMerger(Feature2DList list1, Feature2DList list2, Feature2DList list3,
+                                                              int radius1, int radius2, int nearDiagonal1, int nearDiagonal2,
+                                                              int observedLimit1, int observedLimit2) {
+        // add peaks from list1 commonly found between list1 and list2 within 2*radius1
+        Feature2DList centroidsList1List2 = Feature2DTools.extractReproducibleCentroids(list2, list1, 2 * radius1);
+        Feature2DList mergedList = Feature2DTools.extractPeaksNearCentroids(list1, centroidsList1List2, "list12->centroids");
+
+        // add peaks from list1 commonly found between list1 and list3 with 2*radius2
+        Feature2DList centroidsList1List3 = Feature2DTools.extractReproducibleCentroids(list3, list1, 2 * radius2);
+        Feature2DList peaksList1List3 = Feature2DTools.extractPeaksNearCentroids(list1, centroidsList1List3, "list13->centroids");
+        mergedList.add(peaksList1List3);
+
+        // add peaks from list2 not found in list1, but common to list3 within 2*radius2
+        Feature2DList centroidsList2List1 = Feature2DTools.extractReproducibleCentroids(list1, list2, 2 * radius1);
+        Feature2DList distantList2List1 = Feature2DTools.extractPeaksNotNearCentroids(list2, centroidsList2List1);
+        Feature2DList centroidsList2List3 = Feature2DTools.extractReproducibleCentroids(list3, distantList2List1, 2 * radius2);
+        Feature2DList peaksList2List3 = Feature2DTools.extractPeaksNearCentroids(list2, centroidsList2List3, "list23->centroids");
+        mergedList.add(peaksList2List3);
+
+        // add peaks unique to list 3
+        Feature2DList centroidsList3List1 = Feature2DTools.extractReproducibleCentroids(list1, list3, 2 * radius2);
+        Feature2DList distantList3List1 = Feature2DTools.extractPeaksNotNearCentroids(list3, centroidsList3List1);
+        Feature2DList centroidsList3List2 = Feature2DTools.extractReproducibleCentroids(list2, distantList3List1, 2 * radius2);
+        Feature2DList distantList3List2 = Feature2DTools.extractPeaksNotNearCentroids(distantList3List1, centroidsList3List2);
+        mergedList.add(distantList3List2);
+
+        // add peaks close to diagonal from list 1
+        Feature2DList nearDiagList1 = Feature2DTools.getPeaksNearDiagonal(list1, nearDiagonal1);
+        mergedList.add(nearDiagList1);
+
+        // add peaks close to diagonal from list 2
+        Feature2DList nearDiagList2 = Feature2DTools.getPeaksNearDiagonal(distantList2List1, nearDiagonal2);
+        mergedList.add(nearDiagList2);
+
+        // add particularly strong peaks from list 1
+        Feature2DList strongList1 = Feature2DTools.getStrongPeaks(list1, observedLimit1);
+        mergedList.add(strongList1);
+
+        // add particularly strong peaks from list 2
+        Feature2DList strongList2 = Feature2DTools.getStrongPeaks(distantList2List1, observedLimit2);
+        mergedList.add(strongList2);
+
+        // TODO expand filter duplicates?
+        mergedList.removeDuplicates();
+
+        return mergedList;
     }
 
     private static Feature2DList handleFiveAndTenKBMerger(Feature2DList fiveKBList, Feature2DList tenKBList) {
@@ -518,23 +749,31 @@ public class HiCCUPSUtils {
         return null;
     }
 
-    public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
+    public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                             ChromosomeHandler chromosomeHandler, List<HiCCUPSConfiguration> configurations,
-                                            NormalizationType norm, File outputDirectory, boolean isRequested, File outputFile) {
+                                            NormalizationType norm, File outputDirectory, boolean isRequested, File outputFile, int version) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
             removeLowMapQFeatures(looplists.get(res), res, ds, chromosomeHandler, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
-            filterOutFeaturesByFDR(looplists.get(res));
+            filterOutFeaturesByFDR(looplists.get(res), version);
             looplists.get(res).exportFeatureList(new File(outputDirectory, getPostprocessedLoopsFileName(res, isRequested)),
                     true, Feature2DList.ListFormat.FINAL);
         }
 
-        Feature2DList mergedList = mergeAllResolutions(looplists);
+        Feature2DList mergedList;
+        if (looplists.containsKey(1000) || looplists.containsKey(2000)) {
+            mergedList = mergeHighResolutions(looplists);
+        } else {
+            mergedList = mergeAllResolutions(looplists);
+        }
+        if (version == 2) {
+            doFinalCleanUp(mergedList);
+        }
         mergedList.exportFeatureList(outputFile, true, Feature2DList.ListFormat.FINAL);
-        return mergedList;
     }
+
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
                                                 long[][] rcsHist, float[] threshold, float[][] fdrLog) {
@@ -564,6 +803,21 @@ public class HiCCUPSUtils {
         } else if (HiCGlobals.printVerboseComments) {
             System.out.println("poss err index: " + index + " rcsHist " + rcsHist[index][0]);
         }
+    }
+
+    public static long histogramPvals(Map<Long, Integer> kHist, long totalPValues, long mstar) {
+
+        for (long i = totalPValues; i >= 1; i--) {
+            if (kHist.get(i) != null) {
+                mstar = mstar - kHist.get(i);
+            }
+            if (i == mstar) {
+                return i;
+            }
+        }
+
+        System.err.println("didn't converge");
+        return 0;
     }
 
     public static Feature2DList filterOutFeaturelistByEnrichment(List<HiCCUPSConfiguration> configs, String folderPath, float maxEnrich, ChromosomeHandler commonChromosomesHandler) {

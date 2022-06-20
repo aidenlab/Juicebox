@@ -55,6 +55,7 @@ public class CommandLineParser extends CmdLineParser {
     private final Option throwIntraFragOption = addBooleanOption("skip-intra-frag");
     private final Option useMinRAM = addBooleanOption("conserve-ram");
     private final Option checkMemory = addBooleanOption("check-ram-usage");
+    private final Option fromHIC = addBooleanOption("from-hic");
 
     // String
     private final Option fragmentOption = addStringOption('f', "restriction-fragment-site-file");
@@ -77,6 +78,9 @@ public class CommandLineParser extends CmdLineParser {
     private final Option threadNumOption = addIntegerOption('j', "threads");
     private final Option matrixThreadNumOption = addIntegerOption("mthreads");
     private final Option v9DepthBaseOption = addIntegerOption("v9-depth-base");
+
+    // double
+    private final Option subsampleOption = addDoubleOption("subsample");
 
     // sets of strings
     private final Option multipleChromosomesOption = addStringOption('c', "chromosomes");
@@ -146,6 +150,8 @@ public class CommandLineParser extends CmdLineParser {
     public boolean shouldCheckRAMUsage() {
         return optionToBoolean(checkMemory);
     }
+
+    public boolean getFromHICOption() { return optionToBoolean(fromHIC); }
 
     /**
      * String flags
@@ -270,6 +276,8 @@ public class CommandLineParser extends CmdLineParser {
         if (opt > -1) return opt;
         return 1;
     }
+
+    public double getSubsampleOption() { return optionToDouble(subsampleOption); }
 
     /**
      * String Set flags

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -101,12 +101,6 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
     @Override
-    public String readStats() {
-        // again we need to somehow combine from constituent datasets
-        return null;
-    }
-
-    @Override
     public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
         List<JCheckBox> allBoxes = new ArrayList<>();
         for (DatasetReaderV2 reader : readers) {
@@ -157,6 +151,7 @@ public class CombinedDatasetReader implements DatasetReader {
                     blockList.add(cb);
                 }
             }
+
         }
         String key = zd.getBlockKey(blockNumber, no);
         return blockList.size() == 0 ? new Block(blockNumber, key) : mergeBlocks(blockList, key);
@@ -172,7 +167,6 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
 
     public List<Integer> getBlockNumbers(MatrixZoomData matrixZoomData) {
-
         Set<Integer> blockNumberSet = new HashSet<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
@@ -182,6 +176,24 @@ public class CombinedDatasetReader implements DatasetReader {
         List<Integer> blockNumbers = new ArrayList<>(blockNumberSet);
         Collections.sort(blockNumbers);
         return blockNumbers;
+    }
+
+    @Override
+    public Integer getBlockSize(MatrixZoomData zd, int blockNum) {
+        Integer blockSize = 0;
+        for (DatasetReader r : readers) {
+            if (r.isActive()) {
+                Integer tmpBlockSize = r.getBlockSize(zd, blockNum);
+                if (tmpBlockSize != null) {
+                    blockSize += tmpBlockSize;
+                }
+            }
+        }
+        if (blockSize != 0) {
+            return blockSize;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -496,17 +508,27 @@ public class CombinedDatasetReader implements DatasetReader {
     private Matrix mergeMatrices(List<Matrix> matrixList) {
 
         Map<String, Double> averageCount = new HashMap<>();
+        Map<String, Double> sumCount = new HashMap<>();
         List<MatrixZoomData> newMatrixZoomData = new ArrayList<>();
+        Set<Integer> bpBinSizesSet = new HashSet<>();
+        Set<Integer> fragBinSizesSet = new HashSet<>();
         for (Matrix matrix : matrixList) {
             for (MatrixZoomData zd : matrix.bpZoomData) {
                 String key = zd.getKey();
                 Double avg = averageCount.get(key);
+                Double sum = sumCount.get(key);
                 if (avg == null) {
                     averageCount.put(key, zd.getAverageCount());
                 } else if (avg >= 0) {
                     averageCount.put(key, avg + zd.getAverageCount());
                 }
+                if (sum == null) {
+                    sumCount.put(key, zd.getSumCount());
+                } else if (sum >= 0) {
+                    sumCount.put(key, sum + zd.getSumCount());
+                }
                 newMatrixZoomData.add(zd);
+                bpBinSizesSet.add(zd.getBinSize());
             }
             if (hasFrags) {
                 for (MatrixZoomData zd : matrix.fragZoomData) {
@@ -517,17 +539,24 @@ public class CombinedDatasetReader implements DatasetReader {
                     } else if (avg >= 0) {
                         averageCount.put(key, avg + zd.getAverageCount());
                     }
+                    fragBinSizesSet.add(zd.getBinSize());
                 }
             }
         }
 
         Matrix mergedMatrix = matrixList.get(0);
+        ArrayList<Integer> bpBinSizes = new ArrayList<>(bpBinSizesSet);
+        Collections.sort(bpBinSizes, Collections.reverseOrder());
+        mergedMatrix.setBpBinSizes(bpBinSizes);
 
         for (MatrixZoomData zd : newMatrixZoomData)       {
             zd.reader = this;
             String key = zd.getKey();
             if (averageCount.containsKey(key)) {
                 zd.setAverageCount(averageCount.get(key));
+            }
+            if (sumCount.containsKey(key)) {
+                zd.setSumCount(sumCount.get(key));
             }
         }
         mergedMatrix.bpZoomData = newMatrixZoomData;
@@ -539,11 +568,17 @@ public class CombinedDatasetReader implements DatasetReader {
             }
         }*/
         if (hasFrags) {
+            ArrayList<Integer> fragBinSizes = new ArrayList<>(fragBinSizesSet);
+            Collections.sort(fragBinSizes, Collections.reverseOrder());
+            mergedMatrix.setFragBinSizes(fragBinSizes);
             for (MatrixZoomData zd : mergedMatrix.fragZoomData) {
                 zd.reader = this;
                 String key = zd.getKey();
                 if (averageCount.containsKey(key)) {
                     zd.setAverageCount(averageCount.get(key));
+                }
+                if (sumCount.containsKey(key)) {
+                    zd.setSumCount(sumCount.get(key));
                 }
             }
         } else {

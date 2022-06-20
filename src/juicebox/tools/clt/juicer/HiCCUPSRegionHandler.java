@@ -30,6 +30,7 @@ import juicebox.data.basics.Chromosome;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSRegionContainer;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.util.Pair;
 
@@ -63,9 +64,11 @@ public class HiCCUPSRegionHandler {
 
             //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
             NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
-            if (normVector != null) {
-                final double[] normalizationVector = normVector.getData().getValues().get(0);
-                normVectorMap.put(pairKey, normalizationVector);
+            if (normVector != null || norm.equals(NormalizationHandler.NONE)) {
+                if (!norm.equals(NormalizationHandler.NONE)) {
+                    final double[] normalizationVector = normVector.getData().getValues().get(0);
+                    normVectorMap.put(pairKey, normalizationVector);
+                }
     
                 final double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
                         zoom, norm).getValues().get(0);
@@ -73,6 +76,13 @@ public class HiCCUPSRegionHandler {
 
                 // need overall bounds for the chromosome
                 int chrMatrixWidth = (int) Math.ceil((double) chromosome.getLength() / conf.getResolution());
+                if (norm.equals(NormalizationHandler.NONE)) {
+                    final double[] normalizationVector = new double[chrMatrixWidth];
+                    for (int i=0;i<normalizationVector.length;i++) {
+                        normalizationVector[i]=1;
+                    }
+                    normVectorMap.put(pairKey, normalizationVector);
+                }
                 double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWidth * 1.0 / regionWidth) + 1;
                 long load_time = System.currentTimeMillis();
                 if (HiCGlobals.printVerboseComments) {

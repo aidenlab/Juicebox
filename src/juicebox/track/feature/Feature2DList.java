@@ -324,7 +324,29 @@ public class Feature2DList {
                     } else if (listFormat == ListFormat.FINAL) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
-                    } else if (listFormat == ListFormat.ARROWHEAD) {
+                    } else if (listFormat == ListFormat.LOCALIZED) {
+                        if (featureZero.attributes.containsKey("motif_start_1") && featureZero.attributes.containsKey("expectedBL")) {
+                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                    "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius",
+                                    "motif_start_1", "motif_end_1", "sequence_1", "orientation_1", "uniqueness_1",
+                                    "motif_start_2", "motif_end_2", "sequence_2", "orientation_2", "uniqueness_2",
+                                    "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                        } else if (featureZero.attributes.containsKey("motif_start_1")) {
+                            outputKeys.addAll(Arrays.asList("motif_start_1", "motif_end_1", "sequence_1", "orientation_1", "uniqueness_1",
+                                    "motif_start_2", "motif_end_2", "sequence_2", "orientation_2", "uniqueness_2",
+                                    "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                        } else if (featureZero.attributes.containsKey("expectedBL")){
+                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                    "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius",
+                                    "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                        } else {
+                            outputKeys.addAll(Arrays.asList("highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                        }
+                    }else if (listFormat == ListFormat.ARROWHEAD) {
                         outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                     }
                     for (String key : outputKeys) {
@@ -542,7 +564,7 @@ public class Feature2DList {
         return featureList.get(key);
     }
 
-    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
+    public enum ListFormat {ENRICHED, FINAL, LOCALIZED, ARROWHEAD, NA}
 
     /**
      * pass interface implementing a process for all features

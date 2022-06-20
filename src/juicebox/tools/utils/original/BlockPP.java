@@ -88,4 +88,8 @@ class BlockPP {
 
         }
     }
+
+    void clear() {
+        contactRecordMap.clear();
+    }
 }

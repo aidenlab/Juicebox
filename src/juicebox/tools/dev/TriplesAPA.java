@@ -26,9 +26,7 @@ package juicebox.tools.dev;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.data.anchor.MotifAnchor;
-import juicebox.data.anchor.MotifAnchorParser;
-import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.anchor.*;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
@@ -44,13 +42,13 @@ public class TriplesAPA extends JuicerCLT {
         super("ignore_for_now");
     }
 
-    private static void removeAnchorsThatAreTooCloseTogether(GenomeWideList<MotifAnchor> anchors, final int filterSize) {
+    private static void removeAnchorsThatAreTooCloseTogether(GenomeWideList<GenericLocus> anchors, final int filterSize) {
         MotifAnchorTools.mergeAndExpandSmallAnchors(anchors, filterSize);
-        anchors.filterLists(new FeatureFilter<MotifAnchor>() {
+        anchors.filterLists(new FeatureFilter<GenericLocus>() {
             @Override
-            public List<MotifAnchor> filter(String chr, List<MotifAnchor> featureList) {
-                List<MotifAnchor> newAnchors = new ArrayList<>();
-                for (MotifAnchor anchor : featureList) {
+            public List<GenericLocus> filter(String chr, List<GenericLocus> featureList) {
+                List<GenericLocus> newAnchors = new ArrayList<>();
+                for (GenericLocus anchor : featureList) {
                     if (anchor.getWidth() == filterSize) {
                         newAnchors.add(anchor);
                     }
@@ -83,7 +81,7 @@ public class TriplesAPA extends JuicerCLT {
     @Override
     public void run() {
         ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
-        GenomeWideList<MotifAnchor> anchors = MotifAnchorParser.loadFromBEDFile(handler,
+        GenomeWideList<GenericLocus> anchors = GenericLocusParser.loadFromBEDFile(handler,
                 "/Users/muhammadsaadshamim/Desktop/goodell_2/GrandCanyons.bed");
 
         //anchors = MotifAnchorParser.loadFromBEDFile(handler, "/Users/muhammadsaadshamim/Desktop/goodell_2/ComboSubClique.1.2.6.7.bed");
@@ -270,15 +268,15 @@ public class TriplesAPA extends JuicerCLT {
         });
     }
 
-    private void translateAnchors(GenomeWideList<MotifAnchor> anchors, final int translation) {
+    private void translateAnchors(GenomeWideList<GenericLocus> anchors, final int translation) {
         if (translation != 0) {
-            anchors.filterLists(new FeatureFilter<MotifAnchor>() {
+            anchors.filterLists(new FeatureFilter<GenericLocus>() {
                 @Override
-                public List<MotifAnchor> filter(String chr, List<MotifAnchor> featureList) {
+                public List<GenericLocus> filter(String chr, List<GenericLocus> featureList) {
 
-                    List<MotifAnchor> translated = new ArrayList<>();
-                    for (MotifAnchor anchor : featureList) {
-                        MotifAnchor anchorT = new MotifAnchor(anchor.getChr(), anchor.getX1() + translation, anchor.getX2() + translation);
+                    List<GenericLocus> translated = new ArrayList<>();
+                    for (GenericLocus anchor : featureList) {
+                        GenericLocus anchorT = new MotifAnchor(anchor.getChr(), anchor.getX1() + translation, anchor.getX2() + translation);
                         if (anchorT.getX1() > 0) {
                             translated.add(anchorT);
                         }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,19 +39,39 @@ class BEDTools {
      * @param anchors
      * @return merged list of anchors
      */
-    public static List<MotifAnchor> merge(List<MotifAnchor> anchors) {
+    public static List<GenericLocus> merge(List<GenericLocus> anchors) {
         Collections.sort(anchors);
 
-        Set<MotifAnchor> merged = new HashSet<>();
+        Set<GenericLocus> merged = new HashSet<>();
         if (anchors.size() > 0) {
-            MotifAnchor current = (MotifAnchor) anchors.get(0).deepClone();
+            GenericLocus current = (GenericLocus) anchors.get(0).deepClone();
 
-            for (MotifAnchor anchor : anchors) {
+            for (GenericLocus anchor : anchors) {
                 if (anchor.hasOverlapWith(current)) {
                     current.mergeWith(anchor);
                 } else {
                     merged.add(current);
-                    current = (MotifAnchor) anchor.deepClone();
+                    current = (GenericLocus) anchor.deepClone();
+                }
+            }
+            merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
+        }
+        return new ArrayList<>(merged);
+    }
+
+    public static List<GenericLocus> mergeTakeSmaller(List<GenericLocus> anchors) {
+        Collections.sort(anchors);
+
+        Set<GenericLocus> merged = new HashSet<>();
+        if (anchors.size() > 0) {
+            GenericLocus current = (GenericLocus) anchors.get(0).deepClone();
+
+            for (GenericLocus anchor : anchors) {
+                if (anchor.hasOverlapWith(current)) {
+                    current.mergeWithTakeSmaller(anchor);
+                } else {
+                    merged.add(current);
+                    current = (GenericLocus) anchor.deepClone();
                 }
             }
             merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
@@ -69,12 +89,12 @@ class BEDTools {
      * @param bottomAnchors
      * @return intersection of two anchor lists
      */
-    public static List<MotifAnchor> intersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors,
-                                              boolean conductFullIntersection) {
+    public static List<GenericLocus> intersect(List<GenericLocus> topAnchors, List<GenericLocus> bottomAnchors,
+                                               boolean conductFullIntersection) {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
-        Set<MotifAnchor> intersected = new HashSet<>();
+        Set<GenericLocus> intersected = new HashSet<>();
 
         int topIndex = 0;
         int bottomIndex = 0;
@@ -82,15 +102,15 @@ class BEDTools {
         int maxBottomIndex = bottomAnchors.size();
 
         while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
-            MotifAnchor topAnchor = topAnchors.get(topIndex);
-            MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
+            GenericLocus topAnchor = topAnchors.get(topIndex);
+            GenericLocus bottomAnchor = bottomAnchors.get(bottomIndex);
             if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
 
                 //List<MotifAnchor> tempIntersected = new ArrayList<MotifAnchor>();
 
                 // iterate over all possible intersections with top element
                 for (int i = bottomIndex; i < maxBottomIndex; i++) {
-                    MotifAnchor newAnchor = bottomAnchors.get(i);
+                    GenericLocus newAnchor = bottomAnchors.get(i);
                     if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
                         intersected.add(intersection(topAnchor, newAnchor, conductFullIntersection));
                     } else {
@@ -101,7 +121,7 @@ class BEDTools {
                 // iterate over all possible intersections with bottom element
                 // start from +1 because +0 checked in the for loop above
                 for (int i = topIndex + 1; i < maxTopIndex; i++) {
-                    MotifAnchor newAnchor = topAnchors.get(i);
+                    GenericLocus newAnchor = topAnchors.get(i);
                     if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
                         intersected.add(intersection(bottomAnchor, newAnchor, conductFullIntersection));
                     } else {
@@ -132,7 +152,7 @@ class BEDTools {
      * @param anchor2
      * @return intersection of anchor1 and anchor2
      */
-    private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
+    private static GenericLocus intersection(GenericLocus anchor1, GenericLocus anchor2, boolean conductFullIntersection) {
         if (anchor1.getChr().equals(anchor2.getChr())) {
     
             long start = Math.max(anchor1.getX1(), anchor2.getX1());
@@ -141,15 +161,23 @@ class BEDTools {
             if (start > end) {
                 System.err.println("err _ " + start + " " + end);
             }
-    
-            MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
+            GenericLocus intersectedMotif;
+            if (anchor1 instanceof MotifAnchor || anchor2 instanceof MotifAnchor) {
+                intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
+            } else {
+                intersectedMotif = new GenericLocus(anchor1.getChr(), start, end);
+            }
 	
 			// if all secondary attributes are also to be copied
 			if (conductFullIntersection) {
-				if (anchor1.hasFIMOAttributes()) {
-                    intersectedMotif.addFIMOAttributesFrom(anchor1);
-                } else if (anchor2.hasFIMOAttributes()) {
-                    intersectedMotif.addFIMOAttributesFrom(anchor2);
+			    if (anchor1 instanceof MotifAnchor) {
+                    if (((MotifAnchor) anchor1).hasFIMOAttributes()) {
+                        ((MotifAnchor) intersectedMotif).addFIMOAttributesFrom((MotifAnchor) anchor1);
+                    }
+                } else if (anchor2 instanceof MotifAnchor) {
+			        if (((MotifAnchor) anchor2).hasFIMOAttributes()) {
+                        ((MotifAnchor) intersectedMotif).addFIMOAttributesFrom((MotifAnchor) anchor2);
+                    }
                 }
 
                 intersectedMotif.addFeatureReferencesFrom(anchor1);
@@ -164,12 +192,12 @@ class BEDTools {
         return null;
     }
 
-    public static List<MotifAnchor> preservativeIntersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors,
-                                                          boolean conductFullIntersection) {
+    public static List<GenericLocus> preservativeIntersect(List<GenericLocus> topAnchors, List<GenericLocus> bottomAnchors,
+                                                           boolean conductFullIntersection) {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
-        Set<MotifAnchor> intersected = new HashSet<>();
+        Set<GenericLocus> intersected = new HashSet<>();
 
         int topIndex = 0;
         int bottomIndex = 0;
@@ -177,15 +205,15 @@ class BEDTools {
         int maxBottomIndex = bottomAnchors.size();
 
         while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
-            MotifAnchor topAnchor = topAnchors.get(topIndex);
-            MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
+            GenericLocus topAnchor = topAnchors.get(topIndex);
+            GenericLocus bottomAnchor = bottomAnchors.get(bottomIndex);
             if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
                 // iterate over all possible intersections with top element
 
                 //List<MotifAnchor> tempIntersection = new ArrayList<MotifAnchor>();
 
                 for (int i = bottomIndex; i < maxBottomIndex; i++) {
-                    MotifAnchor newAnchor = bottomAnchors.get(i);
+                    GenericLocus newAnchor = bottomAnchors.get(i);
                     if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
                         intersected.add(preservativeIntersection(topAnchor, newAnchor, conductFullIntersection));
                     } else {
@@ -196,7 +224,7 @@ class BEDTools {
                 // iterate over all possible intersections with bottom element
                 // start from +1 because +0 checked in the for loop above
                 for (int i = topIndex + 1; i < maxTopIndex; i++) {
-                    MotifAnchor newAnchor = topAnchors.get(i);
+                    GenericLocus newAnchor = topAnchors.get(i);
                     if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
                         intersected.add(preservativeIntersection(newAnchor, bottomAnchor, conductFullIntersection));
                     } else {
@@ -227,15 +255,24 @@ class BEDTools {
      * @param anchor2
      * @return preservative intersection of anchor1 and anchor2
      */
-    private static MotifAnchor preservativeIntersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
+    private static GenericLocus preservativeIntersection(GenericLocus anchor1, GenericLocus anchor2, boolean conductFullIntersection) {
         if (anchor1.getChr().equals(anchor2.getChr())) {
-        
-            MotifAnchor intersectedMotif = (MotifAnchor) anchor1.deepClone();
+
+            GenericLocus intersectedMotif;
+            if (anchor1 instanceof MotifAnchor) {
+                intersectedMotif = (MotifAnchor) anchor1.deepClone();
+            } else if (anchor2 instanceof MotifAnchor) {
+                intersectedMotif = (MotifAnchor) anchor1.cloneToMotifAnchor();
+            } else {
+                intersectedMotif = (GenericLocus) anchor1.deepClone();
+            }
         
             // if all secondary attributes are also to be copied
             if (conductFullIntersection) {
-                if (anchor2.hasFIMOAttributes()) {
-                    intersectedMotif.addFIMOAttributesFrom(anchor2);
+                if (anchor2 instanceof MotifAnchor) {
+                    if (((MotifAnchor) anchor2).hasFIMOAttributes()) {
+                        ((MotifAnchor) intersectedMotif).addFIMOAttributesFrom((MotifAnchor) anchor2);
+                    }
                 }
             
                 intersectedMotif.addFeatureReferencesFrom(anchor2);

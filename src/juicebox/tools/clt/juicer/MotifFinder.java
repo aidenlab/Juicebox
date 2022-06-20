@@ -26,9 +26,7 @@ package juicebox.tools.clt.juicer;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.data.anchor.MotifAnchor;
-import juicebox.data.anchor.MotifAnchorParser;
-import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.anchor.*;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -60,10 +58,10 @@ public class MotifFinder extends JuicerCLT {
         MotifAnchor.uniquenessShouldSupercedeConvergentRule = true;
     }
 
-    private static GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(ChromosomeHandler handler, List<String> bedFiles) {
-        GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFiles.get(0));
+    private static GenomeWideList<GenericLocus> getIntersectionOfBEDFiles(ChromosomeHandler handler, List<String> bedFiles) {
+        GenomeWideList<GenericLocus> proteins = GenericLocusParser.loadFromBEDFile(handler, bedFiles.get(0));
         for (int i = 1; i < bedFiles.size(); i++) {
-            GenomeWideList<MotifAnchor> nextProteinList = MotifAnchorParser.loadFromBEDFile(handler, bedFiles.get(i));
+            GenomeWideList<GenericLocus> nextProteinList = GenericLocusParser.loadFromBEDFile(handler, bedFiles.get(i));
             MotifAnchorTools.intersectLists(proteins, nextProteinList, false);
         }
         return proteins;
@@ -146,11 +144,11 @@ public class MotifFinder extends JuicerCLT {
         Peak loci that form loops in both directions are ignored.
          */
 
-        GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(handler, proteinsForInferredMotifPaths);
-        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(features, true, handler);
+        GenomeWideList<GenericLocus> inferredProteins = getIntersectionOfBEDFiles(handler, proteinsForInferredMotifPaths);
+        GenomeWideList<GenericLocus> featureAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(features, true, handler,15000);
 
         GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
-        GenomeWideList<MotifAnchor> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
+        GenomeWideList<GenericLocus> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, upStreamAnchors, false, true);
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
         MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
@@ -159,7 +157,7 @@ public class MotifFinder extends JuicerCLT {
         inferredProteins = getIntersectionOfBEDFiles(handler, proteinsForInferredMotifPaths);
         globalAnchors = retrieveFreshMotifs();
 
-        GenomeWideList<MotifAnchor> downStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, false);
+        GenomeWideList<GenericLocus> downStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, false);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, downStreamAnchors, false, true);
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
         MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
@@ -180,22 +178,22 @@ public class MotifFinder extends JuicerCLT {
         }
     }
 
-    private GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(ChromosomeHandler handler,
-                                                                         GenomeWideList<MotifAnchor> baseList) {
+    private GenomeWideList<GenericLocus> getThreeTierFilteredProteinTrack(ChromosomeHandler handler,
+                                                                         GenomeWideList<GenericLocus> baseList) {
 
         if (tierOneFiles.size() > 0) {
-            GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(handler, tierOneFiles);
+            GenomeWideList<GenericLocus> tierOneProteins = getIntersectionOfBEDFiles(handler, tierOneFiles);
             MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, true);
 
             if (tierTwoFiles.size() > 0) {
-                GenomeWideList<MotifAnchor> tierTwoProteins = getIntersectionOfBEDFiles(handler, tierTwoFiles);
+                GenomeWideList<GenericLocus> tierTwoProteins = getIntersectionOfBEDFiles(handler, tierTwoFiles);
                 if (tierTwoProteins.size() > 0) {
                     MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierTwoProteins, false);
                 }
             }
 
             if (tierThreeFiles.size() > 0) {
-                GenomeWideList<MotifAnchor> tierThreeProteins = getIntersectionOfBEDFiles(handler, tierThreeFiles);
+                GenomeWideList<GenericLocus> tierThreeProteins = getIntersectionOfBEDFiles(handler, tierThreeFiles);
                 if (tierThreeProteins.size() > 0) {
                     MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierThreeProteins, false);
                 }
@@ -235,9 +233,9 @@ public class MotifFinder extends JuicerCLT {
          are getting filtered here, we may want to increase the p-val threshold parameter on FIMO).
          */
         setUpThreeTieredFiltration();
-        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(features,
-                false, handler);
-        GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(handler, featureAnchors);
+        GenomeWideList<GenericLocus> featureAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(features,
+                false, handler, 15000);
+        GenomeWideList<GenericLocus> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(handler, featureAnchors);
 
         GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         //MotifAnchorTools.intersectLists(threeTierFilteredProteins,globalAnchors, true);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,8 @@ public interface DatasetReader {
      */
     List<Integer> getBlockNumbers(MatrixZoomData matrixZoomData);
 
+    Integer getBlockSize(MatrixZoomData matrixZoomData, int blockNum);
+
     double[] readEigenvector(String chrName, HiCZoom zoom, int number, String type);
 
     NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException;
@@ -70,8 +72,6 @@ public interface DatasetReader {
     ListOfDoubleArrays readExpectedVectorPart(long position, long nVals) throws IOException;
 
     String getPath();
-
-    String readStats() throws IOException;
 
     List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners);
 

@@ -25,6 +25,7 @@
 package juicebox.data.censoring;
 
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.anchor.GenericLocus;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
@@ -34,30 +35,30 @@ import java.util.*;
 
 public class CustomMZDRegionHandler {
     
-    private final Map<String, Pair<List<MotifAnchor>, List<MotifAnchor>>> allRegionsForChr = new HashMap<>();
+    private final Map<String, Pair<List<GenericLocus>, List<GenericLocus>>> allRegionsForChr = new HashMap<>();
     private final List<Long> boundariesOfCustomChromosomeX = new ArrayList<>();
     private final List<Long> boundariesOfCustomChromosomeY = new ArrayList<>();
     
-    private static Pair<List<MotifAnchor>, List<MotifAnchor>> getAllRegionsFromSubChromosomes(
+    private static Pair<List<GenericLocus>, List<GenericLocus>> getAllRegionsFromSubChromosomes(
             final ChromosomeHandler handler, Chromosome chr) {
         
         if (handler.isCustomChromosome(chr)) {
-            final List<MotifAnchor> allRegions = new ArrayList<>();
-            final List<MotifAnchor> translatedRegions = new ArrayList<>();
+            final List<GenericLocus> allRegions = new ArrayList<>();
+            final List<GenericLocus> translatedRegions = new ArrayList<>();
             
             handler.getListOfRegionsInCustomChromosome(chr.getIndex()).processLists(
-                    new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+                    new juicebox.data.feature.FeatureFunction<GenericLocus>() {
                         @Override
-                        public void process(String chr, List<MotifAnchor> featureList) {
+                        public void process(String chr, List<GenericLocus> featureList) {
                             allRegions.addAll(featureList);
                         }
                     });
             Collections.sort(allRegions);
             
             long previousEnd = 0;
-            for (MotifAnchor anchor : allRegions) {
+            for (GenericLocus anchor : allRegions) {
                 long currentEnd = previousEnd + anchor.getWidth();
-                MotifAnchor anchor2 = new MotifAnchor(chr.getName(), previousEnd, currentEnd);
+                GenericLocus anchor2 = new GenericLocus(chr.getName(), previousEnd, currentEnd);
                 translatedRegions.add(anchor2);
                 previousEnd = currentEnd + ChromosomeHandler.CUSTOM_CHROMOSOME_BUFFER;
             }
@@ -65,10 +66,10 @@ public class CustomMZDRegionHandler {
             return new Pair<>(allRegions, translatedRegions);
         } else {
             // just a standard chromosome
-            final List<MotifAnchor> allRegions = new ArrayList<>();
-            final List<MotifAnchor> translatedRegions = new ArrayList<>();
-            allRegions.add(new MotifAnchor(chr.getName(), 0, (int) chr.getLength()));
-            translatedRegions.add(new MotifAnchor(chr.getName(), 0, (int) chr.getLength()));
+            final List<GenericLocus> allRegions = new ArrayList<>();
+            final List<GenericLocus> translatedRegions = new ArrayList<>();
+            allRegions.add(new GenericLocus(chr.getName(), 0, (int) chr.getLength()));
+            translatedRegions.add(new GenericLocus(chr.getName(), 0, (int) chr.getLength()));
             return new Pair<>(allRegions, translatedRegions);
         }
     }
@@ -99,25 +100,25 @@ public class CustomMZDRegionHandler {
     
     private void populateRegions(Chromosome chr, ChromosomeHandler handler, List<Long> boundaries, HiCZoom zoom) {
         String name = chr.getName();
-        Pair<List<MotifAnchor>, List<MotifAnchor>> allRegionsInfo = getAllRegionsFromSubChromosomes(handler, chr);
+        Pair<List<GenericLocus>, List<GenericLocus>> allRegionsInfo = getAllRegionsFromSubChromosomes(handler, chr);
         
         if (allRegionsInfo != null) {
             allRegionsForChr.put(name, allRegionsInfo);
-            List<MotifAnchor> translatedRegions = allRegionsInfo.getSecond();
-            for (MotifAnchor anchor : translatedRegions) {
+            List<GenericLocus> translatedRegions = allRegionsInfo.getSecond();
+            for (GenericLocus anchor : translatedRegions) {
                 boundaries.add(anchor.getX2() / zoom.getBinSize());
             }
         }
     }
     
-    public List<Pair<MotifAnchor, MotifAnchor>> getIntersectingFeatures(String name, long gx1, long gx2) {
+    public List<Pair<GenericLocus, GenericLocus>> getIntersectingFeatures(String name, long gx1, long gx2) {
         
         int idx1 = OneDimSearchUtils.indexedBinaryNearestSearch(
                 allRegionsForChr.get(name).getSecond(), new MotifAnchor(name, gx1, gx1), true);
         int idx2 = OneDimSearchUtils.indexedBinaryNearestSearch(
                 allRegionsForChr.get(name).getSecond(), new MotifAnchor(name, gx2, gx2), false);
         
-        final List<Pair<MotifAnchor, MotifAnchor>> foundFeatures = new ArrayList<>();
+        final List<Pair<GenericLocus, GenericLocus>> foundFeatures = new ArrayList<>();
         for (int i = idx1; i <= idx2; i++) {
             foundFeatures.add(new Pair<>(
                     allRegionsForChr.get(name).getFirst().get(i),
@@ -127,11 +128,11 @@ public class CustomMZDRegionHandler {
         return foundFeatures;
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getIntersectingFeatures(String name, int gx1) {
+    public List<Pair<GenericLocus, GenericLocus>> getIntersectingFeatures(String name, int gx1) {
         int idx1 = OneDimSearchUtils.indexedBinaryNearestSearch(
                 allRegionsForChr.get(name).getSecond(), new MotifAnchor(name, gx1, gx1), true);
 
-        final List<Pair<MotifAnchor, MotifAnchor>> foundFeatures = new ArrayList<>();
+        final List<Pair<GenericLocus, GenericLocus>> foundFeatures = new ArrayList<>();
         if (idx1 > 0) {
             foundFeatures.add(new Pair<>(
                     allRegionsForChr.get(name).getFirst().get(idx1),

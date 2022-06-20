@@ -25,9 +25,7 @@
 package juicebox.data;
 
 import juicebox.Context;
-import juicebox.data.anchor.MotifAnchor;
-import juicebox.data.anchor.MotifAnchorParser;
-import juicebox.data.anchor.MotifAnchorTools;
+import juicebox.data.anchor.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
@@ -45,7 +43,7 @@ public class ChromosomeHandler {
     public final static int CUSTOM_CHROMOSOME_BUFFER = 10; // todo make to smallest value of resolution
     private static final String CHR_ALL = "All";
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
-    private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
+    private final Map<Integer, GenomeWideList<GenericLocus>> customChromosomeRegions = new HashMap<>();
     private final List<Chromosome> cleanedChromosomes;
     private final String genomeID;
     private final long[] chromosomeBoundaries;
@@ -130,13 +128,13 @@ public class ChromosomeHandler {
     }
 
 
-    private GenomeWideList<MotifAnchor> generateChromDotSizesBedFile() {
-        GenomeWideList<MotifAnchor> chromDotSizes = new GenomeWideList<>(this);
+    private GenomeWideList<GenericLocus> generateChromDotSizesBedFile() {
+        GenomeWideList<GenericLocus> chromDotSizes = new GenomeWideList<>(this);
 
         for (Chromosome c : getChromosomeArray()) {
             if (isAllByAll(c) || isGenomeWide(c)) continue;
             MotifAnchor chromAnchor = new MotifAnchor(c.getName(), 0, (int) c.getLength(), c.getName()); // not implemented or called
-            List<MotifAnchor> anchors = new ArrayList<>();
+            List<GenericLocus> anchors = new ArrayList<>();
             anchors.add(chromAnchor);
             chromDotSizes.setFeatures("" + c.getIndex(), anchors);
         }
@@ -153,7 +151,7 @@ public class ChromosomeHandler {
     }
 
     public Chromosome addGenomeWideChromosome() {
-        GenomeWideList<MotifAnchor> chromDotSizes = generateChromDotSizesBedFile();
+        GenomeWideList<GenericLocus> chromDotSizes = generateChromDotSizesBedFile();
         return addCustomChromosome(chromDotSizes, cleanUpName(GENOMEWIDE_CHR));
     }
 
@@ -174,8 +172,8 @@ public class ChromosomeHandler {
     }
 
     public Chromosome generateCustomChromosomeFromBED(File file, int minSize) {
-        GenomeWideList<MotifAnchor> regionsInCustomChromosome =
-                MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
+        GenomeWideList<GenericLocus> regionsInCustomChromosome =
+                GenericLocusParser.loadFromBEDFile(this, file.getAbsolutePath());
 
         MotifAnchorTools.mergeAndExpandSmallAnchors(regionsInCustomChromosome, minSize);
 
@@ -185,18 +183,18 @@ public class ChromosomeHandler {
     }
 
     public Chromosome addCustomChromosome(Feature2DList featureList, String chrName) {
-        GenomeWideList<MotifAnchor> featureAnchors =
+        GenomeWideList<GenericLocus> featureAnchors =
                 MotifAnchorTools.extractAllAnchorsFromAllFeatures(featureList, this);
         String cleanedUpName = cleanUpName(chrName);
         return addCustomChromosome(featureAnchors, cleanedUpName);
     }
 
-    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
+    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<GenericLocus> regionsInCustomChromosome) {
         final int[] customGenomeLength = new int[]{0};
-        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
+        regionsInCustomChromosome.processLists(new FeatureFunction<GenericLocus>() {
             @Override
-            public void process(String chr, List<MotifAnchor> featureList) {
-                for (MotifAnchor c : featureList) {
+            public void process(String chr, List<GenericLocus> featureList) {
+                for (GenericLocus c : featureList) {
                     if (c != null) customGenomeLength[0] += c.getWidth() + CUSTOM_CHROMOSOME_BUFFER;
                 }
             }
@@ -204,7 +202,7 @@ public class ChromosomeHandler {
         return customGenomeLength[0];
     }
 
-    private Chromosome addCustomChromosome(GenomeWideList<MotifAnchor> regionsInCustomChromosome, String cleanedUpName) {
+    private Chromosome addCustomChromosome(GenomeWideList<GenericLocus> regionsInCustomChromosome, String cleanedUpName) {
         int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
         int newIndex = cleanedChromosomes.size();
         customChromosomeRegions.put(newIndex, regionsInCustomChromosome);
@@ -342,7 +340,7 @@ public class ChromosomeHandler {
         return chromosomeArrayWithoutAllByAll;
     }
 
-    public GenomeWideList<MotifAnchor> getListOfRegionsInCustomChromosome(Integer index) {
+    public GenomeWideList<GenericLocus> getListOfRegionsInCustomChromosome(Integer index) {
         return customChromosomeRegions.get(index);
     }
 
