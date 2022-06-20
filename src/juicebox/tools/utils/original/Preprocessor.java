@@ -998,8 +998,10 @@ public class Preprocessor {
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] losArray,
                                                                   Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
-        System.err.println("Used Memory for matrix");
-        System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        if (HiCGlobals.printVerboseComments) {
+            System.err.println("Used Memory for matrix");
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        }
         LittleEndianOutputStream los = losArray[0];
         long position = los.getWrittenCount();
 
