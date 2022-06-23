@@ -211,6 +211,10 @@ public class NormVectorUpdater {
     }
 
     private static BufferedByteWriter getBufferWithEnoughSpace(List<BufferedByteWriter> expectedBuffers, int bytesNeeded) {
+        if (expectedBuffers.size()==0) {
+            expectedBuffers.add(new BufferedByteWriter());
+        }
+
         BufferedByteWriter buffer = expectedBuffers.get(expectedBuffers.size() - 1);
         int freeBytes = Integer.MAX_VALUE - 10 - buffer.bytesWritten();
 

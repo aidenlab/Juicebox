@@ -42,22 +42,25 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.zip.GZIPInputStream;
 
+
+
 public class CustomNormVectorFileHandler extends NormVectorUpdater {
 
-    public static void updateHicFile(String path, String vectorPath) throws IOException {
+
+    public static void updateHicFile(String path, String vectorPath, int numCPUThreads) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         String[] vectorPaths = vectorPath.split(",");
-        NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, vectorPaths, true);
+        NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, vectorPaths, true, numCPUThreads);
         writeNormsToUpdateFile(reader, path, false, null, normVectorInfo.getExpectedValueFunctionMap(),
                 normVectorInfo.getNormVectorIndices(), normVectorInfo.getNormVectorBuffers(), "Finished adding another normalization.");
 
         System.out.println("all custom norms added");
     }
 
-    public static void unsafeHandleUpdatingOfNormalizations(SuperAdapter superAdapter, File[] files, boolean isControl) {
+    public static void unsafeHandleUpdatingOfNormalizations(SuperAdapter superAdapter, File[] files, boolean isControl, int numCPUThreads) {
 
         Dataset ds = superAdapter.getHiC().getDataset();
         if (isControl) {
@@ -70,7 +73,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
         }
 
         try {
-            NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, filePaths, false);
+            NormVectorInfo normVectorInfo = completeCalculationsNecessaryForUpdatingCustomNormalizations(ds, filePaths, false, numCPUThreads);
 
             for (NormalizationType customNormType : normVectorInfo.getNormalizationVectorsMap().keySet()) {
                 ds.addNormalizationType(customNormType);
@@ -89,7 +92,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
     }
 
     private static NormVectorInfo completeCalculationsNecessaryForUpdatingCustomNormalizations(
-            final Dataset ds, String[] filePaths, boolean overwriteHicFileFooter) throws IOException {
+            final Dataset ds, String[] filePaths, boolean overwriteHicFileFooter, int numCPUThreads) throws IOException {
 
         Map<NormalizationType, Map<String, NormalizationVector>> normalizationVectorMap = readVectorFile(filePaths,
                 ds.getChromosomeHandler(), ds.getNormalizationHandler());
@@ -135,6 +138,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                 }
             }
         }
+        System.out.println("loaded existing norms");
 
         ExecutorService executor = HiCGlobals.newFixedThreadPool();
         for (NormalizationType customNormType : normalizationVectorMap.keySet()) {
@@ -191,7 +195,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
                     if (zd == null) continue;
 
                     handleLoadedVector(customNormType, chr.getIndex(), zoom, normalizationVectorMap.get(customNormType),
-                                normVectorBuffers, normVectorIndices, zd, evLoaded);
+                                normVectorBuffers, normVectorIndices, zd, evLoaded, fragCountMap, chromosomeHandler, numCPUThreads);
                 }
                 expectedValueFunctionMap.put(key, evLoaded.getExpectedValueFunction());
             }
@@ -203,7 +207,7 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
 
     private static void handleLoadedVector(NormalizationType customNormType, final int chrIndx, HiCZoom zoom, Map<String, NormalizationVector> normVectors,
                                            List<BufferedByteWriter> normVectorBuffers, List<NormalizationVectorIndexEntry> normVectorIndex,
-                                           MatrixZoomData zd, ExpectedValueCalculation evLoaded) throws IOException {
+                                           MatrixZoomData zd, ExpectedValueCalculation evLoaded, Map<String, Integer> fragmentCountMap, ChromosomeHandler chromosomeHandler, int numCPUThreads) throws IOException {
 
         String key = NormalizationVector.getKey(customNormType, chrIndx, zoom.getUnit().toString(), zoom.getBinSize());
         if (normVectors.containsKey(key)) {
@@ -226,7 +230,9 @@ public class CustomNormVectorFileHandler extends NormVectorUpdater {
             normVectorIndex.add(new NormalizationVectorIndexEntry(
                     customNormType.toString(), chrIndx, zoom.getUnit().toString(), zoom.getBinSize(), position, sizeInBytes));
     
-            evLoaded.addDistancesFromIterator(chrIndx, zd.getIteratorContainer(), vector.getData().convertToFloats());
+            evLoaded.addDistancesFromZD(zd, fragmentCountMap, chromosomeHandler, numCPUThreads);
+            System.out.println("done with "+key);
+
         }
     }
 

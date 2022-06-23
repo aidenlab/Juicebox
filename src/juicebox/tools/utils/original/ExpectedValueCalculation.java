@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.data.basics.ListOfFloatArrays;
@@ -351,6 +352,10 @@ public class ExpectedValueCalculation {
                 addDistance(chrIndx, x, y, value);
             }
         }
+    }
+
+    public void addDistancesFromZD(MatrixZoomData zd, Map<String, Integer> fragmentCountMap, ChromosomeHandler chromosomeHandler, int numCPUThreads) {
+        this.merge(zd.computeExpected(true, fragmentCountMap, chromosomeHandler, numCPUThreads));
     }
 }
 
