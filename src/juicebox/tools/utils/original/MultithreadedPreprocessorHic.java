@@ -228,9 +228,9 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
                 if (zd != null) {
                     Pair<List<IndexEntry>, ExpectedValueCalculation> zdOutput;
                     if (localLos.length > 1) {
-                        zdOutput = zd.mergeAndWriteBlocks(localLos, compressor, i, numResolutions, calculateExpecteds, fragmentCountMap, chromosomeHandler);
+                        zdOutput = zd.mergeAndWriteBlocks(localLos, compressor, i, numResolutions, calculateExpecteds, fragmentCountMap, chromosomeHandler, subsampleFraction, randomSubsampleGenerator);
                     } else {
-                        zdOutput = zd.mergeAndWriteBlocks(localLos[0], compressor, calculateExpecteds, fragmentCountMap, chromosomeHandler);
+                        zdOutput = zd.mergeAndWriteBlocks(localLos[0], compressor, calculateExpecteds, fragmentCountMap, chromosomeHandler, subsampleFraction, randomSubsampleGenerator);
                     }
                     localBlockIndexes.put(zd.blockIndexPosition, zdOutput.getFirst());
                     if (calculateExpecteds) {

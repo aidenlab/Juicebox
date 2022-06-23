@@ -1078,7 +1078,7 @@ public class SuperAdapter {
                     LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
 
 
-                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, isControl);
+                    CustomNormVectorFileHandler.unsafeHandleUpdatingOfNormalizations(SuperAdapter.this, files, isControl, 1);
 
                     boolean versionStatus = hic.getDataset().getVersion() >= HiCGlobals.minVersion;
                     if (isControl) {

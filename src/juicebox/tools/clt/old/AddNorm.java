@@ -132,7 +132,7 @@ public class AddNorm extends JuiceboxCLT {
         HiCGlobals.allowDynamicBlockIndex = false;
         try {
             if (inputVectorFile != null) {
-                CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile);
+                CustomNormVectorFileHandler.updateHicFile(file, inputVectorFile, numCPUThreads);
             } else {
                 launch(file, normalizationTypes, genomeWideResolution, noFragNorm,
                         numCPUThreads, resolutionsToBuildTo);

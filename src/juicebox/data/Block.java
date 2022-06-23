@@ -29,6 +29,7 @@ package juicebox.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -63,6 +64,22 @@ public class Block {
 
     public List<ContactRecord> getContactRecords() {
         return records;
+    }
+
+    public List<ContactRecord> getContactRecords(double subsampleFraction, Random randomSubsampleGenerator) {
+        List<ContactRecord> newRecords = new ArrayList<>();
+        for (ContactRecord i : records) {
+            int newBinX = i.getBinX();
+            int newBinY = i.getBinY();
+            int newCounts = 0;
+            for (int j = 0; j < (int) i.getCounts(); j++) {
+                if ( subsampleFraction <= 1 && subsampleFraction > 0 && randomSubsampleGenerator.nextDouble() <= subsampleFraction) {
+                    newCounts += 1;
+                }
+            }
+            newRecords.add(new ContactRecord(newBinX, newBinY, (float) newCounts));
+        }
+        return newRecords;
     }
 
     public void clear() {
