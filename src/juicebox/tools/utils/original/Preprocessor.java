@@ -248,7 +248,14 @@ public class Preprocessor {
         this.randomizeFragMapFiles = fragMaps;
     }
 
-    public void setSubsampler(double subsampleFraction) { this.subsampleFraction = subsampleFraction; }
+    public void setSubsampler(double subsampleFraction) {
+        if (subsampleFraction == -1) {
+            this.subsampleFraction = 1;
+        }
+        else {
+            this.subsampleFraction = subsampleFraction;
+        }
+    }
 
     protected static int randomizePos(FragmentCalculation fragmentCalculation, String chr, int frag) {
 
