@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -300,21 +300,21 @@ public class HiCCUPSUtils {
         List<Feature2D> coalesced = new ArrayList<>();
 
         while (!featureLL.isEmpty()) {
-    
+
             // See Feature2D
             Collections.sort(featureLL);
             Collections.reverse(featureLL);
-    
+
             Feature2D pixel = featureLL.pollFirst();
             featureLL.remove(pixel);
             List<Feature2D> pixelList = new ArrayList<>();
             pixelList.add(pixel);
-    
+
             int pixelListX = (int) pixel.getStart1();
             int pixelListY = (int) pixel.getStart2();
             double r = 0;
             double pixelClusterRadius = originalClusterRadius;
-    
+
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
                 //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
@@ -334,11 +334,11 @@ public class HiCCUPSUtils {
                     }
                     //System.out.println("Radii "+distances);
                     r = Math.round(Collections.max(distances));
-            
+
                     pixelClusterRadius = originalClusterRadius + r;
                 }
             }
-    
+
             pixel.setEnd1((int) pixel.getStart1() + resolution);
             pixel.setEnd2((int) pixel.getStart2() + resolution);
             pixel.addIntAttribute(RADIUS, (int) Math.round(r));
@@ -347,7 +347,7 @@ public class HiCCUPSUtils {
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
             setPixelColor(pixel);
             coalesced.add(pixel);
-    
+
             featureLL.removeAll(pixelList);
         }
 
