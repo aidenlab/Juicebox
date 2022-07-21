@@ -1,24 +1,21 @@
 --------------
 Breaking News!
 --------------
-This codebase is being split up to better support long-term maintenance and modular aspects of different tools
-available. The new repositories are:
+This codebase is in the process of being split up to better support long-term maintenance and modular aspects of different tools
+available. The new repositories will be:
 
-- [JuiceboxGUI](https://github.com/aidenlab/juiceboxgui) for Juicebox Desktop and Assembly Tools.
-- [HiCTools](https://github.com/aidenlab/hictools) for building .hic files (Pre and Addnorm)
-- [JuicerTools](https://github.com/aidenlab/juicertools) for analyzing .hic files (HiCCUPS, Arrowhead, APA, etc.)
+- [JuiceboxGUI](https://github.com/aidenlab/juiceboxgui) for visualization of Hi-C maps with Juicebox Desktop and genome assembly correction with Assembly Tools.
+- [HiCTools](https://github.com/aidenlab/hictools) for building and writing .hic files (Pre, Addnorm, and Statistics)
+- [JuicerTools](https://github.com/aidenlab/juicertools) for downstream analysis of .hic files (HiCCUPS, Arrowhead, APA, etc.)
+- [Java Straw](https://github.com/aidenlab/java-straw) to quickly read and stream data from .hic files into Java, and is used by the above repositories.
 
 We also have new tools:
 
-- [Straw](https://github.com/aidenlab/straw) to quickly and easily stream .hic data into C++, python, R, and MATLAB.
-- [Java Straw](https://github.com/aidenlab/java-straw) to quickly and easily stream .hic data into Java
+- [Straw](https://github.com/aidenlab/straw) to quickly read and stream data from .hic files into C++, python, R, and MATLAB.
 - [POSSUMM](https://github.com/sa501428/EigenVector) for new C++ code to rapidly calculate A-B compartments (i.e.
   eigenvectors) for higher resolutions
 - [EMT](https://github.com/sa501428/hic-emt) for upgrading older .hic files or making smaller .hic files for regions of
   interest.
-
-We will continue to host this repository for legacy purposes, but updates, bug reports, and github issues will be
-handled at the appropriate repositories listed above.
 
 --------------
 About Juicebox
