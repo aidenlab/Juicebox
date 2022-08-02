@@ -65,6 +65,12 @@ public class Summation extends JuiceboxCLT {
         List<String> resolutionStrings = new ArrayList<>();
         populateParameters(args[2], genomeId, resolutionStrings);
 
+        String tmpGenome = parser.getGenomeOption();
+        if (tmpGenome != null && !tmpGenome.isEmpty()){
+            genomeId[0] = tmpGenome;
+        }
+
+
         ChromosomeHandler chromHandler = HiCFileTools.loadChromosomes(genomeId[0]);
 
         String tmpDir = parser.getTmpdirOption();

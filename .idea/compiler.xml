@@ -19,6 +19,6 @@
     </wildcardResourcePatterns>
   </component>
   <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.8" />
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.7" />
   </component>
 </project>
