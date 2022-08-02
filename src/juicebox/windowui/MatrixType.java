@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,10 +82,10 @@ public enum MatrixType {
     NORM2OBSVSCTRL("Observed Norm^2 vs Control Norm^2");
 
     private static final MatrixType[] enabledMatrixTypesNoControl =
-            new MatrixType[]{OBSERVED, OE, OEV2, PEARSON, LOG};
+            new MatrixType[]{OBSERVED, EXPECTED, OE, OEV2, PEARSON, LOG};
 
     private static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
-            OBSERVED, CONTROL, VS, RATIO, RATIOV2,
+            OBSERVED, CONTROL, EXPECTED, VS, RATIO, RATIOV2,
             OE, OECTRL, OEVS, OEV2, OECTRLV2, OEVSV2,
             PEARSON, PEARSONCTRL, PEARSONVS, LOG, LOGC, LOGEOVS};
 
