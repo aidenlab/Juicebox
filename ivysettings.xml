@@ -1,0 +1,17 @@
+<ivysettings>
+    <settings defaultResolver="chain1"/>
+    <resolvers>
+        <chain name="chain1">
+        <filesystem name="libraries">
+            <artifact pattern="${basedir}/lib/[artifact]-[revision].[ext]"/>
+        </filesystem>
+        <ibiblio name="ibiblio" m2compatible="true"/>
+        <!-- ibiblio struggles to resolve versioned .jars from the  -->
+        <!-- for JSI 1.0.1 because the regular Maven repo only has versions up to 1.0.0, therefore use https://maven.bioviz.org/repo2/net/sf/jsi/jsi/1.0.1/ -->
+        <url name="bioviz" m2compatible="true">
+            <artifact pattern="https://maven.bioviz.org/repo2/net/sf/[organization]/[module]/[revision]/[artifact]-[revision].[ext]"/>
+        </url>
+        </chain>
+    </resolvers>
+</ivysettings>
+

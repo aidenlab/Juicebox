@@ -1,0 +1,78 @@
+name: Juicebox Continuous Integration
+
+# For this action to run and sign the builds, you need to set up these secrets in the Github repo:
+# JUICEBOX_SIGNING_KEYFILE is a base64 encoded version of your .jks. It can be generated with (depending on your OS with)
+# openssl base64 < Juicebox.jks | tr -d '\n' > Juicebox_jks_base64_encoded.txt 
+# or
+# base64 -i Juicebox.jks -o Juicebox_jks_base64_encoded.txt
+# JUICEBOX_ALIAS:
+# The alias of the key to use to sign your application build.
+# JUICEBOX_SIGNING_PASSWORD
+# The passphrase used to access your Juicebox.jks keystore.
+
+on:
+  push:
+    branches: [ $default-branch, GithubBuildAction ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      SIGN_ALIAS: ${{ secrets.JUICEBOX_SIGNING_ALIAS }}
+      SIGN_STORE_PASS: ${{ secrets.JUICEBOX_SIGNING_PASSWORD }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'zulu'
+        architecture: x64
+    - name: Place Keyfile in the runners cache
+      id: write_keyfile
+      uses: timheuer/base64-to-file@v1.1
+      with:
+        fileName: 'Juicebox.jks'
+        encodedString: ${{ secrets.JUICEBOX_SIGNING_KEYFILE }}
+    - name: Resolve dependencies
+      run: |
+        ant ivyInit
+        find /home/runner/work/Juicebox/Juicebox/ -name "*.jar"
+    - name: Build with Ant
+      run: 
+        ant -noinput -buildfile build.xml
+    - name: Persist Juicebox.jar
+      uses: actions/upload-artifact@v2
+      with:
+        name: Juicebox.jar
+        path: out/artifacts/Juicebox_jar/Juicebox.jar
+    - name: Persist Juicer-Tools.jar
+      uses: actions/upload-artifact@v2
+      with:
+        name: Juicer_Tools.jar
+        path: out/artifacts/juicer_tools_jar/juicer_tools.jar
+    - name: Upload Juicebox.jar as release asset 
+      id: upload-release-asset-juicebox
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: out/artifacts/Juicebox_jar/Juicebox.jar
+        asset_name: Juicebox_${{ github.event.release.tag_name }}.jar
+    - name: Upload Juicer_Tools.jar as release asset 
+      id: upload-release-asset-juicer_tools
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: out/artifacts/Juicebox_jar/Juicer-Tools.jar
+        asset_name: Juicer_Tools_${{ github.event.release.tag_name }}.jar

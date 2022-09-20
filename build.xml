@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ The MIT License (MIT)
-  ~
-  ~ Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
-  ~
-  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Software"), to deal
-  ~ in the Software without restriction, including without limitation the rights
-  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the Software is
-  ~ furnished to do so, subject to the following conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be included in
-  ~ all copies or substantial portions of the Software.
-  ~
-  ~  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  ~  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  ~  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  ~  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  ~  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  ~  THE SOFTWARE.
-  -->
+    ~ The MIT License (MIT)
+    ~
+    ~ Copyright (c) 2011-2020 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+    ~
+    ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+    ~ of this software and associated documentation files (the "Software"), to deal
+    ~ in the Software without restriction, including without limitation the rights
+    ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    ~ copies of the Software, and to permit persons to whom the Software is
+    ~ furnished to do so, subject to the following conditions:
+    ~
+    ~ The above copyright notice and this permission notice shall be included in
+    ~ all copies or substantial portions of the Software.
+    ~
+    ~  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    ~  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    ~  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    ~  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    ~  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    ~  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    ~  THE SOFTWARE.
+    -->
 
-<project name="juicebox" default="all">
+<project name="juicebox" default="all" xmlns:ivy="antlib:org.apache.ivy.ant">
 
 
+    <property environment="env"/>
     <property file="juicebox.properties"/>
     <!-- Uncomment the following property if no tests compilation is needed -->
     <!--
     <property name="skip.tests" value="true"/>
-     -->
+    -->
 
     <!-- Compiler options -->
 
@@ -143,6 +144,9 @@
             <patternset refid="library.patterns"/>
         </fileset>
     </path>
+    <!-- Set to enable download of Jcuda Native -->
+    <property name="jcuda.os" value="${env.RUNNER_OS}" />
+    <property name="jcuda.arch" value="${env.RUNNER_ARCH}" />
 
     <path id="library.kotlin.classpath">
         <fileset dir="${basedir}/lib/kotlin">
@@ -151,11 +155,11 @@
     </path>
 
     <path id="library.math3.classpath">
-        <pathelement location="${basedir}/lib/general/commons-math3-3.6.1.jar"/>
+        <pathelement location="${basedir}/lib/general/commons-math3-${commonsmath.version}.jar"/>
     </path>
 
     <path id="library.jsi1.1.classpath">
-        <pathelement location="${basedir}/lib/general/jsi1.1.jar"/>
+        <pathelement location="${basedir}/lib/jsi/jsi-${jsi.version}.jar"/>
     </path>
 
 
@@ -239,15 +243,76 @@
         </dirset>
     </path>
 
+    <!-- Setup Ivy for dependency management -->
+
+    <target name="clearcache" description="Clear the Apache Ivy cache" depends="ivySettings">
+		<ivy:cleancache />
+	</target>
+
+	<target name="ivySettings">
+		<ivy:settings file="ivysettings.xml" />
+	</target>
+
+	<target name="resolve" description="Retrieve dependencies with Apache Ivy" depends="ivySettings">
+        <ivy:retrieve pattern="${basedir}/lib/[org]/[artifact]-[revision].[ext]"/>
+
+        <!-- IGV and Jcuda Native don't resolve via Ivy properly -->
+        <mkdir dir="${basedir}/lib/broadinstitute/"/>
+        <get src="https://data.broadinstitute.org/igv/projects/downloads/${igv.major.version}/IGV_${igv.minor.version}.zip"  dest="${ivy.home}/lib/igv-${igv.minor.version}.zip" />
+        <unzip src="${ivy.home}/lib/igv-${igv.minor.version}.zip" dest="${basedir}/lib/broadinstitute/">
+            <patternset>
+                <include name="**/*.jar"/>
+            </patternset>
+            <mapper type="flatten"/>
+        </unzip>
+
+        <!-- Ultimately hardcoding, since using the Runner.OS and Runner.Arch environmental variables failed because of a different spelling. -->
+        <mkdir dir="${basedir}/lib/jcuda"/>
+        <get src="https://repo1.maven.org/maven2/org/jcuda/jcuda-natives/${jcuda.version}/jcuda-natives-${jcuda.version}.jar"  dest="${basedir}/lib/jcuda/" />
+        <get src="https://repo1.maven.org/maven2/org/jcuda/jcuda-natives/${jcuda.version}/jcuda-natives-${jcuda.version}-sources.jar"  dest="${basedir}/lib/jcuda/" />
+        <get src="https://repo1.maven.org/maven2/org/jcuda/jcuda-natives/${jcuda.version}/jcuda-natives-${jcuda.version}-linux-x86_64.jar"  dest="${basedir}/lib/jcuda/" />
+        <get src="https://repo1.maven.org/maven2/org/jcuda/jcuda-natives/${jcuda.version}/jcuda-natives-${jcuda.version}-windows-x86_64.jar"  dest="${basedir}/lib/jcuda/" />
+
+        
+	</target>
+
+	<property name="ivy.install.version" value="${ivy.install.version}" />
+	<condition property="ivy.home" value="${env.IVY_HOME}">
+		<isset property="env.IVY_HOME" />
+	</condition>
+	<property name="ivy.home" value="${env.ANT_HOME}" />
+	<property name="ivy.jar.dir" value="${ivy.home}/lib" />
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+	<target name="ivyDownload" unless="hasDownloadedIvy">
+		<property name="hasDownloadedIvy" value="true" />
+
+		<!-- download Ivy from web site so that it can be used even without any special installation -->
+		<get src="https://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" 
+            dest="${ivy.jar.file}" usetimestamp="true"/>
+	</target>
+
+	<target name="ivyInit" depends="ivyDownload">
+		<!-- try to load ivy here from ivy home, in case the user has not already dropped
+            it into ant's lib dir (note that the latter copy will always take precedence).
+            We will not fail as long as local lib dir exists (it may be empty) and
+            ivy is in at least one of ant's lib dir or the local lib dir. -->
+		<path id="ivy.lib.path">
+			<fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml"
+                uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+	</target>
 
     <target name="compile.module.juicebox" depends="compile.module.juicebox.production,compile.module.juicebox.tests"
             description="Compile module Juicebox"/>
 
-    <target name="compile.module.juicebox.production" description="Compile module Juicebox; production classes">
+    <target name="compile.module.juicebox.production" description="Compile module Juicebox; production classes" depends="ivyInit,resolve">
         <mkdir dir="${juicebox.output.dir}"/>
         <javac includeantruntime="false" destdir="${juicebox.output.dir}" debug="${compiler.debug}"
-               nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
-               executable="${module.jdk.bin.juicebox}/javac">
+            nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true"
+            executable="${module.jdk.bin.juicebox}/javac">
             <compilerarg line="${compiler.args.juicebox}"/>
             <bootclasspath refid="juicebox.module.bootclasspath"/>
             <classpath refid="juicebox.module.production.classpath"/>
@@ -269,6 +334,7 @@
     <target name="clean.module.juicebox" description="cleanup module">
         <delete dir="${juicebox.output.dir}"/>
         <delete dir="${juicebox.testoutput.dir}"/>
+        <antcall target="clearcache" />
     </target>
 
     <target name="init" description="Build initialization">
@@ -279,7 +345,7 @@
 
     <target name="build.modules" depends="init, clean, compile.module.juicebox" description="build all modules"/>
 
-    <target name="init.artifacts">
+    <target name="init.artifacts" depends="ivyInit,resolve">
         <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
         <property name="artifact.output.juicebox:jar" value="${basedir}/out/artifacts/Juicebox_jar"/>
         <property name="artifact.output.juicer_tools:jar" value="${basedir}/out/artifacts/juicer_tools_jar"/>
@@ -294,33 +360,34 @@
         <property name="artifact.temp.output.juicebox:jar" value="${artifacts.temp.dir}/Juicebox_jar"/>
         <mkdir dir="${artifact.temp.output.juicebox:jar}"/>
         <jar destfile="${temp.jar.path.Juicebox.jar}" duplicate="preserve"
-             manifest="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF">
+            manifest="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF">
             <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
-            <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/jsi/jsi-${jsi.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/igv.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar"
+            <zipfileset src="${basedir}/lib/general/htsjdk-${htsjdk.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/log4j-core-${log4j.version}.jar"
 			excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
-            <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test.jar"/>
-            <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
-            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-linux-x86_64.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-windows-x86_64.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/guava-${guava.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-test-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-test-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/VectorGraphics2D-${vectorgraphics2d.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs-${jargs.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-${jfreechart.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
 
         </jar>
         <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
@@ -331,41 +398,41 @@
         <property name="artifact.temp.output.juicer_tools:jar" value="${artifacts.temp.dir}/juicer_tools_jar"/>
         <mkdir dir="${artifact.temp.output.juicer_tools:jar}"/>
         <jar destfile="${temp.jar.path.juicer_tools.jar}" duplicate="preserve"
-             manifest="${basedir}/src/resources/manifests/juicer_tools_jar/META-INF/MANIFEST.MF">
+            manifest="${basedir}/src/resources/manifests/juicer_tools_jar/META-INF/MANIFEST.MF">
             <zipfileset file="${basedir}/src/resources/manifests/juicer_tools_jar/META-INF/MANIFEST.MF"
                         prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
-            <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/general/commons-math3-3.6.1.jar"/>
-            <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
-            <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
+            <zipfileset src="${basedir}/lib/jsi/jsi-${jsi.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/commons-math3-${commonsmath.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/guava-${guava.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/VectorGraphics2D-${vectorgraphics2d.version}.jar"/>
             <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"
                         excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-            <zipfileset src="${basedir}/lib/broadinstitute/log4j-core-2.11.0.jar"
+            <zipfileset src="${basedir}/lib/general/htsjdk-${htsjdk.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/log4j-core-${log4j.version}.jar"
 			excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar"/>
-            <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test-sources.jar"/>
-	    <zipfileset src="${basedir}/lib/kotlin/kotlin-test.jar"/>
-            <zipfileset src="${basedir}/lib/general/jargs.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-            <zipfileset src="${basedir}/lib/general/jfreechart-1.0.19.jar"
-                        excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-linux-x86_64.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-${jcuda.version}-windows-x86_64.jar"/>
+            <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-${jcuda.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-reflect-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk7-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-jdk8-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-stdlib-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-test-${kotlin.version}-sources.jar"/>
+            <zipfileset src="${basedir}/lib/kotlin/kotlin-test-${kotlin.version}.jar"/>
+            <zipfileset src="${basedir}/lib/general/jargs-${jargs.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${basedir}/lib/general/jfreechart-${jfreechart.version}.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
 
         </jar>
         <copy file="${temp.jar.path.juicer_tools.jar}"
-              tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>
+            tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>
     </target>
 
     <target name="sign">
@@ -406,8 +473,8 @@
     <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
 
     <taskdef name="jarbundler"
-             classname="com.ultramixer.jarbundler.JarBundler"
-             classpath="lib/jarbundler-core-3.3.0.jar"/>
+            classname="com.ultramixer.jarbundler.JarBundler"
+            classpath="lib/jarbundler-core-3.3.0.jar"/>
 
     <target name="bundle" depends="init.artifacts">
         <property name="version" value="1.0 (1)"/>
@@ -416,14 +483,14 @@
                     mainclass="juicebox.MainWindow"
                     icon="JuiceboxIcon.icns"
                     jar="${artifact.output.juicebox:jar}/Juicebox.jar"
-		    stubfile="lib/universalJavaApplicationStub"
-		    useJavaXKey="true"
-		    jvmversion="1.8"
-		    version="${version}"
-		    highResolutionCapable="true"
-		    bundleid="org.aidenlab.Juicebox"
-		    copyright="©2014, Broad Institute and Aiden Lab"
-		    vmoptions="-Xms5g -Xmx10g -d64">
+                    stubfile="lib/universalJavaApplicationStub"
+                    useJavaXKey="true"
+                    jvmversion="1.8"
+                    version="${version}"
+                    highResolutionCapable="true"
+                    bundleid="org.aidenlab.Juicebox"
+                    copyright="©2014, Broad Institute and Aiden Lab"
+                    vmoptions="-Xms5g -Xmx10g -d64">
 
         </jarbundler>
         <delete dir="${artifacts.temp.dir}"/>

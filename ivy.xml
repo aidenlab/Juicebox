@@ -1,0 +1,36 @@
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+	xmlns:m="http://ant.apache.org/ivy/maven">
+    <info organisation="aidenlab.juicebox" module="juicebox">
+        <description homepage="http://www.aidenlab.org/index.html">
+        Juicer is a platform for analyzing kilobase resolution Hi-C data.
+        </description>
+    </info>
+    <configurations defaultconfmapping="*->default">
+        <conf name="juicebox" description="Dependencies for Juicebox"/>
+        <conf name="juicertools" description="Dependencies for Juicer Tools"/>
+    </configurations>
+
+    <!-- Definition of the version is done in juicebox.properties -->
+    <dependencies>
+    
+        <dependency org="jsi" name="jsi" rev="${jsi.version}" conf="juicebox,juicertools"/>
+        <!-- IGV is apparently not available via Ivy. Thus, I put a manual download into the resolve target in build.xml instead -->
+        <dependency org="com.github.samtools" name="htsjdk" rev="${htsjdk.version}" conf="juicebox,juicertools"/> 
+        <dependency org="org.apache.logging.log4j" name="log4j-core" rev="${log4j.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jcuda" name="jcuda" rev="${jcuda.version}" transitive="false" conf="juicebox,juicertools"/>
+        <dependency org="com.google.guava" name="guava" rev="${guava.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jetbrains.kotlin" name="kotlin-reflect" rev="${kotlin.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jetbrains.kotlin" name="kotlin-stdlib" rev="${kotlin.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jetbrains.kotlin" name="kotlin-stdlib-jdk7" rev="${kotlin.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jetbrains.kotlin" name="kotlin-stdlib-jdk8" rev="${kotlin.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jetbrains.kotlin" name="kotlin-test" rev="${kotlin.version}" conf="juicebox,juicertools"/>
+        <dependency org="de.erichseifert.vectorgraphics2d" name="VectorGraphics2D" rev="${vectorgraphics2d.version}" conf="juicebox,juicertools"/>
+        <dependency org="com.talanlabs" name="jargs" rev="${jargs.version}" conf="juicebox,juicertools"/>
+        <dependency org="org.jfree" name="jfreechart" rev="${jfreechart.version}" conf="juicebox,juicertools"/>
+
+        <dependency org="org.apache.commons" name="commons-math3" rev="${commonsmath.version}" conf="juicertools"/>
+
+    </dependencies>
+</ivy-module>
