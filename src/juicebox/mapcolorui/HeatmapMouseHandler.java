@@ -642,8 +642,9 @@ public class HeatmapMouseHandler extends MouseAdapter {
             if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
-            } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD)) {
-
+            } else if (e.isShiftDown() && (activelyEditingAssembly ||
+                    superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD)) {
+                    System.err.println("\n\n!I GOT HERE!\n\n");
                 if (!activelyEditingAssembly) {
                     if (superAdapter.unsavedEditsExist() && firstAnnotation) {
                         firstAnnotation = false;
@@ -666,6 +667,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 try {
                     List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
                     if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                        System.err.println("\n\n got here 2 \n\n");
 
                         HiCGlobals.splitModeEnabled = false;
                         superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
@@ -674,6 +676,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                     }
                     if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
                         HiCGlobals.splitModeEnabled = true;
+                        System.err.println("\n\n got here 3 \n\n");
                     }
                 } catch (Exception ignored) {
                 }
@@ -682,15 +685,19 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 Feature2D loop;
                 if (activelyEditingAssembly && currentPromptedAssemblyAction == PromptedAssemblyAction.ADJUST) {
                     loop = superAdapter.getEditLayer().getFeatureHandler().getFeatureList().get(1, 1).get(0);
+                    System.err.println("\n\n got here 4 \n\n");
                 } else {
                     loop = currentFeature.getFeature2D();
+                    System.err.println("\n\n got here 5 \n\n");
                 }
                 // Resizing upper left corner, keep end points stationary
                 if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                    System.err.println("\n\n got here 6 \n\n");
                     superAdapter.getActiveLayerHandler().setStationaryEnd(loop.getEnd1(), loop.getEnd2());
                     // Resizing lower right corner, keep start points stationary
                 } else {
                     superAdapter.getActiveLayerHandler().setStationaryStart(loop.getStart1(), loop.getStart2());
+                    System.err.println("\n\n got here 7 \n\n");
                 }
 
 
@@ -700,6 +707,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                     final double scaleFactor = hic.getScaleFactor();
                     double binOriginX = hic.getXContext().getBinOrigin();
                     double binOriginY = hic.getYContext().getBinOrigin();
+                    System.err.println("\n\n got here 8 \n\n");
 
                     // hic.getFeature2DHandler()
                     annotateRectangle = superAdapter.getActiveLayerHandler().getFeatureHandler().getRectangleFromFeature(
@@ -717,6 +725,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 setDebrisFeauture(debrisFeature);
                 int chr1Idx = hic.getXContext().getChromosome().getIndex();
                 int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                System.err.println("\n\n got here 9 \n\n");
                 if (debrisFeature != null) {
                     superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                 }
@@ -726,6 +735,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
                 restoreDefaultVariables();
                 parent.repaint();
             } else {
+                System.err.println("\n\n got here 10\n\n");
                 dragMode = DragMode.PAN;
                 parent.setCursor(MainWindow.fistCursor);
             }

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Created by nathanielmusial on 6/29/17.
  */
-public class AssemblyFileExporter {
+public class AssemblyFileExporter    {
 
     private final String outputFilePath;
     private final List<Scaffold> listOfScaffolds;

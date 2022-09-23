@@ -196,11 +196,13 @@ public class Feature2D implements Comparable<Feature2D> {
         String scaledEnd2 = formatter.format(end2 * HiCGlobals.hicMapScale);
 
         if (getFeatureType() == FeatureType.SCAFFOLD) {
-            Scaffold scaffold = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler().getScaffoldFromFeature(this);
-            scaledStart1 = formatter.format(scaffold.getCurrentStart() + 1);
-            scaledStart2 = formatter.format(scaffold.getCurrentStart() + 1);
-            scaledEnd1 = formatter.format(scaffold.getCurrentEnd());
-            scaledEnd2 = formatter.format(scaffold.getCurrentEnd());
+            try {
+                Scaffold scaffold = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler().getScaffoldFromFeature(this);
+                scaledStart1 = formatter.format(scaffold.getCurrentStart() + 1);
+                scaledStart2 = formatter.format(scaffold.getCurrentStart() + 1);
+                scaledEnd1 = formatter.format(scaffold.getCurrentEnd());
+                scaledEnd2 = formatter.format(scaffold.getCurrentEnd());
+            } catch (Exception e){}
         }
 
         StringBuilder txt = new StringBuilder();
