@@ -48,7 +48,17 @@ public class AssemblyStateTracker {
         redoStack = new Stack<>();
         this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
         this.superAdapter = superAdapter;
-        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
+
+        String pathcharacter;
+        //check to see if we are in windows or mac, is statement is true then we are on windows.
+        if (DirectoryManager.getHiCDirectory().toString().indexOf("/")==-1){
+            pathcharacter="\\";
+        }
+        else{
+            pathcharacter="/";
+        }
+
+        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + pathcharacter + (SuperAdapter.getDatasetTitle().split(".+?(/|\\\\)(?=[^(/|\\\\)]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
     }
 
     public AssemblyScaffoldHandler getAssemblyHandler() {

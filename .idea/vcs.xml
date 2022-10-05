@@ -1,21 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GithubSharedProjectSettings">
-    <option name="branchProtectionPatterns">
-      <list>
-        <option value="GUI_AutoTest" />
-        <option value="nightly" />
-        <option value="Centromeres" />
-        <option value="olga_local_standard" />
-        <option value="custom_submatrix_option" />
-        <option value="AssemblyGui" />
-        <option value="switch_cc_to_bins" />
-        <option value="code_cleanup_8_1_17" />
-        <option value="ProblematicOlgaLocalAT" />
-        <option value="Submapping" />
-      </list>
-    </option>
-  </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
   </component>

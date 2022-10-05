@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Juicebox.iml" filepath="$PROJECT_DIR$/.idea/Juicebox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Juicebox.iml" filepath="$PROJECT_DIR$/Juicebox.iml" />
     </modules>
   </component>
 </project>
-

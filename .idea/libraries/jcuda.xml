@@ -1,16 +1,18 @@
 <component name="libraryTable">
   <library name="jcuda">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/lib/jcuda" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/Archive.JCuda.0.7.0.zip!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/Archive.JCuda.0.7.5.zip!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcuda-natives-0.8.0-apple-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/Archive.JCuda.0.6.5.zip!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcuda-0.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/Archive.JCuda.0.8.0.zip!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcuda-0.8.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcudaUtils-0.0.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <NATIVE>
-      <root url="file://$PROJECT_DIR$/lib/jcuda" />
-    </NATIVE>
-    <SOURCES>
-      <root url="file://$PROJECT_DIR$/lib/jcuda" />
-    </SOURCES>
-    <jarDirectory url="file://$PROJECT_DIR$/lib/jcuda" recursive="false" />
-    <jarDirectory url="file://$PROJECT_DIR$/lib/jcuda" recursive="false" type="SOURCES" />
+    <SOURCES />
   </library>
 </component>

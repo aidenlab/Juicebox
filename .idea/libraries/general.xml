@@ -1,10 +1,17 @@
 <component name="libraryTable">
   <library name="general">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/lib/general" />
+      <root url="jar://$PROJECT_DIR$/lib/general/commons-math3-3.6.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/guava-18.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/npy.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/jargs.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/jsi1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/jahmm-0.6.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/hic_tools_3.24.01.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/VectorGraphics2D-0.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/general/jfreechart-1.0.19.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
-    <jarDirectory url="file://$PROJECT_DIR$/lib/general" recursive="false" />
   </library>
 </component>

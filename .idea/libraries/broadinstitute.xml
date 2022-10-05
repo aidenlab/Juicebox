@@ -1,10 +1,11 @@
 <component name="libraryTable">
   <library name="broadinstitute">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/lib/broadinstitute" />
+      <root url="jar://$PROJECT_DIR$/lib/broadinstitute/log4j-core-2.11.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/broadinstitute/htsjdk-1.139.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/broadinstitute/igv.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
-    <jarDirectory url="file://$PROJECT_DIR$/lib/broadinstitute" recursive="false" />
   </library>
 </component>
