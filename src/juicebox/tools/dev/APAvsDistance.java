@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
 
 
 /**
@@ -219,7 +220,7 @@ public class APAvsDistance extends JuicerCLT  {
             XYSeries XYresults = new XYSeries("APA Result: " + resolution);
             for (int i = 0; i < numBuckets; i++) {
                 APA apa = new APA();
-                apa.initializeDirectly(hicFilePaths, PeaksFile, SaveFolderPath + "/" + (int) minPeakDist + "-" + (int) maxPeakDist, new int[]{resolution}, minPeakDist, maxPeakDist);
+                apa.initializeDirectly(hicFilePaths, PeaksFile, SaveFolderPath + File.separator + (int) minPeakDist + "-" + (int) maxPeakDist, new int[]{resolution}, minPeakDist, maxPeakDist);
                 windows[i] = minPeakDist + "-" + maxPeakDist;
                 System.out.println("Bucket:" + (i + 1) + " Window: " + windows[i]);
 

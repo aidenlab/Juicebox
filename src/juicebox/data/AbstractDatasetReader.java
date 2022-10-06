@@ -35,6 +35,7 @@ import org.broad.igv.util.collections.DoubleArrayList;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.File;
 
 /**
  * Abstract base class for methods that can be shared by V1 and V2 readers.
@@ -63,9 +64,9 @@ public abstract class AbstractDatasetReader implements DatasetReader {
 
         // If there's an eigenvector file load it
         String rootPath = FileUtils.getParent(path);
-        String folder = rootPath + "/" + chrName;
+        String folder = rootPath + File.separator + chrName;
         String eigenFile = "eigen" + "_" + chrName + "_" + chrName + "_" + zoom.getBinSize() + "_" + type + ".wig";
-        String fullPath = folder + "/" + eigenFile;
+        String fullPath = folder + File.separator + eigenFile;
 
         if (FileUtils.resourceExists(fullPath)) {
             System.out.println("Reading " + fullPath);

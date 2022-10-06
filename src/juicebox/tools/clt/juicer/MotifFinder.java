@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
@@ -272,7 +273,7 @@ public class MotifFinder extends JuicerCLT {
             String inferredBEDFilesPath = path + "/inferred";
 
             // if the '/' was already included
-            if (path.endsWith("/")) {
+            if (path.endsWith(File.separator)) {
                 uniqueBEDFilesPath = path + "unique";
                 inferredBEDFilesPath = path + "inferred";
             }
