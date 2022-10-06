@@ -28,6 +28,7 @@ import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 
+import java.io.File;
 import java.util.Stack;
 
 /**
@@ -48,7 +49,7 @@ public class AssemblyStateTracker {
         redoStack = new Stack<>();
         this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
         this.superAdapter = superAdapter;
-        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
+        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + File.separator + (SuperAdapter.getDatasetTitle().split(".+?(/|\\\\)(?=[^(/|\\\\)]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
     }
 
     public AssemblyScaffoldHandler getAssemblyHandler() {
