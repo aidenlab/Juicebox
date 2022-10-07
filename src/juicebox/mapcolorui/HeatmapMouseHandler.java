@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1755,14 +1755,16 @@ public class HeatmapMouseHandler extends MouseAdapter {
                     Collections.sort(selectedFeatures);
                     appendWithSpan(txt, selectedFeatures);
                 } else {
+                    StringBuilder txt0 = new StringBuilder();
                     for (Feature2DGuiContainer loop : allFeaturePairs) {
                         if (loop.getRectangle().contains(x, y)) {
                             // TODO - why is this code duplicated in this file?
-                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                            txt.append(loop.getFeature2D().tooltipText());
-                            txt.append("</span>");
+                            txt0.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt0.append(loop.getFeature2D().tooltipText());
+                            txt0.append("</span>");
                         }
                     }
+                    txt.insert(0, txt0);
                 }
             } else {
                 int numLayers = superAdapter.getAllLayers().size();
