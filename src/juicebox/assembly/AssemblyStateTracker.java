@@ -48,7 +48,7 @@ public class AssemblyStateTracker {
         redoStack = new Stack<>();
         this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
         this.superAdapter = superAdapter;
-        this.autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
+        this.autoSaveFileName = SuperAdapter.getDatasetTitle().split("\\.(?=[^\\.]+$)")[0] + ".review.autosave";
     }
 
     public AssemblyScaffoldHandler getAssemblyHandler() {
