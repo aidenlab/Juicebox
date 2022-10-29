@@ -22,8 +22,18 @@
  *  THE SOFTWARE.
  */
 
+<<<<<<< HEAD
 
 package juicebox;
+=======
+package juicebox;
+
+import javastraw.reader.Dataset;
+import javastraw.reader.basics.Chromosome;
+import javastraw.reader.block.Block;
+import javastraw.reader.mzd.Matrix;
+import javastraw.reader.mzd.MatrixZoomData;
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 import javastraw.reader.norm.NormalizationPicker;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
@@ -31,8 +41,11 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Iterator;
+=======
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 import java.util.List;
 
 public class AnnotatedExample {
@@ -59,6 +72,7 @@ public class AnnotatedExample {
         // this line will check multiple possible norms
         // and pick whichever is available (in order of preference)
 
+<<<<<<< HEAD
         NormalizationType norm = NormalizationHandler.NONE;
 
         System.out.println("Norm being used: " + norm.getLabel());
@@ -68,6 +82,13 @@ public class AnnotatedExample {
 
         Chromosome[] chromosomes = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
 
+=======
+        NormalizationType norm = NormalizationPicker.getFirstValidNormInThisOrder(ds, new String[]{"KR", "SCALE", "VC", "VC_SQRT", "NONE"});
+        System.out.println("Norm being used: " + norm.getLabel());
+
+        int resolution = 5000;
+        Chromosome[] chromosomes = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 
 
         // now let's iterate on every chromosome (only intra-chromosomal regions for now)
@@ -78,7 +99,10 @@ public class AnnotatedExample {
             long s8 = System.nanoTime();
             System.out.println((s8 - s7) * 1e-9);
             System.out.println("^^^^ line 49 execution line");
+<<<<<<< HEAD
 
+=======
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 
             if (matrix == null) continue;
             long s9 = System.nanoTime();
@@ -108,12 +132,20 @@ public class AnnotatedExample {
             System.out.println((s12 - s11) * 1e-9);
             System.out.println("^^^^ line 77 execution line");
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
             binXStart = 1500;
             binYStart = 1600;
             binXEnd = 2000;
             binYEnd = 2200;
             s11 = System.nanoTime();
+<<<<<<< HEAD
             blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm,false, getDataUnderTheDiagonal);
+=======
+            blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm, getDataUnderTheDiagonal);
+>>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
             s12 = System.nanoTime();
             System.out.println((s12 - s11) * 1e-9);
             System.out.println("^^^^ line 88 execution line");
