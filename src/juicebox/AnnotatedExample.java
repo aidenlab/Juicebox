@@ -22,37 +22,40 @@
  *  THE SOFTWARE.
  */
 
-<<<<<<< HEAD
 
 package juicebox;
-=======
-package juicebox;
+import  java.io.*;
 
-import javastraw.reader.Dataset;
-import javastraw.reader.basics.Chromosome;
-import javastraw.reader.block.Block;
-import javastraw.reader.mzd.Matrix;
-import javastraw.reader.mzd.MatrixZoomData;
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
-import javastraw.reader.norm.NormalizationPicker;
+import com.opencsv.CSVWriter;
 import juicebox.data.*;
 import juicebox.data.basics.Chromosome;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationHandler;
 import juicebox.windowui.NormalizationType;
 
-<<<<<<< HEAD
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-=======
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 import java.util.List;
 
+
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 public class AnnotatedExample {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // do you want to cache portions of the file?
         // this uses more RAM, but if you want to repeatedly
         // query nearby regions, it can improve speed by a lot
+
+        String[] timedata = { "80", "10", "620","100", "230" };
+
         boolean useCache = false;
         String filename = "https://www.dropbox.com/s/a6ykz8ajgszv0b6/Trachops_cirrhosus.rawchrom.hic";
         filename = juicebox.data.HiCFileTools.cleanUpDropboxURL(filename);
@@ -68,11 +71,12 @@ public class AnnotatedExample {
         System.out.println((s2 - s1) * 1e-9);
         System.out.println("^^^^ line 29 execution line");
 
+        timedata[0]=String.valueOf((s2 - s1) * 1e-9);
+
         // pick the normalization we would like
         // this line will check multiple possible norms
         // and pick whichever is available (in order of preference)
 
-<<<<<<< HEAD
         NormalizationType norm = NormalizationHandler.NONE;
 
         System.out.println("Norm being used: " + norm.getLabel());
@@ -80,15 +84,8 @@ public class AnnotatedExample {
         int resolution = 5000;
 
 
-        Chromosome[] chromosomes = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
+        juicebox.data.basics.Chromosome[] chromosomes = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
 
-=======
-        NormalizationType norm = NormalizationPicker.getFirstValidNormInThisOrder(ds, new String[]{"KR", "SCALE", "VC", "VC_SQRT", "NONE"});
-        System.out.println("Norm being used: " + norm.getLabel());
-
-        int resolution = 5000;
-        Chromosome[] chromosomes = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
 
 
         // now let's iterate on every chromosome (only intra-chromosomal regions for now)
@@ -99,10 +96,10 @@ public class AnnotatedExample {
             long s8 = System.nanoTime();
             System.out.println((s8 - s7) * 1e-9);
             System.out.println("^^^^ line 49 execution line");
-<<<<<<< HEAD
 
-=======
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
+            timedata[1]=String.valueOf((s8 - s7) * 1e-9);
+
+
 
             if (matrix == null) continue;
             long s9 = System.nanoTime();
@@ -111,6 +108,11 @@ public class AnnotatedExample {
             long s10 = System.nanoTime();
             System.out.println((s10 - s9) * 1e-9);
             System.out.println("^^^^ line 57 execution line");
+
+            timedata[2]=String.valueOf((s10 - s9) * 1e-9);
+
+
+
 
             if (zd == null) continue;
 
@@ -132,23 +134,49 @@ public class AnnotatedExample {
             System.out.println((s12 - s11) * 1e-9);
             System.out.println("^^^^ line 77 execution line");
 
-<<<<<<< HEAD
-=======
+            timedata[3]=String.valueOf((s12 - s11) * 1e-9);
 
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
+
             binXStart = 1500;
             binYStart = 1600;
             binXEnd = 2000;
             binYEnd = 2200;
             s11 = System.nanoTime();
-<<<<<<< HEAD
             blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm,false, getDataUnderTheDiagonal);
-=======
-            blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm, getDataUnderTheDiagonal);
->>>>>>> da75f82e5dae83e39efa11f8cf74f0cdeb5a8262
             s12 = System.nanoTime();
             System.out.println((s12 - s11) * 1e-9);
             System.out.println("^^^^ line 88 execution line");
+
+            timedata[4]=String.valueOf((s12 - s11) * 1e-9);
+
+
+            //change file path for the different versions of juicebox you are testing, and to wherever you want to store the file. I had two different paths.
+            String csvFilePath = "C:\\Users\\Mahdi\\Downloads\\Juicebox2.csv";
+            File f = new File(csvFilePath);
+
+            if (f.exists()){
+                CSVWriter writer = new CSVWriter(new FileWriter(csvFilePath, true));
+
+                writer.writeNext(timedata);
+
+                writer.close();
+            }
+
+            else{
+                FileWriter outputfile = new FileWriter(csvFilePath);
+
+                // create CSVWriter object filewriter object as parameter
+                CSVWriter writer = new CSVWriter(outputfile);
+
+                // adding header to csv
+                String[] header = { "L29", "L49", "L57", "L77", "L88" };
+                writer.writeNext(header);
+
+                // add data to csv
+                writer.writeNext(timedata);
+                writer.close();
+            }
+
         }
     }
 }
