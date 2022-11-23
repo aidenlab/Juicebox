@@ -78,7 +78,13 @@ public class Summation extends JuiceboxCLT {
         preprocessor.setFromHIC(true);
 
         preprocessor.setGenome(genomeId[0]);
-        preprocessor.setResolutions(resolutionStrings);
+
+        List<String> customResolutions = parser.getResolutionOption();
+        if (customResolutions != null && customResolutions.size() > 0) {
+            preprocessor.setResolutions(customResolutions);
+        } else {
+            preprocessor.setResolutions(resolutionStrings);
+        }
 
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser.getCountThresholdOption());
