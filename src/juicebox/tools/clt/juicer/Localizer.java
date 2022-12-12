@@ -81,6 +81,10 @@ public class Localizer extends JuicerCLT {
     private Feature2DList finalPrimaryLoopList = new Feature2DList();
     private GenomeWideList<GenericLocus> highResAnchorList = new GenomeWideList<>();
     private GenomeWideList<GenericLocus> highResAnchorPrimaryList = new GenomeWideList<>();
+    private GenomeWideList<GenericLocus> upstreamAnchorList = new GenomeWideList<>();
+    private GenomeWideList<GenericLocus> upstreamAnchorPrimaryList = new GenomeWideList<>();
+    private GenomeWideList<GenericLocus> downstreamAnchorList = new GenomeWideList<>();
+    private GenomeWideList<GenericLocus> downstreamAnchorPrimaryList = new GenomeWideList<>();
 
     /**
      * Usage for APA
@@ -157,6 +161,12 @@ public class Localizer extends JuicerCLT {
         if (expandSize <= 0) {
             expandSize = 2500;
         }
+
+        numLocalizedPeaks = juicerParser.getNumPeaks();
+        if (numLocalizedPeaks <= 0) {
+            numLocalizedPeaks = 1;
+        }
+
     }
 
     @Override
@@ -278,16 +288,16 @@ public class Localizer extends JuicerCLT {
                                                 List<List<Double>> localizedPeaks = LocalizerUtils.localMax(newData, normParts.get(0), normParts.get(1), newWindow, numLocalizedPeaks, 0.05, outputDirectory);
 
                                                 //code for expanding smoothing window in case localization not found
-                                                int counter = 1;
-                                                while (localizedPeaks.get(0).size() == 0 && counter < 2) {
-                                                    newWindow = window * (int) Math.pow(2,counter);
-                                                    newData = LocalizerUtils.extractLocalizedData(zd, loop, ((radius+newWindow) * 2) + 1, resolution, radius + newWindow, NormalizationHandler.NONE);
-                                                    synchronized(ds) {
-                                                        normParts = LocalizerUtils.extractNormParts(ds, zd, loop, resolution, radius + newWindow, norm);
-                                                    }
-                                                    localizedPeaks = LocalizerUtils.localMax(newData, normParts.get(0), normParts.get(1), newWindow, numLocalizedPeaks, 0.05, outputDirectory);
-                                                    counter++;
-                                                }
+                                                //int counter = 1;
+                                                //while (localizedPeaks.get(0).size() == 0 && counter < 2) {
+                                                //    newWindow = window * (int) Math.pow(2,counter);
+                                                //    newData = LocalizerUtils.extractLocalizedData(zd, loop, ((radius+newWindow) * 2) + 1, resolution, radius + newWindow, NormalizationHandler.NONE);
+                                                //    synchronized(ds) {
+                                                //        normParts = LocalizerUtils.extractNormParts(ds, zd, loop, resolution, radius + newWindow, norm);
+                                                //    }
+                                                //    localizedPeaks = LocalizerUtils.localMax(newData, normParts.get(0), normParts.get(1), newWindow, numLocalizedPeaks, 0.05, outputDirectory);
+                                                //    counter++;
+                                                //}
 
                                                 // if localization not found, fill in localizer fields with NA
                                                 if (localizedPeaks.get(0).size() == 0) {
@@ -297,10 +307,15 @@ public class Localizer extends JuicerCLT {
                                                     newLoop.addStringAttribute("localPval", "" + "NA");
                                                     newLoop.addStringAttribute("localObserved", "" + "NA");
                                                     newLoop.addStringAttribute("localPeakID", "" + "NA");
+                                                    newLoop.addStringAttribute("localPeakZ", "" + "NA");
                                                     newLoop.addStringAttribute("highRes_start_1", "" + "NA");
                                                     newLoop.addStringAttribute("highRes_end_1", "" + "NA");
                                                     newLoop.addStringAttribute("highRes_start_2", "" + "NA");
                                                     newLoop.addStringAttribute("highRes_end_2", "" + "NA");
+                                                    newLoop.addStringAttribute("upstream_start_1", "" + "NA");
+                                                    newLoop.addStringAttribute("upstream_end_1", "" + "NA");
+                                                    newLoop.addStringAttribute("downstream_start_2", "" + "NA");
+                                                    newLoop.addStringAttribute("downstream_end_2", "" + "NA");
                                                     Feature2D newPrimaryLoop = newLoop.deepCopy();
                                                     synchronized (finalPrimaryLoopList) {
                                                         finalPrimaryLoopList.add(chr1.getIndex(), chr2.getIndex(), newPrimaryLoop);
@@ -320,10 +335,12 @@ public class Localizer extends JuicerCLT {
                                                     long localPeakY = newLoop.getMidPt2() / resolution - radius - newWindow + localizedPeaks.get(1).get(peak).intValue();
                                                     double localPeakP = localizedPeaks.get(2).get(peak);
                                                     double localPeakO = localizedPeaks.get(3).get(peak);
+                                                    double localPeakZ = localizedPeaks.get(4).get(peak);
                                                     newLoop.addStringAttribute("localX", "" + (localPeakX * resolution));
                                                     newLoop.addStringAttribute("localY", "" + (localPeakY * resolution));
                                                     newLoop.addStringAttribute("localPval", "" + localPeakP);
                                                     newLoop.addStringAttribute("localObserved", "" + localPeakO);
+                                                    newLoop.addStringAttribute("localPeakZ", "" + localPeakZ);
                                                     newLoop.addStringAttribute("localPeakID", "" + peak);
                                                     Feature2D newPrimaryLoop = newLoop.deepCopy();
                                                     List<Feature2D> originalFeatures = new ArrayList<>();
@@ -332,8 +349,8 @@ public class Localizer extends JuicerCLT {
                                                     originalPrimaryFeatures.add(newPrimaryLoop);
                                                     List<Feature2D> emptyList = new ArrayList<>();
                                                     if (peak == 0) {
-                                                        GenericLocus primaryAnchor1 = new GenericLocus(newPrimaryLoop.getChr1(), (localPeakX-newWindow)*resolution, (localPeakX+newWindow+1)*resolution, originalPrimaryFeatures, emptyList);
-                                                        GenericLocus primaryAnchor2 = new GenericLocus(newPrimaryLoop.getChr2(), (localPeakY-newWindow)*resolution, (localPeakY+newWindow+1)*resolution, emptyList, originalPrimaryFeatures);
+                                                        GenericLocus primaryAnchor1 = new GenericLocus(newPrimaryLoop.getChr1(), (long) (localPeakX-newWindow-0.5)*resolution, (long) (localPeakX+newWindow+0.5)*resolution, originalPrimaryFeatures, emptyList);
+                                                        GenericLocus primaryAnchor2 = new GenericLocus(newPrimaryLoop.getChr2(), (long) (localPeakY-newWindow-0.5)*resolution, (long) (localPeakY+newWindow+0.5)*resolution, emptyList, originalPrimaryFeatures);
                                                         synchronized (finalPrimaryLoopList) {
                                                             finalPrimaryLoopList.add(chr1.getIndex(), chr2.getIndex(), newPrimaryLoop);
                                                         }
@@ -341,16 +358,28 @@ public class Localizer extends JuicerCLT {
                                                             highResAnchorPrimaryList.addFeature(newLoop.getChr1(), primaryAnchor1);
                                                             highResAnchorPrimaryList.addFeature(newLoop.getChr2(), primaryAnchor2);
                                                         }
+                                                        synchronized (upstreamAnchorPrimaryList) {
+                                                            upstreamAnchorPrimaryList.addFeature(newLoop.getChr1(), primaryAnchor1);
+                                                        }
+                                                        synchronized (downstreamAnchorPrimaryList) {
+                                                            downstreamAnchorPrimaryList.addFeature(newLoop.getChr2(), primaryAnchor2);
+                                                        }
                                                     }
                                                     if (numLocalizedPeaks>1) {
-                                                        GenericLocus anchor1 = new GenericLocus(newLoop.getChr1(), (localPeakX-newWindow)*resolution, (localPeakX+newWindow+1)*resolution, originalFeatures, emptyList);
-                                                        GenericLocus anchor2 = new GenericLocus(newLoop.getChr2(), (localPeakY-newWindow)*resolution, (localPeakY+newWindow+1)*resolution, emptyList, originalFeatures);
+                                                        GenericLocus anchor1 = new GenericLocus(newLoop.getChr1(), (long) (localPeakX-newWindow-0.5)*resolution, (long) (localPeakX+newWindow+0.5)*resolution, originalFeatures, emptyList);
+                                                        GenericLocus anchor2 = new GenericLocus(newLoop.getChr2(), (long) (localPeakY-newWindow-0.5)*resolution, (long) (localPeakY+newWindow+0.5)*resolution, emptyList, originalFeatures);
                                                         synchronized (finalLoopList) {
                                                             finalLoopList.add(chr1.getIndex(), chr2.getIndex(), newLoop);
                                                         }
                                                         synchronized (highResAnchorList) {
                                                             highResAnchorList.addFeature(newLoop.getChr1(), anchor1);
                                                             highResAnchorList.addFeature(newLoop.getChr2(), anchor2);
+                                                        }
+                                                        synchronized (upstreamAnchorList) {
+                                                            upstreamAnchorList.addFeature(newLoop.getChr1(), anchor1);
+                                                        }
+                                                        synchronized (downstreamAnchorList) {
+                                                            downstreamAnchorList.addFeature(newLoop.getChr2(), anchor2);
                                                         }
                                                     }
 
@@ -388,13 +417,23 @@ public class Localizer extends JuicerCLT {
                 // output primary list
                 GenericLocusTools.callMergeAnchors(highResAnchorPrimaryList);
                 GenericLocusTools.updateOriginalFeatures(highResAnchorPrimaryList, "highRes");
+                GenericLocusTools.callMergeAnchors(upstreamAnchorPrimaryList);
+                GenericLocusTools.updateOriginalFeatures(upstreamAnchorPrimaryList, "upstream");
+                GenericLocusTools.callMergeAnchors(downstreamAnchorPrimaryList);
+                GenericLocusTools.updateOriginalFeatures(downstreamAnchorPrimaryList, "downstream");
                 highResAnchorPrimaryList.simpleExport(new File(outputDirectory, "highRes_primary_loopAnchors.bed"));
+                upstreamAnchorPrimaryList.simpleExport(new File(outputDirectory, "upstream_primary_loopAnchors.bed"));
+                downstreamAnchorPrimaryList.simpleExport(new File(outputDirectory, "downstream_primary_loopAnchors.bed"));
                 finalPrimaryLoopList.exportFeatureList(new File(outputDirectory, "localizedList_primary_"+resolution+".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
 
                 // output secondary list if number of requested localized peaks > 1
                 if (numLocalizedPeaks > 1) {
                     GenericLocusTools.callMergeAnchors(highResAnchorList);
                     GenericLocusTools.updateOriginalFeatures(highResAnchorList, "highRes");
+                    GenericLocusTools.callMergeAnchors(upstreamAnchorList);
+                    GenericLocusTools.updateOriginalFeatures(upstreamAnchorList, "upstream");
+                    GenericLocusTools.callMergeAnchors(downstreamAnchorList);
+                    GenericLocusTools.updateOriginalFeatures(downstreamAnchorList, "downstream");
                     highResAnchorList.simpleExport(new File(outputDirectory, "highRes_loopAnchors.bed"));
                     finalLoopList.exportFeatureList(new File(outputDirectory, "localizedList_" + resolution + ".bedpe"), true, Feature2DList.ListFormat.LOCALIZED);
                 }

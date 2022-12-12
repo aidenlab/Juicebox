@@ -67,7 +67,7 @@ public class CommandLineParserForJuicer extends CommandLineParser {
 
     //Localizer
     private final Option expandSize = addIntegerOption('e', "expand");
-
+    private final Option numPeaks = addIntegerOption("num-peaks");
     private final Option relativeLocationOption = addStringOption('l', "location-type");
     private final Option multipleAttributesOption = addStringOption('a', "attributes");
 
@@ -138,6 +138,8 @@ public class CommandLineParserForJuicer extends CommandLineParser {
     }
 
     public int getExpandSize() { return optionToInt(expandSize);}
+
+    public int getNumPeaks() { return optionToInt(numPeaks);}
 
     /**
      * double flags
