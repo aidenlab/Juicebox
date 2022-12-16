@@ -331,20 +331,24 @@ public class Feature2DList {
                                     "motif_start_1", "motif_end_1", "sequence_1", "orientation_1", "uniqueness_1",
                                     "motif_start_2", "motif_end_2", "sequence_2", "orientation_2", "uniqueness_2",
                                     "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
-                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                                    "upstream_start_1", "upstream_end_1", "downstream_start_2", "downstream_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localZscore", "localPeakID"));
                         } else if (featureZero.attributes.containsKey("motif_start_1")) {
                             outputKeys.addAll(Arrays.asList("motif_start_1", "motif_end_1", "sequence_1", "orientation_1", "uniqueness_1",
                                     "motif_start_2", "motif_end_2", "sequence_2", "orientation_2", "uniqueness_2",
                                     "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
-                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                                    "upstream_start_1", "upstream_end_1", "downstream_start_2", "downstream_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localZscore", "localPeakID"));
                         } else if (featureZero.attributes.containsKey("expectedBL")){
                             outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                     "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius",
                                     "highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
-                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                                    "upstream_start_1", "upstream_end_1", "downstream_start_2", "downstream_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localZscore", "localPeakID"));
                         } else {
                             outputKeys.addAll(Arrays.asList("highRes_start_1", "highRes_end_1", "highRes_start_2", "highRes_end_2",
-                                    "localX", "localY", "localObserved", "localPval", "localPeakID"));
+                                    "upstream_start_1", "upstream_end_1", "downstream_start_2", "downstream_end_2",
+                                    "localX", "localY", "localObserved", "localPval", "localZscore", "localPeakID"));
                         }
                     }else if (listFormat == ListFormat.ARROWHEAD) {
                         outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
