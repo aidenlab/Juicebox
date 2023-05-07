@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2023 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.localizer;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
@@ -123,22 +124,27 @@ public class LocalizerUtils {
         RealMatrix rawSourceCopy = rawSource.copy();
         RealMatrix rawSummedData = new Array2DRowRealMatrix(rawSource.getRowDimension(), rawSource.getColumnDimension());
         boxBlur(rawSourceCopy, rawSummedData, window);
-        multiplyInPlaceRound(rawSummedData,(window+window+1)*(window+window+1));
+        multiplyInPlaceRound(rawSummedData, (window + window + 1) * (window + window + 1));
         Instant B = Instant.now();
-        System.out.println("time to blur raw matrix: " + Duration.between(A,B).toMillis());
-
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to blur raw matrix: " + Duration.between(A, B).toMillis());
+        }
         // calculate normed local matrix using input local norm vectors (normSource)
         // calculate gaussian blurred normed local matrix over requested window (normBlurred), multiply in place by ratio of box blurred raw matrix to normed matrix in order to make sure same number of contacts
         RealMatrix normSource = calculateNormMatrix(rawSource, normH, normV);
         Instant C = Instant.now();
-        System.out.println("time to calculate norm matrix: " + Duration.between(B,C).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to calculate norm matrix: " + Duration.between(B, C).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normInputData.txt").getPath(), normSource);
         RealMatrix normBlurred = gaussBlur(normSource, window); //new Array2DRowRealMatrix(rawSource.getRowDimension(), rawSource.getColumnDimension());
         double rawSummedSum = matrixSum(rawSummedData, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
         double normBlurredSum = matrixSum(normBlurred, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
-        multiplyInPlace(normBlurred, rawSummedSum/normBlurredSum);
+        multiplyInPlace(normBlurred, rawSummedSum / normBlurredSum);
         Instant D = Instant.now();
-        System.out.println("time to blur norm matrix: " + Duration.between(C,D).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to blur norm matrix: " + Duration.between(C, D).toMillis());
+        }
 
         //MatrixTools.saveMatrixText(new File(outputDirectory, "summedData.txt").getPath(), rawSummedData);
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normSummedData.txt").getPath(), normBlurred);
@@ -146,25 +152,31 @@ public class LocalizerUtils {
         // set a non-uniform expected based on ratio of raw data to normed data (normExpected)
         // multiply in place to make sure it has the same number of contacts as the boxBlurred raw matrix
         RealMatrix normExpected = setNormExpected(rawSummedData, normBlurred, normH, normV);
-        double normExpectedSum = matrixSum(normExpected,0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
-        multiplyInPlace(normExpected, rawSummedSum/normExpectedSum);
+        double normExpectedSum = matrixSum(normExpected, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
+        multiplyInPlace(normExpected, rawSummedSum / normExpectedSum);
         Instant E = Instant.now();
-        System.out.println("time to set expected: " + Duration.between(D,E).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to set expected: " + Duration.between(D, E).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normExpectedData.txt").getPath(), normExpected);
 
         //do local nonmaximum suppression using the Poisson Z-score [2*(sqrt(X)-sqrt(lambda))]
         RealMatrix localMaxData = nonmaxsuppressPoissonZ(rawSummedData, normExpected, window);
         Instant F = Instant.now();
-        System.out.println("time to suppress non-max: " + Duration.between(E,F).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to suppress non-max: " + Duration.between(E, F).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "localMaxData.txt").getPath(), localMaxData);
 
         // count non-zero entries for bonferroni correction
-        int pValAdj = nonZeroEntries(localMaxData, window, rawSource.getRowDimension()-window, window, rawSource.getColumnDimension()-window);
+        int pValAdj = nonZeroEntries(localMaxData, window, rawSource.getRowDimension() - window, window, rawSource.getColumnDimension() - window);
 
         // rank localized peaks
         List<List<Double>> orderedPeaks = orderPeaksPoissonZ(localMaxData, normExpected, window, maxPval, pValAdj);
         Instant G = Instant.now();
-        System.out.println("time to identify peaks: " + Duration.between(F,G).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to identify peaks: " + Duration.between(F, G).toMillis());
+        }
 
         // return localized peaks
         List<Double> finalPeaksR = new ArrayList<>();
@@ -172,7 +184,7 @@ public class LocalizerUtils {
         List<Double> finalPeaksP = new ArrayList<>();
         List<Double> finalPeaksO = new ArrayList<>();
         List<Double> finalPeaksZ = new ArrayList<>();
-        numPeaks = numPeaks > orderedPeaks.get(0).size()? orderedPeaks.get(0).size() : numPeaks;
+        numPeaks = numPeaks > orderedPeaks.get(0).size() ? orderedPeaks.get(0).size() : numPeaks;
         for (int i = 0; i < numPeaks; i++) {
             double peakRow = orderedPeaks.get(0).get(i);
             double peakCol = orderedPeaks.get(1).get(i);

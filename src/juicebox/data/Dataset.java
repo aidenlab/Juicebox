@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2023 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -105,7 +105,8 @@ public class Dataset {
                 matrices.put(key, m);
 
             } catch (Exception e) {
-                System.err.println("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName());
+                System.err.println("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName() +
+                        " in " + reader.getPath());
                 e.printStackTrace();
             }
         }
