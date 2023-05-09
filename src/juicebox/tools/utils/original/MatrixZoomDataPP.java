@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.tools.utils.original;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.v9depth.V9Depth;
@@ -353,8 +354,10 @@ public class MatrixZoomDataPP {
     private void dumpBlocks(File file) throws IOException {
         LittleEndianOutputStream los = null;
         try {
-            System.err.println("Used Memory prior to dumping blocks " + binSize);
-            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Used Memory prior to dumping blocks " + binSize);
+                System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            }
             los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file), 4194304));
 
             List<BlockPP> blockList = new ArrayList<>(blocks.values());
@@ -402,9 +405,10 @@ public class MatrixZoomDataPP {
             }
 
             blocks.clear();
-            System.err.println("Used Memory after dumping blocks " + binSize);
-            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Used Memory after dumping blocks " + binSize);
+                System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            }
         } finally {
             if (los != null) los.close();
 
@@ -582,8 +586,10 @@ public class MatrixZoomDataPP {
                 System.out.println("Error while deleting file");
             }
         }
-        System.err.println("Used Memory after writing zoom");
-        System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        if (HiCGlobals.printVerboseComments) {
+            System.err.println("Used Memory after writing zoom");
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        }
         computeStats(sampledData);
         return finalIndexEntries;
     }
@@ -624,8 +630,10 @@ public class MatrixZoomDataPP {
                 indexEntries.add(new IndexEntry(num, position, (int) size));
             }
             currentBlock.clear();
-            System.err.println("Used Memory after writing block " + i);
-            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("Used Memory after writing block " + i);
+                System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            }
         }
         threadSafeBlocks.clear();
     }

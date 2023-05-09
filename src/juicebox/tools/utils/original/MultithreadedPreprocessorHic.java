@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,50 +28,33 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
-import juicebox.tools.utils.original.mnditerator.AlignmentPair;
-import juicebox.tools.utils.original.mnditerator.AsciiPairIterator;
-import juicebox.tools.utils.original.mnditerator.PairIterator;
+import juicebox.tools.utils.original.merge.HiCMergeTools;
 import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.util.Pair;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.Deflater;
 
 
 public class MultithreadedPreprocessorHic extends Preprocessor {
     public static final String CAT_SCRIPT = "_cat_outputs.sh";
     private final Map<Integer, String> chromosomePairIndexes = new ConcurrentHashMap<>();
-    private final Map<String, Integer> chromosomePairIndexesReverse = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> chromosomePairIndex1 = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> chromosomePairIndex2 = new ConcurrentHashMap<>();
-    private int chromosomePairCounter = 0;
+    private final int chromosomePairCounter;
     private final Map<Integer, Integer> nonemptyChromosomePairs = new ConcurrentHashMap<>();
-    private final Map<Integer, Map<Integer, MatrixPP>> wholeGenomeMatrixParts = new ConcurrentHashMap<>();
-    private final Map<String, IndexEntry> localMatrixPositions = new ConcurrentHashMap<>();
-    private final Map<Integer, Long> matrixSizes = new ConcurrentHashMap<>();
     private final Map<Integer, Map<Long, List<IndexEntry>>> chromosomePairBlockIndexes;
     protected static int numCPUThreads = 1;
-    private final Map<Integer, Map<String, ExpectedValueCalculation>> allLocalExpectedValueCalculations;
     protected static Map<Integer, List<Chunk>> mndIndex = null;
-    private final AtomicInteger chunkCounter = new AtomicInteger(0);
-    private int totalChunks = 0;
-    private int totalChrPairToWrite = 0;
-    private final AtomicInteger totalChrPairsWritten = new AtomicInteger(0);
-    private final ConcurrentHashMap<Integer, AtomicInteger> completedChunksPerChrPair = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Integer> numChunksPerChrPair = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, AtomicInteger> chrPairCompleted = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, AtomicInteger> chrPairAvailableThreads = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Integer> chrPairBlockCapacities = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrPairMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Integer> chunkCounterToChrChunkMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Map<Integer, Pair<Pair<Integer, Integer>, MatrixPP>>> threadSpecificChrPairMatrices = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, MatrixPP> finalChrMatrices = new ConcurrentHashMap<>();
     private Dataset ds;
     private long currentPosition;
 
@@ -80,45 +63,44 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
         super(outputFile, genomeId, chromosomeHandler, hicFileScalingFactor);
         MultithreadedPreprocessorHic.numCPUThreads = numCPUThreads;
         chromosomeIndexes = MTIndexHandler.populateChromosomeIndexes(chromosomeHandler, numCPUThreads);
+        Map<String, Integer> chromosomePairIndexesReverse = new ConcurrentHashMap<>();
         chromosomePairCounter = MTIndexHandler.populateChromosomePairIndexes(chromosomeHandler,
                 chromosomePairIndexes, chromosomePairIndexesReverse,
                 chromosomePairIndex1, chromosomePairIndex2);
         this.chromosomePairBlockIndexes = new ConcurrentHashMap<>(chromosomePairCounter, (float) 0.75, numCPUThreads);
-        this.allLocalExpectedValueCalculations = new ConcurrentHashMap<>(numCPUThreads, (float) 0.75, numCPUThreads);
     }
 
     @Override
     public void preprocess(final String inputFile, String ignore1, String ignore2, Map<Integer,
             List<Chunk>> ignore3) throws IOException {
         List<String> summedHiCFiles = Arrays.asList(inputFile.split("\\+"));
+        HiCMergeTools.mergeStatsAndGraphs(summedHiCFiles, this, outputFile.getAbsolutePath());
         ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         super.preprocess(inputFile, outputFile + "_header", outputFile + "_footer", mndIndex);
 
         try {
             PrintWriter finalOutput = new PrintWriter(outputFile + CAT_SCRIPT);
             StringBuilder catOutputLine = new StringBuilder();
-            StringBuilder removeLine = new StringBuilder();
-            catOutputLine.append("cat ").append(outputFile + "_header").append(" >> ").append(outputFile).append("\n");
-            removeLine.append("rm ").append(outputFile + "_header\n");
+            catOutputLine.append("cat ").append(outputFile).append("_header").append(" > ").append(outputFile).append("\n");
+            catOutputLine.append("rm ").append(outputFile).append("_header\n");
             for (int i = 0; i < chromosomePairCounter; i++) {
                 if ((nonemptyChromosomePairs.containsKey(i) && chromosomePairBlockIndexes.containsKey(i)) || i == 0) {
                     catOutputLine.append("cat ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append(" >> ").append(outputFile).append("\n");
-                    removeLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("\n");
+                    catOutputLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("\n");
                     if (i > 0) {
                         int numOfNeededThreads = numCPUThreads;
                         if (numOfNeededThreads > 1) {
                             for (int j = 1; j <= numOfNeededThreads * numResolutions; j++) {
                                 catOutputLine.append("cat ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append(" >> ").append(outputFile).append("\n");
-                                removeLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append("\n");
+                                catOutputLine.append("rm ").append(outputFile).append("_").append(chromosomePairIndexes.get(i)).append("_").append(j).append("\n");
                             }
                         }
                     }
                 }
             }
-            catOutputLine.append("cat ").append(outputFile + "_footer").append(" >> ").append(outputFile).append("\n");
-            removeLine.append("rm ").append(outputFile + "_footer\n");
-            finalOutput.println(catOutputLine.toString());
-            finalOutput.println(removeLine.toString());
+            catOutputLine.append("cat ").append(outputFile).append("_footer").append(" >> ").append(outputFile).append("\n");
+            catOutputLine.append("rm ").append(outputFile).append("_footer\n");
+            finalOutput.println(catOutputLine);
             finalOutput.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,25 +109,10 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
         }
     }
 
-    private int getGenomicPosition(int chr, int pos, ChromosomeHandler localChromosomeHandler) {
-        long len = 0;
-        for (int i = 1; i < chr; i++) {
-            len += localChromosomeHandler.getChromosomeFromIndex(i).getLength();
-        }
-        len += pos;
-
-        return (int) (len / 1000);
-
-    }
-
-
-
     @Override
     protected void writeBody(String inputFile, Map<Integer, List<Chunk>> mndIndex) throws IOException {
 
         currentPosition = losArray[0].getWrittenCount();
-        Set<String> syncWrittenMatrices = Collections.synchronizedSet(new HashSet<>());
-        final AtomicInteger freeThreads = new AtomicInteger(numCPUThreads);
 
         Map<String, Integer> fragmentCountMap = null;
         boolean calculateExpecteds = false;
@@ -163,12 +130,11 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
             calculateExpecteds = true;
         }
 
-        WriteIndividualMatrix(0,1, false, fragmentCountMap);
+        writeIndividualMatrix(0, 1, false, fragmentCountMap);
 
 
         for (int chrPair = 1; chrPair < chromosomePairCounter; chrPair++) {
-            WriteIndividualMatrix(chrPair, numCPUThreads, calculateExpecteds, fragmentCountMap);
-            totalChrPairToWrite++;
+            writeIndividualMatrix(chrPair, numCPUThreads, calculateExpecteds, fragmentCountMap);
         }
 
         masterIndexPosition = currentPosition;
@@ -176,13 +142,13 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
 
     }
 
-    void WriteIndividualMatrix(Integer chromosomePair, int numOfNeededThreads, boolean calculateExpecteds, Map<String, Integer> fragmentCountMap) throws IOException {
+    void writeIndividualMatrix(Integer chromosomePair, int numOfNeededThreads, boolean calculateExpecteds, Map<String, Integer> fragmentCountMap) throws IOException {
         int chr1 = chromosomePairIndex1.get(chromosomePair);
         int chr2 = chromosomePairIndex2.get(chromosomePair);
 
         Matrix combinedMatrix = ds.getMatrix(chromosomeHandler.getChromosomeFromIndex(chr1), chromosomeHandler.getChromosomeFromIndex(chr2));
 
-        if (includedChromosomes != null && combinedMatrix!=null) {
+        if (includedChromosomes != null && combinedMatrix != null) {
             String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
             String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
             if (includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name)) {
@@ -195,12 +161,12 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
             LittleEndianOutputStream[] localLos;
             if (numOfNeededThreads == 1) {
                 localLos = new LittleEndianOutputStream[1];
-                localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair)), HiCGlobals.bufferSize));
+                localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(Files.newOutputStream(Paths.get(outputFile + "_" + chromosomePairIndexes.get(chromosomePair))), HiCGlobals.bufferSize));
             } else {
                 localLos = new LittleEndianOutputStream[(numOfNeededThreads * numResolutions) + 1];
-                localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair)), HiCGlobals.bufferSize));
+                localLos[0] = new LittleEndianOutputStream(new BufferedOutputStream(Files.newOutputStream(Paths.get(outputFile + "_" + chromosomePairIndexes.get(chromosomePair))), HiCGlobals.bufferSize));
                 for (int i = 1; i <= numOfNeededThreads * numResolutions; i++) {
-                    localLos[i] = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile + "_" + chromosomePairIndexes.get(chromosomePair) + "_" + i), HiCGlobals.bufferSize));
+                    localLos[i] = new LittleEndianOutputStream(new BufferedOutputStream(Files.newOutputStream(Paths.get(outputFile + "_" + chromosomePairIndexes.get(chromosomePair) + "_" + i)), HiCGlobals.bufferSize));
                 }
             }
 
@@ -260,7 +226,7 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
                     zd = combinedMatrix.getZoomData(new HiCZoom(HiC.Unit.FRAG, fragBinSizes[i - bpBinSizes.length]));
                 }
                 if (zd != null) {
-                    Pair<List<IndexEntry>, ExpectedValueCalculation> zdOutput = null;
+                    Pair<List<IndexEntry>, ExpectedValueCalculation> zdOutput;
                     if (localLos.length > 1) {
                         zdOutput = zd.mergeAndWriteBlocks(localLos, compressor, i, numResolutions, calculateExpecteds, fragmentCountMap, chromosomeHandler, subsampleFraction, randomSubsampleGenerator);
                     } else {
@@ -296,7 +262,6 @@ public class MultithreadedPreprocessorHic extends Preprocessor {
                         currentPosition, entry.getKey());
             }
 
-            matrixSizes.put(chromosomePair, matrixSize);
             currentPosition += matrixSize;
             System.out.print(".");
         }
