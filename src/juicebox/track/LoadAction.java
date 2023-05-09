@@ -48,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.io.File;
 
 
 /**
@@ -253,7 +254,7 @@ public class LoadAction extends AbstractAction {
             jar.close();
         } else { // Run with IDE
             System.out.println("Within IDE");
-            URL url = MainWindow.class.getResource("/" + resourses_path);
+            URL url = MainWindow.class.getResource(File.separator + resourses_path);
             if (url != null) {
                 try {
                     final File apps = new File(url.toURI());

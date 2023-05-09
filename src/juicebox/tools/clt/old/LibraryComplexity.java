@@ -37,6 +37,7 @@ import java.text.ParseException;
 import java.util.Locale;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.File;
 
 public class LibraryComplexity extends JuiceboxCLT {
 
@@ -231,9 +232,9 @@ public class LibraryComplexity extends JuiceboxCLT {
                 Future<Long> futureUniqueReads = executor.submit(taskUniqueReads);
                 Future<Long> futureDupReadPairs = executor.submit(taskDupReadPairs);
 
-                File f = new File(localWorkingDirectory + "/" + fileName);
+                File f = new File(localWorkingDirectory + File.separator + fileName);
                 if (f.exists()) {
-                    BufferedReader reader = new BufferedReader(new FileReader(localWorkingDirectory + "/" + fileName));
+                    BufferedReader reader = new BufferedReader(new FileReader(localWorkingDirectory + File.separator + fileName));
                     String line = reader.readLine();
                     boolean done = false;
                     while (line != null && !done) {

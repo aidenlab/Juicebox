@@ -36,6 +36,7 @@ import juicebox.tools.clt.JuicerCLT;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
+import java.io.File;
 
 public class TriplesAPA extends JuicerCLT {
     public TriplesAPA() {
@@ -155,7 +156,7 @@ public class TriplesAPA extends JuicerCLT {
                     int min = Collections.min(plot3D.values());
 
                     int limit = Math.max((2 * max) / 3, min * 2);
-                    System.out.println(chr + " max/min/limit vals: " + max + "/" + min + "/" + limit);
+                    System.out.println(chr + " max/min/limit vals: " + max + File.separator + min + File.separator + limit);
                     for (String key : plot3D.keySet()) {
                         int val = plot3D.get(key);
                         if (val > limit) {

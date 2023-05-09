@@ -45,6 +45,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.io.File;
 
 /**
  * @author jrobinso
@@ -385,7 +386,7 @@ public class Dataset {
                 "        <tr> <td> Experiment #:</td> <td>";
         String filename = reader.getPath();
         boolean mapq30 = filename.lastIndexOf("_30") > 0;
-        String[] parts = filename.split("/");
+        String[] parts = filename.split("(/|\\\\\\\\)");
         newStats += parts[parts.length - 2];
         newStats += "</td></tr>";
         newStats += "<tr> <td> Restriction Enzyme:</td><td>";

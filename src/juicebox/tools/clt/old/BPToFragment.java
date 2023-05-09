@@ -35,6 +35,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.io.File;
 
 
 public class BPToFragment extends JuiceboxCLT {
@@ -84,7 +85,7 @@ public class BPToFragment extends JuiceboxCLT {
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 String path = nextLine.trim();
-                int lastSlashIdx = path.lastIndexOf("/");
+                int lastSlashIdx = path.lastIndexOf(File.separator);
                 if (lastSlashIdx < 0) lastSlashIdx = path.lastIndexOf("\\");  // Windows convention
                 String fn = lastSlashIdx < 0 ? path : path.substring(lastSlashIdx);
 
