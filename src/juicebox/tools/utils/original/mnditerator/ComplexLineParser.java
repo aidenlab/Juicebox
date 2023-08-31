@@ -61,6 +61,18 @@ public class ComplexLineParser extends MNDLineParser {
     }
 
     @Override
+    public AlignmentTriple generateBasicTriple(String[] tokens, int chrom1Index, int chrom2Index, int chrom3Index,
+                                               int pos1Index, int pos2Index, int pos3Index) {
+        String chrom1 = handler.cleanUpName(getInternedString(tokens[chrom1Index]));
+        String chrom2 = handler.cleanUpName(getInternedString(tokens[chrom2Index]));
+        String chrom3 = handler.cleanUpName(getInternedString(tokens[chrom3Index]));
+        if (isValid(chrom1, chrom2, chrom3)) {
+            return createTriple(tokens, chrom1, chrom2, chrom3, pos1Index, pos2Index, pos3Index);
+        }
+        return new AlignmentTriple(); // sets dummy values, sets isContigPair
+    }
+
+    @Override
     public String getChromosomeNameFromIndex(int chrIndex) {
         return handler.getChromosomeFromIndex(chrIndex).getName();
     }
@@ -87,6 +99,23 @@ public class ComplexLineParser extends MNDLineParser {
         if (allowNewChroms) {
             updateOrdinalsMap(chrom1);
             updateOrdinalsMap(chrom2);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isValid(String chrom1, String chrom2, String chrom3) {
+        if (chromosomeOrdinals.containsKey(chrom1) &&
+                chromosomeOrdinals.containsKey(chrom2) &&
+                chromosomeOrdinals.containsKey(chrom3)) {
+            return true;
+        }
+
+        if (allowNewChroms) {
+            updateOrdinalsMap(chrom1);
+            updateOrdinalsMap(chrom2);
+            updateOrdinalsMap(chrom3);
             return true;
         }
 

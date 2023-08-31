@@ -40,6 +40,7 @@ public class MNDFileParser {
         this.pg = pg;
     }
 
+    /*Extend file format for triples*/
     public static Format getFileFormat(int nTokens, String nextLine) throws IOException {
         if (nTokens == 4) {
             return Format.SUPER_SHORT;
@@ -53,6 +54,8 @@ public class MNDFileParser {
             return Format.LONG;
         } else if (nTokens == 11) {
             return Format.MEDIUM;
+        } else if (nTokens == 12) {
+            return Format.TRIPLE;
         } else {
             throw new IOException("Unexpected number of columns: " + nTokens + "\n" +
                     "Check line containing:\n" + nextLine);
@@ -84,10 +87,39 @@ public class MNDFileParser {
         } else if (format == Format.SUPER_SHORT || format == Format.SUPER_SHORT_WITH_SCORE) {
             return parseSuperShortFormat(tokens, format == Format.SUPER_SHORT_WITH_SCORE);
         } else {
+            if (format == Format.TRIPLE) {
+                System.err.println("Error: Wrong parsing for triplet format; should call parseTriple");
+            }
             return parseShortFormat(tokens, format == Format.SHORT_WITH_SCORE);
         }
     }
 
+    /**
+     * formats detailed: https://github.com/aidenlab/juicer/wiki/Pre#file-format
+     */
+    public AlignmentTriple parseTriple(String nextLine) throws IOException {
+        String[] tokens = JuiceboxCLT.splitToList(nextLine);
+        if (format == null) {
+            int nTokens = tokens.length;
+            if (nextLine.startsWith("#")) { // header line, skip; DCIC files MUST have header
+                System.err.println("Error: Wrong triple input file format: do not expect header lines");
+//                format = Format.DCIC;
+//                updateDCICIndicesIfApplicable(nextLine, tokens);
+                return new AlignmentTriple(true);
+            } else {
+                format = getFileFormat(nTokens, nextLine);
+            }
+        }
+
+        if (format == Format.TRIPLE) {
+            return parseTripleFormat(tokens);
+        } else {
+            System.err.println("Error: Wrong file format for parseTriple call");
+            return new AlignmentTriple(true);
+        }
+    }
+
+    /*Question: What are DCIC indices?*/
     public void updateDCICIndicesIfApplicable(String nextLine, String[] tokens) {
         if (nextLine.contains("column")) {
             for (int i = 0; i < tokens.length; i++) {
@@ -137,10 +169,16 @@ public class MNDFileParser {
                 4, 8, 9, 10, 1, 5);
     }
 
+    // Assume that triple input file format has 12 fields. [strand, chrom, pos, mapq] * 3
+    private AlignmentTriple parseTripleFormat(String[] tokens) {
+        return pg.generateMediumTriple(tokens, 1, 5, 9, 2, 6, 10,
+                3, 7, 11, 0, 4, 8);
+    }
+
     public String getChromosomeNameFromIndex(int chrIndex) {
         return pg.getChromosomeNameFromIndex(chrIndex);
     }
 
-    enum Format {SUPER_SHORT, SUPER_SHORT_WITH_SCORE, SHORT, LONG, MEDIUM, SHORT_WITH_SCORE, DCIC}
+    enum Format {SUPER_SHORT, SUPER_SHORT_WITH_SCORE, SHORT, LONG, MEDIUM, SHORT_WITH_SCORE, DCIC, TRIPLE}
 
 }

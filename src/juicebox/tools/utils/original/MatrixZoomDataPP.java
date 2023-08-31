@@ -697,6 +697,7 @@ public class MatrixZoomDataPP {
 
     }
 
+    /*Question: What's the purpose of parsing complete here?*/
     void parsingComplete() {
         // Add the block numbers still in memory
         for (BlockPP block : blocks.values()) {

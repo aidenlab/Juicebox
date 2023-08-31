@@ -24,27 +24,29 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.tools.utils.original.stats.PointTriple;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Representation of a sparse matrix block used for preprocessing.
+ * Representation of a sparse tensor block used for preprocessing.
  */
-class BlockPP {
+class TensorBlockPP {
 
     private final int number;
 
-    // Key to the map is a Point representing the x,y coordinate for the cell.
-    private final Map<Point, ContactCount> contactRecordMap;
+    // Key to the map is a PointTriple object representing the x,y,z coordinate for the cell.
+    private final Map<PointTriple, ContactCount> contactRecordMap;
 
 
-    BlockPP(int number) {
+    TensorBlockPP(int number) {
         this.number = number;
         this.contactRecordMap = new HashMap<>();
     }
 
-    BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
+    TensorBlockPP(int number, Map<PointTriple, ContactCount> contactRecordMap) {
         this.number = number;
         this.contactRecordMap = contactRecordMap;
     }
@@ -54,31 +56,29 @@ class BlockPP {
         return number;
     }
 
-    /*Question: definition of contactRecords!*/
+    /*definition of contactRecords: size of nonzero voxels*/
     int getNumRecords() {return contactRecordMap.size();}
 
-    void incrementCount(int col, int row, float score) {
-        /*Question: BlockPP why making a point (col, row)?*/
-        Point p = new Point(col, row);
+    void incrementCount(int x, int y, int z, float score) {
+        PointTriple p = new PointTriple(x, y, z);
         ContactCount rec = contactRecordMap.get(p);
         if (rec == null) {
             rec = new ContactCount(score);
             contactRecordMap.put(p, rec);
-
         } else {
             rec.incrementCount(score);
         }
     }
 
-    Map<Point, ContactCount> getContactRecordMap() {
+    Map<PointTriple, ContactCount> getContactRecordMap() {
         return contactRecordMap;
     }
 
-    void merge(BlockPP other) {
+    void merge(TensorBlockPP other) {
 
-        for (Map.Entry<Point, ContactCount> entry : other.getContactRecordMap().entrySet()) {
+        for (Map.Entry<PointTriple, ContactCount> entry : other.getContactRecordMap().entrySet()) {
 
-            Point point = entry.getKey();
+            PointTriple point = entry.getKey();
             ContactCount otherValue = entry.getValue();
 
             ContactCount value = contactRecordMap.get(point);
@@ -87,7 +87,6 @@ class BlockPP {
             } else {
                 value.incrementCount(otherValue.getCounts());
             }
-
         }
     }
 

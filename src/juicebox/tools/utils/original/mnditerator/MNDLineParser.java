@@ -41,12 +41,24 @@ public abstract class MNDLineParser {
 
     public abstract AlignmentPair generateBasicPair(String[] tokens, int chrom1Index, int chrom2Index, int pos1Index, int pos2Index);
 
+    public abstract AlignmentTriple generateBasicTriple(String[] tokens, int chrom1Index, int chrom2Index, int chrom3Index, int pos1Index, int pos2Index, int pos3Index);
+
     protected AlignmentPair createPair(String[] tokens, String chrom1, String chrom2, int pos1Index, int pos2Index) {
         int chr1 = getChromosomeOrdinal(chrom1);
         int chr2 = getChromosomeOrdinal(chrom2);
         int pos1 = Integer.parseInt(tokens[pos1Index]);
         int pos2 = Integer.parseInt(tokens[pos2Index]);
         return new AlignmentPair(chr1, pos1, chr2, pos2);
+    }
+
+    protected AlignmentTriple createTriple(String[] tokens, String chrom1, String chrom2, String chrom3, int pos1Index, int pos2Index, int pos3Index) {
+        int chr1 = getChromosomeOrdinal(chrom1);
+        int chr2 = getChromosomeOrdinal(chrom2);
+        int chr3 = getChromosomeOrdinal(chrom3);
+        int pos1 = Integer.parseInt(tokens[pos1Index]);
+        int pos2 = Integer.parseInt(tokens[pos2Index]);
+        int pos3 = Integer.parseInt(tokens[pos3Index]);
+        return new AlignmentTriple(chr1, pos1, chr2, pos2, chr3, pos3);
     }
 
     public AlignmentPair generateMediumPair(String[] tokens, int chrom1Index, int chrom2Index,
@@ -59,10 +71,29 @@ public abstract class MNDLineParser {
         return nextPair;
     }
 
+    public AlignmentTriple generateMediumTriple(String[] tokens, int chrom1Index, int chrom2Index, int chrom3Index,
+                                                int pos1Index, int pos2Index, int pos3Index, int mapq1Index,
+                                                int mapq2Index, int mapq3Index, int strand1Index, int strand2Index,
+                                                int strand3Index) {
+        AlignmentTriple nextTriple = generateBasicTriple(tokens, chrom1Index, chrom2Index, chrom3Index, pos1Index,
+                pos2Index, pos3Index);
+        updateMAPQsForTriple(nextTriple, tokens, mapq1Index, mapq2Index, mapq3Index);
+        updateStrandsForTriple(nextTriple, tokens, strand1Index, strand2Index, strand3Index);
+        return nextTriple;
+    }
+
     public void updateStrandsForPair(AlignmentPair nextPair, String[] tokens, int strand1Index, int strand2Index) {
         boolean strand1 = Integer.parseInt(tokens[strand1Index]) == 0;
         boolean strand2 = Integer.parseInt(tokens[strand2Index]) == 0;
         nextPair.updateStrands(strand1, strand2);
+    }
+
+    public void updateStrandsForTriple(AlignmentTriple nextTriple, String[] tokens, int strand1Index, int strand2Index,
+                                       int strand3Index) {
+        boolean strand1 = Integer.parseInt(tokens[strand1Index]) == 0;
+        boolean strand2 = Integer.parseInt(tokens[strand2Index]) == 0;
+        boolean strand3 = Integer.parseInt(tokens[strand3Index]) == 0;
+        nextTriple.updateStrands(strand1, strand2, strand3);
     }
 
     public void updateDCICStrandsForPair(AlignmentPair nextPair, String[] tokens, int strand1Index, int strand2Index) {
@@ -71,10 +102,24 @@ public abstract class MNDLineParser {
         nextPair.updateStrands(strand1, strand2);
     }
 
+    public void updateDCICStrandsForTriple(AlignmentTriple nextTriple, String[] tokens, int strand1Index, int strand2Index, int strand3Index) {
+        boolean strand1 = tokens[strand1Index].equals("+");
+        boolean strand2 = tokens[strand2Index].equals("+");
+        boolean strand3 = tokens[strand3Index].equals("+");
+        nextTriple.updateStrands(strand1, strand2, strand3);
+    }
+
     public void updateMAPQsForPair(AlignmentPair nextPair, String[] tokens, int mapq1Index, int mapq2Index) {
         int mapq1 = Integer.parseInt(tokens[mapq1Index]);
         int mapq2 = Integer.parseInt(tokens[mapq2Index]);
         nextPair.updateMAPQs(mapq1, mapq2);
+    }
+
+    public void updateMAPQsForTriple(AlignmentTriple nextTriple, String[] tokens, int mapq1Index, int mapq2Index, int mapq3Index) {
+        int mapq1 = Integer.parseInt(tokens[mapq1Index]);
+        int mapq2 = Integer.parseInt(tokens[mapq2Index]);
+        int mapq3 = Integer.parseInt(tokens[mapq3Index]);
+        nextTriple.updateMAPQs(mapq1, mapq2, mapq3);
     }
 
     public void updateFragmentsForPair(AlignmentPair nextPair, String[] tokens, int frag1Index, int frag2Index) {
@@ -86,6 +131,12 @@ public abstract class MNDLineParser {
     public void updatePairScoreIfNeeded(boolean includeScore, AlignmentPair nextPair, String[] tokens, int scoreIndex) {
         if (includeScore) {
             nextPair.setScore(Float.parseFloat(tokens[scoreIndex]));
+        }
+    }
+
+    public void updateTripleScoreIfNeeded(boolean includeScore, AlignmentTriple nextTriple, String[] tokens, int scoreIndex) {
+        if (includeScore) {
+            nextTriple.setScore(Float.parseFloat(tokens[scoreIndex]));
         }
     }
 

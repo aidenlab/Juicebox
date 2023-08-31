@@ -54,6 +54,14 @@ public class SimpleLineParser extends MNDLineParser {
     }
 
     @Override
+    public AlignmentTriple generateBasicTriple(String[] tokens, int chrom1Index, int chrom2Index, int chrom3Index, int pos1Index, int pos2Index, int pos3Index) {
+        String chrom1 = getInternedString(tokens[chrom1Index]);
+        String chrom2 = getInternedString(tokens[chrom2Index]);
+        String chrom3 = getInternedString(tokens[chrom3Index]);
+        return createTriple(tokens, chrom1, chrom2, chrom3, pos1Index, pos2Index, pos3Index);
+    }
+
+    @Override
     public String getChromosomeNameFromIndex(int chrIndex) {
         return chrIndexToName.get(chrIndex);
     }
