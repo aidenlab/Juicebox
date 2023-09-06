@@ -53,22 +53,19 @@ public class TensorZoomDataPP {
     final ConcurrentHashMap<Integer, Integer> blockNumRecords;
     final List<File> tmpFiles;
     final Map<Integer, Map<File, Long>> tmpFilesByBlockNumber;
-//    private final Chromosome chr1;  // Redundant, but convenient    BinDatasetReader
-//    private final Chromosome chr2;  // Redundant, but convenient
-//    private final Chromosome chr3; // Redundant, but convenient
-    private final Chromosome[] sortedChrs;
-    private final int[] unsorted2Sorted;
-    private final int[] sorted2Unsorted;
+    private final Chromosome chr1;  // Redundant, but convenient    BinDatasetReader
+    private final Chromosome chr2;  // Redundant, but convenient
+    private final Chromosome chr3; // Redundant, but convenient
     private final int numSameChrs;
     private final int[] sameChrs; // 0 if not the same with any other chromsomes; 1 otherwise;
     private final int zoom;
-    private final int binSize;              // bin size in bp
+    private final int binSize;            // bin size in bp
     private final int blockBinCountZ;        // block size in bins in x dimension
     private final int blockBinCountY;        // block size in bins in y dimension
     private final int blockBinCountX;        // block size in bins in z dimension
-    private final int blockXCount;     // number of block columns
-    private final int blockYCount;        // number of block rows
-    private final int blockZCount;     // number of block depths
+    private final int blockXCount;     // number of block columns in x chromosome
+    private final int blockYCount;        // number of block rows in y chromosome
+    private final int blockZCount;     // number of block depths in z chromosome
     private final LinkedHashMap<Integer, TensorBlockPP> blocks;
     private final int countThreshold;
     long blockIndexPosition;
@@ -98,105 +95,34 @@ public class TensorZoomDataPP {
 
         sameChrs = new int[3];
 
-        long chr1Len = chr1.getLength();
-        long chr2Len = chr2.getLength();
-        long chr3Len = chr3.getLength();
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        this.chr3 = chr3;
+
+        int chr1Idx = chr1.getIndex();
+        int chr2Idx = chr2.getIndex();
+        int chr3Idx = chr3.getIndex();
 
         int count = 0;
-        if (chr1Len == chr2Len ) {
+        if (chr1Idx == chr2Idx) {
             count += 1;
             sameChrs[0] = 1;
             sameChrs[1] = 1;
         }
-        if (chr2Len == chr3Len) {
+        if (chr2Idx == chr3Idx) {
             count += 1;
             sameChrs[1] = 1;
             sameChrs[2] = 1;
         }
-        if (chr1Len == chr3Len) {
+        if (chr1Idx == chr3Idx) {
             count += 1;
             sameChrs[0] = 1;
             sameChrs[2] = 1;
         }
         numSameChrs = count;
 
-        if (numSameChrs == 3) {
-            sortedChrs = new Chromosome[] {chr1, chr2, chr3};
-            unsorted2Sorted = new int[] {0, 1, 2};
-            sorted2Unsorted = new int[] {0, 1, 2};
-        } else {
-            sortedChrs = new Chromosome[3];
-            unsorted2Sorted = new int[3];
-            sorted2Unsorted = new int[3];
-            // this.chr1 length >= this.chr2 length >= this.chr3 length
-            if (chr1Len >= chr2Len && chr1Len >= chr3Len) {
-                // input argument chr1 is the largest;
-                sortedChrs[0] = chr1;
-                unsorted2Sorted[0] = 0;
-                sorted2Unsorted[0] = 0;
-                if (chr2Len >= chr3Len) {
-                    sortedChrs[1] = chr2;
-                    unsorted2Sorted[1] = 1;
-                    sorted2Unsorted[1] = 1;
-                    sortedChrs[2] = chr3;
-                    unsorted2Sorted[2] = 2;
-                    sorted2Unsorted[2] = 2;
-                } else {
-                    sortedChrs[1] = chr3;
-                    unsorted2Sorted[2] = 1;
-                    sorted2Unsorted[1] = 2;
-                    sortedChrs[2] = chr2;
-                    unsorted2Sorted[1] = 2;
-                    sorted2Unsorted[2] = 1;
-                }
-            } else if (chr2Len >= chr3Len) {
-                // input argument chr2 is the largest
-                sortedChrs[0] = chr2;
-                unsorted2Sorted[1] = 0;
-                sorted2Unsorted[0] = 1;
-                if (chr1Len >= chr3Len) {
-                    sortedChrs[1] = chr1;
-                    unsorted2Sorted[0] = 1;
-                    sorted2Unsorted[1] = 0;
-                    sortedChrs[2] = chr3;
-                    unsorted2Sorted[2] = 2;
-                    sorted2Unsorted[2] = 2;
-                } else {
-                    sortedChrs[1] = chr3;
-                    unsorted2Sorted[2] = 1;
-                    sorted2Unsorted[1] = 2;
-                    sortedChrs[2] = chr1;
-                    unsorted2Sorted[0] = 2;
-                    sorted2Unsorted[2] = 0;
-                }
-            } else {
-                // input argument chr3 is the largest
-                sortedChrs[0] = chr3;
-                unsorted2Sorted[2] = 0;
-                sorted2Unsorted[0] = 2;
-                if (chr1Len >= chr2Len) {
-                    sortedChrs[1] = chr1;
-                    unsorted2Sorted[0] = 1;
-                    sorted2Unsorted[1] = 0;
-                    sortedChrs[2] = chr2;
-                    unsorted2Sorted[1] = 2;
-                    sorted2Unsorted[2] = 1;
-                } else {
-                    sortedChrs[1] = chr2;
-                    unsorted2Sorted[1] = 1;
-                    sorted2Unsorted[1] = 1;
-                    sortedChrs[2] = chr1;
-                    unsorted2Sorted[0] = 2;
-                    sorted2Unsorted[2] = 0;
-                }
-            }
-            int[] tmpSameChrs = new int[3];
-            tmpSameChrs[0] = sameChrs[unsorted2Sorted[0]];
-            tmpSameChrs[1] = sameChrs[unsorted2Sorted[1]];
-            tmpSameChrs[2] = sameChrs[unsorted2Sorted[2]];
-            sameChrs[0] = tmpSameChrs[0];
-            sameChrs[1] = tmpSameChrs[1];
-            sameChrs[2] = tmpSameChrs[2];
+        if (numSameChrs == 2 && (sameChrs[0] == 1 && sameChrs[2] == 1)) {
+            System.err.println("Error: input chromsomes are not sorted by Index\n");
         }
 
         this.binSize = binSize;
@@ -205,9 +131,10 @@ public class TensorZoomDataPP {
         this.blockZCount = blockZCount;
         this.zoom = zoom;
 
-        int nBinsX = (int) (sortedChrs[0].getLength() / binSize + 1);
-        int nBinsY = (int) (sortedChrs[1].getLength() / binSize + 1);
-        int nBinsZ = (int) (sortedChrs[2].getLength() / binSize + 1);
+        int nBinsX = (int) (this.chr1.getLength() / binSize + 1);
+        int nBinsY = (int) (this.chr2.getLength() / binSize + 1);
+        int nBinsZ = (int) (this.chr3.getLength() / binSize + 1);
+        // the three blockBinCount here should be similar in size!
         this.blockBinCountX = nBinsX / this.blockXCount + 1;
         this.blockBinCountY = nBinsY / this.blockYCount + 1;
         this.blockBinCountZ = nBinsZ / this.blockZCount + 1;
@@ -225,105 +152,34 @@ public class TensorZoomDataPP {
 
         sameChrs = new int[3];
 
-        long chr1Len = chr1.getLength();
-        long chr2Len = chr2.getLength();
-        long chr3Len = chr3.getLength();
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        this.chr3 = chr3;
+
+        int chr1Idx = chr1.getIndex();
+        int chr2Idx = chr2.getIndex();
+        int chr3Idx = chr3.getIndex();
 
         int count = 0;
-        if (chr1Len == chr2Len ) {
+        if (chr1Idx == chr2Idx) {
             count += 1;
             sameChrs[0] = 1;
             sameChrs[1] = 1;
         }
-        if (chr2Len == chr3Len) {
+        if (chr2Idx == chr3Idx) {
             count += 1;
             sameChrs[1] = 1;
             sameChrs[2] = 1;
         }
-        if (chr1Len == chr3Len) {
+        if (chr1Idx == chr3Idx) {
             count += 1;
             sameChrs[0] = 1;
             sameChrs[2] = 1;
         }
         numSameChrs = count;
 
-        if (numSameChrs == 3) {
-            sortedChrs = new Chromosome[] {chr1, chr2, chr3};
-            unsorted2Sorted = new int[] {0, 1, 2};
-            sorted2Unsorted = new int[] {0, 1, 2};
-        } else {
-            sortedChrs = new Chromosome[3];
-            unsorted2Sorted = new int[3];
-            sorted2Unsorted = new int[3];
-            // this.chr1 length >= this.chr2 length >= this.chr3 length
-            if (chr1Len >= chr2Len && chr1Len >= chr3Len) {
-                // input argument chr1 is the largest;
-                sortedChrs[0] = chr1;
-                unsorted2Sorted[0] = 0;
-                sorted2Unsorted[0] = 0;
-                if (chr2Len >= chr3Len) {
-                    sortedChrs[1] = chr2;
-                    unsorted2Sorted[1] = 1;
-                    sorted2Unsorted[1] = 1;
-                    sortedChrs[2] = chr3;
-                    unsorted2Sorted[2] = 2;
-                    sorted2Unsorted[2] = 2;
-                } else {
-                    sortedChrs[1] = chr3;
-                    unsorted2Sorted[2] = 1;
-                    sorted2Unsorted[1] = 2;
-                    sortedChrs[2] = chr2;
-                    unsorted2Sorted[1] = 2;
-                    sorted2Unsorted[2] = 1;
-                }
-            } else if (chr2Len >= chr3Len) {
-                // input argument chr2 is the largest
-                sortedChrs[0] = chr2;
-                unsorted2Sorted[1] = 0;
-                sorted2Unsorted[0] = 1;
-                if (chr1Len >= chr3Len) {
-                    sortedChrs[1] = chr1;
-                    unsorted2Sorted[0] = 1;
-                    sorted2Unsorted[1] = 0;
-                    sortedChrs[2] = chr3;
-                    unsorted2Sorted[2] = 2;
-                    sorted2Unsorted[2] = 2;
-                } else {
-                    sortedChrs[1] = chr3;
-                    unsorted2Sorted[2] = 1;
-                    sorted2Unsorted[1] = 2;
-                    sortedChrs[2] = chr1;
-                    unsorted2Sorted[0] = 2;
-                    sorted2Unsorted[2] = 0;
-                }
-            } else {
-                // input argument chr3 is the largest
-                sortedChrs[0] = chr3;
-                unsorted2Sorted[2] = 0;
-                sorted2Unsorted[0] = 2;
-                if (chr1Len >= chr2Len) {
-                    sortedChrs[1] = chr1;
-                    unsorted2Sorted[0] = 1;
-                    sorted2Unsorted[1] = 0;
-                    sortedChrs[2] = chr2;
-                    unsorted2Sorted[1] = 2;
-                    sorted2Unsorted[2] = 1;
-                } else {
-                    sortedChrs[1] = chr2;
-                    unsorted2Sorted[1] = 1;
-                    sorted2Unsorted[1] = 1;
-                    sortedChrs[2] = chr1;
-                    unsorted2Sorted[0] = 2;
-                    sorted2Unsorted[2] = 0;
-                }
-            }
-            int[] tmpSameChrs = new int[3];
-            tmpSameChrs[0] = sameChrs[unsorted2Sorted[0]];
-            tmpSameChrs[1] = sameChrs[unsorted2Sorted[1]];
-            tmpSameChrs[2] = sameChrs[unsorted2Sorted[2]];
-            sameChrs[0] = tmpSameChrs[0];
-            sameChrs[1] = tmpSameChrs[1];
-            sameChrs[2] = tmpSameChrs[2];
+        if (numSameChrs == 2 && (sameChrs[0] == 1 && sameChrs[2] == 1)) {
+            System.err.println("Error: input chromsomes are not sorted by Index\n");
         }
 
         this.binSize = binSize;
@@ -332,12 +188,13 @@ public class TensorZoomDataPP {
         this.blockZCount = blockZCount;
         this.zoom = zoom;
 
-        int nBinsX = (int) (sortedChrs[0].getLength() / binSize + 1);
-        int nBinsY = (int) (sortedChrs[1].getLength() / binSize + 1);
-        int nBinsZ = (int) (sortedChrs[2].getLength() / binSize + 1);
+        int nBinsX = (int) (this.chr1.getLength() / binSize + 1);
+        int nBinsY = (int) (this.chr2.getLength() / binSize + 1);
+        int nBinsZ = (int) (this.chr3.getLength() / binSize + 1);
         this.blockBinCountX = nBinsX / this.blockXCount + 1;
         this.blockBinCountY = nBinsY / this.blockYCount + 1;
         this.blockBinCountZ = nBinsZ / this.blockZCount + 1;
+
 //        /*Considering the 75% load factor*/
 //        Double depth75Loading = blockBinCountZ / 0.75;
         blocks = new LinkedHashMap<>(blockBinCountZ);
@@ -368,29 +225,15 @@ public class TensorZoomDataPP {
         return binSize;
     }
 
-    Chromosome getUnsortedChr1() {
-        return sortedChrs[unsorted2Sorted[0]];
+    Chromosome getChr1() {
+        return chr1;
     }
 
-    Chromosome getUnsortedChr2() {
-        return sortedChrs[unsorted2Sorted[1]];
+    Chromosome getChr2() {
+        return chr2;
     }
 
-    Chromosome getUnsortedChr3() {
-        return sortedChrs[unsorted2Sorted[2]];
-    }
-
-    Chromosome getSortedChr1() {
-        return sortedChrs[0];
-    }
-
-    Chromosome getSortedChr2() {
-        return sortedChrs[1];
-    }
-
-    Chromosome getSortedChr3() {
-        return sortedChrs[2];
-    }
+    Chromosome getChr3() { return chr3; }
 
     int getZoom() {
         return zoom;
@@ -420,7 +263,6 @@ public class TensorZoomDataPP {
         return blockZCount;
     }
 
-
     Map<Integer, TensorBlockPP> getBlocks() {
         return blocks;
     }
@@ -448,34 +290,24 @@ public class TensorZoomDataPP {
             sortedPos1 = unsortedPosList[0];
             sortedPos2 = unsortedPosList[1];
             sortedPos3 = unsortedPosList[2];
+        } else if (numSameChrs == 2) {
+            if (sameChrs[0] == 1 && sameChrs[1] == 1) {
+                sortedPos1 = Math.min(unsortedPosList[0], unsortedPosList[1]);
+                sortedPos2 = Math.max(unsortedPosList[0], unsortedPosList[1]);
+                sortedPos3 = unsortedPosList[2];
+            } else if (sameChrs[1] == 1 && sameChrs[2] == 1) {
+                sortedPos1 = unsortedPosList[0];
+                sortedPos2 = Math.min(unsortedPosList[1], unsortedPosList[2]);
+                sortedPos3 = Math.max(unsortedPosList[1], unsortedPosList[2]);
+            } else {
+                System.err.println("Error in counting sameChrs!\n");
+                return;
+            }
         } else {
-            int[] sortedPosList = new int[3];
-            for (int i = 0; i < unsortedPosList.length; i++) {
-                sortedPosList[unsorted2Sorted[i]] = unsortedPosList[i];
-            }
-            // Case 2: if two same chrs, need to resort based on ascending order;
-            if (numSameChrs == 2) {
-                int tmp;
-                if (sameChrs[0] == 1 && sameChrs[1] == 1) {
-                    tmp = Math.min(sortedPosList[0], sortedPosList[1]);
-                    sortedPosList[1] = Math.max(sortedPosList[0], sortedPosList[1]);
-                    sortedPosList[0] = tmp;
-                } else if (sameChrs[0] == 1 && sameChrs[2] == 1) {
-                    tmp = Math.min(sortedPosList[0], sortedPosList[2]);
-                    sortedPosList[2] = Math.max(sortedPosList[0], sortedPosList[2]);
-                    sortedPosList[0] = tmp;
-                } else if (sameChrs[1] == 1 && sameChrs[2] == 1) {
-                    tmp = Math.min(sortedPosList[1], sortedPosList[2]);
-                    sortedPosList[2] = Math.max(sortedPosList[1], sortedPosList[2]);
-                    sortedPosList[1] = tmp;
-                } else {
-                    System.err.println("Error in counting sameChrs!\n");
-                }
-            }
-            // if no two chromsomes are the same, no need to resort;
-            sortedPos1 = sortedPosList[0];
-            sortedPos2 = sortedPosList[1];
-            sortedPos3 = sortedPosList[2];
+            // if no two chromsomes are the same, no need to sort;
+            sortedPos1 = unsortedPosList[0];
+            sortedPos2 = unsortedPosList[1];
+            sortedPos3 = unsortedPosList[2];
         }
 
         int xBin = sortedPos1 / binSize;
@@ -700,8 +532,9 @@ public class TensorZoomDataPP {
         } else {
             nRecords = records.size();
         }
-        // TODO: need to be more sure about the size for each record!
-        BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 16);
+        // TODO: need to be more sure about the size of the buffer (it could be resized);
+        // Currently, this is a tight bound on the overestimated size;
+        BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 24 + 25);
         buffer.putInt(nRecords);
         incrementCellCount(nRecords);
 
@@ -817,9 +650,9 @@ public class TensorZoomDataPP {
         if (lorSize < denseSize) {
             buffer.put((byte) 1);  // List of slices representation
             if (useShortBinZ) {
-                buffer.putShort((short) slices.size()); // # of rows
+                buffer.putShort((short) slices.size()); // # of slices
             } else {
-                buffer.putInt(slices.size());  // # of rows
+                buffer.putInt(slices.size());  // # of slices
             }
 
             for (Map.Entry<Integer, LinkedHashMap<Integer, List<ContactRecord>>> entry : slices.entrySet()) {

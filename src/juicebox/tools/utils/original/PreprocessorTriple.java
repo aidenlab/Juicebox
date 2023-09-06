@@ -37,6 +37,7 @@ import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.original.mnditerator.AlignmentPair;
 import juicebox.tools.utils.original.mnditerator.AlignmentTriple;
 import juicebox.tools.utils.original.mnditerator.TripleIterator;
+import juicebox.tools.utils.original.stats.ChromBpTuple;
 import juicebox.windowui.NormalizationHandler;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
@@ -53,7 +54,7 @@ import java.util.zip.Deflater;
  */
 public class PreprocessorTriple {
     protected static final int VERSION = 1;
-    protected static final int BLOCK_SIZE = 1000;
+    protected static final int BLOCK_SIZE = 300; // might need to adjust according to performances;
     public static final String HIC_FILE_SCALING = "hicFileScalingFactor";
     public static final String STATISTICS = "statistics";
     public static final String GRAPHS = "graphs";
@@ -471,63 +472,30 @@ public class PreprocessorTriple {
         while (iter.hasNext()) {
             AlignmentTriple triple = iter.next();
 
-            // Flip pair if needed so chr1 < chr2
+            // Reorder triples if needed so chr1 < chr2 < chr3 in terms of chromosome number
             int chr1, chr2, chr3, bp1, bp2, bp3;
-            if (triple.getChr1() < triple.getChr2() && triple.getChr1() < triple.getChr3()) {
-                if (triple.getChr2() < triple.getChr3()) {
-                    bp1 = triple.getPos1();
-                    bp2 = triple.getPos2();
-                    bp3 = triple.getPos3();
-                    chr1 = triple.getChr1();
-                    chr2 = triple.getChr2();
-                    chr3 = triple.getChr3();
-                } else {
-                    bp1 = triple.getPos1();
-                    bp2 = triple.getPos3();
-                    bp3 = triple.getPos2();
-                    chr1 = triple.getChr1();
-                    chr2 = triple.getChr3();
-                    chr3 = triple.getChr2();
-                }
-            } else {
-                if (triple.getChr2() < triple.getChr3()) {
-                    if (triple.getChr1() < triple.getChr3()) {
-                        bp1 = triple.getPos2();
-                        bp2 = triple.getPos1();
-                        bp3 = triple.getPos3();
-                        chr1 = triple.getChr2();
-                        chr2 = triple.getChr1();
-                        chr3 = triple.getChr3();
-                    } else {
-                        bp1 = triple.getPos2();
-                        bp2 = triple.getPos3();
-                        bp3 = triple.getPos1();
-                        chr1 = triple.getChr2();
-                        chr2 = triple.getChr3();
-                        chr3 = triple.getChr1();
-                    }
-                } else {
-                    if (triple.getChr1() < triple.getChr2()) {
-                        bp1 = triple.getPos3();
-                        bp2 = triple.getPos1();
-                        bp3 = triple.getPos2();
-                        chr1 = triple.getChr3();
-                        chr2 = triple.getChr1();
-                        chr3 = triple.getChr2();
-                    } else {
-                        bp1 = triple.getPos3();
-                        bp2 = triple.getPos2();
-                        bp3 = triple.getPos1();
-                        chr1 = triple.getChr3();
-                        chr2 = triple.getChr2();
-                        chr3 = triple.getChr1();
-                    }
-                }
+
+            int[] chrs = new int[] {triple.getChr1(), triple.getChr2(), triple.getChr3()};
+            int[] bps = new int[] {triple.getPos1(), triple.getPos2(), triple.getPos3()};
+
+            List<ChromBpTuple> chrBpPairs = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                chrBpPairs.add(new ChromBpTuple(chrs[i], bps[i]));
             }
+
+            // Sort based on chromsome number
+            chrBpPairs.sort(Comparator.comparingInt(p->p.getChrom()));
+            chr1 = chrBpPairs.get(0).getChrom();
+            chr2 = chrBpPairs.get(1).getChrom();
+            chr3 = chrBpPairs.get(2).getChrom();
+
+            bp1 = chrBpPairs.get(0).getBp();
+            bp2 = chrBpPairs.get(1).getBp();
+            bp3 = chrBpPairs.get(2).getBp();
 
             bp1 = ensureFitInChromosomeBounds(bp1, chr1);
             bp2 = ensureFitInChromosomeBounds(bp2, chr2);
-            bp1 = ensureFitInChromosomeBounds(bp3, chr3);
+            bp3 = ensureFitInChromosomeBounds(bp3, chr3);
 
             /*Question: what's the meaning of intrafragment here?*/
             // only increment if not intraFragment and passes the mapq threshold
@@ -662,86 +630,87 @@ public class PreprocessorTriple {
             bufferList.get(bufferList.size()-1).putInt(entry.getValue().size);
         }
 
-        // Vectors  (Expected values,  other).
-        /***  NEVA ***/
-        if (expectedVectorFile == null) {
-            if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000) {
-                bufferList.add(new BufferedByteWriter());
-            }
-            bufferList.get(bufferList.size()-1).putInt(expectedValueCalculations.size());
-            for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
-                ExpectedValueCalculation ev = entry.getValue();
-    
-                ev.computeDensity();
-    
-                int binSize = ev.getGridSize();
-                HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
-
-                bufferList.get(bufferList.size()-1).putNullTerminatedString(unit.toString());
-                bufferList.get(bufferList.size()-1).putInt(binSize);
-    
-                // The density values
-                ListOfDoubleArrays expectedValues = ev.getDensityAvg();
-                // todo @Suhas to handle buffer overflow
-                bufferList.get(bufferList.size()-1).putLong(expectedValues.getLength());
-                for (double[] expectedArray : expectedValues.getValues()) {
-                    bufferList.add(new BufferedByteWriter());
-                    for (double value : expectedArray) {
-                        if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
-                            bufferList.add(new BufferedByteWriter());
-                        }
-                        bufferList.get(bufferList.size()-1).putFloat( (float) value);
-                    }
-                }
-    
-                // Map of chromosome index -> normalization factor
-                Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
-                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
-                    bufferList.add(new BufferedByteWriter());
-                }
-                bufferList.get(bufferList.size()-1).putInt(normalizationFactors.size());
-                for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
-                    bufferList.get(bufferList.size()-1).putInt(normFactor.getKey());
-                    bufferList.get(bufferList.size()-1).putFloat(normFactor.getValue().floatValue());
-                    //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
-                }
-            }
-        }
-        else {
-            // read in expected vector file. to get # of resolutions, might have to read twice.
-
-            int count=0;
-            try (Reader reader = new FileReader(expectedVectorFile);
-                 BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if (line.startsWith("fixedStep"))
-                        count++;
-                    if (line.startsWith("variableStep")) {
-                        System.err.println("Expected vector file must be in wiggle fixedStep format");
-                        System.exit(19);
-                    }
-                }
-            }
-            bufferList.get(bufferList.size()-1).putInt(count);
-            try (Reader reader = new FileReader(expectedVectorFile);
-                 BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if (line.startsWith("fixedStep")) {
-                        String[] words = line.split("\\s+");
-                        for (String str:words){
-                            if (str.contains("chrom")){
-                                String[] chrs = str.split("=");
-
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // For now, assume the expected vectors and norm vectors are not included!
+//        // Vectors  (Expected values,  other).
+//        /***  NEVA ***/
+//        if (expectedVectorFile == null) {
+//            if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000) {
+//                bufferList.add(new BufferedByteWriter());
+//            }
+//            bufferList.get(bufferList.size()-1).putInt(expectedValueCalculations.size());
+//            for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
+//                ExpectedValueCalculation ev = entry.getValue();
+//
+//                ev.computeDensity();
+//
+//                int binSize = ev.getGridSize();
+//                HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
+//
+//                bufferList.get(bufferList.size()-1).putNullTerminatedString(unit.toString());
+//                bufferList.get(bufferList.size()-1).putInt(binSize);
+//
+//                // The density values
+//                ListOfDoubleArrays expectedValues = ev.getDensityAvg();
+//                // todo @Suhas to handle buffer overflow
+//                bufferList.get(bufferList.size()-1).putLong(expectedValues.getLength());
+//                for (double[] expectedArray : expectedValues.getValues()) {
+//                    bufferList.add(new BufferedByteWriter());
+//                    for (double value : expectedArray) {
+//                        if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
+//                            bufferList.add(new BufferedByteWriter());
+//                        }
+//                        bufferList.get(bufferList.size()-1).putFloat( (float) value);
+//                    }
+//                }
+//
+//                // Map of chromosome index -> normalization factor
+//                Map<Integer, Double> normalizationFactors = ev.getChrScaleFactors();
+//                if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000000) {
+//                    bufferList.add(new BufferedByteWriter());
+//                }
+//                bufferList.get(bufferList.size()-1).putInt(normalizationFactors.size());
+//                for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
+//                    bufferList.get(bufferList.size()-1).putInt(normFactor.getKey());
+//                    bufferList.get(bufferList.size()-1).putFloat(normFactor.getValue().floatValue());
+//                    //System.out.println(normFactor.getKey() + "  " + normFactor.getValue());
+//                }
+//            }
+//        }
+//        else {
+//            // read in expected vector file. to get # of resolutions, might have to read twice.
+//
+//            int count=0;
+//            try (Reader reader = new FileReader(expectedVectorFile);
+//                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+//
+//                String line;
+//                while ((line = bufferedReader.readLine()) != null) {
+//                    if (line.startsWith("fixedStep"))
+//                        count++;
+//                    if (line.startsWith("variableStep")) {
+//                        System.err.println("Expected vector file must be in wiggle fixedStep format");
+//                        System.exit(19);
+//                    }
+//                }
+//            }
+//            bufferList.get(bufferList.size()-1).putInt(count);
+//            try (Reader reader = new FileReader(expectedVectorFile);
+//                 BufferedReader bufferedReader = new BufferedReader(reader)) {
+//
+//                String line;
+//                while ((line = bufferedReader.readLine()) != null) {
+//                    if (line.startsWith("fixedStep")) {
+//                        String[] words = line.split("\\s+");
+//                        for (String str:words){
+//                            if (str.contains("chrom")){
+//                                String[] chrs = str.split("=");
+//
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
         long nBytesV5 = 0;
         for (int i = 0; i<bufferList.size(); i++) {
             nBytesV5 += bufferList.get(i).getBytes().length;
@@ -761,7 +730,7 @@ public class PreprocessorTriple {
     }
 
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeTensor(TensorPP tensor, LittleEndianOutputStream[] losArray,
-                                                                  Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
+                                                                  Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomeTripleIndex, boolean doMultiThreadedBehavior) throws IOException {
         if (HiCGlobals.printVerboseComments) {
             System.err.println("Used Memory for matrix");
             System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
@@ -789,8 +758,8 @@ public class PreprocessorTriple {
         }
 
         long size = los.getWrittenCount() - position;
-        if (chromosomePairIndex > -1) {
-            tensorPositions.put("" + chromosomePairIndex, new IndexEntry(position, (int) size));
+        if (chromosomeTripleIndex > -1) {
+            tensorPositions.put("" + chromosomeTripleIndex, new IndexEntry(position, (int) size));
         } else {
             tensorPositions.put(tensor.getKey(), new IndexEntry(position, (int) size));
         }

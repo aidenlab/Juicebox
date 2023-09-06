@@ -46,7 +46,6 @@ import java.util.Map;
 
 public class PreProcessingTriple extends JuiceboxCLT {
     public static String flags = "           : -d only calculate intra chromosome (diagonal) [false]\n"
-            + "           : -f <restriction site file> calculate fragment map\n"
             + "           : -m <int> only write cells with count above threshold m [0]\n"
             + "           : -q <int> filter by MAPQ score greater than or equal to q [not set]\n"
             + "           : -c <chromosome ID> only calculate map on specific chromosome [not set]\n"
@@ -56,22 +55,18 @@ public class PreProcessingTriple extends JuiceboxCLT {
             + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
             + "           : -n Don't normalize the matrices\n"
             + "           : -z <double> scale factor for hic file\n"
-            + "           : -a <1, 2, 3, 4, 5> filter based on inner, outer, left-left, right-right, tandem pairs respectively\n"
-            + "           : --randomize_position randomize positions between fragment sites\n"
-            + "           : --random_seed <long> for seeding random number generator\n"
-            + "           : --frag_site_maps <fragment site files> for randomization\n"
             + "           : -k normalizations to include\n"
             + "           : -j number of CPU threads to use\n"
             + "           : --threads <int> number of threads \n"
-            + "           : --mndindex <filepath> to mnd chr block indices\n"
             + "           : --conserve-ram will minimize RAM usage\n"
             + "           : --check-ram-usage will check ram requirements prior to running\n"
+            + "           : --from-hic will check if the file is from Hi-C\n"
             + "           : --shell how to execute shell (sh, bash, zsh, etc); default: sh";
 
     private String inputFile;
     private String outputFile;
     private PreprocessorTriple  preprocessor;
-    private boolean noNorm = false;
+    private boolean noNorm = true;
     private boolean noFragNorm = false;
     private boolean fromHIC = false;
     private int genomeWide;
@@ -83,7 +78,7 @@ public class PreProcessingTriple extends JuiceboxCLT {
     }
 
     public static String getBasicUsage() {
-        return "pre [options] <infile> <outfile> <genomeID>";
+        return "preTriple [options] <infile> <outfile> <genomeID>";
     }
 
     @Override
@@ -109,34 +104,15 @@ public class PreProcessingTriple extends JuiceboxCLT {
         IteratorContainer.numCPUMatrixThreads = numCPUThreadsForSecondTask;
         fromHIC = parser.getFromHICOption();
 
-        if (fromHIC) {
-            preprocessor = new MultithreadedPreprocessorHicTriple(new File(outputFile), genomeId, chromHandler,
-                    hicFileScalingFactor, numCPUThreads);
-            usingMultiThreadedVersion = true;
-        } else {
-            if (numCPUThreads < 2) {
-                preprocessor = new PreprocessorTriple(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-                usingMultiThreadedVersion = false;
-            } else {
-                try {
-                    preprocessor = new MultithreadedPreprocessorTriple(new File(outputFile), genomeId, chromHandler,
-                            hicFileScalingFactor, numCPUThreads, parser.getMndIndexOption());
-                    usingMultiThreadedVersion = true;
-                } catch (Exception e) {
-                    System.err.println(e.getLocalizedMessage() + "\nUsing single threaded preprocessor");
-                    preprocessor = new PreprocessorTriple(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
-                    usingMultiThreadedVersion = false;
-                }
-            }
-        }
+        // Currently, only use the default single-threaded version!
+        preprocessor = new PreprocessorTriple(new File(outputFile), genomeId, chromHandler, hicFileScalingFactor);
+        usingMultiThreadedVersion = false;
 
         preprocessor.setFromHIC(fromHIC);
         preprocessor.setIncludedChromosomes(parser.getChromosomeSetOption());
         preprocessor.setCountThreshold(parser.getCountThresholdOption());
-        preprocessor.setV9DepthBase(parser.getV9DepthBase());
         preprocessor.setMapqThreshold(parser.getMapqThresholdOption());
         preprocessor.setDiagonalsOnly(parser.getDiagonalsOption());
-        preprocessor.setFragmentFile(parser.getFragmentOption());
         preprocessor.setExpectedVectorFile(parser.getExpectedVectorOption());
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser.getStatsOption());
@@ -144,9 +120,6 @@ public class PreProcessingTriple extends JuiceboxCLT {
         preprocessor.setGenome(parser.getGenomeOption());
         preprocessor.setResolutions(parser.getResolutionOption());
         preprocessor.setAlignmentFilter(parser.getAlignmentOption());
-        preprocessor.setRandomizePosition(parser.getRandomizePositionsOption());
-        preprocessor.setPositionRandomizerSeed(parser.getRandomPositionSeedOption());
-        preprocessor.setRandomizeFragMaps(parser.getRandomizePositionMaps());
         preprocessor.setThrowOutIntraFragOption(parser.getThrowIntraFragOption());
         preprocessor.setSubsampler(parser.getSubsampleOption());
 
@@ -161,7 +134,6 @@ public class PreProcessingTriple extends JuiceboxCLT {
         }
         noNorm = parser.getNoNormOption();
         genomeWide = parser.getGenomeWideOption();
-        noFragNorm = parser.getNoFragNormOption();
         normalizationTypes.addAll(parser.getAllNormalizationTypesOption());
         HiCGlobals.USE_ITERATOR_NOT_ALL_IN_RAM = parser.getDontPutAllContactsIntoRAM();
         HiCGlobals.CHECK_RAM_USAGE = parser.shouldCheckRAMUsage();
@@ -187,8 +159,8 @@ public class PreProcessingTriple extends JuiceboxCLT {
                 Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
                 AddNorm.launch(outputFile, normalizationTypes, genomeWide, noFragNorm, numCPUThreads, resolutionsToBuildTo);
             } else {
-                System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");
-                System.out.println("To run normalization, run: java -jar juicer_tools.jar addNorm <hicfile>");
+                System.out.println("Done creating .hict file. Normalization not calculated due to -n flag.");
+                System.out.println("To run normalization, run: java -jar juicer_tools.jar addNorm <hic-triplet file>");
             }
         } catch (Exception e) {
             e.printStackTrace();

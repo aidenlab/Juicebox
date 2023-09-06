@@ -36,6 +36,7 @@ import java.util.Map;
 
 public class TensorPP {
 
+    private static final int BINSIZE_CUTOFF = 5000;
     private final int MAX_SQRT = (int) Math.sqrt(Integer.MAX_VALUE);
     private final int chr1Idx;
     private final int chr2Idx;
@@ -60,6 +61,10 @@ public class TensorPP {
 
         int nResolutions = bpBinSizes.length;
 
+        if (nResolutions <= 0) {
+            System.err.println("Error: no resolutions for constructing TensorPP!\n");
+        }
+
         zoomData = new TensorZoomDataPP[nResolutions];
 
         int zoom = 0; //
@@ -71,20 +76,18 @@ public class TensorPP {
 
 			// Size block (subtensors) to be ~500 bins wide.
 
-            long len = Math.max(chrom1.getLength(), chrom2.getLength());
-            len = Math.max(len, chrom3.getLength());
-            // for now, this will not be a long
-            int nBins = (int) (len / binSize + 1);   // Size of chrom in bins
-            int nColumns;
-            nColumns = getNumColumnsFromNumBins(nBins, binSize, 0);
-            // TODO: need to figure out the proper ways to divide bins! Use same xyz blockColumnCount for now;
-//            if (chrom1.equals(chrom2)) {
-//                nColumns = getNumColumnsFromNumBins(nBins, binSize, INTRA_CUTOFF);
-//            } else {
-//                nColumns = getNumColumnsFromNumBins(nBins, binSize, INTER_CUTOFF);
-//            }
-            zoomData[idx] = new TensorZoomDataPP(chrom1, chrom2, chrom3, binSize, nColumns, nColumns,
-                    nColumns, zoom, countThreshold, BLOCK_CAPACITY);
+            long lenChr1 = chrom1.getLength();
+            int nBinsChr1 = (int) (lenChr1 / binSize + 1);
+            int nColumnsChr1 = getNumColumnsFromNumBins(nBinsChr1, binSize, BINSIZE_CUTOFF);
+            long lenChr2 = chrom2.getLength();
+            int nBinsChr2 = (int) (lenChr2 / binSize + 1);
+            int nColumnsChr2 = getNumColumnsFromNumBins(nBinsChr2, binSize, BINSIZE_CUTOFF);
+            long lenChr3 = chrom3.getLength();
+            int nBinsChr3 = (int) (lenChr3 / binSize + 1);
+            int nColumnsChr3 = getNumColumnsFromNumBins(nBinsChr3, binSize, BINSIZE_CUTOFF);
+
+            zoomData[idx] = new TensorZoomDataPP(chrom1, chrom2, chrom3, binSize, nColumnsChr1, nColumnsChr2,
+                    nColumnsChr3, zoom, countThreshold, BLOCK_CAPACITY);
             zoom++;
 
         }
@@ -92,10 +95,10 @@ public class TensorPP {
 
     /*TODO: questions about dividing block size in terms of bins! performance design*/
     private int getNumColumnsFromNumBins(int nBins, int binSize, int cutoff) {
-        int nColumns = nBins / Preprocessor.BLOCK_SIZE + 1;
+        int nColumns = nBins / PreprocessorTriple.BLOCK_SIZE + 1;
         if (binSize < cutoff) {
             long numerator = (long) nBins * binSize;
-            long denominator = (long) Preprocessor.BLOCK_SIZE * cutoff;
+            long denominator = (long) PreprocessorTriple.BLOCK_SIZE * cutoff;
             nColumns = (int) (numerator / denominator) + 1;
         }
         return Math.min(nColumns, MAX_SQRT - 1);
@@ -109,20 +112,20 @@ public class TensorPP {
      * @param chr2Idx Chromosome 2
      * @param binSize Bin size
      */
-    TensorPP(int chr1Idx, int chr2Idx, int chr3Idx, int binSize, int blockColumnCount, ChromosomeHandler chromosomeHandler,
+    TensorPP(int chr1Idx, int chr2Idx, int chr3Idx, int binSize, int blockXCount, int blockYCount, int blockZCount, ChromosomeHandler chromosomeHandler,
              int countThreshold) {
         this.chr1Idx = chr1Idx;
         this.chr2Idx = chr2Idx;
         this.chr3Idx = chr3Idx;
         zoomData = new TensorZoomDataPP[1];
         zoomData[0] = new TensorZoomDataPP(chromosomeHandler.getChromosomeFromIndex(chr1Idx), chromosomeHandler.getChromosomeFromIndex(chr2Idx),
-                chromosomeHandler.getChromosomeFromIndex(chr3Idx), binSize, blockColumnCount, blockColumnCount, blockColumnCount,
+                chromosomeHandler.getChromosomeFromIndex(chr3Idx), binSize, blockXCount, blockYCount, blockZCount,
                 0, countThreshold);
     }
 
 
     String getKey() {
-        return "" + chr1Idx + "_" + chr2Idx;
+        return "" + chr1Idx + "_" + chr2Idx + "_" + chr3Idx;
     }
 
 
@@ -131,16 +134,6 @@ public class TensorPP {
             aZoomData.incrementCount(pos1, pos2, pos3, score, expectedValueCalculations, tmpDir);
         }
     }
-
-//    public void incrementCount(ContactRecord cr, Map<String, ExpectedValueCalculation> expectedValueCalculations, File tmpDir, HiCZoom zoom) throws IOException {
-//        for (MatrixZoomDataPP aZoomData : zoomData) {
-//            if (aZoomData.isFrag && zoom.getUnit().equals(HiC.Unit.FRAG)) {
-//                aZoomData.incrementCount(cr, expectedValueCalculations, tmpDir, zoom);
-//            } else if (!aZoomData.isFrag && zoom.getUnit().equals(HiC.Unit.BP)) {
-//                aZoomData.incrementCount(cr, expectedValueCalculations, tmpDir, zoom);
-//            }
-//        }
-//    }
 
     public void parsingComplete() {
         for (TensorZoomDataPP zd : zoomData) {

@@ -80,6 +80,8 @@ public class CLTFactory {
         cmd = cmd.toLowerCase();
         if (cmd.equals("pre")) {
             return new PreProcessing();
+        } if (cmd.equals("preTriple")) {
+            return new PreProcessingTriple();
         } else if (cmd.equals("sum")) {
             return new Summation();
         } else if (cmd.equals("dump")) {
