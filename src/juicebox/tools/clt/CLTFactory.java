@@ -53,6 +53,7 @@ public class CLTFactory {
             //        "db",           "db <frag|annot|update> [items]",
             Dump.getUsage(),
             PreProcessing.getBasicUsage(),
+            PreProcessingTriple.getBasicUsage(),
             AddNorm.getBasicUsage(),
             Pearsons.getBasicUsage(),
             Eigenvector.getUsage(),
@@ -81,6 +82,7 @@ public class CLTFactory {
         if (cmd.equals("pre")) {
             return new PreProcessing();
         } if (cmd.equals("pretriple")) {
+            System.out.println("Debug: start to parse the pretriple commands\n");
             return new PreProcessingTriple();
         } else if (cmd.equals("sum")) {
             return new Summation();
