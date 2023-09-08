@@ -536,6 +536,7 @@ public class TensorZoomDataPP {
         // Currently, this is a tight bound on the overestimated size;
         BufferedByteWriter buffer = new BufferedByteWriter(nRecords * 24 + 25);
         buffer.putInt(nRecords);
+        System.out.println(nRecords);
         incrementCellCount(nRecords);
 
         // Find extents of occupied cells
@@ -557,8 +558,11 @@ public class TensorZoomDataPP {
 
         // TODO: question for blockoffset, also only include occupied bins?
         buffer.putInt(binXOffset);
+        System.out.println(binXOffset);
         buffer.putInt(binYOffset);
+        System.out.println(binYOffset);
         buffer.putInt(binZOffset);
+        System.out.println(binZOffset);
 
         // Sort keys in a slice-major order, and then a row-major order
         List<PointTriple> keys = new ArrayList<>(records.keySet());
@@ -643,17 +647,20 @@ public class TensorZoomDataPP {
         buffer.put((byte) (useShortBinX ? 0 : 1));
         buffer.put((byte) (useShortBinY ? 0 : 1));
         buffer.put((byte) (useShortBinZ ? 0 : 1));
+        System.out.println("Four bytes for useShort, useShortBinX, useShortBinY, and useShortBinZ");
 
         //dense calculation is incorrect for v9
         int denseSize = Integer.MAX_VALUE;
 
         if (lorSize < denseSize) {
             buffer.put((byte) 1);  // List of slices representation
+            System.out.println("1 for Slice representation");
             if (useShortBinZ) {
                 buffer.putShort((short) slices.size()); // # of slices
             } else {
                 buffer.putInt(slices.size());  // # of slices
             }
+            System.out.println("Slice size: " + slices.size());
 
             for (Map.Entry<Integer, LinkedHashMap<Integer, List<ContactRecord>>> entry : slices.entrySet()) {
                 int pz = entry.getKey();
@@ -663,11 +670,13 @@ public class TensorZoomDataPP {
                 } else {
                     buffer.putInt(pz); // Slice number
                 }
+                System.out.println("Slice number: " + pz);
                 if (useShortBinY) {
                     buffer.putShort((short) rows.size()); // # of rows
                 } else {
                     buffer.putInt(rows.size());  // # of rows
                 }
+                System.out.println("# rows: " + rows.size());
                 for (Map.Entry<Integer, List<ContactRecord>> entry2 : rows.entrySet()) {
                     int py = entry2.getKey();
                     List<ContactRecord> row = entry2.getValue();
@@ -676,11 +685,13 @@ public class TensorZoomDataPP {
                     } else {
                         buffer.putInt(py); // Row number
                     }
+                    System.out.println("Row number: " + py);
                     if (useShortBinX) {
                         buffer.putShort((short) row.size());  // size of row
                     } else {
                         buffer.putInt(row.size()); // size of row
                     }
+                    System.out.println("Size of row: " + row.size());
 
                     for (ContactRecord contactRecord : row) {
                         if (useShortBinX) {
@@ -688,6 +699,7 @@ public class TensorZoomDataPP {
                         } else {
                             buffer.putInt(contactRecord.getBinX());
                         }
+                        System.out.println("Bin X: " + contactRecord.getBinX());
 
                         final float counts = contactRecord.getCounts();
                         if (useShort) {
@@ -695,6 +707,7 @@ public class TensorZoomDataPP {
                         } else {
                             buffer.putFloat(counts);
                         }
+                        System.out.println("Counts: " + counts);
 
                         synchronized (sampledData) {
                             sampledData.add(counts);

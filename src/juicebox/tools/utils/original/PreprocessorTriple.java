@@ -338,30 +338,36 @@ public class PreprocessorTriple {
         LittleEndianOutputStream los = losArray[0];
         for (int i = 0; i < 4; i++) {
             los.write(magicBytes[i]);
+            System.out.println(magicBytes[i]);
         }
         /*Question: what is the purpose of writting 0 here?*/
 //        los.write(0);
 
         // VERSION
         los.writeInt(VERSION);
+        System.out.println(VERSION);
     
         // Placeholder for master index position, replaced with actual position after all contents are written
         masterIndexPositionPosition = los.getWrittenCount();
         los.writeLong(0L);
+        System.out.println("masterIndexPositionPositionPlaceholder");
     
     
         // Genome ID
         los.writeString(genomeId);
+        System.out.println(genomeId);
 
         /*Question: What are NVI_INDEX?*/
         // Add NVI info
         //los.writeString(NVI_INDEX);
         normVectorIndexPosition = los.getWrittenCount();
         los.writeLong(0L);
+        System.out.println("normVectorIndexPositionPlaceHolder");
     
         //los.writeString(NVI_LENGTH);
         normVectorLengthPosition = los.getWrittenCount();
         los.writeLong(0L);
+        System.out.println("normVectorLengthPositionPlaceHolder");
     
     
         // Attribute dictionary
@@ -371,8 +377,11 @@ public class PreprocessorTriple {
         if (hicFileScaling != null) nAttributes += 1;
     
         los.writeInt(nAttributes);
+        System.out.println(nAttributes);
         los.writeString(SOFTWARE);
+        System.out.println(SOFTWARE);
         los.writeString("Juicer Tools Version " + HiCGlobals.versionNum);
+        System.out.println("Juicer Tools Version " + HiCGlobals.versionNum);
         if (stats != null) {
             los.writeString(STATISTICS);
             los.writeString(stats.toString());
@@ -389,16 +398,21 @@ public class PreprocessorTriple {
         // Sequence dictionary
         int nChrs = chromosomeHandler.size();
         los.writeInt(nChrs);
+        System.out.println(nChrs);
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
             los.writeString(chromosome.getName());
+            System.out.println(chromosome.getName());
             los.writeLong(chromosome.getLength());
+            System.out.println(chromosome.getLength());
         }
 
         //BP resolution levels
         int nBpRes = bpBinSizes.length;
         los.writeInt(nBpRes);
+        System.out.println(nBpRes);
         for (int bpBinSize : bpBinSizes) {
             los.writeInt(bpBinSize);
+            System.out.println(bpBinSize);
         }
 
         numResolutions = nBpRes;
@@ -739,8 +753,11 @@ public class PreprocessorTriple {
         long position = los.getWrittenCount();
 
         los.writeInt(tensor.getChr1Idx());
+        System.out.println(tensor.getChr1Idx());
         los.writeInt(tensor.getChr2Idx());
+        System.out.println(tensor.getChr2Idx());
         los.writeInt(tensor.getChr3Idx());
+        System.out.println(tensor.getChr3Idx());
         int numResolutions = 0;
 
         for (TensorZoomDataPP zd : tensor.getZoomData()) {
@@ -749,6 +766,7 @@ public class PreprocessorTriple {
             }
         }
         los.writeInt(numResolutions);
+        System.out.println(numResolutions);
 
         //fos.writeInt(matrix.getZoomData().length);
         for ( int i = 0; i < tensor.getZoomData().length; i++) {
@@ -802,10 +820,14 @@ public class PreprocessorTriple {
 
             // Write as little endian
             BufferedByteWriter buffer = new BufferedByteWriter();
+            System.out.println("Printing blockIndexPosition");
             for (IndexEntry aBlockIndex : blockIndex) {
                 buffer.putInt(aBlockIndex.id);
+                System.out.println(aBlockIndex.id);
                 buffer.putLong(aBlockIndex.position + currentPosition);
+                System.out.println(aBlockIndex.position + currentPosition);
                 buffer.putInt(aBlockIndex.size);
+                System.out.println(aBlockIndex.size);
             }
             raf.write(buffer.getBytes());
 
@@ -824,19 +846,33 @@ public class PreprocessorTriple {
 
         int numberOfBlocks = zd.blockNumbers.size();
         los.writeString(zd.getUnit().toString());  // Unit
+        System.out.println(zd.getUnit().toString());
         los.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
+        System.out.println(zd.getZoom());
         los.writeFloat((float) zd.getSum());      // sum
+        System.out.println((float) zd.getSum());
         los.writeFloat((float) zd.getOccupiedCellCount());
+        System.out.println((float) zd.getOccupiedCellCount());
         los.writeFloat((float) zd.getPercent5());
+        System.out.println((float) zd.getPercent5());
         los.writeFloat((float) zd.getPercent95());
+        System.out.println((float) zd.getPercent95());
         los.writeInt(zd.getBinSize());
+        System.out.println(zd.getBinSize());
         los.writeInt(zd.getBlockBinCountX());
+        System.out.println(zd.getBlockBinCountX());
         los.writeInt(zd.getBlockBinCountY());
+        System.out.println(zd.getBlockBinCountY());
         los.writeInt(zd.getBlockBinCountZ());
+        System.out.println(zd.getBlockBinCountZ());
         los.writeInt(zd.getBlockXCount());
+        System.out.println(zd.getBlockXCount());
         los.writeInt(zd.getBlockYCount());
+        System.out.println(zd.getBlockYCount());
         los.writeInt(zd.getBlockZCount());
+        System.out.println(zd.getBlockZCount());
         los.writeInt(numberOfBlocks);
+        System.out.println(numberOfBlocks);
 
         zd.blockIndexPosition = los.getWrittenCount();
 
@@ -845,6 +881,7 @@ public class PreprocessorTriple {
             los.writeInt(0);
             los.writeLong(0L);
             los.writeInt(0);
+            System.out.println("PlaceHolder for block index: 16 bytes each");
         }
 
     }

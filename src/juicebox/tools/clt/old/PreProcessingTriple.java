@@ -153,8 +153,9 @@ public class PreProcessingTriple extends JuiceboxCLT {
             }
 
             if (!noNorm) {
-                Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
-                AddNorm.launch(outputFile, normalizationTypes, genomeWide, noFragNorm, numCPUThreads, resolutionsToBuildTo);
+                System.out.println("Normalization module not implemented yet for triplets.\n");
+//                Map<NormalizationType, Integer> resolutionsToBuildTo = AddNorm.defaultHashMapForResToBuildTo(normalizationTypes);
+//                AddNorm.launch(outputFile, normalizationTypes, genomeWide, noFragNorm, numCPUThreads, resolutionsToBuildTo);
             } else {
                 System.out.println("Done creating .hict file. Normalization not calculated due to -n flag.");
                 System.out.println("To run normalization, run: java -jar juicer_tools.jar addNorm <hic-triplet file>");
