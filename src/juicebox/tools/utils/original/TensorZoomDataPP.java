@@ -603,6 +603,7 @@ public class TensorZoomDataPP {
                 final int px = point.getFirst() - binXOffset;
                 final int py = point.getSecond() - binYOffset;
                 final int pz = point.getThird() - binZOffset;
+                System.out.println("Triples three coordinates: " + px + py + pz);
                 LinkedHashMap<Integer, List<ContactRecord>> slice = slices.get(pz);
                 List<ContactRecord> row;
                 if (slice == null) {
@@ -611,6 +612,7 @@ public class TensorZoomDataPP {
                     // then add a new row in that slice!
                     row = new ArrayList<>(w1);
                     slice.put(py, row);
+                    slices.put(pz, slice);
                 } else {
                     row = slice.get(py);
                     // Create a new row
