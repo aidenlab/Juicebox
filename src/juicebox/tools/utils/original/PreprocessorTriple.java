@@ -635,13 +635,17 @@ public class PreprocessorTriple {
         List<BufferedByteWriter> bufferList = new ArrayList<>();
         bufferList.add(new BufferedByteWriter());
         bufferList.get(bufferList.size()-1).putInt(tensorPositions.size());
+        System.out.println(tensorPositions.size());
         for (Map.Entry<String, IndexEntry> entry : tensorPositions.entrySet()) {
             if (Integer.MAX_VALUE - bufferList.get(bufferList.size()-1).bytesWritten() < 1000) {
                 bufferList.add(new BufferedByteWriter());
             }
             bufferList.get(bufferList.size()-1).putNullTerminatedString(entry.getKey());
+            System.out.println(entry.getKey());
             bufferList.get(bufferList.size()-1).putLong(entry.getValue().position);
+            System.out.println(entry.getValue().position);
             bufferList.get(bufferList.size()-1).putInt(entry.getValue().size);
+            System.out.println(entry.getValue().size);
         }
 
         // For now, assume the expected vectors and norm vectors are not included!
