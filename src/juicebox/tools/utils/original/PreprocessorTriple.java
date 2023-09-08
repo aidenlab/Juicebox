@@ -49,7 +49,7 @@ import java.util.zip.Deflater;
 
 
 /**
- * @author jrobinso sqhang
+ * @author jrobinson sqhang
  * @since Aug 16, 2010; Aug 24, 2023
  */
 public class PreprocessorTriple {

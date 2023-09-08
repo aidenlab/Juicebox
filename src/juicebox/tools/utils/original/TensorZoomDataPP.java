@@ -645,10 +645,11 @@ public class TensorZoomDataPP {
             }
         }
 
-        buffer.put((byte) (useShort ? 0 : 1));
-        buffer.put((byte) (useShortBinX ? 0 : 1));
-        buffer.put((byte) (useShortBinY ? 0 : 1));
-        buffer.put((byte) (useShortBinZ ? 0 : 1));
+        // TODO: double-check the condition here, in original scripts, it is very weird to set 0 and 1 in different ways
+        buffer.put((byte) (useShort ? 1 : 0));
+        buffer.put((byte) (useShortBinX ? 1 : 0));
+        buffer.put((byte) (useShortBinY ? 1 : 0));
+        buffer.put((byte) (useShortBinZ ? 1 : 0));
         System.out.println("Four bytes for useShort, useShortBinX, useShortBinY, and useShortBinZ");
 
         //dense calculation is incorrect for v9
