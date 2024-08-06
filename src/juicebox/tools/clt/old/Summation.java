@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2024 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public class Summation extends JuiceboxCLT {
 
         String[] genomeId = new String[1];
         List<String> resolutionStrings = new ArrayList<>();
-        populateParameters(args[2], genomeId, resolutionStrings);
+        populateParameters(args[2], genomeId, resolutionStrings, parser.getGenomeOption());
 
         ChromosomeHandler chromHandler = HiCFileTools.loadChromosomes(genomeId[0]);
 
@@ -134,11 +134,15 @@ public class Summation extends JuiceboxCLT {
         }
     }
 
-    private void populateParameters(String hicFile, String[] genomeId, List<String> resolutionStrings) {
+    private void populateParameters(String hicFile, String[] genomeId, List<String> resolutionStrings,
+                                    String genomeOptionIfAvailable) {
         List<String> files = new ArrayList<>();
         files.add(hicFile);
         Dataset ds = HiCFileTools.extractDatasetForCLT(files, false);
         genomeId[0] = cleanUpGenome(ds.getGenomeId());
+        if (genomeOptionIfAvailable != null && genomeOptionIfAvailable.length() > 1) {
+            genomeId[0] = genomeOptionIfAvailable;
+        }
 
         for (HiCZoom zoom : ds.getBpZooms()) {
             resolutionStrings.add("" + zoom.getBinSize());
