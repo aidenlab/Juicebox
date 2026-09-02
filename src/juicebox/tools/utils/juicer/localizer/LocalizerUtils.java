@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2020 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2023 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +15,7 @@
  *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.localizer;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
@@ -123,22 +124,27 @@ public class LocalizerUtils {
         RealMatrix rawSourceCopy = rawSource.copy();
         RealMatrix rawSummedData = new Array2DRowRealMatrix(rawSource.getRowDimension(), rawSource.getColumnDimension());
         boxBlur(rawSourceCopy, rawSummedData, window);
-        multiplyInPlaceRound(rawSummedData,(window+window+1)*(window+window+1));
+        multiplyInPlaceRound(rawSummedData, (window + window + 1) * (window + window + 1));
         Instant B = Instant.now();
-        System.out.println("time to blur raw matrix: " + Duration.between(A,B).toMillis());
-
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to blur raw matrix: " + Duration.between(A, B).toMillis());
+        }
         // calculate normed local matrix using input local norm vectors (normSource)
         // calculate gaussian blurred normed local matrix over requested window (normBlurred), multiply in place by ratio of box blurred raw matrix to normed matrix in order to make sure same number of contacts
         RealMatrix normSource = calculateNormMatrix(rawSource, normH, normV);
         Instant C = Instant.now();
-        System.out.println("time to calculate norm matrix: " + Duration.between(B,C).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to calculate norm matrix: " + Duration.between(B, C).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normInputData.txt").getPath(), normSource);
         RealMatrix normBlurred = gaussBlur(normSource, window); //new Array2DRowRealMatrix(rawSource.getRowDimension(), rawSource.getColumnDimension());
         double rawSummedSum = matrixSum(rawSummedData, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
         double normBlurredSum = matrixSum(normBlurred, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
-        multiplyInPlace(normBlurred, rawSummedSum/normBlurredSum);
+        multiplyInPlace(normBlurred, rawSummedSum / normBlurredSum);
         Instant D = Instant.now();
-        System.out.println("time to blur norm matrix: " + Duration.between(C,D).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to blur norm matrix: " + Duration.between(C, D).toMillis());
+        }
 
         //MatrixTools.saveMatrixText(new File(outputDirectory, "summedData.txt").getPath(), rawSummedData);
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normSummedData.txt").getPath(), normBlurred);
@@ -146,25 +152,31 @@ public class LocalizerUtils {
         // set a non-uniform expected based on ratio of raw data to normed data (normExpected)
         // multiply in place to make sure it has the same number of contacts as the boxBlurred raw matrix
         RealMatrix normExpected = setNormExpected(rawSummedData, normBlurred, normH, normV);
-        double normExpectedSum = matrixSum(normExpected,0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
-        multiplyInPlace(normExpected, rawSummedSum/normExpectedSum);
+        double normExpectedSum = matrixSum(normExpected, 0, rawSource.getRowDimension(), 0, rawSource.getColumnDimension());
+        multiplyInPlace(normExpected, rawSummedSum / normExpectedSum);
         Instant E = Instant.now();
-        System.out.println("time to set expected: " + Duration.between(D,E).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to set expected: " + Duration.between(D, E).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "normExpectedData.txt").getPath(), normExpected);
 
         //do local nonmaximum suppression using the Poisson Z-score [2*(sqrt(X)-sqrt(lambda))]
         RealMatrix localMaxData = nonmaxsuppressPoissonZ(rawSummedData, normExpected, window);
         Instant F = Instant.now();
-        System.out.println("time to suppress non-max: " + Duration.between(E,F).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to suppress non-max: " + Duration.between(E, F).toMillis());
+        }
         //MatrixTools.saveMatrixText(new File(outputDirectory, "localMaxData.txt").getPath(), localMaxData);
 
         // count non-zero entries for bonferroni correction
-        int pValAdj = nonZeroEntries(localMaxData, window, rawSource.getRowDimension()-window, window, rawSource.getColumnDimension()-window);
+        int pValAdj = nonZeroEntries(localMaxData, window, rawSource.getRowDimension() - window, window, rawSource.getColumnDimension() - window);
 
         // rank localized peaks
         List<List<Double>> orderedPeaks = orderPeaksPoissonZ(localMaxData, normExpected, window, maxPval, pValAdj);
         Instant G = Instant.now();
-        System.out.println("time to identify peaks: " + Duration.between(F,G).toMillis());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("time to identify peaks: " + Duration.between(F, G).toMillis());
+        }
 
         // return localized peaks
         List<Double> finalPeaksR = new ArrayList<>();
@@ -172,7 +184,7 @@ public class LocalizerUtils {
         List<Double> finalPeaksP = new ArrayList<>();
         List<Double> finalPeaksO = new ArrayList<>();
         List<Double> finalPeaksZ = new ArrayList<>();
-        numPeaks = numPeaks > orderedPeaks.get(0).size()? orderedPeaks.get(0).size() : numPeaks;
+        numPeaks = numPeaks > orderedPeaks.get(0).size() ? orderedPeaks.get(0).size() : numPeaks;
         for (int i = 0; i < numPeaks; i++) {
             double peakRow = orderedPeaks.get(0).get(i);
             double peakCol = orderedPeaks.get(1).get(i);
@@ -440,17 +452,17 @@ public class LocalizerUtils {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
                 if (inputData.getEntry(i,j) > 0 && outputData.getEntry(i,j) >= 0) {
-                    int minRow = Math.max(0, i - (int) window);
-                    int minCol = Math.max(0, j - (int) window);
-                    int maxRow = Math.min(i + (int) window, numRows-1);
-                    int maxCol = Math.min(j + (int) window, numCols-1);
+                    int minRow = Math.max(0, i - window);
+                    int minCol = Math.max(0, j - window);
+                    int maxRow = Math.min(i + window, numRows - 1);
+                    int maxCol = Math.min(j + window, numCols - 1);
                     int maxValR = i;
                     int maxValC = j;
-                    double maxVal = inputData.getEntry(i,j);
-                    outputData.setEntry(maxValR, maxValC, inputData.getEntry(i,j));
+                    double maxVal = inputData.getEntry(i, j);
+                    outputData.setEntry(maxValR, maxValC, inputData.getEntry(i, j));
                     for (int nmsRow = minRow; nmsRow <= maxRow; nmsRow++) {
                         for (int nmsCol = minCol; nmsCol <= maxCol; nmsCol++) {
-                            if (nmsRow!=i || nmsCol!=j) {
+                            if (nmsRow != i || nmsCol != j) {
                                 if (inputData.getEntry(nmsRow, nmsCol) > maxVal) {
                                     outputData.setEntry(maxValR, maxValC, -1);
                                 } else if (inputData.getEntry(nmsRow, nmsCol) == maxVal) {
@@ -480,18 +492,18 @@ public class LocalizerUtils {
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
                 if (observedData.getEntry(i,j) > 0 && outputData.getEntry(i,j) >= 0) {
-                    int minRow = Math.max(0, i - (int) window);
-                    int minCol = Math.max(0, j - (int) window);
-                    int maxRow = Math.min(i + (int) window, numRows-1);
-                    int maxCol = Math.min(j + (int) window, numCols-1);
+                    int minRow = Math.max(0, i - window);
+                    int minCol = Math.max(0, j - window);
+                    int maxRow = Math.min(i + window, numRows - 1);
+                    int maxCol = Math.min(j + window, numCols - 1);
                     int maxValR = i;
                     int maxValC = j;
-                    double maxVal = 2*(Math.sqrt(observedData.getEntry(i,j)) - Math.sqrt(expectedData.getEntry(i,j)));
-                    outputData.setEntry(maxValR, maxValC, observedData.getEntry(i,j));
+                    double maxVal = 2 * (Math.sqrt(observedData.getEntry(i, j)) - Math.sqrt(expectedData.getEntry(i, j)));
+                    outputData.setEntry(maxValR, maxValC, observedData.getEntry(i, j));
                     for (int nmsRow = minRow; nmsRow <= maxRow; nmsRow++) {
                         for (int nmsCol = minCol; nmsCol <= maxCol; nmsCol++) {
-                            if (nmsRow!=i || nmsCol!=j) {
-                                double testVal = 2*(Math.sqrt(observedData.getEntry(nmsRow, nmsCol)) - Math.sqrt(expectedData.getEntry(nmsRow,nmsCol)));
+                            if (nmsRow != i || nmsCol != j) {
+                                double testVal = 2 * (Math.sqrt(observedData.getEntry(nmsRow, nmsCol)) - Math.sqrt(expectedData.getEntry(nmsRow, nmsCol)));
                                 if (testVal > maxVal) {
                                     outputData.setEntry(maxValR, maxValC, -1);
                                 } else if (testVal == maxVal) {

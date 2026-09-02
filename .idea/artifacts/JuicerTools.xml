@@ -16,6 +16,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/broadinstitute/htsjdk-1.139.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/broadinstitute/log4j-core-2.11.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/jsi1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/hic_tools.3.30.00.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/guava-18.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/jahmm-0.6.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/jfreechart-1.0.19.jar" path-in-jar="/" />

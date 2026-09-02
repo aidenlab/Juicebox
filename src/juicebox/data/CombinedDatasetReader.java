@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2023 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,14 @@ public class CombinedDatasetReader implements DatasetReader {
         List<Dataset> tmpDatasets = new ArrayList<>();
         version = 100000;
         for (DatasetReader r : readers) {
-            tmpDatasets.add(r.read());
+            Dataset ds = r.read();
+
+            if (ds == null) {
+                System.err.println("Dataset is null!! : " + r.getPath());
+            } else {
+                tmpDatasets.add(ds);
+            }
+
             version = Math.min(version, r.getVersion());
         }
 
@@ -97,13 +104,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public String getPath() {
         // we use this for peaks and blocks list, maybe the best thing to do is to somehow combine them
-        return null;
-    }
-
-    @Override
-    public String readStats() {
-        // again we need to somehow combine from constituent datasets
-        return null;
+        return "combined_dataset";
     }
 
     @Override
@@ -138,12 +139,23 @@ public class CombinedDatasetReader implements DatasetReader {
         List<Matrix> tmpDatasets = new ArrayList<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
-                tmpDatasets.add(r.readMatrix(key));
+                Matrix m = r.readMatrix(key);
+                if (m == null) {
+                    System.err.println("Matrix Region is null!! : " + r.getPath());
+                    System.err.println("Key " + m.getKey());
+                } else {
+                    tmpDatasets.add(m);
+                }
             }
         }
 
-        return mergeMatrices(tmpDatasets);
-
+        if (tmpDatasets.size() == 0) {
+            return null;
+        } else if (tmpDatasets.size() == 1) {
+            return tmpDatasets.get(0);
+        } else {
+            return mergeMatrices(tmpDatasets);
+        }
     }
 
     @Override

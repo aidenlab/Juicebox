@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -242,31 +242,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             stream = streamFactory.getStreamFor(path);
         } while (stream == null);
         return stream;
-    }
-
-
-    public String readStats() throws IOException {
-        String statsFileName = path.substring(0, path.lastIndexOf('.')) + "_stats.html";
-        String stats;
-        BufferedReader reader = null;
-        try {
-            StringBuilder builder = new StringBuilder();
-            reader = ParsingUtils.openBufferedReader(statsFileName);
-            String nextLine;
-            int count = 0; // if there is an big text file that happens to be named the same, don't read it forever
-            while ((nextLine = reader.readLine()) != null && count < 1000) {
-                builder.append(nextLine);
-                builder.append("\n");
-                count++;
-            }
-            stats = builder.toString();
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
-
-        return stats;
     }
 
     @Override

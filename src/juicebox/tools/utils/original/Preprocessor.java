@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,11 +30,10 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
-import juicebox.data.CombinedDatasetReader;
-import juicebox.data.MatrixZoomData;
 import juicebox.data.basics.Chromosome;
 import juicebox.data.basics.ListOfDoubleArrays;
 import juicebox.tools.clt.CommandLineParser.Alignment;
+import juicebox.tools.utils.common.UNIXTools;
 import juicebox.tools.utils.original.mnditerator.AlignmentPair;
 import juicebox.tools.utils.original.mnditerator.PairIterator;
 import juicebox.windowui.NormalizationHandler;
@@ -52,8 +51,6 @@ import java.util.zip.Deflater;
  * @since Aug 16, 2010
  */
 public class Preprocessor {
-    
-    
     protected static final int VERSION = 9;
     protected static final int BLOCK_SIZE = 1000;
     public static final String V9_DEPTH_BASE = "v9-depth-base";
@@ -129,7 +126,7 @@ public class Preprocessor {
 
         compressor = getDefaultCompressor();
 
-        this.tmpDir = null;  // TODO -- specify this
+        this.tmpDir = createTempFolder(outputFile.getAbsolutePath() + "_tmp_folder");
 
         if (hicFileScalingFactor > 0) {
             this.hicFileScalingFactor = hicFileScalingFactor;
@@ -1008,8 +1005,10 @@ public class Preprocessor {
     protected Pair<Map<Long, List<IndexEntry>>, Long> writeMatrix(MatrixPP matrix, LittleEndianOutputStream[] losArray,
                                                                   Deflater compressor, Map<String, IndexEntry> matrixPositions, int chromosomePairIndex, boolean doMultiThreadedBehavior) throws IOException {
 
-        System.err.println("Used Memory for matrix");
-        System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        if (HiCGlobals.printVerboseComments) {
+            System.err.println("Used Memory for matrix");
+            System.err.println(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+        }
         LittleEndianOutputStream los = losArray[0];
         long position = los.getWrittenCount();
 
@@ -1126,16 +1125,18 @@ public class Preprocessor {
     }
 
     public void setTmpdir(String tmpDirName) {
-
         if (tmpDirName != null) {
-            this.tmpDir = new File(tmpDirName);
-
-            if (!tmpDir.exists()) {
-                System.err.println("Tmp directory does not exist: " + tmpDirName);
-                if (outputFile != null) outputFile.deleteOnExit();
-                System.exit(59);
-            }
+            createTempFolder(tmpDirName);
         }
+    }
+
+    private File createTempFolder(String newPath) {
+        this.tmpDir = new File(newPath);
+        if (!tmpDir.exists()) {
+            UNIXTools.makeDir(tmpDir);
+            tmpDir.deleteOnExit();
+        }
+        return tmpDir;
     }
 
     public void setStatisticsFile(String statsOption) {

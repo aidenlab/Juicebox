@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2021 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
+ * Copyright (c) 2011-2022 Broad Institute, Aiden Lab, Rice University, Baylor College of Medicine
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,28 @@ import java.util.List;
 import java.util.Map;
 
 public class PreProcessing extends JuiceboxCLT {
-
+    public static String flags = "           : -d only calculate intra chromosome (diagonal) [false]\n"
+            + "           : -f <restriction site file> calculate fragment map\n"
+            + "           : -m <int> only write cells with count above threshold m [0]\n"
+            + "           : -q <int> filter by MAPQ score greater than or equal to q [not set]\n"
+            + "           : -c <chromosome ID> only calculate map on specific chromosome [not set]\n"
+            + "           : -r <comma-separated list of resolutions> Only calculate specific resolutions [not set]\n"
+            + "           : -t <tmpDir> Set a temporary directory for writing\n"
+            + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
+            + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
+            + "           : -n Don't normalize the matrices\n"
+            + "           : -z <double> scale factor for hic file\n"
+            + "           : -a <1, 2, 3, 4, 5> filter based on inner, outer, left-left, right-right, tandem pairs respectively\n"
+            + "           : --randomize_position randomize positions between fragment sites\n"
+            + "           : --random_seed <long> for seeding random number generator\n"
+            + "           : --frag_site_maps <fragment site files> for randomization\n"
+            + "           : -k normalizations to include\n"
+            + "           : -j number of CPU threads to use\n"
+            + "           : --threads <int> number of threads \n"
+            + "           : --mndindex <filepath> to mnd chr block indices\n"
+            + "           : --conserve-ram will minimize RAM usage\n"
+            + "           : --check-ram-usage will check ram requirements prior to running\n"
+            + "           : --shell how to execute shell (sh, bash, zsh, etc); default: sh";
 
     private String inputFile;
     private String outputFile;
@@ -55,30 +76,7 @@ public class PreProcessing extends JuiceboxCLT {
     private final List<NormalizationType> normalizationTypes = new ArrayList<>();
 
     public PreProcessing() {
-        super(getBasicUsage() + "\n"
-                + "           : -d only calculate intra chromosome (diagonal) [false]\n"
-                + "           : -f <restriction site file> calculate fragment map\n"
-                + "           : -m <int> only write cells with count above threshold m [0]\n"
-                + "           : -q <int> filter by MAPQ score greater than or equal to q [not set]\n"
-                + "           : -c <chromosome ID> only calculate map on specific chromosome [not set]\n"
-                + "           : -r <comma-separated list of resolutions> Only calculate specific resolutions [not set]\n"
-                + "           : -t <tmpDir> Set a temporary directory for writing\n"
-                + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
-                + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
-                + "           : -n Don't normalize the matrices\n"
-                + "           : -z <double> scale factor for hic file\n"
-                + "           : -a <1, 2, 3, 4, 5> filter based on inner, outer, left-left, right-right, tandem pairs respectively\n"
-                + "           : --randomize_position randomize positions between fragment sites\n"
-                + "           : --random_seed <long> for seeding random number generator\n"
-                + "           : --frag_site_maps <fragment site files> for randomization\n"
-                + "           : -k normalizations to include\n"
-                + "           : -j number of CPU threads to use\n"
-                + "           : --threads <int> number of threads \n"
-                + "           : --mndindex <filepath> to mnd chr block indices\n"
-                + "           : --conserve-ram will minimize RAM usage\n"
-                + "           : --check-ram-usage will check ram requirements prior to running\n"
-                + "           : --shell how to execute shell (sh, bash, zsh, etc); default: sh"
-        );
+        super(getBasicUsage() + "\n" + flags);
     }
 
     public static String getBasicUsage() {
