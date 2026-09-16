@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.io.File;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -391,8 +392,8 @@ public class SuperAdapter {
             return true;
         }
 
-        String[] g1 = dataset1.getGenomeId().split("/");
-        String[] g2 = dataset2.getGenomeId().split("/");
+        String[] g1 = dataset1.getGenomeId().split(File.separator);
+        String[] g2 = dataset2.getGenomeId().split(File.separator);
         if (g1[g1.length - 1].equalsIgnoreCase(g2[g2.length - 1])) {
             return true;
         }
@@ -725,7 +726,7 @@ public class SuperAdapter {
         if (controlTitle != null && controlTitle.length() > 0) {
             newTitle += "  (control=" + controlTitle + ")";
             try {
-                fileVersions += "/" + hic.getControlDataset().getVersion();
+                fileVersions += File.separator + hic.getControlDataset().getVersion();
             } catch (Exception ignored) {
             }
         }
