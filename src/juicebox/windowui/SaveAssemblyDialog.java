@@ -73,7 +73,7 @@ public class SaveAssemblyDialog extends JFileChooser {
                     assemblyFileExporter.exportAssemblyFile();
                 }
 
-                String autoSaveFileName = DirectoryManager.getHiCDirectory() + "/" + (SuperAdapter.getDatasetTitle().split(".+?/(?=[^/]+$)")[1]).split("\\.(?=[^\\.]+$)")[0] + ".review.autosave.assembly";
+                String autoSaveFileName = SuperAdapter.getDatasetTitle().split("\\.(?=[^\\.]+$)")[0] + ".review.autosave.assembly";
                 File autoSaveFile = new File(autoSaveFileName);
                 autoSaveFile.delete();
             }
