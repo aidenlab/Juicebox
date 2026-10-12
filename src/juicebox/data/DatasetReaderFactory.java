@@ -24,18 +24,9 @@
 
 package juicebox.data;
 
-import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.tribble.util.LittleEndianInputStream;
-import juicebox.HiCGlobals;
-import juicebox.gui.SuperAdapter;
-import org.broad.igv.ui.util.MessageUtils;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +43,9 @@ public class DatasetReaderFactory {
             String file = fileList.get(0);
             return getReaderForFile(file);
         } else {
-            List<DatasetReaderV2> readers = new ArrayList<>(fileList.size());
+            List<DatasetReader> readers = new ArrayList<>(fileList.size());
             for (String f : fileList) {
-                DatasetReaderV2 r = getReaderForFile(f);
+                DatasetReader r = getReaderForFile(f);
                 if (r != null) {
                     readers.add(r);
                 }
@@ -64,12 +55,14 @@ public class DatasetReaderFactory {
         }
     }
 
-    private static DatasetReaderV2 getReaderForFile(String file) throws IOException {
+    private static DatasetReader getReaderForFile(String file) throws IOException {
         String magicString = getMagicString(file);
 
         if(magicString != null) {
             if (magicString.equals("HIC")) {
-                return new DatasetReaderV2(file);
+                int version = javastraw.reader.DatasetReaderFactory.getVersion(file);
+                if (version < 6 || version > 10) throw new IOException("Unsupported hic version: " + version);
+                return version == 10 ? new DatasetReaderV10(file) : new DatasetReaderV2(file);
             } else {
                 System.err.println("This version is deprecated and is no longer supported.");
                 //reader = new DatasetReaderV1(file);
@@ -81,31 +74,10 @@ public class DatasetReaderFactory {
     }
 
     static String getMagicString(String path) throws IOException {
-
-        SeekableStream stream = null;
-        LittleEndianInputStream dis = null;
-
-        try {
-            stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
-            dis = new LittleEndianInputStream(new BufferedInputStream(stream));
-        } catch (MalformedURLException e) {
-            try {
-                dis = new LittleEndianInputStream(new FileInputStream(path));
-            } catch (Exception e2) {
-                if (HiCGlobals.guiIsCurrentlyActive) {
-                    SuperAdapter.showMessageDialog("File could not be found\n(" + path + ")");
-                } else {
-                    MessageUtils.showErrorMessage("File could not be found\n(" + path + ")", e2);
-                }
-            }
-        } finally {
-            if (stream != null) stream.close();
-
+        try (SeekableStream stream = org.broad.igv.util.stream.IGVSeekableStreamFactory.getInstance().getStreamFor(path)) {
+            byte[] magic = new byte[4];
+            stream.readFully(magic);
+            return magic[0] == 'H' && magic[1] == 'I' && magic[2] == 'C' && magic[3] == 0 ? "HIC" : null;
         }
-        if (dis != null) {
-            return dis.readString();
-        }
-        return null;
     }
-
 }

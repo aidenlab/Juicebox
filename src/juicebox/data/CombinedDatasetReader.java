@@ -47,11 +47,11 @@ import java.util.*;
  */
 public class CombinedDatasetReader implements DatasetReader {
 
-    private final List<DatasetReaderV2> readers;
+    private final List<DatasetReader> readers;
     private boolean hasFrags;
     private int version;
 
-    public CombinedDatasetReader(List<DatasetReaderV2> readers) {
+    public CombinedDatasetReader(List<DatasetReader> readers) {
         this.readers = readers;
     }
 
@@ -73,6 +73,22 @@ public class CombinedDatasetReader implements DatasetReader {
             version = Math.min(version, r.getVersion());
         }
 
+        if (hasV10Reader() && !tmpDatasets.isEmpty()) {
+            ChromosomeHandler reference = tmpDatasets.get(0).getChromosomeHandler();
+            for (Dataset candidate : tmpDatasets) {
+                javastraw.reader.v10.V10AllOverview refAll = reference.getAllOverview();
+                javastraw.reader.v10.V10AllOverview candidateAll = candidate.getChromosomeHandler().getAllOverview();
+                if ((refAll == null) != (candidateAll == null) || (refAll != null &&
+                    (refAll.sourceResolution != candidateAll.sourceResolution || refAll.groupFactor != candidateAll.groupFactor ||
+                     !Arrays.equals(refAll.chromosomeBins, candidateAll.chromosomeBins))))
+                    throw new IOException("Summed maps must share the stored All layout; use a control map for different overview layouts");
+                juicebox.data.basics.Chromosome[] a = reference.getChromosomeArray();
+                juicebox.data.basics.Chromosome[] b = candidate.getChromosomeHandler().getChromosomeArray();
+                if (a.length != b.length) throw new IOException("Summed v10 maps must share the chromosome table; use a control map for differently indexed files");
+                for (int i = 0; i < a.length; i++) if (!a[i].getName().equals(b[i].getName()) || a[i].getLength() != b[i].getLength())
+                    throw new IOException("Summed v10 maps must share chromosome names, order, and lengths");
+            }
+        }
         return mergeDatasets(tmpDatasets);
 
     }
@@ -110,7 +126,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
         List<JCheckBox> allBoxes = new ArrayList<>();
-        for (DatasetReaderV2 reader : readers) {
+        for (DatasetReader reader : readers) {
             allBoxes.addAll(reader.getCheckBoxes(actionListeners));
         }
         return allBoxes;
@@ -142,7 +158,7 @@ public class CombinedDatasetReader implements DatasetReader {
                 Matrix m = r.readMatrix(key);
                 if (m == null) {
                     System.err.println("Matrix Region is null!! : " + r.getPath());
-                    System.err.println("Key " + m.getKey());
+                    System.err.println("Key " + key);
                 } else {
                     tmpDatasets.add(m);
                 }
@@ -154,7 +170,7 @@ public class CombinedDatasetReader implements DatasetReader {
         } else if (tmpDatasets.size() == 1) {
             return tmpDatasets.get(0);
         } else {
-            return mergeMatrices(tmpDatasets);
+            return hasV10Reader() ? mergeV10Matrices(tmpDatasets) : mergeMatrices(tmpDatasets);
         }
     }
 
@@ -348,7 +364,7 @@ public class CombinedDatasetReader implements DatasetReader {
         }
 
 
-        Map<String, String> attributes = new HashMap<>();
+        Map<String, String> attributes = new HashMap<>(firstDataset.getAttributes());
         attributes.put("statistics", mergeStatistics(statisticsList));
         attributes.put("graphs", mergeGraphs(graphsList));
         dataset.setAttributes(attributes);
@@ -385,10 +401,38 @@ public class CombinedDatasetReader implements DatasetReader {
             long len = protoFunction.getLength();
 
             for (ExpectedValueFunction df : densityFunctions) {
-                if (df.getBinSize() != binSize || !df.getUnit().equals(unit) || df.getNormalizationType() != type) {
+                if (df.getBinSize() != binSize || !df.getUnit().equals(unit) || !df.getNormalizationType().equals(type)) {
                     throw new RuntimeException("Attempt to merge incompatible expected values");
                 }
                 len = Math.min(df.getLength(), len);
+            }
+            if (hasV10Reader()) {
+                final long length = len;
+                final List<ExpectedValueFunction> sources = new ArrayList<>(densityFunctions);
+                return new ExpectedValueFunction() {
+                    public double getExpectedValue(int chr, long distance) {
+                        double sum = 0;
+                        for (ExpectedValueFunction source : sources) sum += source.getExpectedValue(chr, distance);
+                        return sum;
+                    }
+                    public long getLength() { return length; }
+                    public NormalizationType getNormalizationType() { return protoFunction.getNormalizationType(); }
+                    public HiC.Unit getUnit() { return protoFunction.getUnit(); }
+                    public int getBinSize() { return protoFunction.getBinSize(); }
+                    public ListOfDoubleArrays getExpectedValuesNoNormalization() {
+                        ListOfDoubleArrays result = new ListOfDoubleArrays(length);
+                        for (ExpectedValueFunction source : sources) {
+                            ListOfDoubleArrays values = source.getExpectedValuesNoNormalization();
+                            for (long i = 0; i < length; i++) result.set(i, result.get(i) + values.get(i));
+                        }
+                        return result;
+                    }
+                    public ListOfDoubleArrays getExpectedValuesWithNormalization(int chr) {
+                        ListOfDoubleArrays result = new ListOfDoubleArrays(length);
+                        for (long i = 0; i < length; i++) result.set(i, getExpectedValue(chr, i));
+                        return result;
+                    }
+                };
             }
             ListOfDoubleArrays expectedValues = new ListOfDoubleArrays(len);
 
@@ -522,6 +566,24 @@ public class CombinedDatasetReader implements DatasetReader {
         return newGraph.toString();
     }
 
+
+    private boolean hasV10Reader() {
+        for (DatasetReader reader : readers) if (reader.getVersion() == 10) return true;
+        return false;
+    }
+
+    private Matrix mergeV10Matrices(List<Matrix> matrices) {
+        Map<HiCZoom, List<MatrixZoomData>> byZoom = new LinkedHashMap<>();
+        for (Matrix matrix : matrices) {
+            List<MatrixZoomData> levels = new ArrayList<>(matrix.bpZoomData);
+            if (matrix.fragZoomData != null) levels.addAll(matrix.fragZoomData);
+            for (MatrixZoomData level : levels) byZoom.computeIfAbsent(level.getZoom(), key -> new ArrayList<>()).add(level);
+        }
+        List<MatrixZoomData> result = new ArrayList<>();
+        for (List<MatrixZoomData> layers : byZoom.values()) result.add(new CombinedV10MatrixZoomData(layers, this));
+        MatrixZoomData first = result.get(0);
+        return new Matrix(first.getChr1Idx(), first.getChr2Idx(), result);
+    }
 
     private Matrix mergeMatrices(List<Matrix> matrixList) {
 

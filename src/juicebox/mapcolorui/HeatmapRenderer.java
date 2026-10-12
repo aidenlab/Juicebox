@@ -76,7 +76,7 @@ public class HeatmapRenderer {
         int x = originX;
         int y = originY;
 
-        boolean isWholeGenome = chr1 == 0 && chr2 == 0;
+        boolean isWholeGenome = juicebox.data.ChromosomeHandler.isAllByAll(zd.getChr1()) && juicebox.data.ChromosomeHandler.isAllByAll(zd.getChr2());
         boolean sameChr = (chr1 == chr2);
 
         if (sameChr) {
@@ -146,21 +146,21 @@ public class HeatmapRenderer {
             if (controlZD == null || ctrlBlocks == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
-            renderObservedOverExpectedMap(chr1, ctrlBlocks, controlDF, controlZD,
+            renderObservedOverExpectedMap(controlZD.getChr1Idx(), ctrlBlocks, controlDF, controlZD,
                     cs, sameChr, originX, originY, width, height, 0);
         } else if (displayOption == MatrixType.OECTRLP1V2 || displayOption == MatrixType.OECTRLP1) {
             List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
             if (controlZD == null || ctrlBlocks == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
-            renderObservedOverExpectedMap(chr1, ctrlBlocks, controlDF, controlZD,
+            renderObservedOverExpectedMap(controlZD.getChr1Idx(), ctrlBlocks, controlDF, controlZD,
                     cs, sameChr, originX, originY, width, height, pseudoCountCtrl);
         } else if (displayOption == MatrixType.LOGCEO) {
             List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
             if (controlZD == null || ctrlBlocks == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(controlKey, displayOption, isWholeGenome, ctrlBlocks, 1f);
 
-            renderLogObservedBaseExpectedMap(chr1, ctrlBlocks, controlDF, controlZD, cs,
+            renderLogObservedBaseExpectedMap(controlZD.getChr1Idx(), ctrlBlocks, controlDF, controlZD, cs,
                     sameChr, originX, originY, width, height);
         } else if (displayOption == MatrixType.LOGEOVS || displayOption == MatrixType.OCMEVS ||
                 displayOption == MatrixType.VS || displayOption == MatrixType.LOGVS ||
@@ -247,7 +247,7 @@ public class HeatmapRenderer {
             List<Block> ctrlBlocks = getTheBlocks(controlZD, x, y, maxX, maxY, controlNormalizationType, isImportant);
             if (ctrlBlocks == null || controlZD == null) return false;
             ColorScale cs = colorScaleHandler.getColorScale(key, displayOption, isWholeGenome, ctrlBlocks, 1f);
-            renderNewBaseEMap(chr1, ctrlBlocks, controlDF, controlZD,
+            renderNewBaseEMap(controlZD.getChr1Idx(), ctrlBlocks, controlDF, controlZD,
                     cs, sameChr, originX, originY, width, height);
 
         } else if (displayOption == MatrixType.LOGEORATIOV2 || displayOption == MatrixType.LOGEORATIO) {
@@ -384,7 +384,7 @@ public class HeatmapRenderer {
                             float den = ctrlRecord.getCounts();
 
                             float obsExpected = getExpectedValue(df, chr1, rec);
-                            float ctrlExpected = getExpectedValue(controlDF, chr1, rec);
+                            float ctrlExpected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec);
 
                             if (logPainting(cs, num, den, obsExpected, ctrlExpected)) continue;
 
@@ -400,8 +400,8 @@ public class HeatmapRenderer {
 
                     Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
-                    float obsExpected = (averageCount > 0 ? averageCount : 1);
-                    float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+                    float obsExpected = (float) zd.getExpectedValueForTrans();
+                    float ctrlExpected = (float) controlZD.getExpectedValueForTrans();
 
                     for (ContactRecord rec : recs) {
                         ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
@@ -504,7 +504,7 @@ public class HeatmapRenderer {
                     ContactRecord ctrlRecord = controlRecords.get(rec.getKey(controlNormalizationType));
                     if (ctrlRecord != null) {
                         float num = ((rec.getCounts() + pseudoCountObs) / (getExpectedValue(df, chr1, 0, 0) + pseudoCountObs));
-                        float den = ((ctrlRecord.getCounts() + pseudoCountCtrl) / (getExpectedValue(controlDF, chr1, 0, 0) + pseudoCountCtrl));
+                        float den = ((ctrlRecord.getCounts() + pseudoCountCtrl) / (getExpectedValue(controlDF, controlZD.getChr1Idx(), 0, 0) + pseudoCountCtrl));
                         ratioPainting(originX, originY, width, height, cs, sameChr, rec, num, den);
                     }
                 }
@@ -565,7 +565,7 @@ public class HeatmapRenderer {
                             float den = ctrlRecord.getCounts() + pseudoCountCtrl;
 
                             float obsExpected = getExpectedValue(df, chr1, rec) + pseudoCountObs;
-                            float ctrlExpected = getExpectedValue(controlDF, chr1, rec) + pseudoCountCtrl;
+                            float ctrlExpected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec) + pseudoCountCtrl;
 
                             float score = (num / obsExpected) - (den / ctrlExpected);
                             if (Float.isNaN(score) || Float.isInfinite(score)) continue;
@@ -584,8 +584,8 @@ public class HeatmapRenderer {
 
                     Map<String, ContactRecord> controlRecords = linkRecords(zd, controlNormalizationType, controlBlocks, b);
 
-                    float obsExpected = (averageCount > 0 ? averageCount : 1);
-                    float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+                    float obsExpected = (float) zd.getExpectedValueForTrans();
+                    float ctrlExpected = (float) controlZD.getExpectedValueForTrans();
                     obsExpected += pseudoCountObs;
                     ctrlExpected += pseudoCountCtrl;
 
@@ -641,7 +641,7 @@ public class HeatmapRenderer {
                             float den = ctrlRecord.getCounts() + pseudoCountCtrl;
 
                             float obsExpected = getExpectedValue(df, chr1, rec) + pseudoCountObs;
-                            float ctrlExpected = getExpectedValue(controlDF, chr1, rec) + pseudoCountCtrl;
+                            float ctrlExpected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec) + pseudoCountCtrl;
 
                             float score = (num / obsExpected) / (den / ctrlExpected);
                             if (Float.isNaN(score) || Float.isInfinite(score)) continue;
@@ -656,8 +656,8 @@ public class HeatmapRenderer {
         } else {
             float averageCount = (float) zd.getAverageCount();
             float ctrlAverageCount = controlZD == null ? 1 : (float) controlZD.getAverageCount();
-            float obsExpected = (averageCount > 0 ? averageCount : 1);
-            float ctrlExpected = (ctrlAverageCount > 0 ? ctrlAverageCount : 1);
+            float obsExpected = (float) zd.getExpectedValueForTrans();
+            float ctrlExpected = (float) controlZD.getExpectedValueForTrans();
             obsExpected += pseudoCountObs;
             ctrlExpected += pseudoCountCtrl;
 
@@ -708,7 +708,7 @@ public class HeatmapRenderer {
             }
         } else {
             float averageCount = (float) zd.getAverageCount();
-            float expected = (averageCount > 0 ? averageCount : 1);
+            float expected = (float) zd.getExpectedValueForTrans();
             for (Block b : blocks) {
                 Collection<ContactRecord> recs = b.getContactRecords();
                 if (recs != null) {
@@ -743,7 +743,7 @@ public class HeatmapRenderer {
             }
         } else {
             float averageCount = (float) zd.getAverageCount();
-            float expected = (averageCount > 0 ? averageCount : 1);
+            float expected = (float) zd.getExpectedValueForTrans();
             setColor(cs.getColor(expected));
             for (int px = 0; px <= width; px++) {
                 for (int py = 0; py <= height; py++) {
@@ -788,7 +788,7 @@ public class HeatmapRenderer {
                         int binY = rec.getBinY();
 
                         if (binX != binY) {
-                            float expected = getExpectedValue(controlDF, chr1, rec);
+                            float expected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec);
                             score = rec.getCounts() - expected;
 
                             setColor(cs.getColor(score));
@@ -828,7 +828,7 @@ public class HeatmapRenderer {
                         int binY = rec.getBinY();
 
                         if (binX != binY) {
-                            float expected = getExpectedValue(controlDF, chr1, rec);
+                            float expected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec);
                             float score = (float) (Math.log(rec.getCounts() + 1) / Math.log(expected + 1));
                             if (Float.isNaN(score) || Float.isInfinite(score)) continue;
 
@@ -949,7 +949,7 @@ public class HeatmapRenderer {
             }
         } else {
             float averageCount = (float) zd.getAverageCount();
-            float expected = (averageCount > 0 ? averageCount : 1);
+            float expected = (float) zd.getExpectedValueForTrans();
 
             for (Block b : blocks) {
                 Collection<ContactRecord> recs = b.getContactRecords();
@@ -1003,7 +1003,7 @@ public class HeatmapRenderer {
                         int binY = rec.getBinY();
 
                         if (binX != binY) {
-                            float expected = getExpectedValue(controlDF, chromosome, rec);
+                            float expected = getExpectedValue(controlDF, controlZD.getChr1Idx(), rec);
                             score = (rec.getCounts() + pseudoCountCtrl) / (expected + pseudoCountCtrl);
 
                             setColor(cs.getColor(score));
@@ -1047,7 +1047,7 @@ public class HeatmapRenderer {
             }
         } else {
             float averageCount = (float) zd.getAverageCount();
-            float expected = (averageCount > 0 ? averageCount : 1);
+            float expected = (float) zd.getExpectedValueForTrans();
 
             for (Block b : blocks) {
                 Collection<ContactRecord> recs = b.getContactRecords();

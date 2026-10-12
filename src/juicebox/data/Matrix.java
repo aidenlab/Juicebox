@@ -339,7 +339,7 @@ public class Matrix {
         }
 
         // special exception for all by all
-        if (chr1 == 0 && chr2 == 0) {
+        if (chr1 == chr2 && !zdList.isEmpty() && ChromosomeHandler.isAllByAll(zdList.get(0).getChr1())) {
 
             MatrixZoomData closestValue = zdList.get(0);
             int distance = Math.abs(closestValue.getBinSize() - targetZoom);

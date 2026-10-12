@@ -27,6 +27,7 @@
 
 
     <property file="juicebox.properties"/>
+    <property name="java.straw.dir" location="${basedir}/../java-straw"/>
     <!-- Uncomment the following property if no tests compilation is needed -->
     <!--
     <property name="skip.tests" value="true"/>
@@ -133,6 +134,7 @@
     </path>
 
     <path id="library.general.classpath">
+        <fileset dir="${java.straw.dir}/lib/general"><include name="*.jar"/></fileset>
         <fileset dir="${basedir}/lib/general">
             <patternset refid="library.patterns"/>
         </fileset>
@@ -234,6 +236,7 @@
     </patternset>
 
     <path id="juicebox.module.sourcepath">
+        <pathelement location="${java.straw.dir}/src"/>
         <dirset dir="${module.juicebox.basedir}">
             <include name="src"/>
         </dirset>
@@ -297,6 +300,8 @@
              manifest="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF">
             <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
+            <zipfileset src="${java.straw.dir}/lib/general/aircompressor-0.27.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${java.straw.dir}/lib/general/npy.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/igv.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
@@ -327,6 +332,12 @@
         <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
     </target>
 
+    <target name="desktop-v10" depends="artifact.juicebox:jar" description="Build the desktop viewer with the local v10 reader">
+        <mkdir dir="${artifact.output.juicebox:jar}"/>
+        <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.output.juicebox:jar}/Juicebox.jar"/>
+        <delete dir="${artifacts.temp.dir}"/>
+    </target>
+
     <target name="artifact.juicer_tools:jar" depends="init.artifacts, compile.module.juicebox"
             description="Build &#39;juicer_tools:jar&#39; artifact">
         <property name="artifact.temp.output.juicer_tools:jar" value="${artifacts.temp.dir}/juicer_tools_jar"/>
@@ -336,6 +347,8 @@
             <zipfileset file="${basedir}/src/resources/manifests/juicer_tools_jar/META-INF/MANIFEST.MF"
                         prefix="META-INF"/>
             <zipfileset dir="${juicebox.output.dir}"/>
+            <zipfileset src="${java.straw.dir}/lib/general/aircompressor-0.27.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
+            <zipfileset src="${java.straw.dir}/lib/general/npy.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
             <zipfileset src="${basedir}/lib/general/commons-math3-3.6.1.jar"/>
             <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>

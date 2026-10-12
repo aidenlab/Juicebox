@@ -68,6 +68,9 @@ public class ContactRecord implements Comparable<ContactRecord> {
         return binY;
     }
 
+    /** Exact raw v10 count, or null for legacy, scored, or normalized records. */
+    public java.math.BigInteger getExactCount() { return null; }
+
     public float getCounts() {
         return counts;
     }

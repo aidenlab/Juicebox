@@ -83,14 +83,8 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         try {
 			long xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
 			long yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
-			for (int i = 0; i < chromosomeBoundaries.length; i++) {
-				if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-					xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-				}
-				if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-					yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-				}
-			}
+            xChrom = hic.getChromosomeHandler().getOverviewChromosome(xGenome);
+            yChrom = hic.getChromosomeHandler().getOverviewChromosome(yGenome);
 		} catch (Exception ex) {
             // do nothing, leave chromosomes null
         }

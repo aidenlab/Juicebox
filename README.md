@@ -139,3 +139,34 @@ Windows Installing Ant requires some minor changes to your system environment. F
 https://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
 
 Linux In the command prompt, type sudo apt-get install ant or sudo yum install ant depending on your package installer
+
+
+## V10 and stored All
+
+Build the desktop artifact against the sibling `java-straw` sources with:
+
+```sh
+ant -Djdk.home.1.8="$(/usr/libexec/java_home)" desktop-v10
+```
+
+The jar is `out/artifacts/Juicebox_jar/Juicebox.jar`. V10 is dispatched to the
+Java Straw decoder through a desktop adapter. It supports stored scaled All,
+selects its finest useful BP level, and uses its layout for chromosome labels,
+boundaries, hover positions and chromosome selection. All may be appended to
+the table; it need not be index zero. All uses raw counts without normalization.
+Coarser All matrices remain queryable through Java Straw, while the desktop
+adapter offers the useful finest overview level. Legacy All keeps its existing
+coordinate interpretation. This requires no change to the V10 binary format.
+
+Run `tests/run-v10.sh` for file-level, exact-count, layout and headless O/E pixel
+checks. Optional argument one is a real V10 map to include in the data checks.
+Website and desktop interactive GUI testing is separate from these code tests.
+
+Whole-genome control comparisons require matching stored All layouts. The
+overview selector stays on Observed for differing layouts; real-chromosome
+comparisons remain available. The desktop adapter also selects the useful
+legacy All level in converted files with empty global All levels.
+
+Scaled All overviews may use fractional display pixels so grids wider than
+the viewport fit completely. Raw query coordinates and stored counts remain
+unchanged by this display scaling.

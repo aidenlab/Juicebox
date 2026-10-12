@@ -82,6 +82,13 @@ public class Dataset {
         // order is arbitrary, convention is lower # chr first
         if (chr1 == null || chr2 == null) return null;
 
+        // A control map may have a different chromosome table (for example a
+        // legacy All entry before chr1, versus a v10 table starting at chr1).
+        Chromosome local1 = chromosomeHandler.getChromosomeFromName(chr1.getName());
+        Chromosome local2 = chromosomeHandler.getChromosomeFromName(chr2.getName());
+        if (local1 == null || local2 == null) return null;
+        chr1 = local1;
+        chr2 = local2;
         //System.out.println("from dataset");
         String key = Matrix.generateKey(chr1, chr2);
         Matrix m = matrices.get(key);
@@ -241,6 +248,10 @@ public class Dataset {
 
         }
 
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes == null ? java.util.Collections.emptyMap() : java.util.Collections.unmodifiableMap(attributes);
     }
 
     public void setAttributes(Map<String, String> map) {

@@ -58,8 +58,8 @@ public class AssemblyHeatmapHandler {
 
     public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx) {
         //temp fix for AllByAll. TODO: trace this!
-        if (chr1Idx == 0 && chr2Idx == 0) {
-            binSize = 1000 * binSize; // AllByAll is measured in kb
+        if (chr1Idx == chr2Idx && juicebox.data.ChromosomeHandler.isAllByAll(superAdapter.getHiC().getChromosomeHandler().getChromosomeFromIndex(chr1Idx))) {
+            binSize = superAdapter.getHiC().getChromosomeHandler().getAllOverview() == null ? Math.multiplyExact(1000, binSize) : Math.toIntExact(superAdapter.getHiC().getChromosomeHandler().getAllOverview().effectiveResolution);
         }
 
         List<ContactRecord> alteredContacts = new ArrayList<>();

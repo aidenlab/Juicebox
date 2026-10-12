@@ -255,15 +255,15 @@ public class HiCRulerPanel extends JPanel {
             if (cursorPoint != null) {
                 int x1 = 0;
                 ChromosomeHandler handler = hic.getChromosomeHandler();
-                // Index 0 is whole genome
-                int genomeCoord = 0;
-                for (int i = 1; i < handler.size(); i++) {
+                long[] boundaries = handler.getChromosomeBoundaries();
+                Chromosome[] real = handler.getChromosomeArrayWithoutAllByAll();
+                for (int i = 0; i < real.length; i++) {
                     Color tColor = isHorizontal() ? topTick : leftTick;
                     g.setColor(tColor);
 
                     double binOrigin = context.getBinOrigin();
-                    Chromosome c = handler.getChromosomeFromIndex(i);
-                    genomeCoord += (c.getLength() / 1000);
+                    Chromosome c = real[i];
+                    long genomeCoord = boundaries[i];
 
                     int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
                     int x2 = (int) ((xBin - binOrigin) * hic.getScaleFactor());

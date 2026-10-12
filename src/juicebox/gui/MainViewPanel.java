@@ -539,8 +539,9 @@ public class MainViewPanel {
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
 
         if (ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2)) {
-            chrBox1.setSelectedIndex(0);
-            chrBox2.setSelectedIndex(0);
+            Chromosome all = ChromosomeHandler.isAllByAll(chr1) ? chr1 : chr2;
+            chrBox1.setSelectedItem(all);
+            chrBox2.setSelectedItem(all);
             MatrixType matrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
             if (MatrixType.isPearsonType(matrixType)) {
                 // can't do pearson's genomewide
@@ -580,6 +581,9 @@ public class MainViewPanel {
         heatmapPanel.setChromosomeBoundaries(handler.getChromosomeBoundaries());
         chrBox1.setModel(new DefaultComboBoxModel<>(handler.getChromosomeArray()));
         chrBox2.setModel(new DefaultComboBoxModel<>(handler.getChromosomeArray()));
+        for (Chromosome c : handler.getChromosomeArray()) if (ChromosomeHandler.isAllByAll(c)) {
+            chrBox1.setSelectedItem(c); chrBox2.setSelectedItem(c); break;
+        }
     }
 
     private boolean isInterChromosomal() {
@@ -625,7 +629,10 @@ public class MainViewPanel {
 
         observedNormalizationComboBox.setEnabled(!isWholeGenome(hic));
         controlNormalizationComboBox.setEnabled(!isWholeGenome() && ifControlIsLoaded());
-        displayOptionComboBox.setEnabled(true);
+        boolean matchingOverview = !isWholeGenome(hic) || hic.hasCompatibleWholeGenomeControl();
+        displayOptionComboBox.setEnabled(matchingOverview);
+        displayOptionComboBox.setToolTipText(matchingOverview ? null :
+            "Select real chromosomes to compare maps with different stored All layouts");
     }
 
     public void repaintTrackPanels() {
@@ -688,16 +695,16 @@ public class MainViewPanel {
     }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
-      if (chrBox1.getSelectedIndex() == 0) {
-        chrBox2.setSelectedIndex(0);
+      if (chrBox1.getSelectedItem() != null && ChromosomeHandler.isAllByAll((Chromosome) chrBox1.getSelectedItem())) {
+        chrBox2.setSelectedItem(chrBox1.getSelectedItem());
       } else if (HiCGlobals.isAssemblyMatCheck && chrBox1.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
         chrBox2.setSelectedIndex(chrBox1.getItemCount() - 1);
       }
     }
 
     private void chrBox2ActionPerformed(ActionEvent e) {
-      if (chrBox2.getSelectedIndex() == 0) {
-        chrBox1.setSelectedIndex(0);
+      if (chrBox2.getSelectedItem() != null && ChromosomeHandler.isAllByAll((Chromosome) chrBox2.getSelectedItem())) {
+        chrBox1.setSelectedItem(chrBox2.getSelectedItem());
       } else if (HiCGlobals.isAssemblyMatCheck && chrBox2.getSelectedIndex() == (chrBox1.getItemCount() - 1)) {
         chrBox1.setSelectedIndex(chrBox1.getItemCount() - 1);
       }

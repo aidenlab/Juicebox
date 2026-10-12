@@ -309,7 +309,12 @@ public class HiC {
         }
     }
 
+    public boolean hasCompatibleWholeGenomeControl() {
+        return dataset == null || controlDataset == null ||
+            dataset.getChromosomeHandler().hasSameOverviewLayout(controlDataset.getChromosomeHandler());
+    }
     public MatrixZoomData getControlZd() {
+        if (isWholeGenome() && !hasCompatibleWholeGenomeControl()) return null;
         Matrix matrix = getControlMatrix();
         if (matrix == null || currentZoom == null) {
             return null;
@@ -630,7 +635,9 @@ public class HiC {
 
     public NormalizationVector getControlNormalizationVector(int chrIdx) {
         if (controlDataset == null) return null;
-        return controlDataset.getNormalizationVector(chrIdx, currentZoom, ctrlNormalizationType);
+        Chromosome source = dataset.getChromosomeHandler().getChromosomeFromIndex(chrIdx);
+        Chromosome target = controlDataset.getChromosomeHandler().getChromosomeFromName(source.getName());
+        return target == null ? null : controlDataset.getNormalizationVector(target.getIndex(), currentZoom, ctrlNormalizationType);
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
@@ -790,6 +797,7 @@ public class HiC {
 
         if (ChromosomeHandler.isAllByAll(chrX)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
+            if (newZD != null) newZoom = newZD.getZoom();
         }
 
         if (newZD == null) {
@@ -816,7 +824,9 @@ public class HiC {
             setScaleFactor(scaleFactor);
         } else {
             long maxBinCount = Math.max(newZD.getXGridAxis().getBinCount(), newZD.getYGridAxis().getBinCount());
-            double defaultScaleFactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
+            boolean scaledOverview = chromosomeHandler.getAllOverview() != null && ChromosomeHandler.isAllByAll(chrX);
+            double defaultScaleFactor = Math.max(scaledOverview ? 1e-10 : 1.0,
+                (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
             setScaleFactor(defaultScaleFactor);
         }
 

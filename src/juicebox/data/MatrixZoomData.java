@@ -418,7 +418,7 @@ public class MatrixZoomData {
         final int binSize = zoom.getBinSize();
 
         long actualBinSize = binSize;
-        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+        if (ChromosomeHandler.isAllByAll(chr1) && ChromosomeHandler.isAllByAll(chr2)) {
             actualBinSize = 1000 * actualBinSize;
         }
 
@@ -510,7 +510,7 @@ public class MatrixZoomData {
 
 //    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
 //        List<Feature2D> xAxisFeatures;
-//        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+//        if (ChromosomeHandler.isAllByAll(chr1) && ChromosomeHandler.isAllByAll(chr2)) {
 //            xAxisFeatures = handler.getIntersectingFeatures(1, 1, currentWindow, true);
 //            // helps with disappearing heatmap but doesn't fix everything
 //        } else {
@@ -1200,6 +1200,8 @@ public class MatrixZoomData {
      *
      * @return Average count
      */
+    public double getExpectedValueForTrans() { return averageCount > 0 ? averageCount : 1; }
+
     public double getAverageCount() {
         return averageCount;
     }

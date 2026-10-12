@@ -46,7 +46,9 @@ public class ChromosomeHandler {
     private final Map<Integer, GenomeWideList<GenericLocus>> customChromosomeRegions = new HashMap<>();
     private final List<Chromosome> cleanedChromosomes;
     private final String genomeID;
+    private final boolean preserveExactNames;
     private final long[] chromosomeBoundaries;
+    private javastraw.reader.v10.V10AllOverview allOverview;
     private final Chromosome[] chromosomesArray;
     private final Chromosome[] chromosomeArrayWithoutAllByAll;
     private final Chromosome[] chromosomeArrayAutosomesOnly;
@@ -56,6 +58,11 @@ public class ChromosomeHandler {
     }
 
     public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID, boolean createAllChr) {
+        this(chromosomes, genomeID, inferID, createAllChr, false);
+    }
+
+    public ChromosomeHandler(List<Chromosome> chromosomes, String genomeID, boolean inferID, boolean createAllChr, boolean preserveExactNames) {
+        this.preserveExactNames = preserveExactNames;
 
         if (inferID) {
             String inferGenomeId = inferGenomeId();
@@ -90,6 +97,7 @@ public class ChromosomeHandler {
 
 
     public String cleanUpName(String name) {
+        if (preserveExactNames) return name;
         if (genomeID.equalsIgnoreCase("hg19")) {
             return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
         }
@@ -97,7 +105,7 @@ public class ChromosomeHandler {
     }
 
     public static boolean isAllByAll(String name) {
-        return name.toLowerCase().contains("all");
+        return name != null && name.equalsIgnoreCase("all");
     }
 
     public static void sort(List<Chromosome> indices) {
@@ -124,7 +132,7 @@ public class ChromosomeHandler {
     }
 
     public static boolean isAllByAll(Chromosome chromosome) {
-        return isAllByAll(chromosome.getName());
+        return chromosome != null && isAllByAll(chromosome.getName());
     }
 
 
@@ -226,26 +234,25 @@ public class ChromosomeHandler {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
+            String alias = c.getName().startsWith("chr") ? c.getName().substring(3) : "chr" + c.getName();
+            if (!chromosomeMap.containsKey(alias)) chromosomeMap.put(alias, c);
             if (c.getName().equalsIgnoreCase("MT")) {
                 chromosomeMap.put("M", c); // special case for mitochondria
             }
         }
 
-        // for all-by-all view
-        long[] chromosomeBoundaries = new long[cleanedChromosomes.size() - 1];
-        long bound = 0;
-        for (int i = 1; i < cleanedChromosomes.size(); i++) {
-            Chromosome c = cleanedChromosomes.get(i);
-            bound += (c.getLength() / 1000);
-            chromosomeBoundaries[i - 1] = bound;
+        List<Chromosome> realChromosomes = new ArrayList<>();
+        for (Chromosome chromosome : cleanedChromosomes) {
+            if (!isAllByAll(chromosome)) realChromosomes.add(chromosome);
         }
-
-        Chromosome[] chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
-
-        // array without all by all
-        Chromosome[] chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
-        System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
-
+        long[] chromosomeBoundaries = new long[realChromosomes.size()];
+        long bound = 0;
+        for (int i = 0; i < realChromosomes.size(); i++) {
+            bound += realChromosomes.get(i).getLength() / 1000;
+            chromosomeBoundaries[i] = bound;
+        }
+        Chromosome[] chromosomesArray = cleanedChromosomes.toArray(new Chromosome[0]);
+        Chromosome[] chromosomeArrayWithoutAllByAll = realChromosomes.toArray(new Chromosome[0]);
 
         // array without X and Y
         List<Chromosome> autosomes = new ArrayList<>();
@@ -291,19 +298,58 @@ public class ChromosomeHandler {
     }
 
     public Chromosome getChromosomeFromName(String name) {
+        if (name == null) return null;
+        Chromosome exact = chromosomeMap.get(name);
+        if (exact != null) return exact;
+        if (isAllByAll(name)) for (Chromosome c : chromosomesArray)
+            if (isAllByAll(c)) return c;
         return chromosomeMap.get(cleanUpName(name));
     }
 
     public boolean doesNotContainChromosome(String name) {
-        return !chromosomeMap.containsKey(cleanUpName(name));
+        return getChromosomeFromName(name) == null;
     }
 
     public int size() {
         return chromosomesArray.length;
     }
 
+    public void setAllOverview(javastraw.reader.v10.V10AllOverview overview) { allOverview = overview; }
+    public javastraw.reader.v10.V10AllOverview getAllOverview() { return allOverview; }
+    public Chromosome getOverviewChromosome(long coordinate) {
+        if (allOverview != null) return getChromosomeFromIndex(allOverview.chromosomeForCoordinate(coordinate));
+        long[] boundaries = getChromosomeBoundaries();
+        for (int i = 0; i < boundaries.length; i++)
+            if (coordinate < boundaries[i]) return chromosomeArrayWithoutAllByAll[i];
+        return chromosomeArrayWithoutAllByAll[chromosomeArrayWithoutAllByAll.length - 1];
+    }
+    public long getOverviewPosition(Chromosome chromosome, long coordinate) {
+        if (allOverview != null) return Math.min(chromosome.getLength() - 1,
+                allOverview.positionForCoordinate(chromosome.getIndex(), coordinate));
+        long start = 0;
+        for (Chromosome c : chromosomeArrayWithoutAllByAll) {
+            if (c.getIndex() == chromosome.getIndex()) return Math.max(0, (coordinate - start) * 1000);
+            start += c.getLength() / 1000;
+        }
+        throw new IllegalArgumentException("Unknown overview chromosome");
+    }
+    public boolean hasSameOverviewLayout(ChromosomeHandler other) {
+        javastraw.reader.v10.V10AllOverview a = allOverview, b = other.allOverview;
+        if (a == null || b == null) return a == b;
+        if (a.sourceResolution != b.sourceResolution || a.groupFactor != b.groupFactor || a.binCount != b.binCount ||
+                !java.util.Arrays.equals(a.chromosomeBins, b.chromosomeBins)) return false;
+        for (int i = 0; i < a.chromosomeIndices.length; i++)
+            if (!getChromosomeFromIndex(a.chromosomeIndices[i]).getName().equals(
+                other.getChromosomeFromIndex(b.chromosomeIndices[i]).getName())) return false;
+        return true;
+    }
     public long[] getChromosomeBoundaries() {
-        return chromosomeBoundaries;
+        if (allOverview == null) return chromosomeBoundaries;
+        long[] boundaries = new long[allOverview.chromosomeIndices.length];
+        for (int i = 0; i < boundaries.length; i++)
+            boundaries[i] = Math.toIntExact((long) Math.ceil(allOverview.syntheticBoundary(i)));
+        boundaries[boundaries.length - 1] = Math.multiplyExact(allOverview.binCount, allOverview.finestResolution);
+        return boundaries;
     }
 
     public Chromosome[] getChromosomeArray() {

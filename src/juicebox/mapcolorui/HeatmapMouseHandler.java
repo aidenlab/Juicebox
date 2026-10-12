@@ -1553,17 +1553,14 @@ public class HeatmapMouseHandler extends MouseAdapter {
 
         if (hic.isWholeGenome()) {
 
-            final long[] chromosomeBoundaries = parent.getChromosomeBoundaries();
-            Chromosome xChrom = getChromFromBoundaries(chromosomeBoundaries, xGenomeStart);
-            Chromosome yChrom = getChromFromBoundaries(chromosomeBoundaries, yGenomeStart);
-
+            juicebox.data.ChromosomeHandler handler = hic.getChromosomeHandler();
+            long overviewX = handler.getAllOverview() == null ? xGenomeStart : xGenomeStart - 1;
+            long overviewY = handler.getAllOverview() == null ? yGenomeStart : yGenomeStart - 1;
+            Chromosome xChrom = handler.getOverviewChromosome(overviewX);
+            Chromosome yChrom = handler.getOverviewChromosome(overviewY);
             if (xChrom != null && yChrom != null) {
-
-                long leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
-                long leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
-
-                long xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
-                long yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
+                long xChromPos = handler.getOverviewPosition(xChrom, overviewX) + 1;
+                long yChromPos = handler.getOverviewPosition(yChrom, overviewY) + 1;
 
                 String txt = "";
                 txt += "<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
@@ -1817,14 +1814,7 @@ public class HeatmapMouseHandler extends MouseAdapter {
     }
 
     private Chromosome getChromFromBoundaries(long[] chromosomeBoundaries, long genomeStart) {
-        Chromosome chrom = null;
-        for (int i = 0; i < chromosomeBoundaries.length; i++) {
-            if (chromosomeBoundaries[i] > genomeStart) {
-                chrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                break;
-            }
-        }
-        return chrom;
+        return hic.getChromosomeHandler().getOverviewChromosome(genomeStart);
     }
 
     private void addJumpToDiagonalMenuItems(JidePopupMenu menu, int xMousePos, int yMousePos) {

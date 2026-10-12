@@ -58,8 +58,8 @@ public class OneDimAssemblyTrackLifter {
 
         final int binSize = zoom.getBinSize();
         long actualBinSize = binSize;
-        if (chromosome.getIndex() == 0) {
-            actualBinSize = 1000 * actualBinSize;
+        if (juicebox.data.ChromosomeHandler.isAllByAll(chromosome)) {
+            actualBinSize = hic.getChromosomeHandler().getAllOverview() == null ? 1000 * actualBinSize : hic.getChromosomeHandler().getAllOverview().effectiveResolution;
         }
 
         List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
@@ -160,7 +160,7 @@ public class OneDimAssemblyTrackLifter {
 
         final int binSize = zoom.getBinSize();
         long actualBinSize = binSize;
-        if (chromosome.getIndex() == 0) {
+        if (juicebox.data.ChromosomeHandler.isAllByAll(chromosome)) {
             actualBinSize *= 1000;
         }
 
