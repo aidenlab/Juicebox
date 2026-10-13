@@ -336,8 +336,10 @@ public class ChromosomeHandler {
     public boolean hasSameOverviewLayout(ChromosomeHandler other) {
         javastraw.reader.v10.V10AllOverview a = allOverview, b = other.allOverview;
         if (a == null || b == null) return a == b;
-        if (a.sourceResolution != b.sourceResolution || a.groupFactor != b.groupFactor || a.binCount != b.binCount ||
-                !java.util.Arrays.equals(a.chromosomeBins, b.chromosomeBins)) return false;
+        if (a.version != b.version || a.effectiveResolution != b.effectiveResolution || a.binCount != b.binCount ||
+                (a.version == 2 ? !java.util.Arrays.equals(a.chromosomeLengths, b.chromosomeLengths) :
+                a.sourceResolution != b.sourceResolution || a.groupFactor != b.groupFactor ||
+                !java.util.Arrays.equals(a.chromosomeBins, b.chromosomeBins))) return false;
         for (int i = 0; i < a.chromosomeIndices.length; i++)
             if (!getChromosomeFromIndex(a.chromosomeIndices[i]).getName().equals(
                 other.getChromosomeFromIndex(b.chromosomeIndices[i]).getName())) return false;
@@ -348,7 +350,7 @@ public class ChromosomeHandler {
         long[] boundaries = new long[allOverview.chromosomeIndices.length];
         for (int i = 0; i < boundaries.length; i++)
             boundaries[i] = Math.toIntExact((long) Math.ceil(allOverview.syntheticBoundary(i)));
-        boundaries[boundaries.length - 1] = Math.multiplyExact(allOverview.binCount, allOverview.finestResolution);
+        boundaries[boundaries.length - 1] = allOverview.syntheticLength;
         return boundaries;
     }
 

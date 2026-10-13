@@ -14,6 +14,8 @@ import java.util.*;
 public class V10MatrixZoomData extends MatrixZoomData {
     final javastraw.reader.mzd.V10MatrixZoomData delegate;
     private final DatasetReaderV10 owner;
+    private final int overviewStride;
+    private final long overviewBins;
 
     public V10MatrixZoomData(Chromosome first, Chromosome second, HiCZoom zoom,
                             javastraw.reader.mzd.V10MatrixZoomData delegate, DatasetReaderV10 reader) {
@@ -23,30 +25,41 @@ public class V10MatrixZoomData extends MatrixZoomData {
               zoom.getUnit() == HiC.Unit.FRAG ? new int[0] : null, reader);
         this.delegate = delegate;
         this.owner = reader;
-        setAverageCount(delegate.getAverageCount());
+        javastraw.reader.v10.V10AllOverview all = reader.readOverview();
+        boolean overview = all != null && first.getIndex() == all.chromosomeIndex && second.getIndex() == first.getIndex();
+        overviewStride = overview ? Math.toIntExact(all.storageStride) : 1;
+        overviewBins = overview ? all.binCount : 0;
+        setAverageCount(overview ? delegate.getZoomDescriptor().getSum() / all.binCount / all.binCount : delegate.getAverageCount());
     }
     @Override public HiCGridAxis getXGridAxis() {
         return getZoom().getUnit() == HiC.Unit.BP
-                ? new HiCFixedGridAxis(delegate.getNumberOfBinsX(), getBinSize(), null) : new FragmentAxis(owner.fragmentSites(getChr1Idx()), getChr1().getLength(), getBinSize());
+                ? new HiCFixedGridAxis((overviewBins > 0 ? overviewBins : delegate.getNumberOfBinsX()), getBinSize(), null) : new FragmentAxis(owner.fragmentSites(getChr1Idx()), getChr1().getLength(), getBinSize());
     }
     @Override public HiCGridAxis getYGridAxis() {
         return getZoom().getUnit() == HiC.Unit.BP
-                ? new HiCFixedGridAxis(delegate.getNumberOfBinsY(), getBinSize(), null) : new FragmentAxis(owner.fragmentSites(getChr2Idx()), getChr2().getLength(), getBinSize());
+                ? new HiCFixedGridAxis((overviewBins > 0 ? overviewBins : delegate.getNumberOfBinsY()), getBinSize(), null) : new FragmentAxis(owner.fragmentSites(getChr2Idx()), getChr2().getLength(), getBinSize());
     }
     public double getSumCount() { return delegate.getZoomDescriptor().getSum(); }
     @Override public List<Block> getNormalizedBlocksOverlapping(long x1, long y1, long x2, long y2,
             NormalizationType normalization, boolean important, boolean fillUnderDiagonal) {
         List<Block> result = new ArrayList<>();
         for (javastraw.reader.block.Block block : delegate.getNormalizedBlocksOverlapping(
-                x1, y1, x2, y2, DatasetReaderV10.norm(normalization), fillUnderDiagonal)) {
+                x1 * overviewStride, y1 * overviewStride,
+                (x2 + 1) * overviewStride - 1, (y2 + 1) * overviewStride - 1, DatasetReaderV10.norm(normalization), fillUnderDiagonal)) {
             result.add(convert(block));
         }
         return result;
     }
     private Block convert(javastraw.reader.block.Block block) {
         List<ContactRecord> records = new ArrayList<>(block.getContactRecords().size());
-        for (javastraw.reader.block.ContactRecord record : block.getContactRecords()) records.add(convert(record));
+        for (javastraw.reader.block.ContactRecord record : block.getContactRecords()) records.add(displayRecord(record));
         return new Block(block.getNumber(), records, block.getUniqueRegionID());
+    }
+    private ContactRecord displayRecord(javastraw.reader.block.ContactRecord record) {
+        if (overviewStride == 1) return convert(record);
+        int x = record.getBinX() / overviewStride, y = record.getBinY() / overviewStride;
+        BigInteger exact = record instanceof javastraw.reader.block.V10ContactRecord ? record.getExactCount() : null;
+        return exact == null ? new ContactRecord(x, y, record.getCounts()) : new ExactRecord(x, y, exact);
     }
     static ContactRecord convert(javastraw.reader.block.ContactRecord record) {
         BigInteger exact = record instanceof javastraw.reader.block.V10ContactRecord ? record.getExactCount() : null;
@@ -62,13 +75,13 @@ public class V10MatrixZoomData extends MatrixZoomData {
         final Iterator<javastraw.reader.block.ContactRecord> original = delegate.getDirectIterator();
         return new Iterator<ContactRecord>() {
             public boolean hasNext() { return original.hasNext(); }
-            public ContactRecord next() { return convert(original.next()); }
+            public ContactRecord next() { return displayRecord(original.next()); }
             public void remove() { throw new UnsupportedOperationException(); }
         };
     }
     @Override public juicebox.data.iterator.IteratorContainer getIteratorContainer() { return getFromFileIteratorContainer(); }
     @Override public juicebox.data.iterator.IteratorContainer getFromFileIteratorContainer() {
-        return new juicebox.data.iterator.IteratorContainer(delegate.getNumberOfBinsX()) {
+        return new juicebox.data.iterator.IteratorContainer(overviewBins > 0 ? overviewBins : delegate.getNumberOfBinsX()) {
             public Iterator<ContactRecord> getNewContactRecordIterator() { return directIterator(); }
             public juicebox.data.basics.ListOfFloatArrays sparseMultiply(juicebox.data.basics.ListOfFloatArrays vector, long length) {
                 return juicebox.data.iterator.ZDIteratorContainer.matrixVectorMultiplyOnIterator(directIterator(), vector, length);
@@ -81,15 +94,15 @@ public class V10MatrixZoomData extends MatrixZoomData {
             long[] region, ExpectedValueFunction expected, boolean dense) throws IOException {
 
         if (writer == null && binary == null) writer = new java.io.PrintWriter(System.out);
-        long x1 = 0, y1 = 0, x2 = delegate.getNumberOfBinsX() - 1, y2 = delegate.getNumberOfBinsY() - 1;
+        long x1 = 0, y1 = 0, x2 = getXGridAxis().getBinCount() - 1, y2 = getYGridAxis().getBinCount() - 1;
         if (regional) { x1 = region[0] / getBinSize(); x2 = region[1] / getBinSize(); y1 = region[2] / getBinSize(); y2 = region[3] / getBinSize(); }
         Iterator<javastraw.reader.block.ContactRecord> records;
         if (regional) {
             List<javastraw.reader.block.ContactRecord> selected = new ArrayList<>();
             Set<Long> seen = new HashSet<>();
-            for (javastraw.reader.block.Block block : delegate.getNormalizedBlocksOverlapping(x1, y1, x2, y2, DatasetReaderV10.norm(normalization), false)) {
+            for (javastraw.reader.block.Block block : delegate.getNormalizedBlocksOverlapping(x1 * overviewStride, y1 * overviewStride, (x2 + 1) * overviewStride - 1, (y2 + 1) * overviewStride - 1, DatasetReaderV10.norm(normalization), false)) {
                 for (javastraw.reader.block.ContactRecord record : block.getContactRecords()) {
-                    int x = record.getBinX(), y = record.getBinY();
+                    int x = record.getBinX() / overviewStride, y = record.getBinY() / overviewStride;
                     boolean inside = x >= x1 && x <= x2 && y >= y1 && y <= y2;
                     if (getChr1Idx() == getChr2Idx()) inside |= y >= x1 && y <= x2 && x >= y1 && x <= y2;
                     long key = ((long)y << 32) | (x & 0xffffffffL);
@@ -109,10 +122,10 @@ public class V10MatrixZoomData extends MatrixZoomData {
                 if (!Double.isFinite(denominator) || denominator == 0) continue;
                 value /= denominator;
             } else if (type != juicebox.windowui.MatrixType.OBSERVED) throw new IOException("Unsupported v10 sparse export mode: " + type);
-            long x = (long) record.getBinX() * getBinSize(), y = (long) record.getBinY() * getBinSize();
+            long x = (long) (record.getBinX() / overviewStride) * getBinSize(), y = (long) (record.getBinY() / overviewStride) * getBinSize();
             if (dense) {
-                denseValues.put(((long) record.getBinY() << 32) | (record.getBinX() & 0xffffffffL), (float)value);
-                if (getChr1Idx() == getChr2Idx()) denseValues.put(((long)record.getBinX() << 32) | (record.getBinY() & 0xffffffffL), (float)value);
+                denseValues.put(((long) (record.getBinY() / overviewStride) << 32) | ((record.getBinX() / overviewStride) & 0xffffffffL), (float)value);
+                if (getChr1Idx() == getChr2Idx()) denseValues.put(((long)(record.getBinX() / overviewStride) << 32) | ((record.getBinY() / overviewStride) & 0xffffffffL), (float)value);
                 continue;
             }
             if (binary != null) { binary.writeInt(Math.toIntExact(x)); binary.writeInt(Math.toIntExact(y)); binary.writeFloat((float)value); }
@@ -163,7 +176,7 @@ public class V10MatrixZoomData extends MatrixZoomData {
         }
     }
 
-    private static final class ExactRecord extends ContactRecord {
+    static final class ExactRecord extends ContactRecord {
         private BigInteger exact;
         ExactRecord(int x, int y, BigInteger count) { super(x, y, count.floatValue()); exact = count; }
         @Override public BigInteger getExactCount() { return exact; }

@@ -124,7 +124,9 @@ public class DatasetReaderV10 extends AbstractDatasetReader {
                 if (zd != null) zooms.add(new V10MatrixZoomData(
                     dataset.getChromosomeHandler().getChromosomeFromIndex(a),
                     dataset.getChromosomeHandler().getChromosomeFromIndex(b),
-                    zoom, (javastraw.reader.mzd.V10MatrixZoomData) zd, this));
+                    all != null && a == all.chromosomeIndex && b == a
+                        ? new HiCZoom(HiC.Unit.BP, all.displayResolution) : zoom,
+                    (javastraw.reader.mzd.V10MatrixZoomData) zd, this));
             }
         }
         Matrix matrix = new Matrix(a, b, zooms);
@@ -132,6 +134,7 @@ public class DatasetReaderV10 extends AbstractDatasetReader {
         return matrix;
     }
 
+    javastraw.reader.v10.V10AllOverview readOverview() { return delegate.getHeader().allOverview; }
     private V10MatrixZoomData zoom(MatrixZoomData zd) throws IOException {
         if (zd instanceof EmptyZoom) return null;
         if (zd instanceof V10MatrixZoomData) return (V10MatrixZoomData) zd;

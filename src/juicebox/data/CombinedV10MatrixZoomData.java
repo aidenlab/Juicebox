@@ -38,7 +38,12 @@ class CombinedV10MatrixZoomData extends MatrixZoomData {
                     long key = ((long)y << 32) | (x & 0xffffffffL);
                     if (!seen.add(key)) continue;
                     ContactRecord previous = sums.get(key);
-                    if (previous == null) sums.put(key, new ContactRecord(x, y, record.getCounts()));
+                    if (previous == null) sums.put(key, record.getExactCount() == null
+                            ? new ContactRecord(x, y, record.getCounts())
+                            : new V10MatrixZoomData.ExactRecord(x, y, record.getExactCount()));
+                    else if (previous.getExactCount() != null && record.getExactCount() != null)
+                        sums.put(key, new V10MatrixZoomData.ExactRecord(x, y,
+                                previous.getExactCount().add(record.getExactCount())));
                     else previous.incrementCount(record.getCounts());
                 }
             }

@@ -76,11 +76,7 @@ public class CombinedDatasetReader implements DatasetReader {
         if (hasV10Reader() && !tmpDatasets.isEmpty()) {
             ChromosomeHandler reference = tmpDatasets.get(0).getChromosomeHandler();
             for (Dataset candidate : tmpDatasets) {
-                javastraw.reader.v10.V10AllOverview refAll = reference.getAllOverview();
-                javastraw.reader.v10.V10AllOverview candidateAll = candidate.getChromosomeHandler().getAllOverview();
-                if ((refAll == null) != (candidateAll == null) || (refAll != null &&
-                    (refAll.sourceResolution != candidateAll.sourceResolution || refAll.groupFactor != candidateAll.groupFactor ||
-                     !Arrays.equals(refAll.chromosomeBins, candidateAll.chromosomeBins))))
+                if (!reference.hasSameOverviewLayout(candidate.getChromosomeHandler()))
                     throw new IOException("Summed maps must share the stored All layout; use a control map for different overview layouts");
                 juicebox.data.basics.Chromosome[] a = reference.getChromosomeArray();
                 juicebox.data.basics.Chromosome[] b = candidate.getChromosomeHandler().getChromosomeArray();
@@ -689,8 +685,13 @@ public class CombinedDatasetReader implements DatasetReader {
                 String key = rec.getBinX() + "_" + rec.getBinY();
                 ContactRecord mergedRecord = mergedRecordMap.get(key);
                 if (mergedRecord == null) {
-                    mergedRecord = new ContactRecord(rec.getBinX(), rec.getBinY(), rec.getCounts());
+                    mergedRecord = rec.getExactCount() == null
+                            ? new ContactRecord(rec.getBinX(), rec.getBinY(), rec.getCounts())
+                            : new V10MatrixZoomData.ExactRecord(rec.getBinX(), rec.getBinY(), rec.getExactCount());
                     mergedRecordMap.put(key, mergedRecord);
+                } else if (mergedRecord.getExactCount() != null && rec.getExactCount() != null) {
+                    mergedRecordMap.put(key, new V10MatrixZoomData.ExactRecord(rec.getBinX(), rec.getBinY(),
+                            mergedRecord.getExactCount().add(rec.getExactCount())));
                 } else {
                     mergedRecord.incrementCount(rec.getCounts());
                 }
