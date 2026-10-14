@@ -45,30 +45,9 @@ public class HiCFileTools {
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
-            DatasetReader reader = null;
-            if (files.size() == 1) {
-                if (allowPrinting)
-                    System.out.println("Reading file: " + files.get(0));
-                String magicString = DatasetReaderFactory.getMagicString(files.get(0));
-                if (magicString.equals("HIC")) {
-                    reader = new DatasetReaderV2(files.get(0));
-                } else {
-                    System.err.println("This version of HIC is no longer supported");
-                    System.exit(32);
-                }
-                dataset = reader.read();
-
-            } else {
-                if (allowPrinting)
-                    System.out.println("Reading summed files: " + files);
-                reader = DatasetReaderFactory.getReader(files);
-                if (reader == null) {
-                    System.err.println("Error while reading files");
-                    System.exit(33);
-                } else {
-                    dataset = reader.read();
-                }
-            }
+            if (allowPrinting) System.out.println("Reading file(s): " + files);
+            DatasetReader reader = DatasetReaderFactory.getReader(files);
+            dataset = reader.read();
             HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         } catch (Exception e) {
             System.err.println("Could not read hic file: " + e.getMessage());
@@ -81,27 +60,8 @@ public class HiCFileTools {
     public static DatasetReader extractDatasetReaderForCLT(List<String> files, boolean allowPrinting) {
         DatasetReader reader = null;
         try {
-            if (files.size() == 1) {
-                if (allowPrinting)
-                    System.out.println("Reading file: " + files.get(0));
-                String magicString = DatasetReaderFactory.getMagicString(files.get(0));
-                if (magicString.equals("HIC")) {
-                    reader = new DatasetReaderV2(files.get(0));
-                } else {
-                    System.err.println("This version of HIC is no longer supported");
-                    System.exit(32);
-                }
-
-
-            } else {
-                if (allowPrinting)
-                    System.out.println("Reading summed files: " + files);
-                reader = DatasetReaderFactory.getReader(files);
-                if (reader == null) {
-                    System.err.println("Error while reading files");
-                    System.exit(33);
-                }
-            }
+            if (allowPrinting) System.out.println("Reading file(s): " + files);
+            reader = DatasetReaderFactory.getReader(files);
 
         } catch (Exception e) {
             System.err.println("Could not read hic file: " + e.getMessage());
@@ -281,14 +241,10 @@ public class HiCFileTools {
 
     public static PrintWriter openWriter(File file) {
         try {
-            file.createNewFile();
-            file.setWritable(true);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file.");
-            System.exit(37);
+            throw new UncheckedIOException("Could not open output file: " + file, e);
         }
-        return null;
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,

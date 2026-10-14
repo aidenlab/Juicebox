@@ -96,8 +96,7 @@ public class MainMenuBar extends JMenuBar {
   }
 
   public boolean unsavedEditsExist() {
-    File unsavedSampleFile = new File(DirectoryManager.getHiCDirectory(), HiCGlobals.BACKUP_FILE_STEM + "0.bedpe");
-    return unsavedSampleFile.exists();
+    return juicebox.windowui.layers.UnsavedAnnotationWarning.getBackupFiles().length > 0;
   }
 
   public void addRecentMapMenuEntry(String title, boolean status) {

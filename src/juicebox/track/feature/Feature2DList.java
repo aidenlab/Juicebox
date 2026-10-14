@@ -31,10 +31,12 @@ import juicebox.data.basics.Chromosome;
 import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -58,7 +60,8 @@ public class Feature2DList {
     public void parallelizedProcessLists(FeatureFunction featureFunction) {
         List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
-        ExecutorService executor = Executors.newFixedThreadPool(keys.size());
+        if (keys.isEmpty()) return;
+        ExecutorService executor = Executors.newFixedThreadPool(Math.min(keys.size(), HiCGlobals.getIdealThreadCount()));
         for (String key : keys) {
             Runnable worker = new Runnable() {
                 @Override
@@ -69,8 +72,15 @@ public class Feature2DList {
             executor.execute(worker);
         }
         executor.shutdown();
+        boolean interrupted = false;
         while (!executor.isTerminated()) {
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
         }
+        if (interrupted) Thread.currentThread().interrupt();
     }
 
     /**
@@ -293,13 +303,18 @@ public class Feature2DList {
      */
     public boolean exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
-            final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
-            if (exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat)) {
-                System.out.println(getNumTotalFeatures() + " features written to file: " + outputFile.getAbsolutePath());
-            } else {
-                System.err.println("Error features not written to file: " + outputFile.getAbsolutePath());
+            try (PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile)) {
+                boolean exported = exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
+                if (exported) {
+                    System.out.println(getNumTotalFeatures() + " features written to file: " + outputFile.getAbsolutePath());
+                } else {
+                    System.err.println("Error features not written to file: " + outputFile.getAbsolutePath());
+                }
+                return exported;
+            } catch (UncheckedIOException e) {
+                System.err.println(e.getMessage());
+                return false;
             }
-            return true;
         }
         return false;
     }
@@ -385,7 +400,7 @@ public class Feature2DList {
             }
             outputFilePrintWriter.close();
 
-            return true;
+            return !outputFilePrintWriter.checkError();
         }
         return false;
     }

@@ -330,7 +330,14 @@ public class SuperAdapter {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
         if (hic.isInPearsonsMode()) {
-            initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
+            MatrixZoomData pearsonZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP);
+            if (pearsonZoom == null) {
+                hic.setDisplayOption(MatrixType.OBSERVED);
+                mainViewPanel.getDisplayOptionComboBox().setSelectedItem(MatrixType.OBSERVED);
+                initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
+            } else {
+                initialZoom = pearsonZoom.getZoom();
+            }
         } else if (ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData().getZoom();
@@ -405,13 +412,11 @@ public class SuperAdapter {
     private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
         StringBuilder newFilesToBeLoaded = new StringBuilder();
-        boolean allFilesAreHiC = true;
         for (String file : files) {
             if (newFilesToBeLoaded.length() > 1) {
                 newFilesToBeLoaded.append("##");
             }
             newFilesToBeLoaded.append(file);
-            allFilesAreHiC &= file.endsWith(".hic");
         }
 
         if ((!control) && newFilesToBeLoaded.toString().equals(currentlyLoadedMainFiles)) {
@@ -427,7 +432,7 @@ public class SuperAdapter {
             return false;
         }
 
-        if (allFilesAreHiC) {
+        if (!files.isEmpty()) {
             mainViewPanel.setIgnoreUpdateThumbnail(true);
             //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
             //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
@@ -465,6 +470,9 @@ public class SuperAdapter {
                 mainViewPanel.setEnabledForNormalization(true, hic.getNormalizationOptions(true),
                         dataset.getVersion() >= HiCGlobals.minVersion);
             } else {
+                getHeatmapPanel().disableAssemblyEditing();
+                resetAnnotationLayers();
+                HiCGlobals.hicMapScale = 1;
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomeHandler(dataset.getChromosomeHandler());
@@ -498,6 +506,7 @@ public class SuperAdapter {
             mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
+            return false;
         }
         return true;
     }
@@ -517,11 +526,6 @@ public class SuperAdapter {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
-        getHeatmapPanel().disableAssemblyEditing();
-        resetAnnotationLayers();
-        HiCGlobals.hicMapScale = 1;
-//        refresh();
-
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
             mainViewPanel.getDisplayOptionComboBox().removeActionListener(l);
@@ -538,6 +542,7 @@ public class SuperAdapter {
             updateTitle(control, resetTitle);
         } finally {
             mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
+            mainViewPanel.setIgnoreUpdateThumbnail(false);
         }
     }
 
@@ -752,7 +757,7 @@ public class SuperAdapter {
             String value = (String) mainViewPanel.getObservedNormalizationComboBox().getSelectedItem();
             hic.setObsNormalizationType(value);
         }
-        refreshMainOnly();
+        refresh();
     }
 
     public MainViewPanel getMainViewPanel() {
@@ -910,6 +915,9 @@ public class SuperAdapter {
     }
 
     private void resetAnnotationLayers() {
+        for (AnnotationLayerHandler layer : annotationLayerHandlers) {
+            layer.getAnnotationLayer().closeAutosave();
+        }
         annotationLayerHandlers.clear();
         // currently must have at least 1 layer
         getActiveLayerHandler().getAnnotationLayer().resetCounter();

@@ -159,9 +159,10 @@ public class ColorScaleHandler {
         DescriptiveStatistics stats = new DescriptiveStatistics();
         if (blocks != null) {
             for (Block b : blocks) {
-                for (int i = 0; i < b.getContactRecords().size(); i += 10) {
-                    ContactRecord rec = b.getContactRecords().get(i);
-                    if (rec.getBinX() != rec.getBinY()) { // Filter diagonal
+                List<ContactRecord> records = b.getContactRecords();
+                for (int i = 0; i < records.size(); i += 10) {
+                    ContactRecord rec = records.get(i);
+                    if (rec.getBinX() != rec.getBinY() && Float.isFinite(rec.getCounts())) { // Filter diagonal
                         stats.addValue(rec.getCounts());
                     }
                 }
@@ -174,7 +175,8 @@ public class ColorScaleHandler {
         DescriptiveStatistics stats = new DescriptiveStatistics();
         for (int i = 0; i < bm.getRowDimension(); i++) {
             for (int j = i + 1; j < bm.getColumnDimension(); j++) {
-                stats.addValue(bm.getEntry(i, j));
+                float value = bm.getEntry(i, j);
+                if (Float.isFinite(value)) stats.addValue(value);
             }
         }
 

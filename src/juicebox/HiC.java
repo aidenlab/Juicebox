@@ -369,13 +369,13 @@ public class HiC {
     
         // address int overflow or exceeding bound issues
         long xEndEdge = xContext.getGenomicPositionOrigin() +
-                (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
+                (long) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
         if (xEndEdge < 0 || xEndEdge > xContext.getChromosome().getLength()) {
             xEndEdge = xContext.getChromosome().getLength();
         }
     
         long yEndEdge = yContext.getGenomicPositionOrigin() +
-                (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
+                (long) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
         if (yEndEdge < 0 || yEndEdge > yContext.getChromosome().getLength()) {
             yEndEdge = yContext.getChromosome().getLength();
         }
@@ -596,7 +596,8 @@ public class HiC {
     }
 
     public void setControlNormalizationType(String label) {
-        NormalizationType option = dataset.getNormalizationHandler().getNormTypeFromString(label);
+        Dataset source = controlDataset == null ? dataset : controlDataset;
+        NormalizationType option = source.getNormalizationHandler().getNormTypeFromString(label);
         if (this.ctrlNormalizationType != option) {
             this.ctrlNormalizationType = option;
             setNormalizationTypeChanged();
@@ -608,12 +609,12 @@ public class HiC {
         if (isControl) {
             if (controlDataset == null) return null;
 
-            Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
+            Chromosome chr = controlDataset.getChromosomeHandler().getChromosomeFromIndex(chrIdx);
             return controlDataset.getEigenvector(chr, currentZoom, n, ctrlNormalizationType);
         } else {
             if (dataset == null) return null;
 
-            Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
+            Chromosome chr = dataset.getChromosomeHandler().getChromosomeFromIndex(chrIdx);
             return dataset.getEigenvector(chr, currentZoom, n, obsNormalizationType);
         }
     }
@@ -707,10 +708,10 @@ public class HiC {
                             boolean allowLocationBroadcast) {
 
         HiCZoom newZoom = currentZoom;
-        if (currentZoom.getBinSize() != binSize) {
+        if (currentZoom == null || currentZoom.getBinSize() != binSize || currentZoom.getUnit() != unit) {
             newZoom = new HiCZoom(unit, binSize);
         }
-        safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+        safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (long) xOrigin, (long) yOrigin, scaleFactor,
                 true, zoomCallType, message, allowLocationBroadcast);
     }
 
@@ -718,10 +719,11 @@ public class HiC {
                                   double yOrigin, double scaleFactor, ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
 
         HiCZoom newZoom = currentZoom;
-        if (currentZoom.getBinSize() != binSize) {
-            newZoom = new HiCZoom(HiC.valueOfUnit(unitName), binSize);
+        HiC.Unit unit = HiC.valueOfUnit(unitName);
+        if (currentZoom == null || currentZoom.getBinSize() != binSize || currentZoom.getUnit() != unit) {
+            newZoom = new HiCZoom(unit, binSize);
         }
-        unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+        unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (long) xOrigin, (long) yOrigin, scaleFactor,
                 true, zoomCallType, allowLocationBroadcast, isResolutionLocked() ? 1 : 0, true);
     }
     
@@ -1171,9 +1173,13 @@ public class HiC {
     public boolean isPearsonsNotAvailableAtSpecificZoom(boolean isControl, HiCZoom zoom) {
         try {
             if (isControl) {
-                return getControlZd().getPearsons(controlDataset.getExpectedValues(zoom, ctrlNormalizationType)) == null;
+                Matrix matrix = getControlMatrix();
+                MatrixZoomData zd = matrix == null ? null : matrix.getZoomData(zoom);
+                return zd == null || zd.getPearsons(controlDataset.getExpectedValues(zoom, ctrlNormalizationType)) == null;
             } else {
-                return getZd().getPearsons(dataset.getExpectedValues(zoom, obsNormalizationType)) == null;
+                Matrix matrix = getMatrix();
+                MatrixZoomData zd = matrix == null ? null : matrix.getZoomData(zoom);
+                return zd == null || zd.getPearsons(dataset.getExpectedValues(zoom, obsNormalizationType)) == null;
             }
         } catch (Exception e) {
             return true;
@@ -1231,7 +1237,23 @@ public class HiC {
     public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
         dataset.setChromosomeHandler(chromosomeHandler);
-        if (controlDataset != null) controlDataset.setChromosomeHandler(chromosomeHandler);
+        if (controlDataset != null) {
+            // Custom chromosomes may extend a shared table. A control's original
+            // table must survive when its indices/layout differ from the main map.
+            Chromosome[] replacement = chromosomeHandler.getChromosomeArray();
+            boolean sameIndices = true;
+            for (Chromosome chr : controlDataset.getChromosomeHandler().getChromosomeArray()) {
+                int index = chr.getIndex();
+                if (index < 0 || index >= replacement.length || !chr.getName().equals(replacement[index].getName())
+                        || chr.getLength() != replacement[index].getLength()) {
+                    sameIndices = false;
+                    break;
+                }
+            }
+            if (sameIndices && chromosomeHandler.hasSameOverviewLayout(controlDataset.getChromosomeHandler())) {
+                controlDataset.setChromosomeHandler(chromosomeHandler);
+            }
+        }
     }
 
     public ZoomActionTracker getZoomActionTracker() {
@@ -1249,7 +1271,7 @@ public class HiC {
         ds.clearCache(false);
     }
 
-    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
+    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, long g1, long g2) {
         try {
             return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(name, g1, g2);
         } catch (Exception ignored) {

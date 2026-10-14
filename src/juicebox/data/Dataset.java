@@ -882,8 +882,9 @@ public class Dataset {
 
             ExpectedValueFunction df = getExpectedValues(zoom, type);
             Matrix m = getMatrix(chr, chr);
-            MatrixZoomData mzd = m.getZoomData(zoom);
-            if (df != null && mzd.getPearsons(df) != null && zoom.getBinSize() >= HiCGlobals.MAX_EIGENVECTOR_ZOOM) {
+            MatrixZoomData mzd = m == null ? null : m.getZoomData(zoom);
+            if (df != null && mzd != null && zoom.getBinSize() >= HiCGlobals.MAX_EIGENVECTOR_ZOOM
+                    && mzd.getPearsons(df) != null) {
                 eigenvector = mzd.computeEigenvector(df, number);
             } else {
                 eigenvector = new double[0];

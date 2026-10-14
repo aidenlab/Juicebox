@@ -40,8 +40,13 @@ public class DynamicMatrixZoomData extends MatrixZoomData {
      * @param zoom
      */
     public DynamicMatrixZoomData(HiCZoom zoom, MatrixZoomData higherResZD) {
-        super(higherResZD.chr1, higherResZD.chr2, zoom, higherResZD.blockBinCount, higherResZD.blockColumnCount, new int[0], new int[0], null);
+        super(higherResZD.chr1, higherResZD.chr2, zoom, higherResZD.blockBinCount, higherResZD.blockColumnCount,
+                new int[0], new int[0], higherResZD.reader);
         this.higherResZD = higherResZD;
+        if (zoom.getUnit() != higherResZD.getZoom().getUnit() || zoom.getBinSize() <= higherResZD.getBinSize()
+                || zoom.getBinSize() % higherResZD.getBinSize() != 0) {
+            throw new IllegalArgumentException("Dynamic resolution must be an integer multiple of the source resolution");
+        }
         scaleFactor = zoom.getBinSize() / higherResZD.getBinSize();
     }
 
@@ -49,13 +54,13 @@ public class DynamicMatrixZoomData extends MatrixZoomData {
     public List<Block> getNormalizedBlocksOverlapping(long binX1, long binY1, long binX2, long binY2,
                                                       final NormalizationType norm, boolean isImportant, boolean fillUnderDiagonal) {
         // for V8 will be ints
-        int higherBinX1 = (int) (binX1 * scaleFactor);
-        int higherBinY1 = (int) (binY1 * scaleFactor);
-        int higherBinX2 = (int) (binX2 * scaleFactor);
-        int higherBinY2 = (int) (binY2 * scaleFactor);
+        long higherBinX1 = binX1 * scaleFactor;
+        long higherBinY1 = binY1 * scaleFactor;
+        long higherBinX2 = (binX2 + 1) * scaleFactor - 1;
+        long higherBinY2 = (binY2 + 1) * scaleFactor - 1;
         List<Block> blocksFromHigherRes = higherResZD.getNormalizedBlocksOverlapping(higherBinX1, higherBinY1, higherBinX2, higherBinY2,
                 norm, isImportant, fillUnderDiagonal);
-        return createBlocksForLowerRes(blocksFromHigherRes, norm);
+        return blocksFromHigherRes == null ? null : createBlocksForLowerRes(blocksFromHigherRes, norm);
     }
 
     private List<Block> createBlocksForLowerRes(List<Block> highResBlocks, NormalizationType norm) {
@@ -80,7 +85,9 @@ public class DynamicMatrixZoomData extends MatrixZoomData {
             }
         }
 
-        Set<Integer> blockNumbers = new HashSet<>();
+        // Source blocks already cache reads. Build each aggregate afresh so results from
+        // different windows cannot leave multiple counts for the same lower-resolution cell.
+        Map<Integer, List<ContactRecord>> recordsByBlock = new HashMap<>();
 
         for (int bx : condensedRecords.keySet()) {
             int cx = bx / blockBinCount;
@@ -90,23 +97,13 @@ public class DynamicMatrixZoomData extends MatrixZoomData {
                 int ry = by / blockBinCount;
 
                 int blockNumber = ry * blockColumnCount + cx;
-                blockNumbers.add(blockNumber);
-                String key = getBlockKey(blockNumber, norm);
-
-                DynamicBlock b;
-                if (blockCache.containsKey(key)) {
-                    b = (DynamicBlock) blockCache.get(key);
-                    b.addContactRecord(cr);
-                } else {
-                    DynamicBlock block = new DynamicBlock(blockNumber, cr, key);
-                    blockCache.put(key, block);
-                }
+                recordsByBlock.computeIfAbsent(blockNumber, ignored -> new ArrayList<>()).add(cr);
             }
         }
 
         List<Block> blockList = new ArrayList<>();
-        for (Integer num : blockNumbers) {
-            blockList.add(blockCache.get(getBlockKey(num, norm)));
+        for (Map.Entry<Integer, List<ContactRecord>> entry : recordsByBlock.entrySet()) {
+            blockList.add(new Block(entry.getKey(), entry.getValue(), getBlockKey(entry.getKey(), norm)));
         }
         return blockList;
     }

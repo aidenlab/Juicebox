@@ -83,7 +83,7 @@ public abstract class HiCDataAdapter implements HiCDataSource {
       endBin = endBin + f;
 
       int igvZoom = gridAxis.getIGVZoom();
-      int subCount = (int) scaleFactor;
+      int subCount = Math.max(1, (int) scaleFactor);
   
       // Increase zoom level for "super-zoom" (=> get higher resolution data
       if (subCount > 1) {
@@ -114,8 +114,9 @@ public abstract class HiCDataAdapter implements HiCDataSource {
           long bEnd = gridAxis.getGenomicEnd(b);
           double delta = ((double) (bEnd - bStart)) / subCount;
   
-          int subBin0 = b == bs ? (int) ((locusScore.getStart() - bStart) / delta) : 0;
-          int subBin1 = b == be ? (int) ((locusScore.getEnd() - bStart) / delta) : subCount - 1;
+          int subBin0 = b == bs ? Math.max(0, (int) ((locusScore.getStart() - bStart) / delta)) : 0;
+          int subBin1 = b == be ? Math.min(subCount - 1,
+                  (int) Math.ceil((locusScore.getEnd() - bStart) / delta) - 1) : subCount - 1;
   
           for (int subBin = subBin0; subBin <= subBin1; subBin++) {
             final double subBinWidth = 1.0 / subCount;
@@ -130,8 +131,8 @@ public abstract class HiCDataAdapter implements HiCDataSource {
             if (dataBin == null) {
               double bPrime = b + ((double) subBin) / subCount;
 
-              int g0 = (int) (bStart + subBin * delta);
-              int g1 = (int) (bStart + (subBin + 1) * delta);
+              long g0 = (long) (bStart + subBin * delta);
+              long g1 = (long) (bStart + (subBin + 1) * delta);
               dataBin = new DataAccumulator(bPrime, subBinWidth, g0, g1); // bStart, bEnd);
               tmp[idx] = dataBin;
               nPts++;
@@ -227,9 +228,8 @@ public abstract class HiCDataAdapter implements HiCDataSource {
       double weight = 1;
       final float score = ls.getScore();
       weightedSum += weight * score;
+      max = nPts == 0 ? score : Math.max(score, max);
       nPts++;
-
-      max = score > max ? score : max;
     }
 
 

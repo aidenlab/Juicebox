@@ -79,7 +79,7 @@ public class AssemblyFileImporter {
             else
                 setModifiedInitialState();
         } catch (IOException exception) {
-            System.err.println("Error reading files!");
+            throw new IllegalArgumentException("Could not import assembly", exception);
         }
         updateAssemblyScale();
 
@@ -108,21 +108,20 @@ public class AssemblyFileImporter {
         try {
             for (String row : rawFileData) {
                 if (row.startsWith(">")) {
-                    String[] splitRow = row.split(" ");
+                    String[] splitRow = row.split("\\s+");
                     // Name<\s>ID<\s>length
-                    Scaffold scaffold = new Scaffold(splitRow[0].substring(1), Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
+                    Scaffold scaffold = new Scaffold(splitRow[0].substring(1), Integer.parseInt(splitRow[1]), Long.parseLong(splitRow[2]));
                     listOfScaffolds.add(scaffold);
                 } else {
                     List<Integer> superscaffold = new ArrayList<>();
-                    for (String index : row.split(" ")) {
+                    for (String index : row.split("\\s+")) {
                         superscaffold.add(Integer.parseInt(index));
                     }
                     listOfSuperscaffolds.add(superscaffold);
                 }
             }
         } catch (NumberFormatException e) {
-            e.printStackTrace();
-            System.err.println("Errors in format");
+            throw new IOException("Invalid assembly format", e);
         }
     }
 
@@ -139,15 +138,15 @@ public class AssemblyFileImporter {
             int i = 0;
             int input_start = 0;
             List<String> name = new ArrayList<>();
-            List<Integer> size = new ArrayList<>();
+            List<Long> size = new ArrayList<>();
             List<String[]> asm = new ArrayList<>();
 
             for (String row : rawFileData) {
 
-                String[] splitRow = row.split(" ");
+                String[] splitRow = row.split("\\s+");
 
                 if (splitRow[0].startsWith(">")) {
-                    int clen = Integer.parseInt(splitRow[2]);
+                    long clen = Long.parseLong(splitRow[2]);
                     int id = Integer.parseInt(splitRow[1]);
                     if (clen >= bundleSize && input_start != 0) {
                         input_start = 0;
@@ -235,8 +234,7 @@ public class AssemblyFileImporter {
             listOfSuperscaffolds.add(superscaffold);
 
         } catch (NumberFormatException e) {
-            e.printStackTrace();
-            System.err.println("Errors in format");
+            throw new IOException("Invalid assembly format", e);
         }
     }
 
@@ -313,10 +311,11 @@ public class AssemblyFileImporter {
             }
         }
 
-        Scanner scanner = new Scanner(file);
-
-        while (scanner.hasNext()) {
-            fileData.add(scanner.nextLine());
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (!line.isEmpty()) fileData.add(line);
+            }
         }
         return fileData;
     }

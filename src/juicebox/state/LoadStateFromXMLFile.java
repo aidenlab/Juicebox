@@ -42,13 +42,11 @@ import java.util.List;
 public class LoadStateFromXMLFile {
 
     public static void reloadSelectedState(SuperAdapter superAdapter, String mapPath) {
-        superAdapter.getHiC().clearTracksForReloadState(); // TODO - should only remove necessary ones
         try {
             loadSavedStatePreliminaryStep(XMLFileParser.parseXML(mapPath), superAdapter, superAdapter.getHiC());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        superAdapter.refresh();
     }
 
     private static void loadSavedStatePreliminaryStep(String[] infoForReload, SuperAdapter superAdapter, HiC hic) throws IOException {
@@ -74,6 +72,7 @@ public class LoadStateFromXMLFile {
                     doubleInfo[2] = Double.parseDouble(infoForReload[10]); //ScaleFactor
                     MatrixType displayOption = MatrixType.valueOf(infoForReload[11].toUpperCase());
                     String normType = infoForReload[12].toUpperCase();
+                    String controlNormType = infoForReload.length > 21 && infoForReload[21] != null ? infoForReload[21] : "NONE";
                     doubleInfo[3] = Double.parseDouble(infoForReload[13]); //minColorVal
                     doubleInfo[4] = Double.parseDouble(infoForReload[14]); //lowerColorVal
                     doubleInfo[5] = Double.parseDouble(infoForReload[15]); //upperColorVal
@@ -83,7 +82,7 @@ public class LoadStateFromXMLFile {
                     trackURLsAndNamesAndConfigInfo[1] = (infoForReload[19]); //trackNames
                     trackURLsAndNamesAndConfigInfo[2] = (infoForReload[20]); //trackConfigInfo
                     //Increase XMLFileParser::infoForReload when adding more elements.
-                    safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
+                    safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, controlNormType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
                     JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error:\n" + nfe.getMessage(), "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -98,12 +97,12 @@ public class LoadStateFromXMLFile {
 
     private static void safeLoadStateFromXML(final SuperAdapter superAdapter, final HiC hic, final String[] initialInfo,
                                              final int binSize, final double[] doubleInfo, final MatrixType displaySelection,
-                                             final String normSelection, final String[] tracks) {
+                                             final String normSelection, final String controlNormSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
                     unsafeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo,
-                            displaySelection, normSelection, tracks);
+                            displaySelection, normSelection, controlNormSelection, tracks);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -114,9 +113,10 @@ public class LoadStateFromXMLFile {
 
     private static void unsafeLoadStateFromXML(SuperAdapter superAdapter, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
                                                MatrixType displaySelection, String normSelection,
-                                               String[] tracks) {
+                                               String controlNormSelection, String[] tracks) {
 
-        superAdapter.resetControlMap(); //TODO test
+        hic.clearTracksForReloadState();
+        superAdapter.resetControlMap();
 
 
         String mapNames = initialInfo[0];
@@ -148,13 +148,20 @@ public class LoadStateFromXMLFile {
         }
 
         hic.unsafeSetLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT, true);
-        superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
-        // todo should not be implemented with ordinals; implement with proper lookup
-        // leaving unimplemented at this time
-        //superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
+        hic.setDisplayOption(displaySelection);
+        superAdapter.getMainViewPanel().getDisplayOptionComboBox().setSelectedItem(displaySelection);
+        hic.setObsNormalizationType(normSelection);
+        superAdapter.getMainViewPanel().getObservedNormalizationComboBox()
+                .setSelectedItem(hic.getObsNormalizationType().getLabel());
+        if (hic.isControlLoaded()) {
+            hic.setControlNormalizationType(controlNormSelection);
+            superAdapter.getMainViewPanel().getControlNormalizationComboBox()
+                    .setSelectedItem(hic.getControlNormalizationType().getLabel());
+        }
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
-        //todo: Check that color scale value is not 0!
-        superAdapter.getMainViewPanel().updateColorSlider(hic, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
+        if (!Double.isFinite(colorScaleFactor) || colorScaleFactor <= 0) colorScaleFactor = 1;
+        superAdapter.getMainViewPanel().updateColorSlider(hic, lowColor / colorScaleFactor,
+                upColor / colorScaleFactor, maxColor / colorScaleFactor);
         superAdapter.setEnableForAllElements(true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
@@ -166,7 +173,7 @@ public class LoadStateFromXMLFile {
             if (tracks.length > 0 && !tracks[1].contains("none")) {
                 String[] trackURLs = tracks[0].split("\\,");
                 String[] trackNames = tracks[1].split("\\,");
-                for (int i = 0; i < trackURLs.length; i++) {
+                for (int i = 0; i < Math.min(trackURLs.length, trackNames.length); i++) {
                     String currentTrack = trackURLs[i].trim();
                     if (!currentTrack.isEmpty()) {
                         if (currentTrack.equals("Eigenvector")) {
@@ -189,33 +196,15 @@ public class LoadStateFromXMLFile {
                     }
                 }
                 for (HiCTrack loadedTrack : hic.getLoadedTracks()) {
-                    for (int i = 0; i < trackNames.length; i++) {
-                        if (trackURLs[i].contains(loadedTrack.getName())) {
+                    for (int i = 0; i < Math.min(trackNames.length, trackURLs.length); i++) {
+                        if (trackURLs[i].trim().equals(loadedTrack.getLocator().getPath())) {
                             loadedTrack.setName(trackNames[i].trim());
-                            if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
-
-                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getObsNormalizationType(), false);
-                                HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, loadedTrack.getLocator(), source);
-
-                                String[] configTrackInfo = tracks[2].split("\\*\\*");
-                                for (String aConfigTrackInfo : configTrackInfo) {
-
-                                    String[] configInfo = aConfigTrackInfo.split("\\,"); //todo check
-                                    hiCDataTrack.setPosColor(new Color(Integer.parseInt(configInfo[1])));
-                                    hiCDataTrack.setNegColor(new Color(Integer.parseInt(configInfo[2])));
-                                    DataRange newDataRange = new DataRange(Float.parseFloat(configInfo[3]), Float.parseFloat(configInfo[4]));//min,max
-                                    if (Boolean.parseBoolean(configInfo[5])) {
-                                        newDataRange.setType(DataRange.Type.LOG);
-                                    } else {
-                                        newDataRange.setType(DataRange.Type.LINEAR);
-                                    }
-                                    hiCDataTrack.setDataRange(newDataRange);
-
-                                }
+                            if (loadedTrack instanceof HiCDataTrack) {
+                                restoreTrackConfig((HiCDataTrack) loadedTrack, tracks[2]);
                             }
+                            break;
                         }
                     }
-
                 }
 
             }
@@ -224,7 +213,22 @@ public class LoadStateFromXMLFile {
         }
 
         superAdapter.updateTrackPanel();
+        superAdapter.refresh();
 
+    }
+
+    static void restoreTrackConfig(HiCDataTrack track, String configs) {
+        if (configs == null || configs.equals("none")) return;
+        for (String config : configs.split("\\*\\*")) {
+            String[] fields = config.split(",", -1);
+            if (fields.length != 6 || !fields[0].equals(track.getName())) continue;
+            track.setPosColor(new Color(Integer.parseInt(fields[1]), true));
+            track.setNegColor(new Color(Integer.parseInt(fields[2]), true));
+            DataRange range = new DataRange(Float.parseFloat(fields[3]), Float.parseFloat(fields[4]));
+            range.setType(Boolean.parseBoolean(fields[5]) ? DataRange.Type.LOG : DataRange.Type.LINEAR);
+            track.setDataRange(range);
+            break;
+        }
     }
 
 }

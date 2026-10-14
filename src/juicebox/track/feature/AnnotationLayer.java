@@ -64,6 +64,16 @@ public class AnnotationLayer {
     public AnnotationLayer(Feature2DList inputList) {
         this();
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
+        inputList.processLists((key, features) -> {
+            for (Feature2D feature : features) {
+                for (String attribute : feature.getAttributeKeys()) {
+                    if (!attributeKeys.contains(attribute)) attributeKeys.add(attribute);
+                }
+            }
+        });
+        for (String attribute : attributeKeys) {
+            customAnnotationRTreeHandler.addAttributeFieldToAll(attribute, "null");
+        }
     }
 
     public AnnotationLayer(Feature2DHandler feature2DHandler, LayerType layerType) {
@@ -108,7 +118,7 @@ public class AnnotationLayer {
                 //System.out.println("Added" + customKey);
             }
         }
-        getAndAddAttributes(featureKeys);
+        boolean schemaChanged = getAndAddAttributes(featureKeys);
 
         customAnnotationRTreeHandler.add(chr1Idx, chr2Idx, feature);
 
@@ -118,11 +128,11 @@ public class AnnotationLayer {
 
         // Autosave the information
         unsavedEdits = true;
-        if (nothingSavedYet) {
-            makeTempFile();
-            nothingSavedYet = false;
+        if (nothingSavedYet || schemaChanged) {
+            reSaveAll();
+        } else {
+            updateAutoSave();
         }
-        updateAutoSave();
     }
 
     // Requires that lastItem is not null
@@ -139,9 +149,7 @@ public class AnnotationLayer {
     }
 
     private void deleteTempFile() {
-        if (tempWriter != null) {
-            tempWriter.close();
-        }
+        closeAutosave();
         if (tempFile == null) {
             tempFile = getAutosaveFile();
         }
@@ -149,6 +157,16 @@ public class AnnotationLayer {
             tempFile.delete();
         }
         this.unsavedEdits = false;
+        nothingSavedYet = true;
+        tempFile = null;
+    }
+
+    public void closeAutosave() {
+        if (tempWriter != null) {
+            tempWriter.close();
+            tempWriter = null;
+        }
+        nothingSavedYet = true;
     }
 
     public boolean getLayerVisibility() {
@@ -158,11 +176,6 @@ public class AnnotationLayer {
     // Set show loops
     public void setLayerVisibility(boolean newStatus) {
         customAnnotationRTreeHandler.setLayerVisibility(newStatus);
-    }
-
-    // Creates unique identifier for Feature2D based on start and end positions.
-    private String getIdentifier(Feature2D feature) {
-        return "" + feature.getStart1() + feature.getEnd1() + feature.getStart2() + feature.getEnd2();
     }
 
     // Undo last move
@@ -176,6 +189,7 @@ public class AnnotationLayer {
     private void updateAutoSave() {
         if (unsavedEdits && lastItem != null) {
             customAnnotationRTreeHandler.autoSaveNew(tempWriter, lastItem);
+            tempWriter.flush();
         }
     }
 
@@ -183,14 +197,16 @@ public class AnnotationLayer {
      * Export feature list to given file path, including header
      */
     private void reSaveAll() {
-        deleteTempFile();
+        if (tempWriter != null) tempWriter.close();
         makeTempFile();
         customAnnotationRTreeHandler.autoSaveAll(tempWriter);
+        tempWriter.flush();
+        nothingSavedYet = false;
     }
 
     public boolean hasLoop(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                            double binOriginX, double binOriginY, double scale, Feature2D feature) {
-        if (chrIdx1 > 0 && chrIdx2 > 0) {
+        if (feature != null && chrIdx1 >= 0 && chrIdx2 >= 0) {
             List<Feature2D> featureList = getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
             return featureList.contains(feature) || featureList.contains(feature.reflectionAcrossDiagonal());
         }
@@ -198,50 +214,22 @@ public class AnnotationLayer {
     }
 
     private void removeRecentFromList(int idx1, int idx2, Feature2D feature) {
-
-        if (idx1 > 0 && idx2 > 0) {
-            List<Feature2D> lastList;
-            String mirrorIdentity = "" + feature.getStart2() + feature.getEnd2() + feature.getStart1() + feature.getEnd1();
-
-            lastList = customAnnotationRTreeHandler.get(idx1, idx2);
-            unsavedEdits = customAnnotationRTreeHandler.checkAndRemoveFeature(idx1, idx2, feature);
-
-            if (!unsavedEdits) {
-                Feature2D removeFeature = null;
-                for (Feature2D aFeature : lastList) {
-                    if (getIdentifier(aFeature).compareTo(mirrorIdentity) == 0) {
-                        removeFeature = aFeature;
-                        unsavedEdits = true;
-                    }
-                }
-                customAnnotationRTreeHandler.checkAndRemoveFeature(idx1, idx2, removeFeature);
-            }
+        if (feature == null || idx1 < 0 || idx2 < 0) return;
+        boolean removed = customAnnotationRTreeHandler.checkAndRemoveFeature(idx1, idx2, feature);
+        if (!removed) {
+            removed = customAnnotationRTreeHandler.checkAndRemoveFeature(idx1, idx2, feature.reflectionAcrossDiagonal());
         }
-        reSaveAll();
+        if (removed) {
+            unsavedEdits = true;
+            lastItem = null;
+            reSaveAll();
+        }
     }
 
     public void removeFromList(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                double binOriginX, double binOriginY, double scale, Feature2D feature) {
 
-        if (chrIdx1 > 0 && chrIdx2 > 0) {
-            List<Feature2D> lastList;
-            String mirrorIdentity = "" + feature.getStart2() + feature.getEnd2() + feature.getStart1() + feature.getEnd1();
-
-            lastList = getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
-            unsavedEdits = customAnnotationRTreeHandler.checkAndRemoveFeature(chrIdx1, chrIdx2, feature);
-
-            if (!unsavedEdits) {
-                Feature2D removeFeature = null;
-                for (Feature2D aFeature : lastList) {
-                    if (getIdentifier(aFeature).compareTo(mirrorIdentity) == 0) {
-                        removeFeature = aFeature;
-                        unsavedEdits = true;
-                    }
-                }
-                customAnnotationRTreeHandler.checkAndRemoveFeature(chrIdx1, chrIdx2, removeFeature);
-            }
-        }
-        reSaveAll();
+        removeRecentFromList(chrIdx1, chrIdx2, feature);
     }
 
     // Export annotations
@@ -254,26 +242,28 @@ public class AnnotationLayer {
     }
 
     public boolean exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
-        if (customAnnotationRTreeHandler.getOverlap(otherAnnotations).exportFeatureList(
-                new File(outputFilePath), false, Feature2DList.ListFormat.NA)) {
-            unsavedEdits = false;
-        }
-        return false;
+        return customAnnotationRTreeHandler.getOverlap(otherAnnotations).exportFeatureList(
+                new File(outputFilePath), false, Feature2DList.ListFormat.NA);
     }
 
-    private void getAndAddAttributes(List<String> featureKeys) {
+    private boolean getAndAddAttributes(List<String> featureKeys) {
+        boolean changed = false;
         // Add feature's unique attributes to all others
         for (String key : featureKeys) {
             if (!attributeKeys.contains(key)) {
                 attributeKeys.add(key);
                 customAnnotationRTreeHandler.addAttributeFieldToAll(key, "null");
+                changed = true;
             }
         }
+        return changed;
     }
 
     public void addAllAttributeValues(String key, String newValue) {
-        attributeKeys.add(key);
+        if (!attributeKeys.contains(key)) attributeKeys.add(key);
         customAnnotationRTreeHandler.addAttributeFieldToAll(key, newValue);
+        unsavedEdits = true;
+        reSaveAll();
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,

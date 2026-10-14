@@ -36,9 +36,9 @@ class CommandListener implements Runnable {
     private final Thread listenerThread;
     private final HiC hic;
     private int port = -1;
-    private ServerSocket serverSocket = null;
-    private Socket clientSocket = null;
-    private boolean halt = false;
+    private final ServerSocket serverSocket;
+    private volatile Socket clientSocket = null;
+    private volatile boolean halt = false;
 
     private CommandListener(int port, HiC hic) throws IOException {
         this.port = port;
@@ -48,6 +48,7 @@ class CommandListener implements Runnable {
     }
 
     public static synchronized void start(HiC hic) {
+        if (listener != null && !listener.halt) return;
 
         // Grab the first available port
         int port = 0;
@@ -83,19 +84,17 @@ class CommandListener implements Runnable {
 
         try {
             while (!halt) {
-                clientSocket = serverSocket.accept();
+                Socket socket = serverSocket.accept();
+                clientSocket = socket;
+                if (halt) break;
+                socket.setSoTimeout(5000);
                 processClientRequest(cmdExe);
-                if (clientSocket != null) {
-                    try {
-                        clientSocket.close();
-                        clientSocket = null;
-                    } catch (IOException e) {
-                        System.err.println("Error in client socket loop" + e.getLocalizedMessage());
-                    }
-                }
+                closeClientSocket();
             }
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            if (!halt) e.printStackTrace();
+        } finally {
+            closeSockets();
         }
 
     }
@@ -109,9 +108,11 @@ class CommandListener implements Runnable {
     private void processClientRequest(CommandExecutor cmdExe) throws IOException {
 
         BufferedReader in = null;
+        Socket socket = clientSocket;
+        if (socket == null) return;
 
         try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()), HiCGlobals.bufferSize);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()), HiCGlobals.bufferSize);
             String cmd;
             while (!halt && (cmd = in.readLine()) != null) {
                 if (cmd.equalsIgnoreCase("halt")) {
@@ -121,28 +122,30 @@ class CommandListener implements Runnable {
                 cmdExe.execute(cmd);
             }
         } catch (IOException e) {
-            System.err.println("Error processing client session" + e.getLocalizedMessage());
+            if (!halt) System.err.println("Error processing client session" + e.getLocalizedMessage());
         } finally {
             if (in != null) in.close();
         }
     }
 
     private void closeSockets() {
-        if (clientSocket != null) {
+        closeClientSocket();
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            System.err.println("Error closing server socket" + e.getLocalizedMessage());
+        }
+    }
+
+    private void closeClientSocket() {
+        Socket socket = clientSocket;
+        if (socket != null) {
             try {
-                clientSocket.close();
-                clientSocket = null;
+                socket.close();
             } catch (IOException e) {
                 System.err.println("Error closing clientSocket" + e.getLocalizedMessage());
-            }
-        }
-
-        if (serverSocket != null) {
-            try {
-                serverSocket.close();
-                serverSocket = null;
-            } catch (IOException e) {
-                System.err.println("Error closing server socket" + e.getLocalizedMessage());
+            } finally {
+                if (clientSocket == socket) clientSocket = null;
             }
         }
     }

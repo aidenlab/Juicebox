@@ -27,17 +27,11 @@ package juicebox.state;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.HiCCoverageDataSource;
-import juicebox.track.HiCDataSource;
 import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
-import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,7 +44,6 @@ public class XMLFileHandling {
         Context xContext = hic.getXContext();
         Context yContext = hic.getYContext();
         HiCZoom zoom = hic.getZoom();
-        Dataset dataset = hic.getDataset();
 
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
@@ -59,7 +52,7 @@ public class XMLFileHandling {
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
         StringBuilder currentTrack = new StringBuilder();
         StringBuilder currentTrackName = new StringBuilder();
-        String configTrackInfo = "none";
+        String configTrackInfo = serializeTrackConfig(currentTracks);
         String controlFiles = SuperAdapter.currentlyLoadedControlFiles;
         if (controlFiles == null || controlFiles.length() < 1 || controlFiles.isEmpty()) {
             controlFiles = "null";
@@ -79,18 +72,6 @@ public class XMLFileHandling {
                 //System.out.println("track name: " + track.getName());
                 currentTrack.append(track.getLocator()).append(", ");
                 currentTrackName.append(track.getName()).append(", ");
-                track.getLocator().getColor();
-                try {
-                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getObsNormalizationType(), false);
-                    HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, track.getLocator(), source);
-
-                    configTrackInfo = track.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
-                            + hiCDataTrack.getNegColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
-                            + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
-                    //Name, PosColor, AltColor, Min, Max, isLogScale
-                } catch (Exception e) {
-                    // Expected for tracks that cannot be configured
-                }
             }
         } else {
             currentTrack = new StringBuilder("none");
@@ -98,23 +79,29 @@ public class XMLFileHandling {
         }
         textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
 
-        // TODO this needs some major restructuring
-        List<Feature2DList> visibleLoops = new ArrayList<>();
-        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
-            visibleLoops.add(handler.getAllVisibleLoops());
-        }
-        if (visibleLoops != null && !visibleLoops.isEmpty()) {
-            try {
-                textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
-                        dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
-            } catch (Exception ignored) {
-
-            }
-        }
+        textToWrite += "$$" + hic.getControlNormalizationType().getLabel();
 
         //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
         // normalization type,color range values, tracks")
         HiCGlobals.savedStatesList.add(textToWrite);
-        XMLFileWriter.overwriteXMLFile();
+        XMLFileWriter.saveState(textToWrite);
+    }
+
+    static String serializeTrackConfig(List<HiCTrack> tracks) {
+        StringBuilder configs = new StringBuilder();
+        if (tracks != null) {
+            for (HiCTrack track : tracks) {
+                if (track instanceof HiCDataTrack) {
+                    HiCDataTrack dataTrack = (HiCDataTrack) track;
+                    if (dataTrack.getDataRange() == null) continue;
+                    configs.append(track.getName()).append(',').append(dataTrack.getPosColor().getRGB()).append(',')
+                            .append(dataTrack.getNegColor().getRGB()).append(',')
+                            .append(dataTrack.getDataRange().getMinimum()).append(',')
+                            .append(dataTrack.getDataRange().getMaximum()).append(',')
+                            .append(dataTrack.getDataRange().isLog()).append("**");
+                }
+            }
+        }
+        return configs.length() == 0 ? "none" : configs.toString();
     }
 }

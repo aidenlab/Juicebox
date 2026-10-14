@@ -78,9 +78,9 @@ public class ContactRecord implements Comparable<ContactRecord> {
     @Override
     public int compareTo(ContactRecord contactRecord) {
         if (this.binX != contactRecord.binX) {
-            return binX - contactRecord.binX;
+            return Integer.compare(binX, contactRecord.binX);
         } else if (this.binY != contactRecord.binY) {
-            return binY - contactRecord.binY;
+            return Integer.compare(binY, contactRecord.binY);
         } else return 0;
     }
 
@@ -90,7 +90,7 @@ public class ContactRecord implements Comparable<ContactRecord> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(binX, binY, counts);
+        return Objects.hash(binX, binY);
     }
 
     @Override

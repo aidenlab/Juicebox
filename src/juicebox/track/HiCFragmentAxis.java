@@ -55,21 +55,16 @@ public class HiCFragmentAxis implements HiCGridAxis {
 
     @Override
     public long getGenomicStart(double binNumber) {
-        int fragNumber = (int) binNumber * binSize;
-        int siteIdx = Math.min(fragNumber, sites.length - 1);
-        
-        if (binNumber >= sites.length) {
-            binNumber = sites.length - 1;
-        }
-        
-        return binNumber == 0 ? 0 : sites[siteIdx - 1];
+        long fragment = (long) binNumber * binSize;
+        if (fragment <= 0) return 0;
+        return fragment > sites.length ? chrLength : sites[(int) fragment - 1];
     }
     
     @Override
     public long getGenomicEnd(double binNumber) {
-        int fragNumber = (int) (binNumber + 1) * binSize - 1;
-        int siteIdx = Math.min(fragNumber, sites.length - 1);
-        return siteIdx < sites.length ? sites[siteIdx] : chrLength;
+        long siteIdx = ((long) binNumber + 1) * binSize - 1;
+        if (siteIdx < 0) return 0;
+        return siteIdx < sites.length ? sites[(int) siteIdx] : chrLength;
     }
 
 
@@ -131,7 +126,7 @@ public class HiCFragmentAxis implements HiCGridAxis {
      */
     @Override
     public int getBinNumberForGenomicPosition(long position) {
-        return getFragmentNumberForGenomicPosition((int) position) / binSize; // should not exceed max int size
+        return getFragmentNumberForGenomicPosition(position) / binSize;
     }
 
 
@@ -142,21 +137,13 @@ public class HiCFragmentAxis implements HiCGridAxis {
      * @param position The genome position to search for within that array
      * @return The fragment location such that position >= sites[retVal-1] and position <  sites[retVal]
      */
-    private int getFragmentNumberForGenomicPosition(int position) {
+    private int getFragmentNumberForGenomicPosition(long position) {
 
         int lo = 0;
-        int hi = sites.length - 1;
-
-        // Eliminate the extreme cases
-        if (position < sites[0]) return 0;
-        if (position >= sites[hi]) return sites.length;
-
-        while (lo <= hi) {
-
+        int hi = sites.length;
+        while (lo < hi) {
             int mid = (lo + hi) >>> 1;
-            if (position >= sites[mid - 1] && position < sites[mid]) {
-                return mid;
-            } else if (position >= sites[mid]) {
+            if (position >= sites[mid]) {
                 lo = mid + 1;
             } else {
                 hi = mid;
@@ -164,14 +151,13 @@ public class HiCFragmentAxis implements HiCGridAxis {
 
         }
 
-        // Not found
-        return -1;
+        return lo;
 
     }
 
     @Override
     public int getBinNumberForFragment(int fragment) {
-        if (fragment <= sites.length) {
+        if (fragment >= 0 && fragment <= sites.length) {
             return fragment / binSize;
         } else {
             throw new RuntimeException("Fragment: " + fragment + " is out of range");

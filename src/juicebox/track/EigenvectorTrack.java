@@ -92,16 +92,17 @@ public class EigenvectorTrack extends HiCTrack {
             DescriptiveStatistics stats = new DescriptiveStatistics();
 
             for (double datum : data) {
-                if (!Double.isNaN(datum)) {
+                if (Double.isFinite(datum)) {
                     stats.addValue(datum);
                 }
             }
 
-            medianCache.put(cacheKey, stats.getPercentile(50));
+            double median = stats.getN() == 0 ? 0 : stats.getPercentile(50);
+            medianCache.put(cacheKey, median);
 
             double max = 0;
             for (double aData : stats.getValues()) {
-                if (Math.abs(aData) > max) max = Math.abs(aData);
+                max = Math.max(max, Math.abs(aData - median));
             }
             dataMaxCache.put(cacheKey, max);
         }
@@ -113,7 +114,8 @@ public class EigenvectorTrack extends HiCTrack {
         if (isControl) {
             key = "control_";
         }
-        return key + chrIdx + "_" + zoomBinSize;
+        return key + chrIdx + "_" + zoomBinSize + "_" + hic.getZoom().getUnit() + "_" +
+                (isControl ? hic.getControlNormalizationType() : hic.getObsNormalizationType());
     }
 
     @Override
@@ -155,8 +157,9 @@ public class EigenvectorTrack extends HiCTrack {
 
     protected void flipEigenvector(int chrIdx, int zoomBinSize) {
         String cacheKey = getCacheKey(chrIdx, zoomBinSize);
-        int currFlipVal = flippingRecordCache.get(cacheKey);
+        int currFlipVal = flippingRecordCache.getOrDefault(cacheKey, 1);
         flippingRecordCache.put(cacheKey, -1 * currFlipVal);
+        forceRefreshCache();
     }
 
 
@@ -211,9 +214,13 @@ public class EigenvectorTrack extends HiCTrack {
 
         int h = height / 2;
 
-        for (int bin = (int) context.getBinOrigin(); bin < eigen.length; bin++) {
+        if (dataMax <= 0) return;
+        double scaleFactor = hic.getScaleFactor();
+        int firstBin = Math.max(0, (int) context.getBinOrigin());
+        int endBin = (int) Math.min(eigen.length, Math.ceil(context.getBinOrigin() + width / scaleFactor) + 1);
+        for (int bin = firstBin; bin < endBin; bin++) {
 
-            if (Double.isNaN(eigen[bin])) continue;
+            if (!Double.isFinite(eigen[bin])) continue;
 
             int xPixelLeft = x + (int) ((bin - context.getBinOrigin()) * hic.getScaleFactor());
             int xPixelRight = x + (int) ((bin + 1 - context.getBinOrigin()) * hic.getScaleFactor());
@@ -225,9 +232,7 @@ public class EigenvectorTrack extends HiCTrack {
             }
 
             double x2 = eigen[bin] - median;
-            double max = dataMax - median;
-
-            int myh = (int) ((x2 / max) * h);
+            int myh = (int) ((x2 / dataMax) * h);
             if (x2 > 0) {
                 g.setColor(getPosColor());
                 g.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);

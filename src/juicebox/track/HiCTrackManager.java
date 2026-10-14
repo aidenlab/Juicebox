@@ -243,7 +243,7 @@ public class HiCTrackManager {
 
     public void moveTrackUp(HiCTrack track) {
         int currentIdx = loadedTracks.indexOf(track);
-        if (currentIdx != 0) {
+        if (currentIdx > 0) {
             Collections.swap(loadedTracks, currentIdx, currentIdx - 1);
             superAdapter.updateTrackPanel();
         }
@@ -251,7 +251,7 @@ public class HiCTrackManager {
 
     public void moveTrackDown(HiCTrack track) {
         int currentIdx = loadedTracks.indexOf(track);
-        if (currentIdx != loadedTracks.size() - 1) {
+        if (currentIdx >= 0 && currentIdx < loadedTracks.size() - 1) {
             Collections.swap(loadedTracks, currentIdx, currentIdx + 1);
             superAdapter.updateTrackPanel();
         }

@@ -247,6 +247,7 @@ public class Matrix {
         int highRes = resPair.getSecond();
 
         MatrixZoomData highMZD = getZoomData(new HiCZoom(HiC.Unit.BP, highRes));
+        if (highMZD == null || getZoomData(new HiCZoom(HiC.Unit.BP, newRes)) != null) return;
         MatrixZoomData newMZD = new DynamicMatrixZoomData(new HiCZoom(HiC.Unit.BP, newRes), highMZD);
         if (addToSet) {
             dynamicZoomResolutions.add(resPair);
@@ -314,12 +315,17 @@ public class Matrix {
     }
 
     public MatrixZoomData getFirstPearsonZoomData(HiC.Unit unit) {
-        if (unit == HiC.Unit.BP) {
-            return bpZoomData != null ? bpZoomData.get(2) : null;
-        } else {
-            return fragZoomData != null ? fragZoomData.get(2) : null;
+        List<MatrixZoomData> zooms = unit == HiC.Unit.BP ? bpZoomData : fragZoomData;
+        MatrixZoomData selected = null;
+        long distance = Long.MAX_VALUE;
+        for (MatrixZoomData zd : zooms) {
+            long candidateDistance = Math.abs((long) zd.getBinSize() - 500000);
+            if (zd.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM && candidateDistance < distance) {
+                selected = zd;
+                distance = candidateDistance;
+            }
         }
-
+        return selected;
     }
 
     public MatrixZoomData getZoomData(HiCZoom zoom) {
@@ -333,7 +339,7 @@ public class Matrix {
         }
 
         for (MatrixZoomData zd : dynamicBPZoomData) {
-            if (zd.getBinSize() == targetZoom) {
+            if (zoom.getUnit() == HiC.Unit.BP && zd.getBinSize() == targetZoom) {
                 return zd;
             }
         }

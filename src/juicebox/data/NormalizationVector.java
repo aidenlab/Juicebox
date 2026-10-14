@@ -98,6 +98,7 @@ public class NormalizationVector {
         if (newNormVector != null) {
             newNormVector = ZeroScale.normalizeVectorByScaleFactor(newNormVector, ic);
         }
+        if (newNormVector == null) return null;
         ListOfDoubleArrays newDoubleNormVector = newNormVector.convertToDoubles();
         return new NormalizationVector(type, chrIdx, unit, resolution, newDoubleNormVector);
     }

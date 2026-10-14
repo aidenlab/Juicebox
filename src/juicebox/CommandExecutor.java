@@ -73,11 +73,17 @@ class CommandExecutor {
                         double xOrigin = Double.parseDouble(args.get(5));
                         double yOrigin = Double.parseDouble(args.get(6));
                         double scaleFactor = Double.parseDouble(args.get(7));
+                        if (unit == null || binSize <= 0 || !Double.isFinite(xOrigin) || !Double.isFinite(yOrigin)
+                                || !Double.isFinite(scaleFactor) || scaleFactor <= 0) {
+                            throw new IllegalArgumentException("Invalid location parameters");
+                        }
                         hic.setLocation(chrXName, chrYName, unit, binSize, xOrigin, yOrigin, scaleFactor,
                                 HiC.ZoomCallType.DIRECT, "Goto Sync", false);
                     } else {
                         result = "Not enough parameters";
                     }
+                } else {
+                    result = "Unknown command string";
                 }
             } else {
                 result = "Unknown command string";

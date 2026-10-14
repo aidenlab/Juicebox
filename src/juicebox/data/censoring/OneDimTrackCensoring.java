@@ -51,8 +51,8 @@ public class OneDimTrackCensoring {
 
         // x window
         int binSize = zoom.getBinSize();
-        int gx1 = startBin * binSize;
-        int gx2 = endBin * binSize;
+        long gx1 = (long) startBin * binSize;
+        long gx2 = (long) endBin * binSize;
 
         //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
         List<Pair<GenericLocus, GenericLocus>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getName(), gx1, gx2);
@@ -76,6 +76,7 @@ public class OneDimTrackCensoring {
     private static HiCDataPoint[] translateDataPointArray(int binSize, HiCDataPoint[] array,
                                                           GenericLocus originalRegion, GenericLocus translatedRegion) {
         List<HiCDataPoint> translatedPoints = new ArrayList<>();
+        if (array == null) return new HiCDataPoint[0];
 
         if (array.length > 0 && array[0] instanceof HiCCoverageDataSource.CoverageDataPoint) {
             for (HiCDataPoint pointGen : array) {
@@ -93,7 +94,7 @@ public class OneDimTrackCensoring {
                 if (point.genomicStart >= originalRegion.getX1() && point.genomicEnd <= originalRegion.getX2()) {
                     long newGStart = translatedRegion.getX1() + point.genomicStart - originalRegion.getX1();
                     long newGEnd = translatedRegion.getX1() + point.genomicEnd - originalRegion.getX1();
-                    long newBinNum = newGStart / binSize;
+                    double newBinNum = (double) newGStart / binSize;
                     HiCDataAdapter.DataAccumulator accum = new HiCDataAdapter.DataAccumulator(newBinNum, point.width,
                             newGStart, newGEnd);
                     accum.nPts = point.nPts;

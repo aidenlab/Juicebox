@@ -75,15 +75,15 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-            long newX = record.getBinX() * binSize;
-            if (newX >= rp.xRegion.getX1() && newX <= rp.xRegion.getX2()) {
+            long newX = (long) record.getBinX() * binSize;
+            if (newX >= rp.xRegion.getX1() && newX < rp.xRegion.getX2()) {
                 newX = rp.xTransRegion.getX1() + newX - rp.xRegion.getX1();
 			} else {
 				continue;
 			}
 	
-			long newY = record.getBinY() * binSize;
-			if (newY >= rp.yRegion.getX1() && newY <= rp.yRegion.getX2()) {
+			long newY = (long) record.getBinY() * binSize;
+			if (newY >= rp.yRegion.getX1() && newY < rp.yRegion.getX2()) {
 				newY = rp.yTransRegion.getX1() + newY - rp.yRegion.getX1();
 			} else {
 				continue;
@@ -156,8 +156,9 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                     @Override
                     public void run() {
                         RegionPair rp = RegionPair.generateRegionPair(xRegion, yRegion, handler);
+                        if (rp == null) return;
                         MatrixZoomData zd = zoomDatasForDifferentRegions.get(Matrix.generateKey(rp.xI, rp.yI));
-                        if (zd == null || rp == null) return;
+                        if (zd == null) return;
 
                         synchronized (blocksNumsToLoadForZd) {
                             if (!blocksNumsToLoadForZd.containsKey(zd)) {
@@ -197,8 +198,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         executor.shutdown();
 
         // Wait until all threads finish
-        while (!executor.isTerminated()) {
-        }
+        awaitWorkers(executor);
 
         // Actually load new blocks
         actuallyLoadGivenBlocks(blockList, no, blocksNumsToLoadForZd);
@@ -280,19 +280,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         service.shutdown();
 
         // Wait until all threads finish
-        while (!service.isTerminated()) {
-        }
-
-        // wait for all to finish
-        try {
-            service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            //String.format("Pending tasks: %d", executor.getQueue().size())
-            System.err.println("Error loading custom mzd data " + e.getLocalizedMessage());
-            if (HiCGlobals.printVerboseComments) {
-                e.printStackTrace();
-            }
-        }
+        awaitWorkers(service);
 
         long timeFinalOverall = System.currentTimeMillis();
         //System.out.println("Time taken in actuallyLoadGivenBlocks (seconds): " + timesPassed[0] / 1000.0 + " - " + timesPassed[1] / 1000.0 + " - " + timesPassed[2] / 1000.0);
@@ -306,12 +294,24 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                     + DatasetReaderV2.globalTimeDiffThings[4]
 
             );
-            System.out.println("Time taken overall (seconds): " + (overallTimeStart - timeFinalOverall) / 1000.0);
+            System.out.println("Time taken overall (seconds): " + (timeFinalOverall - overallTimeStart) / 1000.0);
         }
         // error printing
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
+    }
+
+    private static void awaitWorkers(ExecutorService executor) {
+        boolean interrupted = false;
+        while (!executor.isTerminated()) {
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                interrupted = true;
+            }
+        }
+        if (interrupted) Thread.currentThread().interrupt();
     }
 	
 	public List<Long> getBoundariesOfCustomChromosomeX() {
@@ -358,7 +358,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     }
 
 
-    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, int g1, int g2) {
+    public List<Pair<GenericLocus, GenericLocus>> getRTreeHandlerIntersectingFeatures(String name, long g1, long g2) {
         return rTreeHandler.getIntersectingFeatures(name, g1, g2);
     }
 }

@@ -30,6 +30,9 @@ import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import juicebox.track.feature.AnnotationLayerHandler;
 
 /**
  * Created by Marie on 12/21/15.
@@ -71,19 +74,32 @@ public class UnsavedAnnotationWarning {
         if (response == JOptionPane.NO_OPTION) {
             System.out.println("Deleting annotations");
             if (isCurrentSession) {
-                superAdapter.getActiveLayerHandler().clearAnnotations();
+                for (AnnotationLayerHandler layer : superAdapter.getAllLayers()) layer.clearAnnotations();
             }
-            removeAllOldAnnotationFiles();
-            return true;
+            try {
+                removeAllOldAnnotationFiles();
+                return true;
+            } catch (IOException e) {
+                SuperAdapter.showMessageDialog("Could not discard annotation backups: " + e.getMessage());
+                return false;
+            }
         }
         if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
             System.out.println("Cancel");
             return false;
         }
         if (response == JOptionPane.YES_OPTION) {
-            String prefix = moveOldAnnotationFiles();
-            SuperAdapter.showMessageDialog("Files have been saved with prefix: " + prefix + "*\nin " + DirectoryManager.getHiCDirectory());
-            return true;
+            if (isCurrentSession) {
+                for (AnnotationLayerHandler layer : superAdapter.getAllLayers()) layer.getAnnotationLayer().closeAutosave();
+            }
+            try {
+                String prefix = moveOldAnnotationFiles();
+                SuperAdapter.showMessageDialog("Files have been saved with prefix: " + prefix + "*\nin " + DirectoryManager.getHiCDirectory());
+                return true;
+            } catch (IOException e) {
+                SuperAdapter.showMessageDialog("Could not save annotation backups: " + e.getMessage());
+                return false;
+            }
         }
         return false;
     }
@@ -93,24 +109,26 @@ public class UnsavedAnnotationWarning {
      * temp fix
      * todo something more sophisticated
      */
-    private void removeAllOldAnnotationFiles() {
-        for (int i = 0; i < 10; i++) {
-            File temp = new File(DirectoryManager.getHiCDirectory(), HiCGlobals.BACKUP_FILE_STEM + i + ".bedpe");
-            if (temp.exists()) {
-                temp.delete();
-            }
+    private void removeAllOldAnnotationFiles() throws IOException {
+        for (File temp : getBackupFiles()) {
+            Files.delete(temp.toPath());
         }
     }
 
-    private String moveOldAnnotationFiles() {
+    private String moveOldAnnotationFiles() throws IOException {
         String timeStamp = System.nanoTime() + "_annotations_";
-        for (int i = 0; i < 10; i++) {
-            File temp = new File(DirectoryManager.getHiCDirectory(), HiCGlobals.BACKUP_FILE_STEM + i + ".bedpe");
-            if (temp.exists()) {
-                temp.renameTo(new File(DirectoryManager.getHiCDirectory(), timeStamp + i + ".bedpe"));
-            }
+        for (File temp : getBackupFiles()) {
+            String suffix = temp.getName().substring(HiCGlobals.BACKUP_FILE_STEM.length());
+            Files.move(temp.toPath(), new File(DirectoryManager.getHiCDirectory(), timeStamp + suffix).toPath());
         }
         return timeStamp;
+    }
+
+    public static File[] getBackupFiles() {
+        File[] files = DirectoryManager.getHiCDirectory().listFiles((directory, name) ->
+                name.startsWith(HiCGlobals.BACKUP_FILE_STEM) &&
+                        name.substring(HiCGlobals.BACKUP_FILE_STEM.length()).matches("[0-9]+\\.bedpe"));
+        return files == null ? new File[0] : files;
     }
 
 }

@@ -28,7 +28,7 @@ import juicebox.HiCGlobals;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -40,21 +40,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 class XMLFileParser {
 
     public static String[] parseXML(String mapSelection) {
-        String[] infoForReload = new String[21];
+        String[] infoForReload = new String[State.stateVarNames.length];
         Document dom;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
             dom = db.parse(HiCGlobals.xmlSavedStatesFile.getAbsolutePath());
-
-            //validate
-            dbf.setValidating(false);
-            dbf.setNamespaceAware(true);
-            DocumentBuilder builder = dbf.newDocumentBuilder();
-            builder.setErrorHandler(new SimpleErrorHandler());
-            builder.parse(new InputSource(HiCGlobals.xmlSavedStatesFile.getAbsolutePath()));
-            dom.getDocumentElement();
-
 
             NodeList nodeList = dom.getElementsByTagName("STATE");
             for (int i = 0; i < nodeList.getLength(); i++) {
@@ -62,8 +53,8 @@ class XMLFileParser {
                 if (nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue().equals(mapSelection)) {
 
                     NodeList childNodes = nodeList.item(i).getChildNodes();
-                    // +=2 because need to skip 2nd line which describes 1st line (but everything is type text)
-                    for (int c = 1; c < childNodes.getLength(); c += 2) {
+                    for (int c = 0; c < childNodes.getLength(); c++) {
+                        if (childNodes.item(c).getNodeType() != Node.ELEMENT_NODE) continue;
 
                         String varName = childNodes.item(c).getNodeName();
                         String varText = childNodes.item(c).getTextContent();

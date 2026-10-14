@@ -38,17 +38,18 @@ import java.util.List;
 public class DatasetReaderFactory {
 
     public static DatasetReader getReader(List<String> fileList) throws IOException {
-
+        if (fileList == null || fileList.isEmpty()) throw new IOException("No Hi-C files supplied");
         if (fileList.size() == 1) {
             String file = fileList.get(0);
-            return getReaderForFile(file);
+            DatasetReader reader = getReaderForFile(file);
+            if (reader == null) throw new IOException("Not a supported Hi-C file: " + file);
+            return reader;
         } else {
             List<DatasetReader> readers = new ArrayList<>(fileList.size());
             for (String f : fileList) {
                 DatasetReader r = getReaderForFile(f);
-                if (r != null) {
-                    readers.add(r);
-                }
+                if (r == null) throw new IOException("Not a supported Hi-C file: " + f);
+                readers.add(r);
 
             }
             return new CombinedDatasetReader(readers);

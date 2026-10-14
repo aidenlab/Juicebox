@@ -39,22 +39,27 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.nio.file.*;
+import java.io.IOException;
 
 /**
  * Created by Zulkifl Gire on 7/15/2015.
  */
 public class XMLFileWriter {
 
-    private static StreamResult streamResult;
     private static Document xmlDoc;
 
-    public static void overwriteXMLFile() {
+    public static synchronized void overwriteXMLFile() {
         try {
-            streamResult = new StreamResult(HiCGlobals.xmlSavedStatesFile);
             Element root = initXML();
 
+            Map<String, String> latestStates = new LinkedHashMap<>();
             for (String stateString : HiCGlobals.savedStatesList) {
-                System.out.println(stateString);
+                latestStates.put(stateString.split("--currentState:", 2)[0], stateString);
+            }
+            for (String stateString : latestStates.values()) {
                 convert(stateString, root);
             }
 
@@ -64,6 +69,28 @@ public class XMLFileWriter {
         }
     }
 
+
+    public static synchronized void saveState(String stateString) {
+        try {
+            Element root;
+            if (HiCGlobals.xmlSavedStatesFile.isFile() && HiCGlobals.xmlSavedStatesFile.length() > 0) {
+                xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(HiCGlobals.xmlSavedStatesFile);
+                root = xmlDoc.getDocumentElement();
+            } else {
+                root = initXML();
+            }
+            String name = stateString.split("--currentState:", 2)[0];
+            org.w3c.dom.NodeList states = root.getElementsByTagName("STATE");
+            for (int i = states.getLength() - 1; i >= 0; i--) {
+                Element state = (Element) states.item(i);
+                if (name.equals(state.getAttribute("SelectedPath"))) state.getParentNode().removeChild(state);
+            }
+            convert(stateString, root);
+            writeXML();
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not save state to " + HiCGlobals.xmlSavedStatesFile, e);
+        }
+    }
 
     private static Element initXML() throws ParserConfigurationException {
 
@@ -78,7 +105,7 @@ public class XMLFileWriter {
     private static void convert(String s, Element root) {
 
         String[] elements = s.split("\\$\\$");
-        String[] title = elements[0].split("--");
+        String[] title = elements[0].split("--currentState:", 2);
         String[] mapName = elements[1].split("\\@\\@");
         Element e0 = xmlDoc.createElement("STATE");
         e0.setAttribute("SelectedPath", title[0]);
@@ -103,7 +130,7 @@ public class XMLFileWriter {
                 } else {
                     n = xmlDoc.createTextNode("null");
                 }
-            } else if (i < 19 || elements.length > 18) { // elements.length checked in case no annotations
+            } else if (i - 2 < elements.length) {
                 n = xmlDoc.createTextNode(elements[i - 2]);
                 //System.out.println(elements[i-2]);
             }
@@ -115,7 +142,7 @@ public class XMLFileWriter {
         root.appendChild(e0);
     }
 
-    private static void writeXML() throws TransformerException {
+    private static void writeXML() throws TransformerException, IOException {
         DOMSource domSource = new DOMSource(xmlDoc);
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();
@@ -123,6 +150,17 @@ public class XMLFileWriter {
         transformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.transform(domSource, streamResult);
+        Path target = HiCGlobals.xmlSavedStatesFile.toPath().toAbsolutePath();
+        Path temporary = Files.createTempFile(target.getParent(), "juicebox-states-", ".xml");
+        try {
+            transformer.transform(domSource, new StreamResult(temporary.toFile()));
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 }

@@ -158,7 +158,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         String[] topChrTokens = resultTop.get(0);
         String[] topDashChrTokens = resultTop.get(1);
 
-        if (topChrTokens.length == 1 || leftChrTokens.length == 1) {
+        if (topChrTokens.length <= 1 || leftChrTokens.length <= 1) {
             parseGenePositionText();
             return;
         }
@@ -180,14 +180,14 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
 
         // chrPositions {start, end, outBin, estimatedOutBinSize}
-        int[] topChrPositions;
+        long[] topChrPositions;
         try {
             topChrPositions = extractParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
         } catch (Exception e) {
             return;
         }
 
-        int[] leftChrPositions;
+        long[] leftChrPositions;
         try {
             leftChrPositions = extractParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         //Read resolution:
         int outBinSize = 0;
         HiC.Unit resolutionUnits = HiC.Unit.BP;
-        int estimatedOutBinSize = Math.max(topChrPositions[3], leftChrPositions[3]);
+        int estimatedOutBinSize = Math.toIntExact(Math.max(topChrPositions[3], leftChrPositions[3]));
 
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
             try {
@@ -279,9 +279,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         try {
             if (dashChrTokens.length == 1) {
-                outBinSize = cleanUpNumber(chrTokens[2]);
+                outBinSize = Math.toIntExact(cleanUpNumber(chrTokens[2]));
             } else if (chrTokens.length > 3) {
-                outBinSize = cleanUpNumber(chrTokens[3]);
+                outBinSize = Math.toIntExact(cleanUpNumber(chrTokens[3]));
             }
             System.out.println("Out bin size " + outBinSize);
         } catch (Exception e) {
@@ -291,9 +291,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         return new int[]{outBinSize, resolutionUnits};
     }
 
-    private int[] extractParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) throws IOException {
+    private long[] extractParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) throws IOException {
         //Read positions:
-        int start = 0, end = 0, outBin = 0, estimatedOutBinSize = 0;
+        long start = 0, end = 0, outBin = 0, estimatedOutBinSize = 0;
         if (chrTokens.length > 2 && dashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
@@ -305,7 +305,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 throw new IOException();
             }
             outBin = start + ((end - start) / 2);
-            int diff = end - start;
+            long diff = end - start;
             estimatedOutBinSize = getEstimationOfAppropriateZoomLevel(diff);
 
         } else if (chrTokens.length > 1) {
@@ -318,13 +318,13 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 throw new IOException();
             }
         }
-        return new int[]{start, end, outBin, estimatedOutBinSize};
+        return new long[]{start, end, outBin, estimatedOutBinSize};
     }
 
     // TODO this should get map keys from official list of resolutions, sort the list, then return appropriately
-    private int getEstimationOfAppropriateZoomLevel(int diff0) {
+    private int getEstimationOfAppropriateZoomLevel(long diff0) {
         // divide because the width from x1 to x2 in chromosome should be significantly bigger then the resolution
-        int diff = diff0 / 1000;
+        long diff = diff0 / 1000;
 
         for (HiCZoom zoom : hic.getDataset().getBpZooms()) {
             int res = zoom.getBinSize();
@@ -334,8 +334,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         return 5000;
     }
 
-    private int cleanUpNumber(String number) {
-        return (int) (Long.parseLong(number.toLowerCase()
+    private long cleanUpNumber(String number) {
+        return (long) (Long.parseLong(number.toLowerCase()
                 .replaceAll(",", "")
                 .replaceAll("m", "000000")
                 .replaceAll("k", "000")) / HiCGlobals.hicMapScale);

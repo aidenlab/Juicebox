@@ -69,7 +69,8 @@ public class MainWindow extends JFrame {
     public static Cursor groupNECursor;
     public static Cursor groupSWCursor;
     private static MainWindow theInstance;
-    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
+    // Desktop actions mutate one model; overlapping loads/zoom changes corrupt that state.
+    private final ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
     private final HiC hic; // The "model" object containing the state for this instance.
 
     private MainWindow() {
@@ -123,8 +124,12 @@ public class MainWindow extends JFrame {
         try {
             URL url = new URL("https://s3.amazonaws.com/hicfiles.tc4ga.com/juicebox.version");
             URLConnection next = url.openConnection();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(next.getInputStream()));
-            String latestVersion = reader.readLine();
+            next.setConnectTimeout(5000);
+            next.setReadTimeout(5000);
+            String latestVersion;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(next.getInputStream()))) {
+                latestVersion = reader.readLine();
+            }
             String[] latest = latestVersion.split("\\.");
             String[] current = HiCGlobals.versionNum.split("\\.");
             boolean isOutdated = false;
@@ -473,8 +478,10 @@ public class MainWindow extends JFrame {
     }
 
     private void showDisabledGlassPane(String caller, String displayMessage) {
-        disabledGlassPane.activate(displayMessage);
-        LayersPanel.disabledGlassPane.activate(displayMessage);
+        SwingUtilities.invokeLater(() -> {
+            disabledGlassPane.activate(displayMessage);
+            LayersPanel.disabledGlassPane.activate(displayMessage);
+        });
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Loading " + caller);
         }
@@ -488,8 +495,10 @@ public class MainWindow extends JFrame {
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Done loading " + caller);
         }
-        disabledGlassPane.deactivate();
-        LayersPanel.disabledGlassPane.deactivate();
+        SwingUtilities.invokeLater(() -> {
+            disabledGlassPane.deactivate();
+            LayersPanel.disabledGlassPane.deactivate();
+        });
     }
 
     public void updateNamesFromImport(String path) {

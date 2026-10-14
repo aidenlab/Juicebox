@@ -73,7 +73,7 @@ public class PsfFileImporter extends AssemblyFileImporter {
             else
                 setModifiedInitialState();
         } catch (IOException exception) {
-            System.err.println("Error reading files!");
+            throw new IllegalArgumentException("Could not import assembly", exception);
         }
         updateAssemblyScale();
 
@@ -93,7 +93,7 @@ public class PsfFileImporter extends AssemblyFileImporter {
         try {
             for (String row : rawFileData) {
                 if (row.startsWith(">")) {
-                    String[] splitRow = row.split(" ");
+                    String[] splitRow = row.split("\\s+");
                     // Chr Pos Ref_var Alt_var ID
                     int id = Integer.parseInt(splitRow[4]);
                     Scaffold scaffold = new Scaffold(splitRow[0].substring(1) + ":" + splitRow[1] + ":" + splitRow[2], 2 * id - 1, 1000);
@@ -104,7 +104,7 @@ public class PsfFileImporter extends AssemblyFileImporter {
                     List<Integer> superscaffold = new ArrayList<>();
                     List<Integer> altSuperscaffold = new ArrayList<>();
 
-                    for (String index : row.split(" ")) {
+                    for (String index : row.split("\\s+")) {
                         int id = Integer.parseInt(index);
                         if (id > 0) {
                             superscaffold.add(2 * id - 1);
@@ -119,8 +119,7 @@ public class PsfFileImporter extends AssemblyFileImporter {
                 }
             }
         } catch (NumberFormatException e) {
-            e.printStackTrace();
-            System.err.println("Errors in format");
+            throw new IOException("Invalid assembly format", e);
         }
     }
 
@@ -155,10 +154,11 @@ public class PsfFileImporter extends AssemblyFileImporter {
 
         File file = new File(filePath);
 
-        Scanner scanner = new Scanner(file);
-
-        while (scanner.hasNext()) {
-            fileData.add(scanner.nextLine());
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (!line.isEmpty()) fileData.add(line);
+            }
         }
         return fileData;
     }

@@ -67,8 +67,11 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     private void initDataRange() {
         MatrixZoomData zd;
+        Dataset dataset = isControl ? hic.getControlDataset() : hic.getDataset();
+        setDataRange(new DataRange(0, 1));
+        if (dataset == null) return;
         try {
-            zd = hic.getZd();
+            zd = isControl ? hic.getControlZd() : hic.getZd();
         } catch (Exception e) {
             return;
         }
@@ -76,7 +79,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
         if (zd != null) {
             int chrIdx = zd.getChr1Idx();
             HiCZoom zoom = zd.getZoom();
-            NormalizationVector nv = hic.getDataset().getNormalizationVector(chrIdx, zoom, normalizationType);
+            NormalizationVector nv = dataset.getNormalizationVector(chrIdx, zoom, normalizationType);
             if (nv == null) {
                 setDataRange(new DataRange(0, 1));
             } else {
@@ -148,7 +151,9 @@ public class HiCCoverageDataSource implements HiCDataSource {
             return null;
         }
 
-        NormalizationVector nv = dataset.getNormalizationVector(chr.getIndex(), zoom, normalizationType);
+        Chromosome localChr = dataset.getChromosomeHandler().getChromosomeFromName(chr.getName());
+        if (localChr == null || endBin < startBin) return null;
+        NormalizationVector nv = dataset.getNormalizationVector(localChr.getIndex(), zoom, normalizationType);
         if (nv == null) return null;
     
         double[] data = nv.getData().getValues().get(0);
@@ -159,7 +164,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
             long gStart = gridAxis.getGenomicStart(b);
             long gEnd = gridAxis.getGenomicEnd(b);
             int idx = b - startBin;
-            double value = b < data.length ? data[b] : 0;
+            double value = b >= 0 && b < data.length ? data[b] : 0;
             dataPoints[idx] = new CoverageDataPoint(b, gStart, gEnd, value);
         }
 

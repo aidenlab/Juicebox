@@ -128,7 +128,7 @@ public class HeatmapPanel extends JComponent {
                         "resolution, use 500KB or lower resolution.");
                 return;
             }
-            if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailableForFile(false)) {
+            if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailableForFile(true)) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
                         "resolution, use 500KB or lower resolution.");
                 return;
@@ -222,30 +222,39 @@ public class HeatmapPanel extends JComponent {
         int wh = Math.max(maxBinCountX, maxBinCountY); // todo assumption for thumbnail
         //if (wh > 1000) wh=1000; // this can happen with single resolution hic files - breaks thumbnail localization
 
-        BufferedImage image = (BufferedImage) createImage(wh, wh);
+        if (wh <= 0 || tw <= 0 || th <= 0) return null;
+        // Single-resolution maps can have millions of bins. Allocate the output,
+        // rather than a square bitmap with one pixel per genomic bin.
+        BufferedImage image = new BufferedImage(tw, th, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        if (HiCGlobals.isDarkulaModeEnabled) {
-            g.setColor(Color.darkGray);
-            g.fillRect(0, 0, wh, wh);
+        try {
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                g.setColor(Color.darkGray);
+                g.fillRect(0, 0, tw, th);
+            }
+            g.scale((double) tw / wh, (double) th / wh);
+
+            HeatmapRenderer renderer = new HeatmapRenderer(g, colorScaleHandler);
+            boolean success = renderer.render(0,
+                    0,
+                    maxBinCountX,
+                    maxBinCountY,
+                    zd0,
+                    ctrl0,
+                    displayOption,
+                    observedNormalizationType,
+                    controlNormalizationType,
+                    hic.getDataset() == null ? null : hic.getDataset().getExpectedValues(zd0.getZoom(), observedNormalizationType),
+                    hic.getControlDataset() == null || ctrl0 == null ? null :
+                            hic.getControlDataset().getExpectedValues(ctrl0.getZoom(), controlNormalizationType),
+                    false);
+
+            if (!success) return null;
+
+            return image;
+        } finally {
+            g.dispose();
         }
-
-        HeatmapRenderer renderer = new HeatmapRenderer(g, colorScaleHandler);
-        boolean success = renderer.render(0,
-                0,
-                maxBinCountX,
-                maxBinCountY,
-                zd0,
-                ctrl0,
-                displayOption,
-                observedNormalizationType,
-                controlNormalizationType,
-                hic.getExpectedValues(),
-                hic.getExpectedControlValues(),
-                false);
-
-        if (!success) return null;
-
-        return image.getScaledInstance(tw, th, Image.SCALE_REPLICATE);
 
     }
 
