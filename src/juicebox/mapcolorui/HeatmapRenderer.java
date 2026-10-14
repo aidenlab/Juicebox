@@ -36,6 +36,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.renderer.ColorScale;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.*;
 
@@ -1274,6 +1275,14 @@ public class HeatmapRenderer {
 
     public void scale(double sx, double sy) {
         g.scale(sx, sy);
+    }
+
+    public AffineTransform getTransform() {
+        return g.getTransform();
+    }
+
+    public void setTransform(AffineTransform transform) {
+        g.setTransform(transform);
     }
 
     public void drawImage(Image image, int xDest0, int yDest0, int xDest1, int yDest1, int xSrc0, int ySrc0, int xSrc1, int ySrc1) {

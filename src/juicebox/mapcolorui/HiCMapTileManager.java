@@ -64,18 +64,20 @@ public class HiCMapTileManager {
             long maxBinCountX = zd.getXGridAxis().getBinCount();
             long maxBinCountY = zd.getYGridAxis().getBinCount();
 
-            if (maxBinCountX < 0 || maxBinCountY < 0) return null;
-
-            int imageWidth = maxBinCountX < imageTileWidth ? (int) maxBinCountX : imageTileWidth;
-            int imageHeight = maxBinCountY < imageTileWidth ? (int) maxBinCountY : imageTileWidth;
+            if (tileColumn < 0 || tileRow < 0) return null;
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
+            if (bx0 >= maxBinCountX || by0 >= maxBinCountY) return null;
+
+            int imageWidth = (int) Math.min(imageTileWidth, maxBinCountX - bx0);
+            int imageHeight = (int) Math.min(imageTileWidth, maxBinCountY - by0);
 
             Image image = renderDataWithCPU(parent, bx0, by0, imageWidth, imageHeight,
                     zd, controlZd, displayOption, obsNormalizationType, ctrlNormalizationType,
                     hic.getExpectedValues(), hic.getExpectedControlValues());
 
-            // if (scaleFactor > 0.999 && scaleFactor < 1.001) {
+            // Unavailable normalization/data must remain retryable, not become a null-image tile.
+            if (image == null) return null;
             tile = new GeneralTileManager.ImageTile(image, bx0, by0);
             tileCache.put(key, tile);
         }
@@ -86,21 +88,25 @@ public class HiCMapTileManager {
                                             MatrixZoomData zd, MatrixZoomData controlZd, MatrixType displayOption,
                                             NormalizationType obsNormalizationType, NormalizationType ctrlNormalizationType,
                                             ExpectedValueFunction expectedValues, ExpectedValueFunction expectedControlValues) {
-        BufferedImage image = (BufferedImage) parent.createImage(imageWidth, imageHeight);
-        Graphics2D g2D = (Graphics2D) image.getGraphics();
-        if (HiCGlobals.isDarkulaModeEnabled) {
-            g2D.setColor(Color.darkGray);
-            g2D.fillRect(0, 0, imageWidth, imageHeight);
-        }
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2D = image.createGraphics();
+        try {
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                g2D.setColor(Color.darkGray);
+                g2D.fillRect(0, 0, imageWidth, imageHeight);
+            }
 
-        HeatmapRenderer renderer = new HeatmapRenderer(g2D, colorScaleHandler);
-        if (!renderer.render(bx0, by0, imageWidth, imageHeight,
-                zd, controlZd, displayOption,
-                obsNormalizationType, ctrlNormalizationType,
-                expectedValues, expectedControlValues, true)) {
-            return null;
+            HeatmapRenderer renderer = new HeatmapRenderer(g2D, colorScaleHandler);
+            if (!renderer.render(bx0, by0, imageWidth, imageHeight,
+                    zd, controlZd, displayOption,
+                    obsNormalizationType, ctrlNormalizationType,
+                    expectedValues, expectedControlValues, true)) {
+                return null;
+            }
+            return image;
+        } finally {
+            g2D.dispose();
         }
-        return image;
     }
 
     public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixType displayOption, String cacheKey) {

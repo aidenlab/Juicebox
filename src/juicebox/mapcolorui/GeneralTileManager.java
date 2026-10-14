@@ -33,6 +33,7 @@ import juicebox.windowui.NormalizationType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class GeneralTileManager {
     private static final int imageTileWidth = 500;
@@ -53,13 +54,13 @@ public class GeneralTileManager {
         NormalizationType controlNormalizationType = hic.getControlNormalizationType();
 
         // tile numbers
-        int tLeft = (int) (binOriginX / imageTileWidth);
+        int tLeft = Math.max(0, (int) Math.floor(binOriginX / imageTileWidth));
         int tRight = (int) Math.ceil(bRight / imageTileWidth);
-        int tTop = (int) (binOriginY / imageTileWidth);
+        int tTop = Math.max(0, (int) Math.floor(binOriginY / imageTileWidth));
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
-        for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
-            for (int tileColumn = tLeft; tileColumn <= tRight; tileColumn++) {
+        for (int tileRow = tTop; tileRow < tBottom; tileRow++) {
+            for (int tileColumn = tLeft; tileColumn < tRight; tileColumn++) {
 
                 ImageTile tile = null;
                 try {
@@ -88,8 +89,9 @@ public class GeneralTileManager {
 
                     // Trim off edges that are out of view -- take care if you attempt to simplify or rearrange this,
                     // its easy to introduce alias and round-off errors due to the int casts.  I suggest leaving it alone.
-                    final int screenRight = bounds.x + bounds.width;
-                    final int screenBottom = bounds.y + bounds.height;
+                    // Drawing coordinates are local to the component.
+                    final int screenRight = bounds.width;
+                    final int screenBottom = bounds.height;
                     if (xDest0 < 0) {
                         int leftExcess = (int) (-xDest0 / scaleFactor);
                         xSrc0 += leftExcess;
@@ -143,8 +145,11 @@ public class GeneralTileManager {
         }
 
         //In case of change to map settings, get map color limits and update slider:
-        //TODO: || might not catch all changed at once, if more then one parameter changed...
-        if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
+        // These calls consume flags; evaluate all three even when the first is true.
+        boolean zoomChanged = hic.testZoomChanged();
+        boolean displayChanged = hic.testDisplayOptionChanged();
+        boolean normalizationChanged = hic.testNormalizationTypeChanged();
+        if (zoomChanged || displayChanged || normalizationChanged) {
             //In case render is called as a result of zoom change event, check if
             //We need to update slider with map range:
             String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption, observedNormalizationType, controlNormalizationType);
@@ -173,36 +178,39 @@ public class GeneralTileManager {
         final int bx0 = tileColumn * imageTileWidth;
         final int by0 = tileRow * imageTileWidth;
 
-        // set new origins
-        renderer.translate(xDest0, yDest0);
+        AffineTransform originalTransform = renderer.getTransform();
+        try {
+            // set new origins
+            renderer.translate(xDest0, yDest0);
 
-        // scale drawing appropriately
-        double widthDest = xDest1 - xDest0;
-        double heightDest = yDest1 - yDest0;
-        int widthSrc = xSrc1 - xSrc0;
-        int heightSrc = ySrc1 - ySrc0;
-        double horizontalScaling = widthDest / widthSrc;
-        double verticalScaling = heightDest / heightSrc;
-        renderer.scale(horizontalScaling, verticalScaling);
+            // scale drawing appropriately
+            double widthDest = xDest1 - xDest0;
+            double heightDest = yDest1 - yDest0;
+            int widthSrc = xSrc1 - xSrc0;
+            int heightSrc = ySrc1 - ySrc0;
+            double horizontalScaling = widthDest / widthSrc;
+            double verticalScaling = heightDest / heightSrc;
+            renderer.scale(horizontalScaling, verticalScaling);
 
-        final int bx0Offset = bx0 + xSrc0;
-        final int by0Offset = by0 + ySrc0;
+            final int bx0Offset = bx0 + xSrc0;
+            final int by0Offset = by0 + ySrc0;
 
-        renderer.render(bx0Offset,
-                by0Offset,
-                widthSrc,
-                heightSrc,
-                zd,
-                hic.getControlZd(),
-                displayOption,
-                observedNormalizationType,
-                controlNormalizationType,
-                hic.getExpectedValues(),
-                hic.getExpectedControlValues(),
-                false);
+            renderer.render(bx0Offset,
+                    by0Offset,
+                    widthSrc,
+                    heightSrc,
+                    zd,
+                    hic.getControlZd(),
+                    displayOption,
+                    observedNormalizationType,
+                    controlNormalizationType,
+                    hic.getExpectedValues(),
+                    hic.getExpectedControlValues(),
+                    false);
 
-        renderer.scale(1, 1);
-        renderer.translate(0, 0);
+        } finally {
+            renderer.setTransform(originalTransform);
+        }
     }
 
     public void clearTileCache() {

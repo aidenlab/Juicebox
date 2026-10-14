@@ -11,7 +11,9 @@ trap 'rm -rf "$classes"' EXIT HUP INT TERM
 javac -proc:none -cp "$jar" -d "$classes" \
   "$root/tests/DesktopV10Regression.java" \
   "$root/tests/DesktopScaledAllRegression.java" \
-  "$root/tests/DesktopRenderRegression.java"
+  "$root/tests/DesktopRenderRegression.java" \
+  "$root/tests/DesktopTileRegression.java"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" DesktopV10Regression "$root/tests/data" "$@"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" DesktopScaledAllRegression "$root/tests/data/pseudo-all.hic" "$root/tests/data/kilobase-all.hic"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.mapcolorui.DesktopRenderRegression "$root/tests/data/expected.hic"
+java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.mapcolorui.DesktopTileRegression "$root/tests/data/expected.hic"
