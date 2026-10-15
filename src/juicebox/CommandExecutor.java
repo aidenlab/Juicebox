@@ -77,8 +77,20 @@ class CommandExecutor {
                                 || !Double.isFinite(scaleFactor) || scaleFactor <= 0) {
                             throw new IllegalArgumentException("Invalid location parameters");
                         }
-                        hic.setLocation(chrXName, chrYName, unit, binSize, xOrigin, yOrigin, scaleFactor,
-                                HiC.ZoomCallType.DIRECT, "Goto Sync", false);
+                        double allBinBP = 0, bpX = 0, bpY = 0;
+                        String locusX = null, locusY = null;
+                        if (args.size() > 8) {
+                            if (args.size() != 14 || !args.get(8).equals("all-locus") ||
+                                    !chrXName.equalsIgnoreCase("All") || !chrYName.equalsIgnoreCase("All"))
+                                throw new IllegalArgumentException("Invalid All sync metadata");
+                            allBinBP = Double.parseDouble(args.get(9));
+                            locusX = args.get(10); bpX = Double.parseDouble(args.get(11));
+                            locusY = args.get(12); bpY = Double.parseDouble(args.get(13));
+                            if (!Double.isFinite(allBinBP) || allBinBP <= 0 || !Double.isFinite(bpX) || bpX < 0 ||
+                                    !Double.isFinite(bpY) || bpY < 0) throw new IllegalArgumentException("Invalid All sync coordinates");
+                        }
+                        hic.setSynchronizedLocation(chrXName, chrYName, unit, binSize, xOrigin, yOrigin, scaleFactor,
+                                allBinBP, locusX, bpX, locusY, bpY);
                     } else {
                         result = "Not enough parameters";
                     }

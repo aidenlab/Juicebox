@@ -316,7 +316,8 @@ public class ChromosomeHandler {
 
     public void setAllOverview(javastraw.reader.v10.V10AllOverview overview) { allOverview = overview; }
     public javastraw.reader.v10.V10AllOverview getAllOverview() { return allOverview; }
-    public Chromosome getOverviewChromosome(long coordinate) {
+    public Chromosome getOverviewChromosome(long coordinate) { return getOverviewChromosome((double) coordinate); }
+    public Chromosome getOverviewChromosome(double coordinate) {
         if (allOverview != null) return getChromosomeFromIndex(allOverview.chromosomeForCoordinate(coordinate));
         long[] boundaries = getChromosomeBoundaries();
         for (int i = 0; i < boundaries.length; i++)
@@ -324,18 +325,66 @@ public class ChromosomeHandler {
         return chromosomeArrayWithoutAllByAll[chromosomeArrayWithoutAllByAll.length - 1];
     }
     public long getOverviewPosition(Chromosome chromosome, long coordinate) {
-        if (allOverview != null) return Math.min(chromosome.getLength() - 1,
-                allOverview.positionForCoordinate(chromosome.getIndex(), coordinate));
-        long start = 0;
-        for (Chromosome c : chromosomeArrayWithoutAllByAll) {
-            if (c.getIndex() == chromosome.getIndex()) return Math.max(0, (coordinate - start) * 1000);
-            start += c.getLength() / 1000;
+        return (long) getOverviewPositionBP(chromosome, coordinate);
+    }
+    public double getOverviewPositionBP(Chromosome chromosome, double coordinate) {
+        if (allOverview != null) {
+            for (int i = 0; i < allOverview.chromosomeIndices.length; i++) {
+                if (allOverview.chromosomeIndices[i] == chromosome.getIndex()) {
+                    double bp = allOverview.version == 2
+                            ? coordinate * allOverview.coordinateScale - allOverview.sourceOffsets[i]
+                            : (coordinate * allOverview.groupFactor / allOverview.finestResolution - allOverview.sourceOffsets[i]) * allOverview.sourceResolution;
+                    return Math.max(0, Math.min(chromosome.getLength() - 1, bp));
+                }
+            }
+        } else {
+            long start = 0;
+            for (Chromosome c : chromosomeArrayWithoutAllByAll) {
+                if (c.getIndex() == chromosome.getIndex()) return Math.max(0, (coordinate - start) * 1000);
+                start += c.getLength() / 1000;
+            }
         }
         throw new IllegalArgumentException("Unknown overview chromosome");
     }
+    /** Base pairs represented by one coordinate unit on this file's All axis. */
+    public double getOverviewCoordinateScale() {
+        if (allOverview == null) return 1000;
+        return allOverview.version == 2 ? allOverview.coordinateScale :
+                allOverview.sourceResolution * (double) allOverview.groupFactor / allOverview.finestResolution;
+    }
+
+    /** Inverse of getOverviewPosition, using the receiving file's own order and padding. */
+    public double getOverviewCoordinate(Chromosome chromosome, double position) {
+        if (chromosome == null || isAllByAll(chromosome)) throw new IllegalArgumentException("Unknown overview chromosome");
+        double bp = Math.max(0, Math.min(chromosome.getLength(), position));
+        if (allOverview != null) {
+            for (int i = 0; i < allOverview.chromosomeIndices.length; i++) {
+                if (allOverview.chromosomeIndices[i] == chromosome.getIndex()) {
+                    return allOverview.version == 2 ? (allOverview.sourceOffsets[i] + bp) / allOverview.coordinateScale :
+                        (allOverview.sourceOffsets[i] + bp / allOverview.sourceResolution) * allOverview.finestResolution / allOverview.groupFactor;
+                }
+            }
+        } else {
+            double offset = 0;
+            for (Chromosome c : chromosomeArrayWithoutAllByAll) {
+                if (c.getIndex() == chromosome.getIndex()) return offset + bp / 1000;
+                offset += c.getLength() / 1000;
+            }
+        }
+        throw new IllegalArgumentException("Unknown overview chromosome");
+    }
+
     public boolean hasSameOverviewLayout(ChromosomeHandler other) {
         javastraw.reader.v10.V10AllOverview a = allOverview, b = other.allOverview;
-        if (a == null || b == null) return a == b;
+        if (a == null || b == null) {
+            if (a != b || chromosomeArrayWithoutAllByAll.length != other.chromosomeArrayWithoutAllByAll.length) return false;
+            for (int i = 0; i < chromosomeArrayWithoutAllByAll.length; i++) {
+                Chromosome x = chromosomeArrayWithoutAllByAll[i], y = other.chromosomeArrayWithoutAllByAll[i];
+                if (!cleanUpName(x.getName()).equals(cleanUpName(y.getName())) || x.getLength() != y.getLength()) return false;
+            }
+            return true;
+        }
+        if (a.chromosomeIndices.length != b.chromosomeIndices.length) return false;
         if (a.version != b.version || a.effectiveResolution != b.effectiveResolution || a.binCount != b.binCount ||
                 (a.version == 2 ? !java.util.Arrays.equals(a.chromosomeLengths, b.chromosomeLengths) :
                 a.sourceResolution != b.sourceResolution || a.groupFactor != b.groupFactor ||

@@ -305,7 +305,8 @@ public class HiC {
         } else if (currentZoom == null) {
             throw new NullPointerException("Uninitialized zoom");
         } else {
-            return matrix.getZoomData(currentZoom);
+            return TransposedMatrixZoomData.orient(matrix.getZoomData(currentZoom),
+                    dataset.getChromosomeHandler().getChromosomeFromName(xContext.getChromosome().getName()).getIndex());
         }
     }
 
@@ -319,7 +320,8 @@ public class HiC {
         if (matrix == null || currentZoom == null) {
             return null;
         } else {
-            return matrix.getZoomData(currentZoom);
+            return TransposedMatrixZoomData.orient(matrix.getZoomData(currentZoom),
+                    controlDataset.getChromosomeHandler().getChromosomeFromName(xContext.getChromosome().getName()).getIndex());
         }
     }
 
@@ -711,7 +713,7 @@ public class HiC {
         if (currentZoom == null || currentZoom.getBinSize() != binSize || currentZoom.getUnit() != unit) {
             newZoom = new HiCZoom(unit, binSize);
         }
-        safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (long) xOrigin, (long) yOrigin, scaleFactor,
+        safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xOrigin, yOrigin, scaleFactor,
                 true, zoomCallType, message, allowLocationBroadcast);
     }
 
@@ -735,7 +737,7 @@ public class HiC {
     }
 
     private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
-                                                   final HiCZoom newZoom, final long genomeX, final long genomeY,
+                                                   final HiCZoom newZoom, final double genomeX, final double genomeY,
                                                    final double scaleFactor, final boolean resetZoom,
                                                    final ZoomCallType zoomCallType, String message,
                                                    final boolean allowLocationBroadcast) {
@@ -743,8 +745,11 @@ public class HiC {
         superAdapter.executeLongRunningTask(new Runnable() {
             @Override
             public void run() {
-                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                        resetZoom, zoomCallType, allowLocationBroadcast, isResolutionLocked() ? 1 : 0, true);
+                returnVal[0] = zoomCallType == ZoomCallType.DIRECT
+                        ? applyZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                            resetZoom, zoomCallType, allowLocationBroadcast, isResolutionLocked() ? 1 : 0, true)
+                        : unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (long) genomeX, (long) genomeY, scaleFactor,
+                            resetZoom, zoomCallType, allowLocationBroadcast, isResolutionLocked() ? 1 : 0, true);
             }
         }, message);
         return returnVal[0];
@@ -770,6 +775,14 @@ public class HiC {
                                                     boolean resetZoom, ZoomCallType zoomCallType,
                                                     boolean allowLocationBroadcast, int resolutionLocked, boolean storeZoomAction) {
 
+        return applyZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                resetZoom, zoomCallType, allowLocationBroadcast, resolutionLocked, storeZoomAction);
+    }
+
+    private boolean applyZoomAndLocation(String chrXName, String chrYName,
+            HiCZoom newZoom, double genomeX, double genomeY, double scaleFactor,
+            boolean resetZoom, ZoomCallType zoomCallType, boolean allowLocationBroadcast,
+            int resolutionLocked, boolean storeZoomAction) {
         if (dataset == null) return false;  // No data in view
 
         boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrXName)) &&
@@ -832,8 +845,9 @@ public class HiC {
             setScaleFactor(defaultScaleFactor);
         }
 
-        int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition(genomeX);
-        int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition(genomeY);
+        newZD = TransposedMatrixZoomData.orient(newZD, chrX.getIndex());
+        int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition((long) genomeX);
+        int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition((long) genomeY);
 
         if (zoomCallType == ZoomCallType.INITIAL || zoomCallType == ZoomCallType.STANDARD) {
             if (storeZoomAction || chromosomesChanged) {
@@ -866,7 +880,7 @@ public class HiC {
         }
 
         if (storeZoomAction) {
-            ZoomAction newZoomAction = new ZoomAction(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+            ZoomAction newZoomAction = new ZoomAction(chrXName, chrYName, newZoom, (long) genomeX, (long) genomeY, scaleFactor,
                     resetZoom, zoomCallType, resolutionLocked);
             if (zoomActionTracker.getCurrentZoomAction() == null) {
                 this.zoomActionTracker.addZoomState(newZoomAction);
@@ -933,8 +947,65 @@ public class HiC {
 //        if (!yChr.toLowerCase().equals("assembly") && !(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
 
-        return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
+        String command = "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
+        if (ChromosomeHandler.isAllByAll(xContext.getChromosome()) && ChromosomeHandler.isAllByAll(yContext.getChromosome())) {
+            double x = xContext.getBinOrigin() * currentZoom.getBinSize();
+            double y = yContext.getBinOrigin() * currentZoom.getBinSize();
+            Chromosome cx = chromosomeHandler.getOverviewChromosome(x);
+            Chromosome cy = chromosomeHandler.getOverviewChromosome(y);
+            command += " all-locus " + (currentZoom.getBinSize() * chromosomeHandler.getOverviewCoordinateScale()) +
+                    " " + cx.getName() + " " + chromosomeHandler.getOverviewPositionBP(cx, x) +
+                    " " + cy.getName() + " " + chromosomeHandler.getOverviewPositionBP(cy, y);
+        }
+        return command;
+    }
+
+    /** Resolve a sync command against this dataset, including its own All units and layout. */
+    public void setSynchronizedLocation(String xName, String yName, Unit unit, int binSize,
+            double x, double y, double scale, double allBinBP, String locusX, double bpX, String locusY, double bpY) {
+        if (dataset != null) {
+            ChromosomeHandler handler = dataset.getChromosomeHandler();
+            Chromosome cx = handler.getChromosomeFromName(xName), cy = handler.getChromosomeFromName(yName);
+            if ((cx == null || cy == null) && locusX != null) {
+                xName = locusX; yName = locusY;
+                cx = handler.getChromosomeFromName(xName); cy = handler.getChromosomeFromName(yName);
+                // HiCZoom uses int resolutions, while physical All bins can
+                // exceed that range. Keep positions and scale exact even when
+                // the temporary resolution used for lookup must be rounded.
+                binSize = (int) Math.max(1, Math.min(Integer.MAX_VALUE, Math.round(allBinBP)));
+                x = bpX / binSize; y = bpY / binSize;
+                scale *= binSize / allBinBP;
+            }
+            if (cx == null || cy == null) throw new IllegalArgumentException("Chromosome absent from receiving map");
+            Matrix matrix = dataset.getMatrix(cx, cy);
+            if (matrix == null) throw new IllegalArgumentException("Matrix absent from receiving map");
+            MatrixZoomData zd = matrix.getZoomData(new HiCZoom(unit, binSize));
+            if (ChromosomeHandler.isAllByAll(cx) && ChromosomeHandler.isAllByAll(cy)) {
+                zd = matrix.getFirstZoomData(Unit.BP);
+                if (zd == null) throw new IllegalArgumentException("All matrix unavailable");
+                if (locusX != null) {
+                    x = handler.getOverviewCoordinate(handler.getChromosomeFromName(locusX), bpX) / zd.getBinSize();
+                    y = handler.getOverviewCoordinate(handler.getChromosomeFromName(locusY), bpY) / zd.getBinSize();
+                    scale *= zd.getBinSize() * handler.getOverviewCoordinateScale() / allBinBP;
+                } else {
+                    double ratio = binSize / (double) zd.getBinSize();
+                    x *= ratio; y *= ratio; scale /= ratio;
+                }
+            } else if (zd == null) {
+                double distance = Double.POSITIVE_INFINITY;
+                for (HiCZoom zoom : unit == Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms()) {
+                    MatrixZoomData candidate = matrix.getZoomData(zoom);
+                    double d = Math.abs(Math.log(zoom.getBinSize() / (double) binSize));
+                    if (candidate != null && d < distance) { zd = candidate; distance = d; }
+                }
+                if (zd == null) throw new IllegalArgumentException("Resolution unavailable in receiving map");
+                double ratio = binSize / (double) zd.getBinSize();
+                x *= ratio; y *= ratio; scale /= ratio;
+            }
+            binSize = zd.getBinSize();
+        }
+        setLocation(xName, yName, unit, binSize, x, y, scale, ZoomCallType.DIRECT, "Goto Sync", false);
     }
 
     public String getDefaultLocationDescription() {

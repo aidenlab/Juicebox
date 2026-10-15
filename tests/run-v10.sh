@@ -15,11 +15,13 @@ javac -proc:none -cp "$jar" -d "$classes" \
   "$root/tests/DesktopTileRegression.java" \
   "$root/tests/DesktopModelRegression.java" \
   "$root/tests/DesktopStateRegression.java" \
-  "$root/tests/DesktopCommandRegression.java"
+  "$root/tests/DesktopCommandRegression.java" \
+  "$root/tests/DesktopChromosomeSyncRegression.java"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" DesktopV10Regression "$root/tests/data" "$@"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" DesktopScaledAllRegression "$root/tests/data/pseudo-all.hic" "$root/tests/data/kilobase-all.hic"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.mapcolorui.DesktopRenderRegression "$root/tests/data/expected.hic"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.mapcolorui.DesktopTileRegression "$root/tests/data/expected.hic"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.track.DesktopModelRegression "$root/tests/data/expected.hic"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.state.DesktopStateRegression
+java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.DesktopChromosomeSyncRegression "$root/tests/data"
 java -ea -Djava.awt.headless=true -Djava.io.tmpdir="$classes" -cp "$classes:$jar" juicebox.DesktopCommandRegression
