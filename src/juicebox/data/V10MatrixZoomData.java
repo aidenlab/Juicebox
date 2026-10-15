@@ -58,13 +58,13 @@ public class V10MatrixZoomData extends MatrixZoomData {
     private ContactRecord displayRecord(javastraw.reader.block.ContactRecord record) {
         if (overviewStride == 1) return convert(record);
         int x = record.getBinX() / overviewStride, y = record.getBinY() / overviewStride;
-        BigInteger exact = record instanceof javastraw.reader.block.V10ContactRecord ? record.getExactCount() : null;
-        return exact == null ? new ContactRecord(x, y, record.getCounts()) : new ExactRecord(x, y, exact);
+        return record instanceof javastraw.reader.block.V10ContactRecord
+                ? new ExactRecord(x, y, record) : new ContactRecord(x, y, record.getCounts());
     }
     static ContactRecord convert(javastraw.reader.block.ContactRecord record) {
-        BigInteger exact = record instanceof javastraw.reader.block.V10ContactRecord ? record.getExactCount() : null;
-        return exact == null ? new ContactRecord(record.getBinX(), record.getBinY(), record.getCounts())
-                : new ExactRecord(record.getBinX(), record.getBinY(), exact);
+        return record instanceof javastraw.reader.block.V10ContactRecord
+                ? new ExactRecord(record.getBinX(), record.getBinY(), record)
+                : new ContactRecord(record.getBinX(), record.getBinY(), record.getCounts());
     }
     public Block readBlock(int number, NormalizationType type) throws IOException {
         javastraw.reader.block.Block block = delegate.readNormalizedBlock(number, DatasetReaderV10.norm(type));
@@ -177,9 +177,13 @@ public class V10MatrixZoomData extends MatrixZoomData {
     }
 
     static final class ExactRecord extends ContactRecord {
-        private BigInteger exact;
+        private Object exact;
         ExactRecord(int x, int y, BigInteger count) { super(x, y, count.floatValue()); exact = count; }
-        @Override public BigInteger getExactCount() { return exact; }
+        ExactRecord(int x, int y, javastraw.reader.block.ContactRecord source) { super(x, y, source.getCounts()); exact = source; }
+        @Override public BigInteger getExactCount() {
+            return exact instanceof javastraw.reader.block.ContactRecord
+                    ? ((javastraw.reader.block.ContactRecord) exact).getExactCount() : (BigInteger) exact;
+        }
         @Override public void incrementCount(float score) { super.incrementCount(score); exact = null; }
     }
 }

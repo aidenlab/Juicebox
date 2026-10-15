@@ -180,7 +180,10 @@ public class DatasetReaderV10 extends AbstractDatasetReader {
         for (ActionListener listener : listeners) box.addActionListener(listener);
         return Collections.singletonList(box);
     }
-    public void close() { delegate.clearBlockCache(); }
+    public void close() {
+        try { delegate.close(); }
+        catch (IOException e) { throw new IllegalStateException("Could not close v10 reader", e); }
+    }
     public String readStats() throws IOException { read(); return delegate.getHeader().attributes.get("statistics"); }
     public juicebox.matrix.BasicMatrix readPearsons(String chromosome1, String chromosome2, HiCZoom zoom, NormalizationType type) { return null; }
 
